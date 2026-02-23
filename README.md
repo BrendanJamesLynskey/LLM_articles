@@ -25,6 +25,7 @@ This repository serves as a knowledge base for anyone working with or researchin
 | Power and Thermal Management | [PDF](articles/power_and_thermal_management.pdf) · [MD](articles/power_and_thermal_management.md) |
 | Open-Weights LLM Landscape | [PDF](articles/open_weights_llm_landscape.pdf) · [MD](articles/open_weights_llm_landscape.md) |
 | Memory Hierarchy and Offloading | [PDF](articles/memory_hierarchy_and_offloading.pdf) · [MD](articles/memory_hierarchy_and_offloading.md) |
+| GPU Power Variability | [PDF](articles/gpu_power_variability.pdf) · [MD](articles/gpu_power_variability.md) |
 
 ## Repository Structure
 

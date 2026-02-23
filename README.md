@@ -8,23 +8,23 @@ This repository serves as a knowledge base for anyone working with or researchin
 
 ## Articles
 
-| Topic | Description |
-|-------|-------------|
-| [Batching in LLM Inference](articles/batching_report.pdf) | Static batching, continuous batching, disaggregated prefill/decode, speculative decoding, and PagedAttention |
-| [KV Cache Optimization](articles/kv_cache_optimization.pdf) | Memory management strategies for key-value caches including paging, compression, and quantization |
-| [Quantization for Inference](articles/quantization_for_inference.pdf) | Weight and activation quantization from FP16 down to INT4/FP4, calibration methods, and accuracy trade-offs |
-| [Mixture of Experts](articles/mixture_of_experts.pdf) | Sparse MoE architectures, routing strategies, load balancing, and implications for serving infrastructure |
-| [RLHF and Alignment](articles/rlhf_and_alignment.pdf) | Reinforcement learning from human feedback, DPO, reward modeling, and preference optimization |
-| [Prompt Engineering](articles/prompt_engineering.pdf) | Chain-of-thought, few-shot prompting, system prompts, structured outputs, and tool use patterns |
-| [Evaluation and Benchmarks](articles/evaluation_and_benchmarks.pdf) | LLM evaluation methodology, popular benchmarks, contamination risks, and human evaluation design |
-| [Distributed Training](articles/distributed_training.pdf) | Data parallelism, tensor parallelism, pipeline parallelism, and ZeRO-style memory optimization |
-| [Context Window Scaling](articles/context_window_scaling.pdf) | Extending context length through RoPE scaling, sparse attention, ring attention, and memory-augmented approaches |
-| [Tokenization](articles/tokenization.pdf) | BPE, SentencePiece, vocabulary design, multilingual considerations, and the impact of tokenization on model behavior |
-| [Distributed Inference on Small GPUs](articles/distributed_llm_inference_report.pdf) | Tensor, pipeline, sequence, and expert parallelism for multi-chip inference; communication bottlenecks; KV-cache management; quantization; continuous batching; and framework comparison |
-| [Speculative Decoding](articles/speculative_decoding.pdf) | Draft-then-verify inference acceleration, acceptance criteria, self-drafting, Medusa heads, n-gram drafting, and interaction with distributed systems |
-| [Power and Thermal Management](articles/power_and_thermal_management.pdf) | GPU power anatomy, thermal throttling, air/liquid/immersion cooling, power capping, DVFS, quantization as energy strategy, and efficiency metrics |
-| [Open-Weights LLM Landscape](articles/open_weights_llm_landscape.pdf) | Survey of Llama, Mistral, Qwen, Gemma, DeepSeek, and other open-weights families; licensing, architecture features, quantization formats, and deployment guidance |
-| [Memory Hierarchy and Offloading](articles/memory_hierarchy_and_offloading.pdf) | GPU/CPU/NVMe memory tiers, weight and KV-cache offloading, hybrid CPU-GPU inference, FlexGen, prefetching strategies, and practical bandwidth budgeting |
+| Topic | Format |
+|-------|--------|
+| Batching in LLM Inference | [PDF](articles/batching_report.pdf) · [MD](articles/batching_report.md) |
+| KV Cache Optimization | [PDF](articles/kv_cache_optimization.pdf) · [MD](articles/kv_cache_optimization.md) |
+| Quantization for Inference | [PDF](articles/quantization_for_inference.pdf) · [MD](articles/quantization_for_inference.md) |
+| Mixture of Experts | [PDF](articles/mixture_of_experts.pdf) · [MD](articles/mixture_of_experts.md) |
+| RLHF and Alignment | [PDF](articles/rlhf_and_alignment.pdf) · [MD](articles/rlhf_and_alignment.md) |
+| Prompt Engineering | [PDF](articles/prompt_engineering.pdf) · [MD](articles/prompt_engineering.md) |
+| Evaluation and Benchmarks | [PDF](articles/evaluation_and_benchmarks.pdf) · [MD](articles/evaluation_and_benchmarks.md) |
+| Distributed Training | [PDF](articles/distributed_training.pdf) · [MD](articles/distributed_training.md) |
+| Context Window Scaling | [PDF](articles/context_window_scaling.pdf) · [MD](articles/context_window_scaling.md) |
+| Tokenization | [PDF](articles/tokenization.pdf) · [MD](articles/tokenization.md) |
+| Distributed Inference on Small GPUs | [PDF](articles/distributed_llm_inference_report.pdf) · [MD](articles/distributed_llm_inference_report.md) |
+| Speculative Decoding | [PDF](articles/speculative_decoding.pdf) · [MD](articles/speculative_decoding.md) |
+| Power and Thermal Management | [PDF](articles/power_and_thermal_management.pdf) · [MD](articles/power_and_thermal_management.md) |
+| Open-Weights LLM Landscape | [PDF](articles/open_weights_llm_landscape.pdf) · [MD](articles/open_weights_llm_landscape.md) |
+| Memory Hierarchy and Offloading | [PDF](articles/memory_hierarchy_and_offloading.pdf) · [MD](articles/memory_hierarchy_and_offloading.md) |
 
 ## Repository Structure
 

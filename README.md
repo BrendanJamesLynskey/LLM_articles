@@ -21,6 +21,10 @@ This repository serves as a knowledge base for anyone working with or researchin
 | [Context Window Scaling](articles/context_window_scaling.pdf) | Extending context length through RoPE scaling, sparse attention, ring attention, and memory-augmented approaches |
 | [Tokenization](articles/tokenization.pdf) | BPE, SentencePiece, vocabulary design, multilingual considerations, and the impact of tokenization on model behavior |
 | [Distributed Inference on Small GPUs](articles/distributed_llm_inference_report.pdf) | Tensor, pipeline, sequence, and expert parallelism for multi-chip inference; communication bottlenecks; KV-cache management; quantization; continuous batching; and framework comparison |
+| [Speculative Decoding](articles/speculative_decoding.pdf) | Draft-then-verify inference acceleration, acceptance criteria, self-drafting, Medusa heads, n-gram drafting, and interaction with distributed systems |
+| [Power and Thermal Management](articles/power_and_thermal_management.pdf) | GPU power anatomy, thermal throttling, air/liquid/immersion cooling, power capping, DVFS, quantization as energy strategy, and efficiency metrics |
+| [Open-Weights LLM Landscape](articles/open_weights_llm_landscape.pdf) | Survey of Llama, Mistral, Qwen, Gemma, DeepSeek, and other open-weights families; licensing, architecture features, quantization formats, and deployment guidance |
+| [Memory Hierarchy and Offloading](articles/memory_hierarchy_and_offloading.pdf) | GPU/CPU/NVMe memory tiers, weight and KV-cache offloading, hybrid CPU-GPU inference, FlexGen, prefetching strategies, and practical bandwidth budgeting |
 
 ## Repository Structure
 

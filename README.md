@@ -34,16 +34,6 @@ This repository serves as a knowledge base for anyone working with or researchin
 - **Researchers** wanting concise overviews of specific subfields with pointers to primary sources
 - **Students** building foundational knowledge of modern LLM systems
 
-## Contributing
-
-Contributions are welcome. If you'd like to add an article or improve an existing one:
-
-1. Fork the repository
-2. Create a branch (`git checkout -b article/your-topic`)
-3. Write your article in `articles/` following the existing format
-4. Open a pull request with a brief summary of the topic and why it's a useful addition
-
-Please keep articles technically grounded and cite primary sources where possible.
 
 ## License
 

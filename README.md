@@ -4,7 +4,7 @@ A curated collection of articles, technical reports, and deep dives exploring la
 
 ## About
 
-This repository serves as a knowledge base for anyone working with or researching LLMs. Each article is a self-contained document covering a specific topic in depth, written to be accessible to engineers and researchers with a working knowledge of machine learning fundamentals.
+This repository holds a few LLM-related articles that interest me.
 
 ## Articles
 

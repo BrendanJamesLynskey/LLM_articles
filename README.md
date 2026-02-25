@@ -27,13 +27,6 @@ This repository serves as a knowledge base for anyone working with or researchin
 | Memory Hierarchy and Offloading | [PDF](articles/memory_hierarchy_and_offloading.pdf) · [MD](articles/memory_hierarchy_and_offloading.md) |
 | GPU Power Variability | [PDF](articles/gpu_power_variability.pdf) · [MD](articles/gpu_power_variability.md) |
 
-## Repository Structure
-
-```
-├── articles/           # Long-form articles in Markdown
-├── figures/            # Diagrams and illustrations referenced by articles
-├── references/         # BibTeX files and supplementary citations
-└── README.md
 ```
 
 ## Who This Is For

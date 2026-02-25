@@ -1,7 +1,5 @@
 # 📚 LLM Articles
 
-A curated collection of articles, technical reports, and deep dives exploring large language models — from inference optimization to training techniques, evaluation methodology, and deployment at scale.
-
 ## About
 
 This repository holds a few LLM-related articles that interest me.
@@ -27,12 +25,6 @@ This repository holds a few LLM-related articles that interest me.
 | Memory Hierarchy and Offloading | [PDF](articles/memory_hierarchy_and_offloading.pdf) · [MD](articles/memory_hierarchy_and_offloading.md) |
 | GPU Power Variability | [PDF](articles/gpu_power_variability.pdf) · [MD](articles/gpu_power_variability.md) |
 
-
-## Who This Is For
-
-- **ML engineers** deploying LLMs in production and looking to understand optimization techniques
-- **Researchers** wanting concise overviews of specific subfields with pointers to primary sources
-- **Students** building foundational knowledge of modern LLM systems
 
 
 ## License

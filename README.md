@@ -1,4 +1,4 @@
-# 📚 LLM Papers & Articles
+# 📚 LLM Articles
 
 A curated collection of articles, technical reports, and deep dives exploring large language models — from inference optimization to training techniques, evaluation methodology, and deployment at scale.
 

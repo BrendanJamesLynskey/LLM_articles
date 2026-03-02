@@ -25,6 +25,7 @@ This repository holds a few LLM-related articles that interest me.
 | Memory Hierarchy and Offloading | [PDF](articles/memory_hierarchy_and_offloading.pdf) · [MD](articles/memory_hierarchy_and_offloading.md) |
 | GPU Power Variability | [PDF](articles/gpu_power_variability.pdf) · [MD](articles/gpu_power_variability.md) |
 | Non-Deterministic Output in Ollama | [PDF](articles/ollama_nondeterminism.pdf) · [MD](articles/ollama_nondeterminism.md) |
+| Mixed-Precision Arithmetic for Inference | [PDF](articles/mixed_precision_arithmetic.pdf) · [MD](articles/mixed_precision_arithmetic.md) |
 
 ## License
 

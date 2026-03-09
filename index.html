@@ -146,9 +146,10 @@
   .filter-pill:hover { border-color: var(--amber); color: var(--amber); }
   .filter-pill.active { border-color: var(--amber); color: var(--bg); background: var(--amber); }
 
-  /* ── Article Cards ── */
+  /* ── Article Cards — grid of cards ── */
   .articles-grid {
     display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1em;
   }
 
@@ -156,33 +157,35 @@
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 1.2em 1.4em;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 1em;
-    align-items: center;
+    padding: 1.2em 1.3em;
+    display: flex;
+    flex-direction: column;
     transition: border-color .2s, transform .15s;
   }
   .article-card:hover {
     border-color: #3a3a5a;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
 
+  .article-info {
+    flex: 1;
+  }
   .article-info h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.1em;
+    font-size: 1.05em;
     font-weight: 700;
     color: var(--text);
     margin-bottom: .35em;
+    line-height: 1.25;
   }
   .article-info .category {
     font-family: 'JetBrains Mono', monospace;
-    font-size: .6em;
+    font-size: .58em;
     padding: .15em .5em;
     border-radius: 3px;
     letter-spacing: .04em;
     display: inline-block;
-    margin-bottom: .4em;
+    margin-bottom: .5em;
   }
   .cat-architecture { background: rgba(167,139,250,.15); color: var(--purple); }
   .cat-inference { background: rgba(245,166,35,.15); color: var(--amber); }
@@ -191,20 +194,24 @@
   .cat-practical { background: rgba(96,165,250,.15); color: var(--blue); }
 
   .article-info .desc {
-    font-size: .82em;
+    font-size: .78em;
     color: var(--muted);
     line-height: 1.5;
+    margin-bottom: .8em;
   }
 
   .article-links {
     display: flex;
-    gap: .5em;
-    flex-shrink: 0;
+    gap: .4em;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: .5em;
+    border-top: 1px solid var(--border);
   }
   .article-links a {
     font-family: 'JetBrains Mono', monospace;
-    font-size: .72em;
-    padding: .4em .8em;
+    font-size: .68em;
+    padding: .35em .7em;
     border-radius: 5px;
     text-decoration: none;
     transition: all .2s;

@@ -4,7 +4,7 @@
 
 This repository holds a few LLM-related articles that interest me.
 
-**[Browse the collection](index.html)** — interactive landing page with search and category filters.
+**[Browse the collection](https://brendanjameslynskey.github.io/LLM_articles/)** — interactive landing page with search and category filters.
 
 ## Articles
 

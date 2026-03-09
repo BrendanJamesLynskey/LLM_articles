@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/black.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root {
     --amber:  #f5a623;
@@ -24,7 +24,7 @@
     --muted:  #8888a8;
   }
   .reveal-viewport { background: var(--bg); }
-  .reveal .slides section { background: transparent; padding-top: .5em; }
+  .reveal .slides section { background: transparent; overflow-y: auto !important; padding-top: .5em; align-items: flex-start !important; justify-content: flex-start !important; }
   .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
   .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
   .reveal h1 { font-size: 2.4em; color: var(--amber); line-height: 1.15; }
@@ -719,11 +719,26 @@
 
 </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
 <script>
 Reveal.initialize({ hash: true, center:false, transition: 'fade', transitionSpeed: 'fast',
-  margin: 0.04, width: 1280, height: 720, view: 'scroll', scrollProgress: true, scrollLayout: 'compact' });
+  margin: 0.04, width: 1280, height: 720 });
 
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 720;
+  var m = Reveal.getConfig().margin || 0.04;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
 </script>
 </body>
 </html>

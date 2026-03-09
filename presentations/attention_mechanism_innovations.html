@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attention Mechanism Innovations | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="mono" style="font-size:.55em;color:var(--muted);margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Attention Mechanism Innovations</h1>
+  <p class="subtitle">Architectural and Algorithmic Advances in Transformer Attention</p>
+  <div>
+    <span class="pill amber">MHA</span>
+    <span class="pill green">GQA</span>
+    <span class="pill purple">MLA</span>
+    <span class="pill blue">FlashAttention</span>
+    <span class="pill amber">RoPE</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">March 2026</p>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 2: The Core Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>The Core Problem</h2></div>
+  <p>Standard self-attention computes scores between <span class="a">all N&sup2; token pairs</span>, creating a quadratic bottleneck in both compute and memory.</p>
+  <div class="cols cols-3" style="margin-top:.6em">
+    <div class="card amber">
+      <h3>4K Context</h3>
+      <p><span class="a">16M</span> attention entries per head</p>
+    </div>
+    <div class="card red">
+      <h3>128K Context</h3>
+      <p><span class="r">16B</span> attention entries per head</p>
+    </div>
+    <div class="card purple">
+      <h3>KV Cache (70B)</h3>
+      <p><span class="p">~5 GB</span> for a single 4K sequence with MHA</p>
+    </div>
+  </div>
+  <p style="margin-top:.6em">Every innovation in this report addresses one or both of these pressures: <span class="g">quadratic compute cost</span> and <span class="a">KV cache memory</span>.</p>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 3: Multi-Head Attention Foundations -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Multi-Head Attention (MHA)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The original design runs <span class="a">h parallel attention heads</span>, each with independent Q, K, V projections into dimension d<sub>k</sub> = d<sub>model</sub> / h.</p>
+      <pre><code>Attention(Q, K, V) = softmax(QK&#7488; / &#8730;d_k) V</code></pre>
+      <ul>
+        <li>Each head learns different patterns: syntactic, semantic, positional</li>
+        <li>Outputs concatenated and projected to d<sub>model</sub></li>
+        <li>KV cache: <span class="r">h &#215; d_k &#215; 2</span> values per token per layer</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 240" width="280" height="240">
+        <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="var(--muted)" stroke-width="1"/></marker></defs>
+        <rect x="10" y="10" width="260" height="30" rx="4" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="140" y="30" text-anchor="middle" fill="var(--amber)" font-size="13" font-family="JetBrains Mono">Input: x &#8712; R^d_model</text>
+        <line x1="60" y1="40" x2="60" y2="70" stroke="var(--amber)" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="140" y1="40" x2="140" y2="70" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="220" y1="40" x2="220" y2="70" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="20" y="70" width="80" height="28" rx="4" fill="var(--bg2)" stroke="var(--amber)"/>
+        <text x="60" y="89" text-anchor="middle" fill="var(--amber)" font-size="12" font-family="JetBrains Mono">W_Q</text>
+        <rect x="100" y="70" width="80" height="28" rx="4" fill="var(--bg2)" stroke="var(--green)"/>
+        <text x="140" y="89" text-anchor="middle" fill="var(--green)" font-size="12" font-family="JetBrains Mono">W_K</text>
+        <rect x="180" y="70" width="80" height="28" rx="4" fill="var(--bg2)" stroke="var(--purple)"/>
+        <text x="220" y="89" text-anchor="middle" fill="var(--purple)" font-size="12" font-family="JetBrains Mono">W_V</text>
+        <line x1="140" y1="98" x2="140" y2="130" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arr)"/>
+        <rect x="40" y="130" width="200" height="28" rx="4" fill="var(--bg2)" stroke="var(--blue)"/>
+        <text x="140" y="149" text-anchor="middle" fill="var(--blue)" font-size="12" font-family="JetBrains Mono">h &#215; Scaled Dot-Product</text>
+        <line x1="140" y1="158" x2="140" y2="185" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arr)"/>
+        <rect x="40" y="185" width="200" height="28" rx="4" fill="var(--bg2)" stroke="var(--amber)"/>
+        <text x="140" y="204" text-anchor="middle" fill="var(--amber)" font-size="12" font-family="JetBrains Mono">Concat + W_O</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 4: MQA and GQA -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>MQA and Grouped-Query Attention</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Multi-Query Attention (MQA)</h3>
+      <ul>
+        <li><span class="a">Single KV head</span> shared across all query heads</li>
+        <li>KV cache reduced by <span class="a">h&#215;</span> (e.g. 32&#215; for 32-head model)</li>
+        <li>0.5&#8211;1.0% perplexity degradation vs MHA</li>
+        <li>Adopted: PaLM, Falcon, StarCoder</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Grouped-Query Attention (GQA)</h3>
+      <ul>
+        <li>Query heads grouped into <span class="g">g groups</span>, each sharing one KV head</li>
+        <li>Sweet spot: <span class="g">4:1 to 8:1</span> query-to-KV ratio</li>
+        <li>Minimal quality loss with large cache savings</li>
+        <li>Adopted: Llama 2/3, Mistral, Gemma 2, Qwen 2</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Uptraining: MHA to GQA</h3>
+    <p>Existing MHA models can be converted to GQA by <span class="b">mean-pooling adjacent KV heads</span> within each group, then fine-tuning for only <span class="b">5&#8211;10%</span> of original training compute. This made GQA adoption practical without training from scratch.</p>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 5: Multi-Latent Attention -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Multi-Latent Attention (MLA)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>DeepSeek-V2/V3 compresses the joint KV representation into a <span class="p">low-rank latent vector</span> instead of sharing heads.</p>
+      <ul>
+        <li>Input projected to compressed latent: <span class="p">c_t = W<sub>DKV</sub> &#183; x_t</span></li>
+        <li>Full K, V reconstructed via up-projection during attention</li>
+        <li>128 heads, d<sub>k</sub>=128: KV cache <span class="p">64&#215; reduction</span> (32,768 &#8594; 512 values)</li>
+        <li><span class="g">Virtually no quality loss</span> vs full MHA</li>
+        <li>RoPE absorbed into query side &#8212; latent is position-independent</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 240 220" width="240" height="220">
+        <defs><marker id="arr2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="var(--muted)" stroke-width="1"/></marker></defs>
+        <rect x="40" y="10" width="160" height="28" rx="4" fill="var(--bg2)" stroke="var(--amber)"/>
+        <text x="120" y="29" text-anchor="middle" fill="var(--amber)" font-size="11" font-family="JetBrains Mono">x_t &#8712; R^d_model</text>
+        <line x1="120" y1="38" x2="120" y2="65" stroke="var(--purple)" stroke-width="2" marker-end="url(#arr2)"/>
+        <rect x="40" y="65" width="160" height="28" rx="4" fill="var(--bg2)" stroke="var(--purple)"/>
+        <text x="120" y="84" text-anchor="middle" fill="var(--purple)" font-size="11" font-family="JetBrains Mono">W_DKV compress</text>
+        <line x1="120" y1="93" x2="120" y2="118" stroke="var(--purple)" stroke-width="2" marker-end="url(#arr2)"/>
+        <rect x="55" y="118" width="130" height="28" rx="6" fill="var(--purple)" fill-opacity="0.15" stroke="var(--purple)" stroke-width="2"/>
+        <text x="120" y="137" text-anchor="middle" fill="var(--purple)" font-size="12" font-weight="600" font-family="JetBrains Mono">c_t &#8712; R^d_c</text>
+        <text x="120" y="160" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="DM Sans">cached (d_c = 512)</text>
+        <line x1="120" y1="165" x2="120" y2="178" stroke="var(--green)" stroke-width="2" marker-end="url(#arr2)"/>
+        <rect x="30" y="178" width="180" height="28" rx="4" fill="var(--bg2)" stroke="var(--green)"/>
+        <text x="120" y="197" text-anchor="middle" fill="var(--green)" font-size="11" font-family="JetBrains Mono">Up-project &#8594; K, V</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 6: Efficient Attention Patterns -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Efficient Attention Patterns</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Sliding Window</h3>
+      <ul>
+        <li>Each token attends to <span class="g">w most recent</span> tokens only</li>
+        <li>O(N &#215; w) complexity &#8212; linear in N</li>
+        <li>Mistral 7B: w = 4,096 with full attention at periodic layers</li>
+        <li>KV cache bounded regardless of sequence length</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Sparse Attention</h3>
+      <ul>
+        <li><span class="p">Fixed patterns</span>: strided, block-sparse (Sparse Transformer)</li>
+        <li><span class="p">Learned patterns</span>: routing via query-key clustering</li>
+        <li>BigBird: local + global + random = <span class="p">Turing complete</span></li>
+        <li>NSA (2025): hardware-aligned learned block selection</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card blue">
+      <h3>Dilated Attention</h3>
+      <p>Attend to w tokens at intervals of dilation factor d. LongNet uses exponentially increasing dilation across heads for <span class="b">multi-scale</span> coverage at O(N) cost.</p>
+    </div>
+    <div class="card amber">
+      <h3>Linear Attention</h3>
+      <p>Performer, cosFormer: kernel approximations avoid N&#215;N matrix. <span class="a">O(Nd&#178;)</span> complexity. Limited adoption due to 1&#8211;3 PPL quality gap on retrieval tasks.</p>
+    </div>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 7: RoPE and Positional Encoding -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Positional Encoding: RoPE Dominance</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p><span class="a">Rotary Position Embeddings</span> (Su et al., 2021) apply position-dependent rotations to Q and K vectors.</p>
+      <pre><code>(R_m q)^T (R_n k) = q^T R_{n-m} k</code></pre>
+      <ul>
+        <li>Dot product depends only on <span class="g">relative position m&#8722;n</span></li>
+        <li>Compatible with FlashAttention and efficient kernels</li>
+        <li>Rotation frequencies tunable for context extension</li>
+      </ul>
+      <p style="margin-top:.4em">Adopted by: Llama 1/2/3, Mistral, Qwen, Gemma, Phi, Yi, DeepSeek, InternLM</p>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Context Extension</h3>
+        <ul>
+          <li><span class="a">PI</span>: scale indices down by extension factor</li>
+          <li><span class="g">NTK-aware</span>: non-uniform scaling preserving high frequencies</li>
+          <li><span class="p">YaRN</span>: NTK + temperature adjustment &#8212; most widely used</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>ALiBi (Legacy)</h3>
+        <p>Linear distance bias on scores. Good extrapolation but rigid. Superseded by RoPE + interpolation. Used by BLOOM, MPT.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 8: FlashAttention -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>FlashAttention: IO-Aware Computation</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Restructures attention to work on <span class="a">tiles fitting in GPU SRAM</span> rather than materializing the full N&#215;N matrix in HBM.</p>
+      <ul>
+        <li>Online softmax trick: exact attention computed incrementally</li>
+        <li><span class="g">O(N) memory</span> with zero approximation</li>
+        <li>Universal default in all major frameworks</li>
+      </ul>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Evolution</h3>
+        <ul>
+          <li><span class="a">FA-1</span>: IO-aware tiling</li>
+          <li><span class="g">FA-2</span>: better parallelism, 50&#8211;73% A100 peak</li>
+          <li><span class="p">FA-3</span>: H100 Hopper features, 1.2+ PFLOPS</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.6em">
+        <h3>Ring Attention</h3>
+        <p>Distributes attention across devices in a logical ring. Overlaps communication with compute. Enables <span class="p">1M+ token</span> contexts across GPU clusters.</p>
+      </div>
+      <div class="card blue">
+        <h3>PagedAttention (vLLM)</h3>
+        <p>Virtual memory for KV cache. Fixed-size pages allocated on demand. Eliminates <span class="b">60&#8211;80% memory waste</span> from fragmentation. Copy-on-write for shared prefixes.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 9: Softmax Alternatives and Gating -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Softmax Alternatives &amp; Gating</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Softcapping</h3>
+      <ul>
+        <li>Used in <span class="a">Gemma 2</span></li>
+        <li>tanh-based clamp on attention logits</li>
+        <li>Prevents extreme values before softmax</li>
+        <li>Improves training stability at scale</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Log-n Attention</h3>
+      <ul>
+        <li>Scales logits by ratio of current to reference sequence length</li>
+        <li>Compensates for <span class="g">entropy growth</span> in longer contexts</li>
+        <li>Better length generalization</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Differential Attention</h3>
+      <ul>
+        <li>Two softmax heads <span class="p">subtracted</span> from each other</li>
+        <li>Cancels noise, surfaces signal</li>
+        <li>Reduces hallucination</li>
+        <li>Improves long-context extraction</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.7em">These modifications are individually small but <span class="a">meaningfully improve</span> stability and quality, particularly for long-context training and inference.</p>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 10: SwiGLU and RMSNorm -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>SwiGLU &amp; RMSNorm</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>SwiGLU Feed-Forward</h3>
+      <p>Replaces the original ReLU FFN between attention layers.</p>
+      <ul>
+        <li>Element-wise product of <span class="a">Swish-activated</span> projection and linear gate</li>
+        <li>~50% more parameters than standard two-layer FFN at same hidden dim</li>
+        <li>Smoother gradients, consistently better quality</li>
+        <li>Interaction with GQA/MLA defines the <span class="a">parameter allocation</span> of each block</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>RMSNorm</h3>
+      <p>Replaces LayerNorm in most modern transformers.</p>
+      <ul>
+        <li>Normalizes by <span class="g">root mean square</span> without mean subtraction</li>
+        <li>~50% less computation than LayerNorm</li>
+        <li>Equivalent training stability</li>
+        <li>Combined with <span class="g">pre-normalization</span> (norm before attention, not after)</li>
+        <li>Used by Llama, Mistral, Gemma, and most recent families</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.5em">Together, SwiGLU + RMSNorm + GQA/MLA define the <span class="p">modern transformer block</span> recipe adopted by nearly all leading model families.</p>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 11: Alternative Architectures -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Alternative Architectures</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Mamba (SSM)</h3>
+      <ul>
+        <li><span class="p">Selective state spaces</span>: input-dependent transitions</li>
+        <li>O(N) training, O(1) per-step inference, no KV cache</li>
+        <li>Competitive quality up to 2.8B params</li>
+        <li>Mamba-2: connects SSMs and attention theoretically</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>RWKV</h3>
+      <ul>
+        <li>RNN-transformer hybrid with <span class="b">linear complexity</span></li>
+        <li>WKV mechanism: exponential decay favoring recency</li>
+        <li>Trained up to 14B parameters</li>
+        <li>Weak on needle-in-a-haystack retrieval</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card green">
+      <h3>Jamba (Hybrid)</h3>
+      <ul>
+        <li>Interleaves attention (GQA) + Mamba layers</li>
+        <li>1 attention layer per 3&#8211;4 Mamba layers</li>
+        <li><span class="g">8&#215; KV cache reduction</span> vs pure attention</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>RetNet &amp; xLSTM</h3>
+      <ul>
+        <li>RetNet: exponential decay, 3 computation modes</li>
+        <li>xLSTM: exponential gating + matrix memory</li>
+        <li>Both approach transformer quality at moderate scales</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 12: Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Architecture Comparison</h2></div>
+  <table>
+    <thead>
+      <tr><th>Approach</th><th>Complexity</th><th>KV Cache / Token</th><th>Key Trade-off</th><th>Adoption</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">MHA</span></td><td>O(N&#178;)</td><td>h &#215; d<sub>k</sub> &#215; 2</td><td>Baseline quality</td><td>Legacy</td></tr>
+      <tr><td><span class="a">MQA</span></td><td>O(N&#178;)</td><td>d<sub>k</sub> &#215; 2</td><td>Quality vs cache</td><td>PaLM, Falcon</td></tr>
+      <tr><td><span class="g">GQA</span></td><td>O(N&#178;)</td><td>g &#215; d<sub>k</sub> &#215; 2</td><td>Balanced</td><td>Llama 2/3, Mistral</td></tr>
+      <tr><td><span class="p">MLA</span></td><td>O(N&#178;)</td><td>d<sub>c</sub> (compressed)</td><td>Low-rank fidelity</td><td>DeepSeek-V2/V3</td></tr>
+      <tr><td><span class="b">Sliding Window</span></td><td>O(N&#215;w)</td><td>w &#215; head_size</td><td>Range vs efficiency</td><td>Mistral, Mixtral</td></tr>
+      <tr><td><span class="g">Mamba</span></td><td>O(N)</td><td>Fixed state</td><td>Retrieval quality</td><td>Emerging</td></tr>
+      <tr><td><span class="b">Jamba</span></td><td>O(N) amort.</td><td>Reduced (attn subset)</td><td>Hybrid complexity</td><td>Production (52B)</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 13: Composability -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Composability Across the Stack</h2></div>
+  <p>Modern LLM architectures compose multiple innovations at different levels:</p>
+  <div class="cols cols-2" style="margin-top:.5em">
+    <div>
+      <div class="card amber" style="margin-bottom:.5em">
+        <h3>Architecture Level</h3>
+        <p><span class="a">GQA or MLA</span> determines head structure and KV cache footprint</p>
+      </div>
+      <div class="card green" style="margin-bottom:.5em">
+        <h3>Position Level</h3>
+        <p><span class="g">RoPE + YaRN</span> provides robust context extension</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.5em">
+        <h3>Implementation Level</h3>
+        <p><span class="b">FlashAttention</span> eliminates attention matrix memory overhead</p>
+      </div>
+      <div class="card purple" style="margin-bottom:.5em">
+        <h3>Serving Level</h3>
+        <p><span class="p">PagedAttention</span> manages KV cache allocation; KV quantization (INT8/FP8) composes with any head design</p>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top:.4em">Sparse patterns interact with FlashAttention via <span class="a">block-sparse masking</span> &#8212; skipped tiles yield both compute and IO savings.</p>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 14: Practical Design Ratios -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Practical Design Ratios</h2></div>
+  <p>For new models, GQA with a <span class="a">4:1 to 8:1</span> query-to-KV head ratio is the current default recommendation.</p>
+  <table style="margin-top:.5em">
+    <thead>
+      <tr><th>Model</th><th>Query Heads</th><th>KV Groups</th><th>Ratio</th><th>KV Cache Reduction</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Llama 3 70B</span></td><td>64</td><td>8</td><td>8:1</td><td>8&#215;</td></tr>
+      <tr><td><span class="g">Llama 3 8B</span></td><td>32</td><td>8</td><td>4:1</td><td>4&#215;</td></tr>
+      <tr><td><span class="p">Mistral 7B</span></td><td>32</td><td>8</td><td>4:1</td><td>4&#215;</td></tr>
+      <tr><td><span class="b">Gemma 2</span></td><td>varies</td><td>varies</td><td>4:1&#8211;8:1</td><td>4&#8211;8&#215;</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.5em">This range is the empirical <span class="g">sweet spot</span> where quality loss relative to full MHA is minimal but KV cache savings are substantial.</p>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 15: Inference System Implications -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Inference System Implications</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Bandwidth Bottleneck Shift</h3>
+      <ul>
+        <li>MHA decode: bottleneck is <span class="a">KV cache bandwidth</span></li>
+        <li>MQA / aggressive GQA: KV cache shrinks, bottleneck shifts to <span class="r">weight memory bandwidth</span></li>
+        <li>Performance-limiting factor becomes streaming model weights through compute units</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Practical Consequences</h3>
+      <ul>
+        <li>MQA/GQA systems sustain <span class="g">larger batch sizes</span> before exhausting memory</li>
+        <li>Optimal hardware config changes: more bandwidth vs more memory</li>
+        <li>KV cache quantization (FP8/INT8) amplifies these effects</li>
+        <li>Sliding window essential for <span class="g">streaming / unbounded</span> contexts</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em">
+    <h3>Deployment Scenario Guide</h3>
+    <ul>
+      <li><span class="a">High throughput</span> (many users): prioritize KV cache efficiency &#8212; GQA, MLA, quantized caches</li>
+      <li><span class="g">Very long context</span> (100K+): sparse or hybrid attention essential</li>
+      <li><span class="b">Low latency</span> (single request): FlashAttention on dense attention may suffice</li>
+    </ul>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 16: Emerging Research -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Emerging Research Frontiers</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Native Sparse Attention</h3>
+      <p>Learned block-level token selection with hardware-aligned gating. Sub-quadratic complexity, minimal quality loss.</p>
+    </div>
+    <div class="card green">
+      <h3>Mixture of Attention Heads</h3>
+      <p>Route tokens to specialized heads (local, global, positional). MoE principles applied to attention for <span class="g">dynamic compute allocation</span>.</p>
+    </div>
+    <div class="card purple">
+      <h3>Attention Sinks</h3>
+      <p>First tokens accumulate disproportionate weight. StreamingLLM: keep sink + window for <span class="p">constant-memory infinite generation</span>.</p>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card blue">
+      <h3>Adaptive Computation</h3>
+      <p>Early exit, layer skipping, dynamic token pruning. <span class="b">20&#8211;50% compute reduction</span> on typical workloads.</p>
+    </div>
+    <div class="card red">
+      <h3>Attention-Recurrence Convergence</h3>
+      <p>Mamba-2 = structured masked attention. The attention/RNN dichotomy may dissolve into a <span class="r">unified framework</span> of sequence mixing operators.</p>
+    </div>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 17: Hardware Trends -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Hardware Trends &amp; Future</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>GPU SRAM growth (20 MB A100 &#8594; 50+ MB H100) improves FlashAttention tile sizes</li>
+        <li>Memory bandwidth grows <span class="r">slower than compute</span> &#8212; GQA, MLA, KV quantization become more valuable</li>
+        <li>FP8 and FP4 tensor cores enable aggressive attention quantization</li>
+        <li>Compiler-driven kernel generation (Triton, Pallas) democratizes custom attention variants</li>
+      </ul>
+      <div class="card purple" style="margin-top:.5em">
+        <h3>Hardware Co-Design</h3>
+        <p>Future accelerators may include dedicated softmax units, larger SRAM, and native support for online accumulation patterns.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.5em">
+        <h3>Kernel Fusion</h3>
+        <p>Combine attention + LayerNorm + residual + RoPE + FFN into single kernels. Reduces HBM round-trips and launch overhead.</p>
+      </div>
+      <div class="card green">
+        <h3>The Open Question</h3>
+        <p>Attention's ability to perform <span class="g">in-context learning</span> appears deeply connected to its softmax-weighted retrieval structure. Understanding which components are essential will guide the next generation of architectures.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+<!-- SLIDE 18: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">17</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.5em">
+        <h3>Head Design</h3>
+        <p><span class="a">GQA (4:1&#8211;8:1)</span> is the de facto standard. MLA offers superior compression with no quality loss. Uptraining enables MHA&#8594;GQA conversion at 5&#8211;10% compute cost.</p>
+      </div>
+      <div class="card green" style="margin-bottom:.5em">
+        <h3>Positions &amp; Stability</h3>
+        <p><span class="g">RoPE + YaRN</span> dominates positional encoding. Softcapping, log-n attention, RMSNorm, and SwiGLU form the modern block recipe.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.5em">
+        <h3>Computation</h3>
+        <p><span class="b">FlashAttention</span> is universal. PagedAttention eliminates memory waste. Ring attention enables million-token contexts.</p>
+      </div>
+      <div class="card purple" style="margin-bottom:.5em">
+        <h3>Alternatives</h3>
+        <p>Hybrid architectures (Jamba) blend attention + SSMs. The attention/recurrence boundary is <span class="p">blurring</span>. Practitioners compose techniques across the full stack.</p>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top:.5em;text-align:center">As models and contexts grow, attention mechanism innovation remains at the <span class="a">center of LLM architecture research</span>.</p>
+  <div class="slide-footer">attention-mechanism-innovations</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

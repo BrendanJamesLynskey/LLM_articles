@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PagedAttention | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 1: Title -->
+<section class="title-slide">
+  <p class="meta">TECHNICAL REPORT</p>
+  <h1>PagedAttention</h1>
+  <p class="subtitle">Virtual Memory for the KV Cache: Eliminating Fragmentation in LLM Serving</p>
+  <div>
+    <span class="pill amber">vLLM</span>
+    <span class="pill green">KV Cache</span>
+    <span class="pill purple">Virtual Memory</span>
+    <span class="pill blue">Paging</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">March 2026</p>
+  <div class="slide-footer">PagedAttention</div>
+</section>
+
+<!-- Slide 2: The KV Cache Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>The KV Cache Memory Crisis</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Every decoded token requires stored <span class="a">key</span> and <span class="a">value</span> projections across all layers and heads. The KV cache grows rapidly and dominates GPU memory.</p>
+      <ul>
+        <li>Single token in Llama 2 70B: <span class="g">~320 KB</span> of KV cache</li>
+        <li>4,096-token sequence: <span class="g">~1.3 GB</span></li>
+        <li>Batch of 64 sequences: <span class="r">~80 GB</span> &mdash; exceeds A100 capacity</li>
+        <li>Memory per token: <code>2 &times; L &times; H &times; d &times; 2 bytes</code></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>KV Cache Per Token</h3>
+      <pre><code>Llama 2 70B (GQA):
+  Layers:     80
+  KV Heads:    8
+  Head dim:  128
+  Precision: FP16
+
+  2 &times; 80 &times; 8 &times; 128 &times; 2
+  = 327,680 bytes
+  &asymp; 320 KB / token</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 2/16</div>
+</section>
+
+<!-- Slide 3: Memory Waste Under Pre-Allocation -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>Contiguous Pre-Allocation Waste</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Internal Fragmentation</h3>
+      <p>System reserves max-length buffer per sequence. If max = 2,048 but avg = 256 tokens, <span class="r">87.5%</span> of allocated memory sits unused.</p>
+    </div>
+    <div class="card red">
+      <h3>External Fragmentation</h3>
+      <p>As variable-length sequences arrive and depart, GPU memory fills with gaps too small individually for new requests, even if total free memory suffices.</p>
+    </div>
+    <div class="card red">
+      <h3>Reservation Waste</h3>
+      <p>Full buffer is locked from request arrival to completion. Other requests cannot use reserved-but-unused space during generation.</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em">Prior systems utilised only <span class="r">20&ndash;38%</span> of allocated KV cache memory effectively &mdash; the rest was dead weight.</p>
+  <div class="slide-footer">PagedAttention &mdash; 3/16</div>
+</section>
+
+<!-- Slide 4: The Virtual Memory Analogy -->
+<section>
+  <div class="slide-hdr"><span class="tag">INSIGHT</span><h2>The Virtual Memory Analogy</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>OS Virtual Memory</h3>
+      <ul>
+        <li>Processes see <span class="p">contiguous virtual</span> address space</li>
+        <li>Mapped to <span class="p">non-contiguous physical</span> pages via page table</li>
+        <li>Pages allocated <span class="g">on demand</span> (page faults)</li>
+        <li>Eliminates internal + external fragmentation</li>
+        <li>Enables sharing via copy-on-write</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>PagedAttention</h3>
+      <ul>
+        <li>Sequences see <span class="b">logical KV cache</span> positions (0, 1, ..., n)</li>
+        <li>Mapped to <span class="b">physical GPU blocks</span> via block table</li>
+        <li>Blocks allocated <span class="g">on demand</span> as tokens are generated</li>
+        <li>Eliminates internal + external fragmentation</li>
+        <li>Enables sharing via copy-on-write</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.5em"><span class="a">Blocks</span> = pages &nbsp;&bull;&nbsp; <span class="a">Tokens</span> = bytes &nbsp;&bull;&nbsp; <span class="a">Sequences</span> = processes &nbsp;&bull;&nbsp; <span class="a">Block table</span> = page table</p>
+  <div class="slide-footer">PagedAttention &mdash; 4/16</div>
+</section>
+
+<!-- Slide 5: How PagedAttention Works -->
+<section>
+  <div class="slide-hdr"><span class="tag">MECHANISM</span><h2>Block Allocation &amp; Memory Layout</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>GPU memory pool divided into <span class="a">uniform physical blocks</span> (typically 16 tokens each)</li>
+        <li>Each block stores K and V tensors for <code>block_size</code> tokens across all layers and heads</li>
+        <li>Block table: simple <span class="g">int32 array</span> mapping logical &rarr; physical blocks</li>
+        <li>New request: allocate blocks only for prompt tokens</li>
+        <li>Each new token fills current block; when full, allocate next from free pool</li>
+        <li>On completion: all blocks return to free pool immediately</li>
+      </ul>
+      <p>Max waste per sequence: <span class="g">block_size &minus; 1 tokens</span> (the unfilled last block).</p>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 340 260" width="340" height="260">
+        <text x="170" y="18" text-anchor="middle" fill="#f5a623" font-size="13" font-weight="600">Block Table (Seq A)</text>
+        <rect x="60" y="28" width="60" height="28" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="90" y="47" text-anchor="middle" fill="#ccc" font-size="11">0 &rarr; P3</text>
+        <rect x="140" y="28" width="60" height="28" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="170" y="47" text-anchor="middle" fill="#ccc" font-size="11">1 &rarr; P7</text>
+        <rect x="220" y="28" width="60" height="28" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="250" y="47" text-anchor="middle" fill="#ccc" font-size="11">2 &rarr; P1</text>
+        <text x="170" y="88" text-anchor="middle" fill="#8888a8" font-size="11">Physical Block Pool</text>
+        <rect x="10" y="100" width="70" height="40" rx="4" fill="#181824" stroke="#a78bfa"/>
+        <text x="45" y="124" text-anchor="middle" fill="#a78bfa" font-size="11">P0 (B)</text>
+        <rect x="90" y="100" width="70" height="40" rx="4" fill="#181824" stroke="#4ecb8d"/>
+        <text x="125" y="124" text-anchor="middle" fill="#4ecb8d" font-size="11">P1 (A)</text>
+        <rect x="170" y="100" width="70" height="40" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="205" y="124" text-anchor="middle" fill="#8888a8" font-size="11">P2 free</text>
+        <rect x="250" y="100" width="70" height="40" rx="4" fill="#181824" stroke="#4ecb8d"/>
+        <text x="285" y="124" text-anchor="middle" fill="#4ecb8d" font-size="11">P3 (A)</text>
+        <rect x="10" y="150" width="70" height="40" rx="4" fill="#181824" stroke="#a78bfa"/>
+        <text x="45" y="174" text-anchor="middle" fill="#a78bfa" font-size="11">P4 (B)</text>
+        <rect x="90" y="150" width="70" height="40" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="125" y="174" text-anchor="middle" fill="#8888a8" font-size="11">P5 free</text>
+        <rect x="170" y="150" width="70" height="40" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="205" y="174" text-anchor="middle" fill="#8888a8" font-size="11">P6 free</text>
+        <rect x="250" y="150" width="70" height="40" rx="4" fill="#181824" stroke="#4ecb8d"/>
+        <text x="285" y="174" text-anchor="middle" fill="#4ecb8d" font-size="11">P7 (A)</text>
+        <text x="60" y="220" fill="#4ecb8d" font-size="11">Seq A blocks</text>
+        <text x="200" y="220" fill="#a78bfa" font-size="11">Seq B blocks</text>
+        <text x="130" y="240" fill="#8888a8" font-size="11">Free blocks</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 5/16</div>
+</section>
+
+<!-- Slide 6: The Attention Kernel -->
+<section>
+  <div class="slide-hdr"><span class="tag">MECHANISM</span><h2>The PagedAttention Kernel</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Modified Attention Computation</h3>
+      <ul>
+        <li>Kernel takes query vector, block table, and physical KV blocks as input</li>
+        <li>Iterates over block table entries, fetching each physical block</li>
+        <li>Computes dot products between query and keys per block</li>
+        <li>Accumulates weighted output with <span class="g">online softmax</span></li>
+        <li>Functionally identical to standard MHA, but follows block table indirection</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Overhead Trade-off</h3>
+      <div class="card amber" style="margin-bottom:.5em">
+        <h3>Per-Operation Cost</h3>
+        <p>Block table lookups and non-contiguous access add <span class="r">2&ndash;5%</span> overhead (decode phase is memory-bandwidth bound regardless)</p>
+      </div>
+      <div class="card green">
+        <h3>Net System Benefit</h3>
+        <p>Dramatically higher batch sizes from memory savings yield <span class="g">2&ndash;4x</span> overall throughput improvement</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 6/16</div>
+</section>
+
+<!-- Slide 7: Copy-on-Write -->
+<section>
+  <div class="slide-hdr"><span class="tag">MECHANISM</span><h2>Copy-on-Write for Parallel Sampling</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>When multiple sequences share a prefix (beam search, parallel sampling), their block tables <span class="a">point to the same physical blocks</span>.</p>
+      <ul>
+        <li>Reference count tracks how many sequences use each block</li>
+        <li>On divergence (refcount &gt; 1 and write needed): <span class="p">copy block</span> to new location, update only that sequence's table</li>
+        <li>Other sequences continue referencing the original</li>
+      </ul>
+      <h3 style="margin-top:.5em">Memory Savings</h3>
+      <ul>
+        <li>Beam search (width 8, 10:1 prompt ratio): <span class="g">~7x</span> reduction vs. full duplication</li>
+        <li>vLLM reported <span class="g">55%</span> memory reduction for beam search workloads</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 240" width="300" height="240">
+        <text x="150" y="16" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Shared Prefix Blocks</text>
+        <rect x="30" y="28" width="240" height="32" rx="4" fill="#181824" stroke="#4ecb8d"/>
+        <text x="150" y="49" text-anchor="middle" fill="#4ecb8d" font-size="11">System prompt KV blocks (shared, refcount=3)</text>
+        <line x1="90" y1="60" x2="50" y2="85" stroke="#a78bfa" stroke-width="1.5"/>
+        <line x1="150" y1="60" x2="150" y2="85" stroke="#60a5fa" stroke-width="1.5"/>
+        <line x1="210" y1="60" x2="250" y2="85" stroke="#f5a623" stroke-width="1.5"/>
+        <rect x="10" y="88" width="80" height="28" rx="4" fill="#181824" stroke="#a78bfa"/>
+        <text x="50" y="107" text-anchor="middle" fill="#a78bfa" font-size="10">Beam 1</text>
+        <rect x="110" y="88" width="80" height="28" rx="4" fill="#181824" stroke="#60a5fa"/>
+        <text x="150" y="107" text-anchor="middle" fill="#60a5fa" font-size="10">Beam 2</text>
+        <rect x="210" y="88" width="80" height="28" rx="4" fill="#181824" stroke="#f5a623"/>
+        <text x="250" y="107" text-anchor="middle" fill="#f5a623" font-size="10">Beam 3</text>
+        <text x="150" y="145" text-anchor="middle" fill="#8888a8" font-size="10">Each beam only allocates new blocks where it diverges</text>
+        <rect x="30" y="160" width="110" height="50" rx="4" fill="#181824" stroke="#f87171"/>
+        <text x="85" y="178" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">Without CoW</text>
+        <text x="85" y="200" text-anchor="middle" fill="#ccc" font-size="10">3 full copies of KV cache</text>
+        <rect x="160" y="160" width="110" height="50" rx="4" fill="#181824" stroke="#4ecb8d"/>
+        <text x="215" y="178" text-anchor="middle" fill="#4ecb8d" font-size="11" font-weight="600">With CoW</text>
+        <text x="215" y="200" text-anchor="middle" fill="#ccc" font-size="10">1 shared + 3 small diverged</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 7/16</div>
+</section>
+
+<!-- Slide 8: Prefix Caching -->
+<section>
+  <div class="slide-hdr"><span class="tag">OPTIMIZATION</span><h2>Prefix Caching &amp; Cross-Request Sharing</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>The Opportunity</h3>
+      <p>Many production workloads share prefixes across requests: system prompts, few-shot examples, document contexts in RAG pipelines.</p>
+      <h3 style="margin-top:.4em">How It Works</h3>
+      <ul>
+        <li>Retained blocks are <span class="a">hashed by token content</span></li>
+        <li>New requests check hash map; matches skip prefill entirely</li>
+        <li>SGLang's <span class="p">RadixAttention</span> uses radix tree for efficient longest-prefix matching</li>
+        <li>Supports <span class="g">partial matches</span> &mdash; reuse whatever overlaps</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Performance Impact</h3>
+      <div class="card green" style="margin-bottom:.5em">
+        <h3>Time-to-First-Token</h3>
+        <p>RadixAttention: <span class="g">3&ndash;5x TTFT reduction</span> for few-shot and document QA workloads with long shared prefixes</p>
+      </div>
+      <div class="card blue">
+        <h3>Multi-Turn Chat</h3>
+        <p>System prompt caching saves <span class="b">20&ndash;40%</span> of total prefill computation per conversation turn</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 8/16</div>
+</section>
+
+<!-- Slide 9: Continuous Batching Integration -->
+<section>
+  <div class="slide-hdr"><span class="tag">SYSTEM</span><h2>Integration with Continuous Batching</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Complementary Optimizations</h3>
+      <ul>
+        <li><span class="b">Continuous batching</span> (Orca): sequences enter/leave batch each iteration step</li>
+        <li><span class="a">PagedAttention</span>: fine-grained memory management makes this practical at scale</li>
+        <li>Without paging, continuous batching needs contiguous free memory for full-length buffers</li>
+        <li>With paging, new sequences need only blocks for current tokens</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Combined Throughput Gains</h3>
+      <table>
+        <tr><th>Configuration</th><th>Relative Throughput</th></tr>
+        <tr><td>Neither optimization</td><td><span class="r">1x</span> (baseline)</td></tr>
+        <tr><td>Continuous batching only</td><td><span class="a">~2x</span></td></tr>
+        <tr><td>PagedAttention only</td><td><span class="a">~2&ndash;3x</span></td></tr>
+        <tr><td>Both combined</td><td><span class="g">5&ndash;10x</span></td></tr>
+      </table>
+      <p style="font-size:.72em;color:var(--muted);margin-top:.3em">This combined approach is now the baseline for all production LLM serving systems.</p>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 9/16</div>
+</section>
+
+<!-- Slide 10: Memory Efficiency Quantified -->
+<section>
+  <div class="slide-hdr"><span class="tag">RESULTS</span><h2>Memory Efficiency Quantified</h2></div>
+  <table>
+    <tr><th>Metric</th><th>Contiguous Pre-Allocation</th><th>PagedAttention</th></tr>
+    <tr><td>Internal fragmentation</td><td><span class="r">50&ndash;90%</span> (max-length buffers)</td><td><span class="g">&lt;4%</span> (last-block only)</td></tr>
+    <tr><td>External fragmentation</td><td><span class="r">Severe</span> (scattered gaps)</td><td><span class="g">Zero</span> (any free block works)</td></tr>
+    <tr><td>Effective KV cache utilization</td><td><span class="r">20&ndash;38%</span></td><td><span class="g">&gt;96%</span></td></tr>
+    <tr><td>Usable batch size multiplier</td><td>1x (baseline)</td><td><span class="g">2&ndash;5x</span></td></tr>
+    <tr><td>Memory sharing (beam search)</td><td>None (full duplication)</td><td><span class="g">Copy-on-write (55% savings)</span></td></tr>
+    <tr><td>Prefix reuse</td><td>None</td><td><span class="g">Automatic prefix caching</span></td></tr>
+  </table>
+  <p style="text-align:center;margin-top:.5em">Average waste per sequence with block size 16: <span class="g">~8 token-slots</span> &mdash; negligible for any non-trivial sequence.</p>
+  <div class="slide-footer">PagedAttention &mdash; 10/16</div>
+</section>
+
+<!-- Slide 11: Throughput Benchmarks -->
+<section>
+  <div class="slide-hdr"><span class="tag">RESULTS</span><h2>Throughput Benchmarks</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>vLLM vs. Baselines (A100 80GB)</h3>
+      <table>
+        <tr><th>Comparison</th><th>Throughput Gain</th></tr>
+        <tr><td>vs. HF Transformers</td><td><span class="g">~14x</span></td></tr>
+        <tr><td>vs. TGI</td><td><span class="g">2.2x</span></td></tr>
+        <tr><td>vs. FasterTransformer</td><td><span class="g">2&ndash;3x</span></td></tr>
+      </table>
+      <p style="font-size:.72em;color:var(--muted);margin-top:.3em">Llama 2 13B single-GPU; larger gains on 70B multi-GPU.</p>
+    </div>
+    <div>
+      <h3>Workload Sensitivity</h3>
+      <div class="card green" style="margin-bottom:.4em">
+        <h3>Highest Gains</h3>
+        <ul>
+          <li>High variance in sequence lengths</li>
+          <li>Shared-prefix workloads (beam search, few-shot)</li>
+          <li>Longer context windows</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Latency Impact</h3>
+        <p>Per-token: <span class="a">+2&ndash;5%</span> overhead. Net: <span class="g">lower</span> end-to-end latency at high load due to reduced queuing.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 11/16</div>
+</section>
+
+<!-- Slide 12: Framework Adoption -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>Adoption Across Frameworks</h2></div>
+  <table>
+    <tr><th>Framework</th><th>PagedAttention Variant</th><th>Notable Extensions</th></tr>
+    <tr><td><span class="a">vLLM</span></td><td>Original PagedAttention</td><td>Prefix caching, CoW, LoRA, multi-modal, multi-backend</td></tr>
+    <tr><td><span class="a">TensorRT-LLM</span></td><td>Paged KV Cache</td><td>FP8 KV, in-flight batching, Hopper/Blackwell</td></tr>
+    <tr><td><span class="a">SGLang</span></td><td>RadixAttention</td><td>Radix tree prefix matching, structured generation</td></tr>
+    <tr><td><span class="a">TGI</span></td><td>Paged Attention</td><td>HuggingFace ecosystem integration</td></tr>
+    <tr><td><span class="a">LMDeploy</span></td><td>Paged KV Cache</td><td>Multi-modal serving</td></tr>
+    <tr><td><span class="a">DeepSpeed-FastGen</span></td><td>Paged Memory</td><td>Dynamic SplitFuse scheduling</td></tr>
+  </table>
+  <p style="text-align:center;margin-top:.5em">PagedAttention is now <span class="g">foundational infrastructure</span> &mdash; adopted by virtually every major inference framework.</p>
+  <div class="slide-footer">PagedAttention &mdash; 12/16</div>
+</section>
+
+<!-- Slide 13: vAttention - Hardware Alternative -->
+<section>
+  <div class="slide-hdr"><span class="tag">ALTERNATIVE</span><h2>vAttention: Hardware-Level Paging</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>The Problem with Software Indirection</h3>
+      <p>PagedAttention's block table adds software overhead that prevents use of highly optimized kernels like <span class="p">FlashAttention</span>.</p>
+      <h3 style="margin-top:.4em">vAttention's Approach (2024)</h3>
+      <ul>
+        <li>Uses <span class="b">CUDA Virtual Memory Management API</span></li>
+        <li>GPU's hardware <span class="b">MMU</span> handles virtual-to-physical translation</li>
+        <li>KV cache appears <span class="g">contiguous</span> to the attention kernel</li>
+        <li>Standard optimized kernels (FlashAttention, FlashDecoding) work unmodified</li>
+        <li>CoW via OS/driver-level virtual memory remapping</li>
+      </ul>
+    </div>
+    <div>
+      <table>
+        <tr><th>Aspect</th><th>PagedAttention</th><th>vAttention</th></tr>
+        <tr><td>Memory waste</td><td><span class="g">&lt;4%</span></td><td><span class="g">&lt;4%</span></td></tr>
+        <tr><td>Kernel overhead</td><td><span class="r">20&ndash;26%</span></td><td><span class="g">None</span></td></tr>
+        <tr><td>FlashAttention</td><td><span class="r">Incompatible</span></td><td><span class="g">Compatible</span></td></tr>
+        <tr><td>Sharing</td><td>Software CoW</td><td>OS-level CoW</td></tr>
+        <tr><td>Portability</td><td><span class="g">Any accelerator</span></td><td><span class="r">NVIDIA only</span></td></tr>
+      </table>
+      <p style="font-size:.72em;color:var(--muted);margin-top:.3em">Trade-off: hardware coupling vs. kernel performance.</p>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 13/16</div>
+</section>
+
+<!-- Slide 14: Limitations -->
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITATIONS</span><h2>Trade-Offs &amp; Constraints</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card red" style="margin-bottom:.5em">
+        <h3>Block Size Sensitivity</h3>
+        <p>No single block size is ideal for mixed workloads. Smaller blocks reduce waste but increase metadata and scatter. Default of 16 works for most cases.</p>
+      </div>
+      <div class="card red" style="margin-bottom:.5em">
+        <h3>Metadata at Extreme Scale</h3>
+        <p>Millions of blocks across thousands of sequences require free lists, reference counts, and hash tables. Block management can bottleneck at &gt;10K req/s.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.5em">
+        <h3>Attention Variant Compatibility</h3>
+        <p>Sliding window, sparse attention, cross-attention in encoder-decoder models all need custom kernel modifications to work with paged storage.</p>
+      </div>
+      <div class="card red">
+        <h3>Does Not Reduce KV Cache Size</h3>
+        <p>PagedAttention eliminates <em>waste</em>, not inherent memory requirements. A 128K-token sequence still needs tens of GB. Architectural solutions (GQA, MQA) and quantization remain necessary.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 14/16</div>
+</section>
+
+<!-- Slide 15: Deployment Monitoring -->
+<section>
+  <div class="slide-hdr"><span class="tag">OPERATIONS</span><h2>Production Monitoring Metrics</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.5em">
+        <h3>Block Utilization Rate</h3>
+        <p>Proportion of allocated slots with active token data. Healthy: <span class="g">&gt;96%</span>. Below 90% suggests block size is too large for workload.</p>
+      </div>
+      <div class="card blue" style="margin-bottom:.5em">
+        <h3>Free Pool Size</h3>
+        <p>Unallocated blocks available. Alert when below <span class="r">10&ndash;15%</span> of total &mdash; onset of preemption-related latency spikes.</p>
+      </div>
+      <div class="card amber">
+        <h3>Preemption Rate</h3>
+        <p>Sustained rate &gt; 0 means GPU memory is over-subscribed. Degrades tail latency; signals need for more capacity or KV compression.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.5em">
+        <h3>Copy-on-Write Frequency</h3>
+        <p>High during beam search / parallel sampling = <span class="g">healthy</span>. Unexpectedly high during single-sample = possible prefix caching misconfiguration.</p>
+      </div>
+      <div class="card amber">
+        <h3>Shared-to-Unique Block Ratio</h3>
+        <p>Quantifies CoW and prefix caching savings. Low ratio on expected high-prefix workloads may indicate broken hash matching or caching disabled.</p>
+      </div>
+      <p style="font-size:.72em;color:var(--muted);margin-top:.3em">Together, these metrics guide fleet sizing, block size tuning, and workload routing decisions.</p>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 15/16</div>
+</section>
+
+<!-- Slide 16: Conclusion & Future -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>Summary &amp; Future Directions</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li>PagedAttention applies <span class="p">OS virtual memory</span> concepts to KV cache management</li>
+        <li>Memory waste: <span class="r">60&ndash;80%</span> &rarr; <span class="g">&lt;4%</span></li>
+        <li>Batch sizes: <span class="g">2&ndash;5x</span> increase; throughput: <span class="g">2&ndash;4x</span> improvement</li>
+        <li>Enables CoW, prefix caching, fine-grained preemption</li>
+        <li>Adopted by <span class="a">all major inference frameworks</span></li>
+        <li><span class="b">vAttention</span> (2024) offers hardware-based alternative with zero kernel overhead</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Future Directions</h3>
+      <div class="card blue" style="margin-bottom:.4em">
+        <h3>Disaggregated KV Cache</h3>
+        <p>Page blocks to CPU/RDMA/NVMe &mdash; decouple KV capacity from GPU memory entirely</p>
+      </div>
+      <div class="card purple" style="margin-bottom:.4em">
+        <h3>Cross-Model Sharing</h3>
+        <p>Share prefix blocks across base model and fine-tuned variants in multi-tenant deployments</p>
+      </div>
+      <div class="card green">
+        <h3>Learned Allocation</h3>
+        <p>Predict memory requirements from prompt content to pre-allocate intelligently and optimize eviction</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">PagedAttention &mdash; 16/16</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

@@ -26,6 +26,13 @@ This repository holds a few LLM-related articles that interest me.
 | GPU Power Variability | [PDF](articles/gpu_power_variability.pdf) · [MD](articles/gpu_power_variability.md) | [Slides](presentations/gpu_power_variability.html) |
 | Non-Deterministic Output in Ollama | [PDF](articles/ollama_nondeterminism.pdf) · [MD](articles/ollama_nondeterminism.md) | [Slides](presentations/ollama_nondeterminism.html) |
 | Mixed-Precision Arithmetic for Inference | [PDF](articles/mixed_precision_arithmetic.pdf) · [MD](articles/mixed_precision_arithmetic.md) | [Slides](presentations/mixed_precision_arithmetic.html) |
+| FlashAttention | [MD](articles/flash_attention.md) | [Slides](presentations/flash_attention.html) |
+| PagedAttention | [MD](articles/paged_attention.md) | [Slides](presentations/paged_attention.html) |
+| LLM Training Stages | [MD](articles/llm_training_stages.md) | [Slides](presentations/llm_training_stages.html) |
+| Attention Mechanism Innovations | [MD](articles/attention_mechanism_innovations.md) | [Slides](presentations/attention_mechanism_innovations.html) |
+| Post-Transformer Language Models | [MD](articles/post_transformer_models.md) | [Slides](presentations/post_transformer_models.html) |
+| Positional Encodings | [MD](articles/positional_encodings.md) | [Slides](presentations/positional_encodings.html) |
+| Ring Attention and Sequence Parallelism | [MD](articles/ring_attention_and_sequence_parallelism.md) | [Slides](presentations/ring_attention_and_sequence_parallelism.html) |
 
 ## License
 

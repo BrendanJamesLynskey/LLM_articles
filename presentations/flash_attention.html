@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlashAttention | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta">TECHNICAL REPORT</p>
+  <h1>FlashAttention</h1>
+  <p class="subtitle">IO-Aware Exact Attention &mdash; From Tiling on A100 to Async Pipelines on Blackwell</p>
+  <p>
+    <span class="pill amber">Tiling</span>
+    <span class="pill green">Online Softmax</span>
+    <span class="pill purple">Kernel Fusion</span>
+    <span class="pill blue">O(N) Memory</span>
+  </p>
+  <p class="meta">Dao et al. &mdash; FlashAttention 1&ndash;4 (2022&ndash;2025) &mdash; March 2026</p>
+  <div class="slide-footer">FlashAttention &bull; Technical Report</div>
+</section>
+
+<!-- SLIDE 2: The Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>The Attention Bottleneck</h2></div>
+  <p>Self-attention computes an <span class="a">N&times;N</span> score matrix &mdash; quadratic in sequence length. For a 128K-token sequence, the attention matrix alone requires <span class="r">~30 GB</span> in FP16.</p>
+  <div class="cols cols-3" style="margin-top:.6em">
+    <div class="card amber">
+      <h3>O(N&sup2;) Memory</h3>
+      <p>Score matrix S and probability matrix P must be materialized in HBM for standard attention.</p>
+    </div>
+    <div class="card red">
+      <h3>O(N&sup2;) IO</h3>
+      <p>S and P are written then read back from HBM &mdash; the dominant cost at long sequences.</p>
+    </div>
+    <div class="card green">
+      <h3>FlashAttention Fix</h3>
+      <p>Never materialize the N&times;N matrix. Tile to SRAM, fuse ops, achieve <span class="g">O(N) memory</span>.</p>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 01 &mdash; Problem</div>
+</section>
+
+<!-- SLIDE 3: GPU Memory Hierarchy -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>GPU Memory Hierarchy</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 440 310" width="440" height="310">
+        <!-- HBM box -->
+        <rect x="20" y="180" width="400" height="120" rx="8" fill="none" stroke="#f5a623" stroke-width="2"/>
+        <text x="220" y="210" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="17" font-weight="700">HBM (Main Memory)</text>
+        <text x="220" y="235" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">A100: 80 GB @ 2.0 TB/s</text>
+        <text x="220" y="255" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">H100: 80 GB @ 3.35 TB/s</text>
+        <text x="220" y="275" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">B200: 192 GB @ 8.0 TB/s</text>
+        <!-- SRAM box -->
+        <rect x="110" y="20" width="220" height="110" rx="8" fill="none" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="220" y="50" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="17" font-weight="700">SRAM (On-chip)</text>
+        <text x="220" y="75" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">A100: 20 MB @ ~19 TB/s</text>
+        <text x="220" y="95" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">H100: 50 MB @ ~19 TB/s</text>
+        <text x="220" y="115" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">B200: TMEM + shared mem</text>
+        <!-- Arrow -->
+        <line x1="220" y1="130" x2="220" y2="180" stroke="#8888a8" stroke-width="2" marker-end="url(#arrowM)"/>
+        <defs><marker id="arrowM" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#8888a8"/></marker></defs>
+        <text x="265" y="162" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">~10x slower</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Key Insight</h3>
+        <p>SRAM is <span class="p">~10x faster</span> than HBM but <span class="r">~4000x smaller</span>. Any algorithm that repeatedly accesses HBM is leaving performance on the table.</p>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Memory-Bound</h3>
+        <p>Attention has high FLOPs but also high data movement &mdash; GPU arithmetic units are faster than HBM can feed them.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 02 &mdash; GPU Memory</div>
+</section>
+
+<!-- SLIDE 4: Three Core Principles -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>FlashAttention: Three Core Principles</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Tiling</h3>
+      <ul>
+        <li>Divide Q, K, V into blocks that fit in SRAM</li>
+        <li>Compute attention one tile at a time</li>
+        <li>S and P <em>never</em> materialized in HBM</li>
+        <li>Only final output O written back</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Online Softmax</h3>
+      <ul>
+        <li>Incrementally update max &amp; sum as new key blocks arrive</li>
+        <li>Rescale prior results with <code>exp(m_old - m_new)</code></li>
+        <li>Mathematically exact &mdash; no approximation</li>
+        <li>Only O(N) auxiliary storage</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Kernel Fusion</h3>
+      <ul>
+        <li>Matmul + softmax + mask + dropout fused into one kernel</li>
+        <li>Eliminates HBM round-trips between ops</li>
+        <li>Avoids kernel launch overhead</li>
+        <li>Maximizes arithmetic intensity</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 03 &mdash; Core Principles</div>
+</section>
+
+<!-- SLIDE 5: Tiling Algorithm Detail -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>The Tiling Algorithm</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code>for each query block Q_i (outer loop):
+  O_i = 0, m_i = -inf, l_i = 0
+
+  for each K_j, V_j block (inner loop):
+    Load Q_i, K_j, V_j from HBM -> SRAM
+    S_ij = Q_i * K_j^T        # B_r x B_c tile
+    m_ij = rowmax(S_ij)
+    P_ij = exp(S_ij - m_ij)
+    l_ij = rowsum(P_ij)
+
+    m_new = max(m_i, m_ij)
+    l_new = l_i*exp(m_i - m_new)
+           + l_ij*exp(m_ij - m_new)
+
+    O_i = O_i * (l_i*exp(m_i-m_new)/l_new)
+        + P_ij*V_j * (exp(m_ij-m_new)/l_new)
+    m_i, l_i = m_new, l_new
+
+  Write O_i to HBM</code></pre>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Exact Result</h3>
+        <p>After all K-V blocks, O_i is <span class="g">numerically identical</span> to standard attention. No approximation.</p>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Block Sizes</h3>
+        <p>B_r, B_c chosen so working set fits in SRAM. Typical values: <span class="b">64&ndash;128</span> on A100.</p>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>IO Complexity</h3>
+        <p><span class="a">&Theta;(N&sup2;d&sup2; / M)</span> &mdash; proven optimal for exact attention under streaming model.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 04 &mdash; Tiling Algorithm</div>
+</section>
+
+<!-- SLIDE 6: Online Softmax SVG -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Online Softmax Trick</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 480 260" width="480" height="260">
+        <rect x="10" y="30" width="100" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="60" y="60" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12">K_1 block</text>
+        <rect x="130" y="30" width="100" height="50" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="180" y="60" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="12">K_2 block</text>
+        <rect x="250" y="30" width="100" height="50" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="300" y="60" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="12">K_3 block</text>
+        <rect x="370" y="30" width="100" height="50" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="420" y="60" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="12">K_j block</text>
+        <text x="60" y="110" text-anchor="middle" fill="#ccc" font-family="JetBrains Mono,monospace" font-size="11">m_1, l_1</text>
+        <text x="180" y="110" text-anchor="middle" fill="#ccc" font-family="JetBrains Mono,monospace" font-size="11">m_2, l_2</text>
+        <text x="300" y="110" text-anchor="middle" fill="#ccc" font-family="JetBrains Mono,monospace" font-size="11">m_3, l_3</text>
+        <text x="420" y="110" text-anchor="middle" fill="#ccc" font-family="JetBrains Mono,monospace" font-size="11">m_j, l_j</text>
+        <line x1="110" y1="105" x2="130" y2="105" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowS)"/>
+        <line x1="230" y1="105" x2="250" y2="105" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowS)"/>
+        <line x1="350" y1="105" x2="370" y2="105" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowS)"/>
+        <defs><marker id="arrowS" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#8888a8"/></marker></defs>
+        <rect x="30" y="140" width="420" height="100" rx="8" fill="#10101a" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="240" y="168" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="15" font-weight="700">Correction at each step:</text>
+        <text x="240" y="195" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono,monospace" font-size="12">m_new = max(m_i, m_ij)</text>
+        <text x="240" y="215" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono,monospace" font-size="12">l_new = l_i*exp(m_i - m_new) + l_ij*exp(m_ij - m_new)</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Why It Works</h3>
+        <p>The factor <code>exp(m_old - m_new)</code> rescales all prior contributions when a new block yields a larger max. After all blocks, the result is identical to full-row softmax.</p>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Storage</h3>
+        <p>Only <span class="a">O(N)</span> auxiliary storage: one max and one sum per query row, versus <span class="r">O(N&sup2;)</span> for full attention matrix.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 05 &mdash; Online Softmax</div>
+</section>
+
+<!-- SLIDE 7: Backward Pass & Memory -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Backward Pass &amp; Memory Savings</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green">
+        <h3>Recomputation Strategy</h3>
+        <ul>
+          <li>Forward: store only O and softmax stats (m, l)</li>
+          <li>Discard S and P entirely</li>
+          <li>Backward: recompute each P tile on-the-fly from stored stats</li>
+          <li>~25% more FLOPs but <span class="g">negligible wall-clock cost</span> (memory-bound)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>Standard Attention</h3>
+        <ul>
+          <li>N=32K &rarr; S &amp; P: <span class="r">~2 GB</span> per head per layer</li>
+          <li>N=16K &rarr; OOM at batch &ge; 4</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>FlashAttention</h3>
+        <ul>
+          <li>N=32K &rarr; softmax stats: <span class="g">~16 MB</span></li>
+          <li>N=16K &rarr; runs at batch 16</li>
+          <li><span class="g">Over 100x</span> memory reduction</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 06 &mdash; Backward &amp; Memory</div>
+</section>
+
+<!-- SLIDE 8: FlashAttention-2 -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>FlashAttention-2: Better Partitioning</h2></div>
+  <p>FA-1 reached only <span class="r">25&ndash;35%</span> of A100 peak matmul throughput. FA-2 (2023) closed the gap:</p>
+  <div class="cols cols-3" style="margin-top:.5em">
+    <div class="card amber">
+      <h3>Fewer Non-Matmul FLOPs</h3>
+      <p>Deferred final rescaling until after inner loop, reducing non-matmul ops by <span class="a">~25%</span>. Tensor cores sit idle during scalar ops.</p>
+    </div>
+    <div class="card green">
+      <h3>Sequence Parallelism</h3>
+      <p>FA-1 parallelized over batch &amp; heads only. FA-2 adds parallelism over <span class="g">sequence length</span> in the outer loop &mdash; critical for small-batch inference.</p>
+    </div>
+    <div class="card purple">
+      <h3>Warp-Level Partitioning</h3>
+      <p>Different warps process different query portions against shared K, V. Eliminates <span class="p">redundant reads</span> and improves occupancy.</p>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.7em">
+    <h3>Result</h3>
+    <p><span class="b">1.7&ndash;2.0x</span> speedup over FA-1, reaching <span class="b">50&ndash;73%</span> of A100 theoretical matmul throughput. Native GQA/MQA support added.</p>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 07 &mdash; FA-2</div>
+</section>
+
+<!-- SLIDE 9: FlashAttention-3 Hopper -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>FlashAttention-3: Hopper Optimizations</h2></div>
+  <p>FA-3 (2024, NeurIPS Spotlight) targets H100 hardware-specific features:</p>
+  <div class="cols cols-2" style="margin-top:.5em">
+    <div class="card amber">
+      <h3>TMA + Warp Specialization</h3>
+      <p>Tensor Memory Accelerator handles async HBM&harr;SRAM transfers. <span class="a">Producer warps</span> load data via TMA while <span class="a">consumer warps</span> compute on tensor cores concurrently.</p>
+    </div>
+    <div class="card green">
+      <h3>Pingpong Scheduling</h3>
+      <p>Two warp groups alternate: one executes <span class="g">GEMMs</span> while the other runs <span class="g">softmax</span>, then swap. Hides softmax latency behind GEMM execution &mdash; overlapping both in time.</p>
+    </div>
+    <div class="card purple">
+      <h3>FP8 Tensor Cores</h3>
+      <p>H100 FP8 runs at <span class="p">2x throughput</span> of BF16. Block-wise quantization with per-tile scaling factors mitigates accuracy loss.</p>
+    </div>
+    <div class="card blue">
+      <h3>Incoherent Processing</h3>
+      <p>Random orthogonal transforms spread outliers across dimensions before FP8 quantization, <span class="b">reducing quantization error by 2.6x</span> vs. naive FP8.</p>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 08 &mdash; FA-3</div>
+</section>
+
+<!-- SLIDE 10: FA-3 Pingpong Detail -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>FA-3: Pingpong GEMM-Softmax Pipeline</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 460 280" width="460" height="280">
+        <!-- Timeline labels -->
+        <text x="80" y="25" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Time &rarr;</text>
+        <!-- Warp Group A -->
+        <text x="10" y="70" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="start">WG-A</text>
+        <rect x="70" y="50" width="120" height="32" rx="4" fill="#1a1510" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="130" y="71" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">GEMM (tile 1)</text>
+        <rect x="200" y="50" width="100" height="32" rx="4" fill="#0a1510" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="250" y="71" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Softmax</text>
+        <rect x="310" y="50" width="120" height="32" rx="4" fill="#1a1510" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="370" y="71" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">GEMM (tile 3)</text>
+        <!-- Warp Group B -->
+        <text x="10" y="130" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="start">WG-B</text>
+        <rect x="70" y="110" width="100" height="32" rx="4" fill="#0a1510" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="120" y="131" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Softmax</text>
+        <rect x="180" y="110" width="120" height="32" rx="4" fill="#1a1510" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="240" y="131" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">GEMM (tile 2)</text>
+        <rect x="310" y="110" width="100" height="32" rx="4" fill="#0a1510" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="360" y="131" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Softmax</text>
+        <!-- TMA row -->
+        <text x="10" y="190" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="start">TMA</text>
+        <rect x="70" y="170" width="80" height="32" rx="4" fill="#0a0a1a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="110" y="191" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">Load t2</text>
+        <rect x="160" y="170" width="80" height="32" rx="4" fill="#0a0a1a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="200" y="191" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">Load t3</text>
+        <rect x="250" y="170" width="80" height="32" rx="4" fill="#0a0a1a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="290" y="191" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">Load t4</text>
+        <!-- Legend -->
+        <rect x="70" y="230" width="360" height="40" rx="6" fill="#10101a" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="250" y="255" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">GEMM on tensor cores + softmax on SFUs overlap in time</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Why Pingpong?</h3>
+        <p>Softmax (exp, reductions, rescaling) <span class="a">cannot use tensor cores</span>. Without pingpong, tensor cores idle during softmax phases.</p>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>The Interleave</h3>
+        <p>WG-A does GEMM while WG-B does softmax, then they <span class="g">swap roles</span>. TMA prefetches next tile asynchronously throughout.</p>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Result</h3>
+        <p>Up to <span class="p">840 TFLOPS</span> BF16 (85% utilization) and <span class="p">1.2+ PFLOPS</span> FP8 on H100.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 09 &mdash; Pingpong Schedule</div>
+</section>
+
+<!-- SLIDE 11: FlashAttention-4 Blackwell Challenge -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>FlashAttention-4: The Blackwell Challenge</h2></div>
+  <p>Announced by Tri Dao at <span class="a">Hot Chips 2025</span>. Blackwell shifts the hardware balance:</p>
+  <div class="cols cols-6040" style="margin-top:.5em">
+    <div>
+      <svg class="diagram" viewBox="0 0 420 240" width="420" height="240">
+        <!-- Bars showing relative throughput growth -->
+        <text x="210" y="20" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Hopper &rarr; Blackwell Scaling</text>
+        <!-- Tensor Cores bar -->
+        <rect x="40" y="45" width="340" height="36" rx="4" fill="#1a1510" stroke="#f5a623" stroke-width="1.5"/>
+        <rect x="42" y="47" width="336" height="32" rx="3" fill="#f5a62320"/>
+        <text x="50" y="68" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Tensor Cores</text>
+        <text x="370" y="68" text-anchor="end" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">+++ scaling</text>
+        <!-- SFU bar (shorter) -->
+        <rect x="40" y="95" width="150" height="36" rx="4" fill="#1a0a0a" stroke="#f87171" stroke-width="1.5"/>
+        <rect x="42" y="97" width="146" height="32" rx="3" fill="#f8717120"/>
+        <text x="50" y="118" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="11">SFU (exp)</text>
+        <text x="180" y="118" text-anchor="end" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">limited</text>
+        <!-- Shared mem bar (shorter) -->
+        <rect x="40" y="145" width="180" height="36" rx="4" fill="#0a0a1a" stroke="#60a5fa" stroke-width="1.5"/>
+        <rect x="42" y="147" width="176" height="32" rx="3" fill="#60a5fa20"/>
+        <text x="50" y="168" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">Shared Mem BW</text>
+        <text x="210" y="168" text-anchor="end" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">moderate</text>
+        <!-- Conclusion -->
+        <rect x="40" y="200" width="340" height="30" rx="4" fill="#10101a" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="210" y="220" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="12" font-weight="600">Softmax exponential is now a first-order bottleneck</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>New Bottleneck</h3>
+        <p>Tensor core throughput scaled dramatically, but SFUs (for <code>exp()</code>) and shared memory bandwidth <span class="r">did not keep pace</span>. Softmax is no longer easily hidden.</p>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Solution Approach</h3>
+        <p><span class="g">Algorithm-kernel co-design</span> specifically targeting Blackwell. Four key innovations address the asymmetry.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 10 &mdash; FA-4 Challenge</div>
+</section>
+
+<!-- SLIDE 12: FA-4 Key Innovations -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>FA-4: Key Innovations</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Conditional Softmax Rescaling</h3>
+      <ul>
+        <li>Only rescale when new row max is <span class="a">sufficiently larger</span></li>
+        <li>~90% of rescaling operations skipped</li>
+        <li>Dedicated correction warp group handles remainder</li>
+        <li>If no thread needs rescaling, <span class="a">entire warp skips</span></li>
+        <li>Result still numerically identical</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Software-Emulated Exponential</h3>
+      <ul>
+        <li>Hardware MUFU.EX2 has <span class="r">limited throughput</span> on Blackwell</li>
+        <li>Distribute exp() between HW unit and <span class="g">FMA emulation</span></li>
+        <li>Leverages idle FMA units during softmax</li>
+        <li>Effectively <span class="g">doubles exp() throughput</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>CuTeDSL Implementation</h3>
+      <ul>
+        <li>Python DSL from NVIDIA CUTLASS team</li>
+        <li>Replaces hand-written CUDA C++</li>
+        <li><span class="p">Faster iteration</span> and easier maintenance</li>
+        <li>Produces highly optimized code via CUTLASS</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Multi-Stage Async Pipeline</h3>
+      <ul>
+        <li>MMA warps + softmax warps + <span class="b">correction warps</span></li>
+        <li>Accumulators live in TMEM (not registers)</li>
+        <li>Reduces register pressure</li>
+        <li>2-CTA MMA mode for backward pass</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 11 &mdash; FA-4 Innovations</div>
+</section>
+
+<!-- SLIDE 13: FA-4 Conditional Softmax Detail -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>FA-4: Conditional Rescaling Deep Dive</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 440 270" width="440" height="270">
+        <!-- Standard path -->
+        <text x="220" y="20" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Standard vs. Conditional Online Softmax</text>
+        <!-- Standard row -->
+        <text x="30" y="60" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="start">Standard:</text>
+        <rect x="110" y="44" width="60" height="26" rx="3" fill="#1a0a0a" stroke="#f87171" stroke-width="1"/>
+        <text x="140" y="62" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="9">rescale</text>
+        <rect x="180" y="44" width="60" height="26" rx="3" fill="#1a0a0a" stroke="#f87171" stroke-width="1"/>
+        <text x="210" y="62" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="9">rescale</text>
+        <rect x="250" y="44" width="60" height="26" rx="3" fill="#1a0a0a" stroke="#f87171" stroke-width="1"/>
+        <text x="280" y="62" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="9">rescale</text>
+        <rect x="320" y="44" width="60" height="26" rx="3" fill="#1a0a0a" stroke="#f87171" stroke-width="1"/>
+        <text x="350" y="62" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="9">rescale</text>
+        <!-- FA-4 conditional row -->
+        <text x="30" y="115" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="start">FA-4:</text>
+        <rect x="110" y="99" width="60" height="26" rx="3" fill="#0a1510" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="140" y="117" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">SKIP</text>
+        <rect x="180" y="99" width="60" height="26" rx="3" fill="#0a1510" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="210" y="117" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">SKIP</text>
+        <rect x="250" y="99" width="60" height="26" rx="3" fill="#1a1510" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="280" y="117" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="9">rescale</text>
+        <rect x="320" y="99" width="60" height="26" rx="3" fill="#0a1510" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="350" y="117" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">SKIP</text>
+        <!-- Stats -->
+        <rect x="40" y="150" width="360" height="105" rx="6" fill="#10101a" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="220" y="175" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="14" font-weight="700">Why ~90% skip rate?</text>
+        <text x="220" y="200" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">After the first few tiles, the running maximum stabilizes.</text>
+        <text x="220" y="220" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">New tiles rarely produce a significantly larger max.</text>
+        <text x="220" y="240" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Correction warp handles the rare ~10% off critical path.</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>The Condition</h3>
+        <p>Only rescale when <code>m_new &gt;&gt; m_old</code>. In practice the row maximum converges quickly, making most rescaling redundant.</p>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Warp-Level Skip</h3>
+        <p>If <span class="g">no thread in a warp</span> needs rescaling, the entire warp skips the operation. This is a per-warp predication, not per-thread.</p>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Still Exact</h3>
+        <p>The correction warp group ensures all deferred rescaling is applied. The final output is <span class="p">numerically identical</span> to standard attention.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 12 &mdash; Conditional Rescaling</div>
+</section>
+
+<!-- SLIDE 14: Comparison Table Across All Generations -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Comparison Across Four Generations</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Version</th>
+        <th>Year</th>
+        <th>Target GPU</th>
+        <th>Throughput</th>
+        <th>Key Technique</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">FA-1</span></td>
+        <td>2022</td>
+        <td>A100 (Ampere)</td>
+        <td>~72% MFU (training)</td>
+        <td>Tiling + online softmax</td>
+      </tr>
+      <tr>
+        <td><span class="g">FA-2</span></td>
+        <td>2023</td>
+        <td>A100 (Ampere)</td>
+        <td>50&ndash;73% peak FLOPS</td>
+        <td>Better parallelism, GQA/MQA</td>
+      </tr>
+      <tr>
+        <td><span class="p">FA-3</span></td>
+        <td>2024</td>
+        <td>H100 (Hopper)</td>
+        <td>740&ndash;840 TFLOPS (75&ndash;85%)</td>
+        <td>Pingpong, async pipeline, FP8</td>
+      </tr>
+      <tr>
+        <td><span class="b">FA-4</span></td>
+        <td>2025</td>
+        <td>B200 (Blackwell)</td>
+        <td>22% faster than cuDNN</td>
+        <td>Conditional softmax, CuTeDSL</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.7em">
+    <div class="card amber">
+      <h3>Consistent Philosophy</h3>
+      <p>Every generation: identify the <span class="a">hardware bottleneck</span> (IO, parallelism, pipeline stalls, SFU throughput), then co-design the algorithm to eliminate it.</p>
+    </div>
+    <div class="card green">
+      <h3>Always Exact</h3>
+      <p>Four generations, four different GPU architectures &mdash; the output is <span class="g">numerically identical</span> to standard attention in every case.</p>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 13 &mdash; Generations</div>
+</section>
+
+<!-- SLIDE 15: Benchmark Results -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Benchmark Results</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Configuration</th>
+        <th>FA-1</th>
+        <th>FA-2</th>
+        <th>FA-3</th>
+        <th>FA-4</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>N=2048, A100</td>
+        <td><span class="a">1.7x</span></td>
+        <td><span class="g">3.1x</span></td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+      </tr>
+      <tr>
+        <td>N=8192, A100</td>
+        <td><span class="a">2.4x</span></td>
+        <td><span class="g">4.2x</span></td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+      </tr>
+      <tr>
+        <td>N=2048, H100 BF16</td>
+        <td>1.5x</td>
+        <td>2.3x</td>
+        <td><span class="p">3.0x</span></td>
+        <td>&mdash;</td>
+      </tr>
+      <tr>
+        <td>N=8192, H100 BF16</td>
+        <td>2.0x</td>
+        <td>3.2x</td>
+        <td><span class="p">4.5x</span></td>
+        <td>&mdash;</td>
+      </tr>
+      <tr>
+        <td>N=8192, H100 FP8</td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+        <td><span class="p">6.2x</span></td>
+        <td>&mdash;</td>
+      </tr>
+      <tr>
+        <td>B200 (Blackwell)</td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+        <td><span class="b">22% &gt; cuDNN</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.5em">FA-3 BF16: <span class="a">840 TFLOPS</span> &nbsp;|&nbsp; FA-3 FP8: <span class="g">1.2+ PFLOPS</span> &nbsp;|&nbsp; FA-4 FlexAttention: <span class="b">1.2&ndash;3.2x</span> over Triton on Blackwell</p>
+  <div class="slide-footer">FlashAttention &bull; 14 &mdash; Benchmarks</div>
+</section>
+
+<!-- SLIDE 16: Framework Integration -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Framework Integration &amp; Ecosystem</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>PyTorch</h3>
+      <ul>
+        <li><code>F.scaled_dot_product_attention</code> auto-dispatches to FA</li>
+        <li>FlexAttention API with FA-4 Blackwell backend</li>
+        <li>19K+ GitHub stars, Ampere/Ada/Hopper/Blackwell</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>JAX &amp; TPU</h3>
+      <ul>
+        <li><code>jax.nn.dot_product_attention</code> with cuDNN backend</li>
+        <li>XLA auto-tiling + Pallas custom kernels for TPU</li>
+        <li>AMD ROCm via composable kernel backend</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Hugging Face</h3>
+      <ul>
+        <li><code>attn_implementation="flash_attention_2"</code></li>
+        <li>Drop-in for Llama, Mistral, Falcon, GPT-NeoX</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Inference Engines</h3>
+      <ul>
+        <li>vLLM, TensorRT-LLM, SGLang, DeepSpeed-MII</li>
+        <li>Combined with PagedAttention for KV cache</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 15 &mdash; Ecosystem</div>
+</section>
+
+<!-- SLIDE 16: Composability, Limitations & Impact -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Composability, Limitations &amp; Impact</h2></div>
+  <div class="cols cols-3">
+    <div class="card green">
+      <h3>Composes With</h3>
+      <ul>
+        <li><span class="g">GQA/MQA</span> &mdash; K,V shared across groups</li>
+        <li><span class="g">Sparse &amp; sliding window</span> attention</li>
+        <li><span class="g">Ring attention</span> for cross-GPU</li>
+        <li><span class="g">KV cache quantization</span> on-the-fly</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Limitations</h3>
+      <ul>
+        <li><span class="r">Hardware-specific</span> (FA-3 Hopper, FA-4 Blackwell)</li>
+        <li><span class="r">Expert CUDA/CuTeDSL</span> needed to extend</li>
+        <li>No attention matrix for debugging</li>
+        <li>Optimized for d = 64, 128, 256</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>What It Enabled</h3>
+      <ul>
+        <li><span class="b">128K+ context</span> training (Llama, GPT-4, Claude)</li>
+        <li>1M+ token experiments via ring attention</li>
+        <li>Long-context inference on single GPUs</li>
+        <li>19K+ GitHub stars, universal adoption</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">FlashAttention &bull; 16 &mdash; Trade-offs &amp; Impact</div>
+</section>
+
+<!-- SLIDE 17: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">17</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Core Principle</h3>
+        <p>Optimize <span class="g">data movement</span>, not arithmetic. Tile to SRAM, fuse operations, never materialize the N&times;N matrix in HBM.</p>
+      </div>
+      <div class="card amber">
+        <h3>Exact, Not Approximate</h3>
+        <p>Online softmax with incremental rescaling yields <span class="a">numerically identical</span> results to standard attention &mdash; across all four generations.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.6em">
+        <h3>Four Generations</h3>
+        <p><span class="a">FA-1</span>: Tiling &rarr; <span class="g">FA-2</span>: Parallelism &rarr; <span class="p">FA-3</span>: Hopper pingpong + FP8 &rarr; <span class="b">FA-4</span>: Blackwell conditional softmax + CuTeDSL</p>
+      </div>
+      <div class="card blue">
+        <h3>Hardware Co-Design</h3>
+        <p>Each version targets the <span class="b">specific bottleneck</span> of its generation: IO (Ampere), pipeline stalls (Hopper), SFU throughput (Blackwell).</p>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.8em">
+    <span class="pill amber">O(N) Memory</span>
+    <span class="pill green">2-6x Speedup</span>
+    <span class="pill purple">Proven Optimal IO</span>
+    <span class="pill blue">A100 &rarr; B200</span>
+  </p>
+  <div class="slide-footer">FlashAttention &bull; 17 &mdash; Summary</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body>
+</html>

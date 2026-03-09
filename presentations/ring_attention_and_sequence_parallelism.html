@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ring Attention &amp; Sequence Parallelism | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ============ SLIDE 1 : TITLE ============ -->
+<section class="title-slide">
+  <p style="font-family:'JetBrains Mono',monospace;font-size:.55em;color:var(--muted);letter-spacing:.12em;margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <h1>Ring Attention &amp; Sequence Parallelism</h1>
+  <div class="subtitle">Distributing Attention Across Devices for Long-Context Training and Inference</div>
+  <div style="width:3em;height:2px;background:var(--amber);margin:0 auto 1em;"></div>
+  <div>
+    <span class="pill amber">Ring Attention</span>
+    <span class="pill green">DeepSpeed Ulysses</span>
+    <span class="pill purple">Context Parallelism</span>
+    <span class="pill blue">FlashAttention</span>
+  </div>
+  <p style="max-width:34em;margin:1em auto .8em;font-size:.78em;color:#b8b8d0;text-align:center;">
+    How sequence parallelism techniques enable context lengths that scale linearly with GPU count, without approximation or quality loss.
+  </p>
+  <div class="meta">March 2026</div>
+</section>
+
+<!-- ============ SLIDE 2 : THE PROBLEM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>The Activation Memory Wall</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>As context windows expand to <span class="a">millions of tokens</span>, even memory-efficient kernels cannot fit activations on a single GPU.</p>
+      <ul>
+        <li>Attention output per layer: <span class="mono">(batch, seq_len, hidden_dim)</span></li>
+        <li>Llama 3 class (d=8192), 128K tokens, BF16: <span class="r">~2 GB per layer</span></li>
+        <li>Across 80 layers: <span class="r">~160 GB</span> of activations alone</li>
+        <li>KV cache for inference similarly massive</li>
+        <li>No single GPU can hold this</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
+        <text x="150" y="20" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="10">Memory per layer (BF16, 128K seq)</text>
+        <!-- bars -->
+        <rect x="40" y="45" width="220" height="30" rx="4" fill="var(--bg3)" stroke="var(--red)" stroke-width="1.2"/>
+        <rect x="40" y="45" width="220" height="30" rx="4" fill="var(--red)" opacity="0.25"/>
+        <text x="150" y="65" text-anchor="middle" fill="var(--red)" font-family="JetBrains Mono" font-size="11" font-weight="600">Attention Activations ~2 GB</text>
+        <rect x="40" y="90" width="170" height="30" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.2"/>
+        <rect x="40" y="90" width="170" height="30" rx="4" fill="var(--amber)" opacity="0.15"/>
+        <text x="125" y="110" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="11">FFN Activations</text>
+        <rect x="40" y="135" width="140" height="30" rx="4" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.2"/>
+        <rect x="40" y="135" width="140" height="30" rx="4" fill="var(--purple)" opacity="0.15"/>
+        <text x="110" y="155" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="11">KV Cache</text>
+        <!-- GPU limit line -->
+        <line x1="40" y1="200" x2="260" y2="200" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="6,3"/>
+        <text x="150" y="220" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="10">H100 HBM = 80 GB</text>
+        <text x="150" y="245" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">80 layers = 160 GB activations alone</text>
+        <text x="150" y="265" text-anchor="middle" fill="var(--red)" font-family="DM Sans" font-size="11" font-weight="600">2x GPU memory exceeded</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 3 : WHY SEQUENCE PARALLELISM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Why Sequence Parallelism?</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Existing Parallelism Falls Short</h3>
+      <ul>
+        <li><span class="a">Tensor parallelism</span> splits weight matrices but not per-token activation memory</li>
+        <li><span class="p">Pipeline parallelism</span> distributes layers but each device still needs the full sequence</li>
+        <li><span class="b">Data parallelism</span> requires each device to process the complete sequence</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Sequence Parallelism Fills the Gap</h3>
+      <ul>
+        <li>Splits the <span class="g">sequence itself</span> across devices</li>
+        <li>Each device holds only <span class="g">1/N</span> of the tokens</li>
+        <li>Directly reduces activation memory per device</li>
+        <li>Orthogonal to all other parallelism dimensions</li>
+        <li>Also called <span class="a">context parallelism</span></li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.7em;font-size:.75em;color:var(--muted);">Megatron-LM's early "sequence parallelism" distributed LayerNorm/dropout but <span class="r">not the attention computation itself</span></p>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 4 : RING ATTENTION OVERVIEW ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Ring Attention: Core Design</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p><span class="a">N devices</span> arranged in a logical ring, each holding <span class="g">1/N</span> of the sequence.</p>
+      <ul>
+        <li>Each device computes Q, K, V projections for its <span class="a">local chunk</span></li>
+        <li>Attention proceeds over <span class="b">N rounds</span></li>
+        <li>Each round: compute attention between local Q and current KV block</li>
+        <li>Between rounds: send KV block to next device, receive from previous</li>
+        <li>After N rounds: every Q has attended to <span class="g">all KV pairs</span></li>
+      </ul>
+      <p style="margin-top:.5em;"><span class="p">Key insight:</span> Communication overlaps with FlashAttention computation, hiding latency entirely.</p>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 300" width="300" height="300">
+        <!-- Ring of GPUs -->
+        <circle cx="150" cy="150" r="100" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>
+        <!-- GPU nodes -->
+        <circle cx="150" cy="50" r="28" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.5"/>
+        <text x="150" y="47" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9" font-weight="600">GPU 0</text>
+        <text x="150" y="60" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">Q₀ + KV</text>
+        <circle cx="250" cy="150" r="28" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.5"/>
+        <text x="250" y="147" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9" font-weight="600">GPU 1</text>
+        <text x="250" y="160" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">Q₁ + KV</text>
+        <circle cx="150" cy="250" r="28" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.5"/>
+        <text x="150" y="247" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="9" font-weight="600">GPU 2</text>
+        <text x="150" y="260" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">Q₂ + KV</text>
+        <circle cx="50" cy="150" r="28" fill="var(--bg3)" stroke="var(--blue)" stroke-width="1.5"/>
+        <text x="50" y="147" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="9" font-weight="600">GPU 3</text>
+        <text x="50" y="160" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">Q₃ + KV</text>
+        <!-- Arrows showing KV rotation -->
+        <path d="M175,55 L220,120" fill="none" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arrowG)"/>
+        <path d="M245,180 L180,240" fill="none" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#arrowP)"/>
+        <path d="M125,245 L80,180" fill="none" stroke="var(--blue)" stroke-width="1.5" marker-end="url(#arrowB)"/>
+        <path d="M55,120 L120,58" fill="none" stroke="var(--amber)" stroke-width="1.5" marker-end="url(#arrowA)"/>
+        <defs>
+          <marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--green)"/></marker>
+          <marker id="arrowP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--purple)"/></marker>
+          <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--blue)"/></marker>
+          <marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--amber)"/></marker>
+        </defs>
+        <text x="150" y="155" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">KV blocks</text>
+        <text x="150" y="168" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">rotate each round</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 5 : COMMUNICATION OVERLAP ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Overlapping Communication with Compute</h2></div>
+  <div>
+    <p style="text-align:center;margin-bottom:.6em;">While device <span class="mono">i</span> computes FlashAttention on the current KV block, it <span class="g">simultaneously</span> sends that block to device <span class="mono">i+1</span> and receives the next block from <span class="mono">i-1</span>.</p>
+    <svg class="diagram" viewBox="0 0 800 220" width="800" height="220">
+      <!-- Timeline header -->
+      <text x="80" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">Round 1</text>
+      <text x="280" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">Round 2</text>
+      <text x="480" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">Round 3</text>
+      <text x="680" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">Round N</text>
+      <text x="580" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="14">...</text>
+      <!-- Compute row -->
+      <text x="10" y="65" fill="var(--amber)" font-family="JetBrains Mono" font-size="10" dominant-baseline="middle">Compute</text>
+      <rect x="50" y="45" width="160" height="35" rx="4" fill="var(--amber)" opacity="0.25" stroke="var(--amber)" stroke-width="1"/>
+      <text x="130" y="67" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">FlashAttn(Q, KV₀)</text>
+      <rect x="250" y="45" width="160" height="35" rx="4" fill="var(--amber)" opacity="0.25" stroke="var(--amber)" stroke-width="1"/>
+      <text x="330" y="67" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">FlashAttn(Q, KV₁)</text>
+      <rect x="450" y="45" width="160" height="35" rx="4" fill="var(--amber)" opacity="0.25" stroke="var(--amber)" stroke-width="1"/>
+      <text x="530" y="67" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">FlashAttn(Q, KV₂)</text>
+      <rect x="650" y="45" width="130" height="35" rx="4" fill="var(--amber)" opacity="0.25" stroke="var(--amber)" stroke-width="1"/>
+      <text x="715" y="67" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">FlashAttn(Q, KVₙ)</text>
+      <!-- Comm row -->
+      <text x="10" y="125" fill="var(--green)" font-family="JetBrains Mono" font-size="10" dominant-baseline="middle">Comms</text>
+      <rect x="50" y="105" width="160" height="35" rx="4" fill="var(--green)" opacity="0.15" stroke="var(--green)" stroke-width="1"/>
+      <text x="130" y="127" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">Send KV₀ / Recv KV₁</text>
+      <rect x="250" y="105" width="160" height="35" rx="4" fill="var(--green)" opacity="0.15" stroke="var(--green)" stroke-width="1"/>
+      <text x="330" y="127" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">Send KV₁ / Recv KV₂</text>
+      <rect x="450" y="105" width="160" height="35" rx="4" fill="var(--green)" opacity="0.15" stroke="var(--green)" stroke-width="1"/>
+      <text x="530" y="127" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">Send KV₂ / Recv KV₃</text>
+      <!-- overlap label -->
+      <text x="400" y="170" text-anchor="middle" fill="var(--green)" font-family="DM Sans" font-size="12" font-weight="600">Communication fully hidden when compute &gt; transfer time</text>
+      <text x="400" y="195" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">NVLink: 900 GB/s (A100), 1.8 TB/s (H100) — a few thousand tokens per device suffices</text>
+    </svg>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 6 : ONLINE SOFTMAX ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Online Softmax Across Blocks</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Inherited from FlashAttention</h3>
+      <ul>
+        <li>Each local FlashAttention produces a <span class="a">partial attention output</span> and <span class="g">log-sum-exp statistics</span></li>
+        <li>As new KV blocks arrive, the device <span class="p">updates running statistics</span> and rescales accumulated output</li>
+        <li>After all N rounds, the result is <span class="a">numerically identical</span> to single-device attention</li>
+      </ul>
+      <h3 style="margin-top:.6em;">Why This Matters</h3>
+      <ul>
+        <li>No approximation whatsoever</li>
+        <li>Bit-for-bit equivalent to standard attention</li>
+        <li>Quality is <span class="g">exactly preserved</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.8em;">
+        <h3>Round k on Device i</h3>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:.7em;line-height:1.7;">
+          O_local, LSE_local = FlashAttn(Q_i, KV_k)<br>
+          <br>
+          <span style="color:var(--green);">// Combine with running state</span><br>
+          LSE_new = logaddexp(LSE_run, LSE_local)<br>
+          scale_old = exp(LSE_run - LSE_new)<br>
+          scale_new = exp(LSE_local - LSE_new)<br>
+          <br>
+          O_run = scale_old * O_run + scale_new * O_local<br>
+          LSE_run = LSE_new
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 7 : CAUSAL MASKING ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Causal Masking &amp; Load Imbalance</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>The Problem</h3>
+      <p>With contiguous chunks and causal masking:</p>
+      <ul>
+        <li>Device holding <span class="r">last chunk</span> computes attention against all preceding tokens</li>
+        <li>Device holding <span class="b">first chunk</span> only attends to itself</li>
+        <li>Up to <span class="r">50% compute wasted</span> from load imbalance</li>
+      </ul>
+      <svg class="diagram" viewBox="0 0 280 120" width="280" height="120" style="margin-top:.5em;">
+        <text x="140" y="15" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">Contiguous assignment (unbalanced)</text>
+        <rect x="10" y="30" width="60" height="25" rx="3" fill="var(--blue)" opacity="0.3" stroke="var(--blue)" stroke-width="1"/>
+        <text x="40" y="47" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="8">Dev 0</text>
+        <rect x="80" y="30" width="60" height="25" rx="3" fill="var(--green)" opacity="0.3" stroke="var(--green)" stroke-width="1"/>
+        <text x="110" y="47" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="8">Dev 1</text>
+        <rect x="150" y="30" width="60" height="25" rx="3" fill="var(--purple)" opacity="0.3" stroke="var(--purple)" stroke-width="1"/>
+        <text x="180" y="47" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="8">Dev 2</text>
+        <rect x="220" y="30" width="60" height="25" rx="3" fill="var(--red)" opacity="0.3" stroke="var(--red)" stroke-width="1"/>
+        <text x="250" y="47" text-anchor="middle" fill="var(--red)" font-family="JetBrains Mono" font-size="8">Dev 3</text>
+        <!-- Work bars -->
+        <rect x="25" y="70" width="30" height="8" rx="2" fill="var(--blue)"/>
+        <rect x="80" y="70" width="60" height="8" rx="2" fill="var(--green)"/>
+        <rect x="150" y="70" width="60" height="8" rx="2" fill="var(--purple)"/>
+        <rect x="220" y="70" width="60" height="8" rx="2" fill="var(--red)"/>
+        <text x="140" y="100" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="8">Work per device (causal mask)</text>
+      </svg>
+    </div>
+    <div>
+      <h3>Striped Attention (Solution)</h3>
+      <p>Interleaved token assignment via <span class="g">zigzag pattern</span>:</p>
+      <ul>
+        <li>Device 0 gets tokens: <span class="mono">0, 2N-1, 2N, 4N-1, ...</span></li>
+        <li>Each device's workload is <span class="g">approximately equal</span></li>
+        <li>Compatible with RoPE: tokens keep <span class="a">original position indices</span></li>
+      </ul>
+      <svg class="diagram" viewBox="0 0 280 120" width="280" height="120" style="margin-top:.5em;">
+        <text x="140" y="15" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">Striped assignment (balanced)</text>
+        <!-- Interleaved bars -->
+        <rect x="10" y="30" width="15" height="25" rx="2" fill="var(--blue)" opacity="0.5"/>
+        <rect x="27" y="30" width="15" height="25" rx="2" fill="var(--green)" opacity="0.5"/>
+        <rect x="44" y="30" width="15" height="25" rx="2" fill="var(--purple)" opacity="0.5"/>
+        <rect x="61" y="30" width="15" height="25" rx="2" fill="var(--red)" opacity="0.5"/>
+        <rect x="78" y="30" width="15" height="25" rx="2" fill="var(--blue)" opacity="0.5"/>
+        <rect x="95" y="30" width="15" height="25" rx="2" fill="var(--green)" opacity="0.5"/>
+        <rect x="112" y="30" width="15" height="25" rx="2" fill="var(--purple)" opacity="0.5"/>
+        <rect x="129" y="30" width="15" height="25" rx="2" fill="var(--red)" opacity="0.5"/>
+        <rect x="146" y="30" width="15" height="25" rx="2" fill="var(--blue)" opacity="0.5"/>
+        <rect x="163" y="30" width="15" height="25" rx="2" fill="var(--green)" opacity="0.5"/>
+        <rect x="180" y="30" width="15" height="25" rx="2" fill="var(--purple)" opacity="0.5"/>
+        <rect x="197" y="30" width="15" height="25" rx="2" fill="var(--red)" opacity="0.5"/>
+        <!-- Equal work bars -->
+        <rect x="25" y="70" width="50" height="8" rx="2" fill="var(--blue)"/>
+        <rect x="90" y="70" width="50" height="8" rx="2" fill="var(--green)"/>
+        <rect x="155" y="70" width="50" height="8" rx="2" fill="var(--purple)"/>
+        <rect x="220" y="70" width="50" height="8" rx="2" fill="var(--red)"/>
+        <text x="140" y="100" text-anchor="middle" fill="var(--green)" font-family="DM Sans" font-size="8">Balanced work per device</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 8 : DEEPSPEED ULYSSES ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>DeepSpeed Ulysses</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>All-to-All Head Partitioning</h3>
+      <p>A fundamentally different approach to distributing attention:</p>
+      <ul>
+        <li>Partition Q, K, V along the <span class="a">head dimension</span>, not sequence</li>
+        <li><span class="g">All-to-all</span> redistribute: each device gets full sequence for a subset of heads</li>
+        <li>Standard FlashAttention per device (no distributed softmax)</li>
+        <li>Another all-to-all restores original partitioning</li>
+      </ul>
+      <h3 style="margin-top:.6em;">Advantages</h3>
+      <ul>
+        <li>All-to-all collectives are <span class="g">highly optimised</span> on modern interconnects</li>
+        <li>Higher bandwidth utilisation than point-to-point ring transfers</li>
+        <li>No online softmax overhead</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
+        <text x="150" y="20" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">Ulysses: All-to-All redistribution</text>
+        <!-- Before -->
+        <text x="75" y="50" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">Before All-to-All</text>
+        <rect x="15" y="60" width="55" height="60" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/>
+        <text x="42" y="78" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="7">Seq 0..N/4</text>
+        <text x="42" y="92" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">All heads</text>
+        <rect x="80" y="60" width="55" height="60" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/>
+        <text x="107" y="78" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="7">Seq N/4..N/2</text>
+        <text x="107" y="92" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">All heads</text>
+        <!-- Arrow -->
+        <path d="M75,130 L75,155" fill="none" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arrowGA)"/>
+        <text x="120" y="147" fill="var(--green)" font-family="JetBrains Mono" font-size="9">all-to-all</text>
+        <defs><marker id="arrowGA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--green)"/></marker></defs>
+        <!-- After -->
+        <text x="75" y="175" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">After All-to-All</text>
+        <rect x="15" y="185" width="55" height="60" rx="4" fill="var(--bg3)" stroke="var(--green)" stroke-width="1"/>
+        <text x="42" y="203" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="7">Full seq</text>
+        <text x="42" y="217" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="7">Heads 0..H/4</text>
+        <rect x="80" y="185" width="55" height="60" rx="4" fill="var(--bg3)" stroke="var(--green)" stroke-width="1"/>
+        <text x="107" y="203" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="7">Full seq</text>
+        <text x="107" y="217" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="7">Heads H/4..H/2</text>
+        <text x="150" y="270" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Standard FlashAttention per device</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 9 : ULYSSES LIMITATION ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Ulysses: The Head Count Limit</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Fundamental Constraint</h3>
+      <p>Max parallelism degree <span style="color:var(--red);font-weight:600;">cannot exceed the number of KV heads</span></p>
+      <ul>
+        <li>32 query heads with GQA using 8 KV heads</li>
+        <li>Ulysses limited to <span class="r">8 devices</span> max</li>
+        <li>Combined with tensor parallelism (which also partitions heads), even fewer devices available</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Ring Attention: No Head Limit</h3>
+      <p>Partitions along <span class="g">sequence dimension</span>, not heads</p>
+      <ul>
+        <li>Scales with device count, not head count</li>
+        <li>Can use <span class="g">hundreds or thousands</span> of devices</li>
+        <li>Only requires enough tokens per device for compute/comm overlap</li>
+      </ul>
+    </div>
+  </div>
+  <table style="margin-top:.8em;">
+    <tr><th>Property</th><th>Ring Attention</th><th>DeepSpeed Ulysses</th></tr>
+    <tr><td>Partition dimension</td><td><span class="a">Sequence</span></td><td><span class="g">Heads</span></td></tr>
+    <tr><td>Communication</td><td>Point-to-point ring</td><td>All-to-all collective</td></tr>
+    <tr><td>Max parallelism</td><td><span class="a">Unlimited</span> (device count)</td><td><span class="r">Num KV heads</span></td></tr>
+    <tr><td>Overlap strategy</td><td>Comm hidden behind compute</td><td>Bulk all-to-all before/after</td></tr>
+    <tr><td>Local kernel</td><td>Modified FlashAttention</td><td>Standard FlashAttention</td></tr>
+  </table>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 10 : HYBRID USP ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Hybrid: Unified Sequence Parallelism</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Best of Both Worlds</h3>
+      <p><span class="a">USP</span> combines Ring Attention and Ulysses to match the network hierarchy:</p>
+      <ul>
+        <li><span class="g">Intra-node</span> (NVLink, high BW): Ulysses partitions across heads for maximum efficiency</li>
+        <li><span class="p">Inter-node</span> (InfiniBand, lower BW): Ring Attention distributes along sequence, overlaps comm with compute</li>
+      </ul>
+      <h3 style="margin-top:.5em;">Why It Works</h3>
+      <ul>
+        <li>Ulysses is faster where bandwidth is abundant</li>
+        <li>Ring hides latency where bandwidth is scarce</li>
+        <li>Two-level hierarchy matches GPU cluster topology</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
+        <!-- Node 0 -->
+        <rect x="10" y="40" width="130" height="110" rx="6" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.5"/>
+        <text x="75" y="58" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9" font-weight="600">Node 0</text>
+        <rect x="20" y="65" width="50" height="30" rx="3" fill="var(--bg2)" stroke="var(--amber)" stroke-width="1"/>
+        <text x="45" y="84" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">GPU 0</text>
+        <rect x="80" y="65" width="50" height="30" rx="3" fill="var(--bg2)" stroke="var(--amber)" stroke-width="1"/>
+        <text x="105" y="84" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">GPU 1</text>
+        <text x="75" y="115" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="7">Ulysses (all-to-all)</text>
+        <text x="75" y="130" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">NVLink 1.8 TB/s</text>
+        <!-- Node 1 -->
+        <rect x="160" y="40" width="130" height="110" rx="6" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.5"/>
+        <text x="225" y="58" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9" font-weight="600">Node 1</text>
+        <rect x="170" y="65" width="50" height="30" rx="3" fill="var(--bg2)" stroke="var(--amber)" stroke-width="1"/>
+        <text x="195" y="84" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">GPU 2</text>
+        <rect x="230" y="65" width="50" height="30" rx="3" fill="var(--bg2)" stroke="var(--amber)" stroke-width="1"/>
+        <text x="255" y="84" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">GPU 3</text>
+        <text x="225" y="115" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="7">Ulysses (all-to-all)</text>
+        <text x="225" y="130" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">NVLink 1.8 TB/s</text>
+        <!-- Inter-node ring -->
+        <path d="M140,90 L160,90" fill="none" stroke="var(--purple)" stroke-width="2" marker-end="url(#arrowPP)"/>
+        <path d="M160,100 L140,100" fill="none" stroke="var(--purple)" stroke-width="2" marker-end="url(#arrowPP2)"/>
+        <defs>
+          <marker id="arrowPP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--purple)"/></marker>
+          <marker id="arrowPP2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--purple)"/></marker>
+        </defs>
+        <text x="150" y="180" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="9" font-weight="600">Ring Attention (inter-node)</text>
+        <text x="150" y="200" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="8">InfiniBand — comm overlaps compute</text>
+        <!-- Summary -->
+        <rect x="30" y="225" width="240" height="40" rx="6" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
+        <text x="150" y="245" text-anchor="middle" fill="var(--text)" font-family="DM Sans" font-size="10">Better performance than either method alone</text>
+        <text x="150" y="258" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">by matching parallelism to network bandwidth</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 11 : PRACTICAL IMPLEMENTATIONS ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Context Parallelism in Practice</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Meta / Llama 3</h3>
+      <ul>
+        <li>Modified all-gather ring algorithm (<span class="a">pass-KV</span>)</li>
+        <li>Concurrently all-gathers KV shards while computing attention</li>
+        <li>Used for 405B model training and inference</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>PyTorch</h3>
+      <ul>
+        <li><span class="g">context_parallel</span> API replaces standard SDPA with Ring Attention</li>
+        <li>Supports all-gather and all-to-all rotation methods</li>
+        <li>Drop-in replacement</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>NVIDIA</h3>
+      <ul>
+        <li><span class="p">Megatron-core</span> and TransformerEngine</li>
+        <li>Context parallelism as first-class parallelism dimension</li>
+        <li>Integrated with TP, PP, DP</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.8em;font-size:.75em;color:var(--muted);">All major frameworks now support sequence parallelism alongside data, tensor, and pipeline parallelism</p>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 12 : PERFORMANCE ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Performance at Scale</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Training: ringX on Frontier</h3>
+      <ul>
+        <li>Llama 3 8B with <span class="a">1M token</span> sequence length</li>
+        <li><span class="a">4,096 GPUs</span> on Frontier supercomputer</li>
+        <li><span class="g">3.4x speedup</span> over naive ring attention</li>
+        <li><span class="a">38% MFU</span> — among highest reported for long-context training at HPC scale</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Inference: Llama 3 405B</h3>
+      <ul>
+        <li>Pass-KV ring attention <span class="g">significantly outperforms</span> tensor parallelism for multi-node inference</li>
+        <li>Advantage grows with number of nodes</li>
+        <li>TP bottlenecked by all-reduce latency across nodes</li>
+        <li>Ring attention overlaps comm with compute</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em;">
+    <h3>Key Takeaway</h3>
+    <p>Context parallelism becomes <span class="b">increasingly advantageous</span> over tensor parallelism as the deployment scales beyond a single node, because ring communication overlaps with computation while all-reduce does not.</p>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 13 : WHEN TO USE WHAT ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Decision Guide</h2></div>
+  <table>
+    <tr>
+      <th>Scenario</th>
+      <th>Recommended Approach</th>
+      <th>Rationale</th>
+    </tr>
+    <tr>
+      <td>Single node, enough heads</td>
+      <td><span class="g">Ulysses</span></td>
+      <td>Highest bandwidth, no ring overhead</td>
+    </tr>
+    <tr>
+      <td>Single node, few KV heads (GQA)</td>
+      <td><span class="a">Ring Attention</span></td>
+      <td>Not limited by head count</td>
+    </tr>
+    <tr>
+      <td>Multi-node, high parallelism</td>
+      <td><span class="p">Hybrid (Ulysses intra + Ring inter)</span></td>
+      <td>Matches network hierarchy</td>
+    </tr>
+    <tr>
+      <td>Very long context (&gt;1M tokens)</td>
+      <td><span class="a">Ring Attention (striped for causal)</span></td>
+      <td>Scales with device count, no head limit</td>
+    </tr>
+  </table>
+  <p style="text-align:center;margin-top:.7em;font-size:.78em;color:var(--muted);">The optimal choice depends on <span class="a">model architecture</span> (head count, GQA), <span class="g">hardware topology</span> (intra vs inter-node BW), and <span class="p">sequence length</span></p>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 14 : PRACTICAL CONSIDERATIONS ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Implementation Details</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>RoPE Position Indices</h3>
+      <ul>
+        <li>Tokens must keep <span class="a">original position indices</span> regardless of physical device placement</li>
+        <li>Striped/zigzag assignment: position = original index, not local index</li>
+        <li>Frequency tensors (<span class="mono">freq_cis</span>) must be sharded consistently</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Padding &amp; Variable Length</h3>
+      <ul>
+        <li>Sequence length must be evenly divisible by parallelism degree</li>
+        <li><span class="g">Pass-Q</span> variant for inference: sends queries (not KV) around ring</li>
+        <li>More efficient when new tokens are small relative to cached context</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Composing Parallelism</h3>
+      <ul>
+        <li>DP + TP + PP + CP can all be composed</li>
+        <li>Communication patterns must be coordinated to avoid <span class="r">deadlocks</span></li>
+        <li>Process group meshes (Megatron-LM, TorchTitan) manage complexity</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Pass-KV vs Pass-Q</h3>
+      <ul>
+        <li><span class="a">Pass-KV</span>: rotate KV blocks (standard Ring Attention)</li>
+        <li><span class="b">Pass-Q</span>: rotate query blocks instead</li>
+        <li>Pass-Q better for prefill with small query relative to long cached context</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 15 : PARALLELISM DIMENSIONS ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>The Five Parallelism Dimensions</h2></div>
+  <p style="text-align:center;margin-bottom:.5em;">Sequence parallelism completes the set of orthogonal distribution strategies</p>
+  <svg class="diagram" viewBox="0 0 800 200" width="800" height="200">
+    <!-- DP -->
+    <rect x="10" y="30" width="140" height="80" rx="6" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.5"/>
+    <text x="80" y="55" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display" font-size="12" font-weight="700">Data Parallel</text>
+    <text x="80" y="75" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Different sequences</text>
+    <text x="80" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">per device</text>
+    <!-- TP -->
+    <rect x="170" y="30" width="140" height="80" rx="6" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.5"/>
+    <text x="240" y="55" text-anchor="middle" fill="var(--green)" font-family="Playfair Display" font-size="12" font-weight="700">Tensor Parallel</text>
+    <text x="240" y="75" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Split weight matrices</text>
+    <text x="240" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">within layers</text>
+    <!-- PP -->
+    <rect x="330" y="30" width="140" height="80" rx="6" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.5"/>
+    <text x="400" y="55" text-anchor="middle" fill="var(--purple)" font-family="Playfair Display" font-size="12" font-weight="700">Pipeline Parallel</text>
+    <text x="400" y="75" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Groups of layers</text>
+    <text x="400" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">across stages</text>
+    <!-- EP -->
+    <rect x="490" y="30" width="140" height="80" rx="6" fill="var(--bg3)" stroke="var(--blue)" stroke-width="1.5"/>
+    <text x="560" y="55" text-anchor="middle" fill="var(--blue)" font-family="Playfair Display" font-size="12" font-weight="700">Expert Parallel</text>
+    <text x="560" y="75" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">MoE experts</text>
+    <text x="560" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">across devices</text>
+    <!-- SP highlighted -->
+    <rect x="650" y="25" width="140" height="90" rx="6" fill="var(--bg3)" stroke="var(--red)" stroke-width="2.5"/>
+    <text x="720" y="52" text-anchor="middle" fill="var(--red)" font-family="Playfair Display" font-size="12" font-weight="700">Sequence Parallel</text>
+    <text x="720" y="72" text-anchor="middle" fill="var(--text)" font-family="DM Sans" font-size="9">Split sequence across</text>
+    <text x="720" y="87" text-anchor="middle" fill="var(--text)" font-family="DM Sans" font-size="9">devices for attention</text>
+    <text x="720" y="100" text-anchor="middle" fill="var(--red)" font-family="JetBrains Mono" font-size="8">NEW</text>
+    <!-- Bottom label -->
+    <text x="400" y="155" text-anchor="middle" fill="var(--text)" font-family="DM Sans" font-size="11">All five dimensions are <tspan fill="var(--amber)" font-weight="600">orthogonal</tspan> and can be composed in modern training frameworks</text>
+    <text x="400" y="180" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">5D parallelism: DP x TP x PP x EP x CP</text>
+  </svg>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 16 : COMMUNICATION REQUIREMENTS ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Communication Requirements</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Compute-Communication Balance</h3>
+      <p>For communication to be fully hidden, local FlashAttention must take <span class="a">at least as long</span> as transferring a KV block.</p>
+      <table>
+        <tr><th>Interconnect</th><th>Bandwidth</th><th>Min Tokens/Device</th></tr>
+        <tr><td>NVLink (A100)</td><td><span class="g">900 GB/s</span></td><td>~Few thousand</td></tr>
+        <tr><td>NVLink (H100)</td><td><span class="g">1.8 TB/s</span></td><td>~Few thousand</td></tr>
+        <tr><td>InfiniBand (inter-node)</td><td><span class="a">400 Gb/s</span></td><td>Larger blocks needed</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Scaling Properties</h3>
+      <div class="card green" style="margin-bottom:.6em;">
+        <h3>Linear Scaling</h3>
+        <p>Context length scales <span class="g">linearly</span> with GPU count:</p>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:var(--green);margin-top:.3em;">max_ctx = N_devices x tokens_per_device</p>
+      </div>
+      <div class="card amber">
+        <h3>Wall-Clock Time</h3>
+        <p>With full overlap, total time equals single-device FlashAttention on the full sequence — <span class="a">no slowdown from distribution</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 17 : CONCLUSION ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Ring Attention</h3>
+      <ul>
+        <li>Distributes attention across a ring of GPUs</li>
+        <li>Overlaps KV transfer with FlashAttention compute</li>
+        <li>Numerically identical to single-device attention</li>
+        <li>Scales linearly with device count, no head limit</li>
+        <li>Striped assignment solves causal load imbalance</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>DeepSpeed Ulysses</h3>
+      <ul>
+        <li>Partitions across attention heads via all-to-all</li>
+        <li>Faster for moderate parallelism (high BW utilisation)</li>
+        <li>Limited to number of KV heads</li>
+        <li>Standard FlashAttention kernel, no modifications</li>
+      </ul>
+    </div>
+    <div class="card purple" style="grid-column: 1 / -1;">
+      <h3>Hybrid Approach (USP)</h3>
+      <p><span class="g">Ulysses intra-node</span> + <span class="p">Ring inter-node</span> = best of both worlds, matching parallelism strategy to network bandwidth hierarchy. As models push toward <span class="a">million-token contexts</span>, these techniques are essential infrastructure for making such contexts computationally feasible.</p>
+    </div>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+<!-- ============ SLIDE 18 : REFERENCES ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">REF</span><h2>Key References</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Foundational Work</h3>
+      <ul>
+        <li><span class="a">Ring Attention</span> — Liu et al., 2023</li>
+        <li><span class="g">Striped Attention</span> — Brandon et al., 2023</li>
+        <li><span class="b">DeepSpeed Ulysses</span> — Jacobs et al., 2023</li>
+        <li><span class="p">Unified Sequence Parallelism (USP)</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Systems &amp; Frameworks</h3>
+      <ul>
+        <li><span class="a">ringX</span> — Optimised ring attention on Frontier (2024)</li>
+        <li><span class="g">Meta Context Parallelism</span> — Llama 3 pass-KV (2024)</li>
+        <li><span class="p">PyTorch</span> context_parallel API</li>
+        <li><span class="b">Megatron-core</span> / TransformerEngine</li>
+      </ul>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:1.5em;">
+    <p style="font-size:.7em;color:var(--muted);font-family:'JetBrains Mono',monospace;">March 2026 • Technical Report</p>
+  </div>
+  <div class="slide-footer">ring attention &amp; sequence parallelism</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body>
+</html>

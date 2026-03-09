@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post-Transformer Models | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="mono" style="font-size:.55em;color:var(--muted);margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <h1>Post-Transformer<br>Language Models</h1>
+  <p class="subtitle">Architectures Beyond Standard Attention</p>
+  <div>
+    <span class="pill amber">SSMs</span>
+    <span class="pill green">Linear Attention</span>
+    <span class="pill purple">Modern RNNs</span>
+    <span class="pill blue">Hybrid Architectures</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em;">March 2026</p>
+  <div class="slide-footer">post-transformer-models</div>
+</section>
+
+<!-- SLIDE 2: The Problem with Transformers -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>Why Move Beyond Transformers?</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Quadratic Attention Cost</h3>
+      <p>O(n&sup2;) time and memory &mdash; 128K context is <span class="r">16x</span> more expensive than 32K. FlashAttention reduces memory but the compute cost remains.</p>
+    </div>
+    <div class="card amber">
+      <h3>KV Cache Growth</h3>
+      <p>Llama 3 70B: ~<span class="a">1.25 MB per token</span> in FP16. At 128K tokens the cache exceeds <span class="a">160 GB</span> &mdash; more than a single H100.</p>
+    </div>
+    <div class="card purple">
+      <h3>Fixed Computation Per Token</h3>
+      <p>Every token gets identical FLOPs &mdash; "the" costs the same as a complex reasoning step. Uniform allocation is <span class="p">wasteful</span>.</p>
+    </div>
+    <div class="card blue">
+      <h3>Inference Latency</h3>
+      <p>Generation latency grows <span class="b">linearly</span> with context length per decode step. Real-time streaming over long contexts becomes impractical.</p>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; transformer limitations</div>
+</section>
+
+<!-- SLIDE 3: Architecture Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Architecture Landscape</h2></div>
+  <svg class="diagram" viewBox="0 0 900 340" width="850">
+    <defs>
+      <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1.2"/></marker>
+    </defs>
+    <!-- Central node -->
+    <rect x="335" y="10" width="230" height="48" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="450" y="40" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700">Post-Transformer Models</text>
+    <!-- SSMs -->
+    <rect x="20" y="110" width="180" height="44" rx="6" fill="#10101a" stroke="#f5a623"/>
+    <text x="110" y="137" text-anchor="middle" fill="#f5a623" font-size="13" font-weight="600">State Space Models</text>
+    <text x="110" y="175" text-anchor="middle" fill="#8888a8" font-size="11">S4 &rarr; Mamba &rarr; Mamba-2</text>
+    <!-- Linear Attn -->
+    <rect x="240" y="110" width="180" height="44" rx="6" fill="#10101a" stroke="#4ecb8d"/>
+    <text x="330" y="137" text-anchor="middle" fill="#4ecb8d" font-size="13" font-weight="600">Linear Attention</text>
+    <text x="330" y="175" text-anchor="middle" fill="#8888a8" font-size="11">GLA, RetNet, cosFormer</text>
+    <!-- Modern RNNs -->
+    <rect x="470" y="110" width="180" height="44" rx="6" fill="#10101a" stroke="#a78bfa"/>
+    <text x="560" y="137" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="600">Modern RNNs</text>
+    <text x="560" y="175" text-anchor="middle" fill="#8888a8" font-size="11">RWKV, xLSTM, Griffin</text>
+    <!-- Hybrids -->
+    <rect x="700" y="110" width="180" height="44" rx="6" fill="#10101a" stroke="#60a5fa"/>
+    <text x="790" y="137" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="600">Hybrid Models</text>
+    <text x="790" y="175" text-anchor="middle" fill="#8888a8" font-size="11">Jamba, Samba, Zamba</text>
+    <!-- Lines -->
+    <line x1="400" y1="58" x2="110" y2="110" stroke="#8888a8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="440" y1="58" x2="330" y2="110" stroke="#8888a8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="490" y1="58" x2="560" y2="110" stroke="#8888a8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="530" y1="58" x2="790" y2="110" stroke="#8888a8" stroke-width="1" marker-end="url(#ah)"/>
+    <!-- Shared goal -->
+    <rect x="260" y="230" width="380" height="44" rx="6" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="450" y="248" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="500">Shared Goal: Sub-quadratic or linear complexity</text>
+    <text x="450" y="264" text-anchor="middle" fill="#8888a8" font-size="11">O(n) training &bull; O(1) per-step inference &bull; constant memory</text>
+    <line x1="110" y1="154" x2="330" y2="230" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="330" y1="154" x2="390" y2="230" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="560" y1="154" x2="510" y2="230" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="790" y1="154" x2="560" y2="230" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4"/>
+  </svg>
+  <div class="slide-footer">post-transformer-models &middot; landscape</div>
+</section>
+
+<!-- SLIDE 4: SSM Foundations -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>State Space Models: Foundations</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Continuous-Time Dynamical System</h3>
+      <pre><code>h'(t) = A h(t) + B x(t)
+y(t)  = C h(t) + D x(t)
+
+After discretization (step size &Delta;):
+h_t = &Amacr; h_{t-1} + B&#772; x_t     &larr; recurrent mode
+y   = conv(K, x)            &larr; convolutional mode</code></pre>
+      <p style="margin-top:.6em;">The <span class="a">HiPPO</span> initialization for matrix A optimally compresses continuous signals into finite-dimensional state &mdash; recent inputs at higher fidelity.</p>
+      <p><span class="g">S4</span> (Gu et al., 2021) achieved breakthrough results on Long Range Arena, solving <span class="a">Path-X</span> (16K sequences) where dense attention failed.</p>
+    </div>
+    <div class="card amber">
+      <h3>SSM Dual Computation</h3>
+      <ul>
+        <li><span class="a">Recurrent mode</span> &mdash; O(1) per step, O(1) memory. No KV cache needed.</li>
+        <li><span class="g">Convolutional mode</span> &mdash; O(n log n) via FFT for parallel GPU training.</li>
+        <li>State vector: 16&ndash;256 dims per channel &mdash; compressed history of entire sequence.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; SSM foundations</div>
+</section>
+
+<!-- SLIDE 5: SSM Evolution -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>From S4 to Mamba</h2></div>
+  <svg class="diagram" viewBox="0 0 900 120" width="860">
+    <rect x="10" y="25" width="120" height="50" rx="6" fill="#10101a" stroke="#f5a623"/>
+    <text x="70" y="47" text-anchor="middle" fill="#f5a623" font-size="13" font-weight="600">S4</text>
+    <text x="70" y="63" text-anchor="middle" fill="#8888a8" font-size="10">2021</text>
+    <line x1="130" y1="50" x2="180" y2="50" stroke="#8888a8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="180" y="25" width="120" height="50" rx="6" fill="#10101a" stroke="#4ecb8d"/>
+    <text x="240" y="47" text-anchor="middle" fill="#4ecb8d" font-size="13" font-weight="600">S5 / H3</text>
+    <text x="240" y="63" text-anchor="middle" fill="#8888a8" font-size="10">2022&ndash;23</text>
+    <line x1="300" y1="50" x2="350" y2="50" stroke="#8888a8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="350" y="25" width="120" height="50" rx="6" fill="#10101a" stroke="#a78bfa"/>
+    <text x="410" y="47" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="600">Hyena</text>
+    <text x="410" y="63" text-anchor="middle" fill="#8888a8" font-size="10">2023</text>
+    <line x1="470" y1="50" x2="520" y2="50" stroke="#8888a8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="520" y="25" width="130" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="585" y="47" text-anchor="middle" fill="#f5a623" font-size="14" font-weight="700">Mamba</text>
+    <text x="585" y="63" text-anchor="middle" fill="#8888a8" font-size="10">Dec 2023</text>
+    <line x1="650" y1="50" x2="700" y2="50" stroke="#8888a8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="700" y="25" width="140" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="770" y="47" text-anchor="middle" fill="#f5a623" font-size="14" font-weight="700">Mamba-2</text>
+    <text x="770" y="63" text-anchor="middle" fill="#8888a8" font-size="10">Mid 2024</text>
+  </svg>
+  <div class="cols cols-2" style="margin-top:.6em;">
+    <div class="card amber">
+      <h3>Mamba: Selective State Spaces</h3>
+      <ul>
+        <li>Makes B, C, &Delta; <span class="a">input-dependent</span> &mdash; content-based filtering</li>
+        <li>Hardware-aware <span class="a">parallel scan</span> exploiting SRAM hierarchy</li>
+        <li>Trains <span class="a">3&ndash;5x faster</span> than equivalent transformers</li>
+        <li>At 1.4B: matched Pythia/GPT-Neo quality</li>
+        <li><span class="a">5x throughput</span> at 1M token sequences</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Mamba-2: SSD Framework</h3>
+      <ul>
+        <li>Revealed <span class="g">duality</span> between selective SSMs and structured attention</li>
+        <li>SSM computation as <span class="g">matrix multiplications</span> on tensor cores</li>
+        <li><span class="g">2&ndash;8x speedup</span> over Mamba-1</li>
+        <li>Larger state dimension (64&ndash;256 vs 16)</li>
+        <li>Consistent quality match at 2.7B scale</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; SSM evolution</div>
+</section>
+
+<!-- SLIDE 6: SSM Inference Advantages -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>SSM Inference Advantages</h2></div>
+  <table>
+    <thead>
+      <tr><th>Property</th><th>Transformer</th><th>SSM (Mamba)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Per-step computation</td><td><span class="r">O(n)</span> &mdash; attend to all past tokens</td><td><span class="g">O(1)</span> &mdash; fixed state update</td></tr>
+      <tr><td>Memory for past context</td><td><span class="r">O(n)</span> &mdash; KV cache</td><td><span class="g">O(1)</span> &mdash; fixed state vector</td></tr>
+      <tr><td>Generation at 1K tokens</td><td>Baseline</td><td><span class="g">~5x faster</span></td></tr>
+      <tr><td>Generation at 64K tokens</td><td><span class="r">Very slow</span> (large KV cache)</td><td><span class="g">Same speed as 1K</span></td></tr>
+      <tr><td>Prefill computation</td><td><span class="r">O(n&sup2;)</span> attention</td><td><span class="g">O(n)</span> scan/convolution</td></tr>
+      <tr><td>Memory scaling</td><td><span class="r">Linear</span> in context length</td><td><span class="g">Constant</span></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.6em;">Mamba-1.4B hidden state: <span class="g">~1.5 MB</span> regardless of length vs <span class="r">~200 MB</span> KV cache at 8K tokens for equivalent transformer.</p>
+  <div class="slide-footer">post-transformer-models &middot; SSM inference</div>
+</section>
+
+<!-- SLIDE 7: Linear Attention -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Linear Attention Variants</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Core Idea</h3>
+      <pre><code>Standard:  softmax(QK&sup1; / &radic;d) V     &rarr; O(n&sup2;)
+Linear:    &phi;(Q)(&phi;(K)&sup1; V)          &rarr; O(nd&sup2;)
+
+By computing &phi;(K)&sup1;V first (d&times;d matrix),
+complexity becomes linear in sequence length.</code></pre>
+      <div class="card green" style="margin-top:.6em;">
+        <h3>Gated Linear Attention (GLA)</h3>
+        <p>S_t = <span class="g">G_t</span> &odot; S_{t-1} + k_t v_t&sup1; &mdash; data-dependent gating solves unbounded state growth. Quality competitive with Mamba at 1.3&ndash;2.7B. Chunk-wise parallel training at 80&ndash;95% of FlashAttention-2 throughput.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.8em;">
+        <h3>Performer</h3>
+        <p>FAVOR+ random feature maps approximate softmax. Linear complexity but <span class="r">1&ndash;3 point perplexity gap</span> that widens at scale.</p>
+      </div>
+      <div class="card blue" style="margin-bottom:.8em;">
+        <h3>cosFormer</h3>
+        <p>Cosine-based reweighting with position decay. Gap narrowed to <span class="b">0.5&ndash;1.0</span> perplexity points on WikiText-103.</p>
+      </div>
+      <div class="card amber">
+        <h3>TransNormerLLM</h3>
+        <p>Lightning Attention + exponential decay + gating. <span class="a">Competitive perplexity</span> at 1B&ndash;7B scale.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; linear attention</div>
+</section>
+
+<!-- SLIDE 8: Lightning Attention -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Lightning Attention &amp; Limitations</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Lightning Attention</h3>
+      <p>IO-aware algorithms for training linear attention on GPUs, analogous to FlashAttention for softmax.</p>
+      <ul>
+        <li><span class="g">LA-1:</span> Tiling + accumulation to avoid large intermediates</li>
+        <li><span class="g">LA-2:</span> Separates intra-block (causal) and inter-block components</li>
+        <li>Near hardware-peak throughput for linear attention training</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Persistent Limitations</h3>
+      <ul>
+        <li><span class="r">Associative recall</span> remains challenging &mdash; fixed-size state compresses all past K-V associations</li>
+        <li><span class="r">Precise token retrieval</span> &mdash; copying, exact retrieval, multi-hop reasoning favor softmax attention</li>
+        <li>Softmax can place <span class="r">arbitrarily sharp</span> probability mass on individual tokens</li>
+        <li>These gaps motivate <span class="b">hybrid architectures</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; linear attention</div>
+</section>
+
+<!-- SLIDE 9: RWKV -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>RWKV: Reinventing RNNs</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card purple" style="margin-bottom:.6em;">
+        <h3>RWKV-4 (2023)</h3>
+        <ul>
+          <li>Weighted Key Value with <span class="p">exponential distance decay</span></li>
+          <li>Token shift for local context</li>
+          <li>Parallel scan (training) + simple recurrence (inference)</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-bottom:.6em;">
+        <h3>RWKV-5 Eagle (2024)</h3>
+        <ul>
+          <li>Multi-headed <span class="p">matrix-valued states</span></li>
+          <li>Learned matrix decay per head</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.6em;">
+        <h3>RWKV-6 Finch (2024)</h3>
+        <ul>
+          <li><span class="b">Data-dependent decay</span> rates (like Mamba's selectivity)</li>
+          <li>Dynamic context retention decisions</li>
+          <li>Trained up to <span class="b">14B params</span> &mdash; comparable to Llama 2 13B</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>RWKV-7 Goose (2025)</h3>
+        <ul>
+          <li>Improved state management + in-context learning</li>
+          <li>At 7B: <span class="g">competitive with transformers</span> on MMLU, HellaSwag, ARC</li>
+          <li>Constant-memory inference maintained</li>
+          <li>Fully open-source, Apache 2.0</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; RWKV</div>
+</section>
+
+<!-- SLIDE 10: xLSTM and Griffin -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>xLSTM, Griffin &amp; HGRN</h2></div>
+  <div class="cols cols-3">
+    <div class="card purple">
+      <h3>xLSTM (Hochreiter, 2024)</h3>
+      <ul>
+        <li><span class="p">sLSTM:</span> Exponential gating for larger dynamic range</li>
+        <li><span class="p">mLSTM:</span> Matrix-valued memory (d&times;d) with outer-product updates</li>
+        <li>C_t = f_t C_{t-1} + i_t (v_t k_t&sup1;)</li>
+        <li>Competitive at 1.3B but limited adoption due to sequential backprop in sLSTM</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Griffin / Hawk (DeepMind, 2024)</h3>
+      <ul>
+        <li><span class="b">Hawk:</span> Single-head gated linear recurrence</li>
+        <li><span class="b">Griffin:</span> Multi-head recurrence + sliding window attention</li>
+        <li>At 7B: matched transformer quality</li>
+        <li>Recurrent state <span class="b">generalizes to longer</span> sequences better than positional encodings</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>HGRN / HGRN2</h3>
+      <ul>
+        <li><span class="g">Hierarchical</span> gated recurrence at multiple timescales</li>
+        <li>Different forget-gate biases create fast &rarr; slow dimensions</li>
+        <li>HGRN2 adds outer-product state expansion</li>
+        <li>Competitive with Mamba at 1.3&ndash;3B</li>
+        <li>Notable for <span class="g">simplicity</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; modern RNNs</div>
+</section>
+
+<!-- SLIDE 11: RetNet -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>RetNet: Retentive Networks</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Retention Mechanism</h3>
+      <pre><code>Retention(Q,K,V)_n = &Sigma;_{m&le;n} &gamma;^{n-m} (Q_n K_m&sup1;) V_m
+
+&gamma; = per-head learned decay rate</code></pre>
+      <p>Multi-scale retention uses <span class="a">different decay rates</span> per head &mdash; some focus locally, others maintain long-range information.</p>
+      <div class="card amber" style="margin-top:.6em;">
+        <h3>Three Computation Modes</h3>
+        <ul>
+          <li><span class="a">Parallel:</span> Matrix operation for training</li>
+          <li><span class="g">Recurrent:</span> Linear RNN for O(1) inference</li>
+          <li><span class="b">Chunk-wise:</span> Parallel within chunks, recurrent between &mdash; throughput-oriented inference</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card green">
+      <h3>Results at 6.7B</h3>
+      <ul>
+        <li>Quality <span class="g">comparable to transformers</span></li>
+        <li><span class="g">8.4x faster</span> decoding</li>
+        <li><span class="g">3.4x lower</span> memory during inference</li>
+        <li>Microsoft Research, 2023</li>
+      </ul>
+      <h3 style="margin-top:.6em;">Significance</h3>
+      <p>RetNet showed that exponential decay + multi-scale heads could approximate attention quality while enabling all three compute paradigms from a single formulation.</p>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; RetNet</div>
+</section>
+
+<!-- SLIDE 12: Hybrid Architectures -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Hybrid Architectures</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Jamba (AI21 Labs, 2024)</h3>
+      <ul>
+        <li>First production-scale hybrid: <span class="a">7:1</span> Mamba-to-attention ratio + MoE</li>
+        <li>52B params (12B active), <span class="a">256K context</span></li>
+        <li>Fits on single 80GB GPU for inference</li>
+        <li>Matched Mixtral 8x7B and Llama 2 70B</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Zamba (Zyphra, 2024)</h3>
+      <ul>
+        <li><span class="g">Shared attention layers</span> interleaved among Mamba blocks</li>
+        <li>Weight sharing reduces param count</li>
+        <li>Even 1&ndash;2 shared attention sets significantly improve recall</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Samba (Microsoft, 2024)</h3>
+      <ul>
+        <li>Mamba + <span class="b">sliding window attention</span> (not full attention)</li>
+        <li>Avoids quadratic cost entirely</li>
+        <li>SSM for long-range, local attention for precision</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>RecurrentGemma (DeepMind, 2024)</h3>
+      <ul>
+        <li>Griffin-based: gated recurrence + local attention</li>
+        <li>2B and 9B models, trained on <span class="p">substantially more data</span></li>
+        <li>Matched Gemma 2B quality</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; hybrids</div>
+</section>
+
+<!-- SLIDE 13: Hybrid Architecture Diagram -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Hybrid Design: The Jamba Pattern</h2></div>
+  <svg class="diagram" viewBox="0 0 900 380" width="850">
+    <!-- Layer stack -->
+    <rect x="250" y="10" width="400" height="34" rx="4" fill="#10101a" stroke="#f5a623"/>
+    <text x="450" y="32" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Mamba Layer 1</text>
+    <rect x="250" y="52" width="400" height="34" rx="4" fill="#10101a" stroke="#f5a623"/>
+    <text x="450" y="74" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Mamba Layer 2</text>
+    <rect x="250" y="94" width="400" height="34" rx="4" fill="#10101a" stroke="#f5a623"/>
+    <text x="450" y="116" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Mamba Layer 3</text>
+    <rect x="250" y="136" width="400" height="34" rx="4" fill="#10101a" stroke="#f5a623"/>
+    <text x="450" y="158" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Mamba + MoE Layer 4</text>
+    <rect x="250" y="178" width="400" height="34" rx="4" fill="#10101a" stroke="#f5a623"/>
+    <text x="450" y="200" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Mamba Layer 5</text>
+    <rect x="250" y="220" width="400" height="34" rx="4" fill="#10101a" stroke="#f5a623"/>
+    <text x="450" y="242" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Mamba Layer 6</text>
+    <rect x="250" y="262" width="400" height="34" rx="4" fill="#10101a" stroke="#f5a623"/>
+    <text x="450" y="284" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Mamba Layer 7</text>
+    <rect x="250" y="304" width="400" height="40" rx="4" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="450" y="329" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="700">Attention Layer 8</text>
+    <!-- Annotations -->
+    <text x="180" y="170" text-anchor="end" fill="#f5a623" font-size="11">7 Mamba layers</text>
+    <text x="180" y="186" text-anchor="end" fill="#8888a8" font-size="10">O(1) per step</text>
+    <line x1="185" y1="165" x2="245" y2="165" stroke="#f5a623" stroke-width="1" stroke-dasharray="3"/>
+    <text x="180" y="328" text-anchor="end" fill="#60a5fa" font-size="11">1 Attention layer</text>
+    <text x="180" y="344" text-anchor="end" fill="#8888a8" font-size="10">Precise recall</text>
+    <line x1="185" y1="324" x2="245" y2="324" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3"/>
+    <!-- Right side stats -->
+    <text x="700" y="80" fill="#4ecb8d" font-size="12" font-weight="600">256K context window</text>
+    <text x="700" y="140" fill="#f5a623" font-size="12" font-weight="600">52B total / 12B active</text>
+    <text x="700" y="200" fill="#60a5fa" font-size="12" font-weight="600">Fits on 1x 80GB GPU</text>
+    <text x="700" y="260" fill="#a78bfa" font-size="12" font-weight="600">~Mixtral 8x7B quality</text>
+  </svg>
+  <div class="slide-footer">post-transformer-models &middot; hybrid design</div>
+</section>
+
+<!-- SLIDE 14: Quality Benchmarks -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Quality Benchmarks</h2></div>
+  <table>
+    <thead>
+      <tr><th>Architecture</th><th>Scale</th><th>MMLU</th><th>HellaSwag</th><th>vs Transformer</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Mamba</span></td><td>1.4&ndash;2.8B</td><td>~26</td><td>~60</td><td>Comparable &le;3B</td></tr>
+      <tr><td><span class="a">Mamba-2</span></td><td>2.7B</td><td>~28</td><td>~64</td><td>&asymp; Transformer</td></tr>
+      <tr><td><span class="p">RWKV-6 Finch</span></td><td>1.6&ndash;14B</td><td>~25</td><td>~59</td><td>~95%</td></tr>
+      <tr><td><span class="p">RWKV-7 Goose</span></td><td>Up to 7B</td><td>~32</td><td>~72</td><td>&asymp; Transformer</td></tr>
+      <tr><td><span class="b">Griffin</span></td><td>7B</td><td>~31</td><td>~71</td><td>&asymp; Transformer</td></tr>
+      <tr><td><span class="p">xLSTM</span></td><td>1.3B</td><td>~26</td><td>~59</td><td>Comparable &le;1.3B</td></tr>
+      <tr><td><span class="g">GLA</span></td><td>1.3&ndash;2.7B</td><td>~26</td><td>~60</td><td>&asymp; Mamba</td></tr>
+      <tr><td><span class="a">Jamba</span></td><td>52B (12B active)</td><td><span class="g">~67</span></td><td><span class="g">~87</span></td><td>&asymp; Mixtral 8x7B</td></tr>
+      <tr><td><span class="a">Jamba 1.5</span></td><td>94B (12B active)</td><td><span class="g">~70</span></td><td><span class="g">~88</span></td><td>Above Mixtral</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:.68em;color:var(--muted);margin-top:.4em;">Approximate values from respective papers. Direct comparison complicated by training data and methodology differences.</p>
+  <div class="slide-footer">post-transformer-models &middot; benchmarks</div>
+</section>
+
+<!-- SLIDE 15: Inference Speed -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Inference Speed &amp; Memory</h2></div>
+  <table>
+    <thead>
+      <tr><th>Architecture</th><th>Prefill</th><th>Decode</th><th>Memory 8K</th><th>Memory 128K</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Transformer (FA2)</td><td>Baseline</td><td>Baseline</td><td>Baseline</td><td><span class="r">~16x</span></td></tr>
+      <tr><td><span class="a">Mamba</span></td><td><span class="g">~1.5x faster</span></td><td><span class="g">~5x faster</span></td><td><span class="g">~0.3x</span></td><td><span class="g">~0.3x</span></td></tr>
+      <tr><td><span class="p">RWKV-6</span></td><td><span class="g">~1.3x faster</span></td><td><span class="g">~4x faster</span></td><td><span class="g">~0.3x</span></td><td><span class="g">~0.3x</span></td></tr>
+      <tr><td><span class="b">Griffin</span></td><td>~1.2x faster</td><td><span class="g">~4x faster</span></td><td>~0.5x</td><td>~0.5x</td></tr>
+      <tr><td><span class="g">RetNet</span></td><td><span class="g">~1.5x faster</span></td><td><span class="g">~8x faster</span></td><td><span class="g">~0.3x</span></td><td><span class="g">~0.3x</span></td></tr>
+      <tr><td><span class="a">Jamba</span></td><td>~1.2x faster</td><td><span class="g">~3x faster</span></td><td>~0.5x</td><td><span class="r">~5x</span></td></tr>
+      <tr><td><span class="g">GLA</span></td><td>~1.2x faster</td><td><span class="g">~5x faster</span></td><td><span class="g">~0.3x</span></td><td><span class="g">~0.3x</span></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.5em;">At 100K+ tokens, pure SSM/RNN models achieve <span class="g">10&ndash;20x faster decoding</span> &mdash; per-step cost is independent of context length.</p>
+  <div class="slide-footer">post-transformer-models &middot; inference</div>
+</section>
+
+<!-- SLIDE 16: Test-Time Computation -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Test-Time Computation Models</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Mixture of Depths</h3>
+      <p><span class="a">Raposo et al., DeepMind 2024</span></p>
+      <ul>
+        <li>Tokens skip layers via learned router</li>
+        <li>Capacity budget per layer (e.g. 50%)</li>
+        <li>Easy tokens (articles, punctuation) bypass computation</li>
+        <li>Top-k routing applied to <span class="a">depth</span> not width</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Early Exit</h3>
+      <p><span class="p">CALM &amp; related work</span></p>
+      <ul>
+        <li>Prediction heads at intermediate layers</li>
+        <li>Confident predictions exit early</li>
+        <li><span class="p">2&ndash;3x speedups</span> with minimal quality loss</li>
+        <li>Challenge: calibrating exit threshold</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Think / Pause Tokens</h3>
+      <p><span class="b">Goyal et al., 2024</span></p>
+      <ul>
+        <li>Special tokens for extra "thinking time"</li>
+        <li>More forward passes to refine representations</li>
+        <li>Benefit scales with pause count</li>
+        <li>Orthogonal to architecture choice</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; adaptive compute</div>
+</section>
+
+<!-- SLIDE 17: Task-Architecture Fit -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Task-Architecture Fit</h2></div>
+  <table>
+    <thead>
+      <tr><th>Task Type</th><th>Best Fit</th><th>Why</th><th>Alternative</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Long-form generation</td><td><span class="a">SSM / RNN</span></td><td>Constant memory, fast decode</td><td>Hybrid</td></tr>
+      <tr><td>Retrieval-heavy</td><td><span class="b">Transformer / Hybrid</span></td><td>Precise attention needed</td><td>RWKV-7</td></tr>
+      <tr><td>Real-time streaming</td><td><span class="a">SSM / RNN</span></td><td>O(1) per step</td><td>Local attention</td></tr>
+      <tr><td>In-context learning</td><td><span class="b">Transformer</span></td><td>Sharp attention patterns</td><td>Hybrid (closing gap)</td></tr>
+      <tr><td>Code generation</td><td><span class="b">Transformer / Hybrid</span></td><td>Structure-sensitive</td><td>Mamba-2</td></tr>
+      <tr><td>Long-doc summarization</td><td><span class="g">SSM / Hybrid</span></td><td>Long-range propagation</td><td>Extended Transformer</td></tr>
+      <tr><td>Constrained deployment</td><td><span class="a">SSM / RNN</span></td><td>Small memory footprint</td><td>Quantized Transformer</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">post-transformer-models &middot; task fit</div>
+</section>
+
+<!-- SLIDE 18: The Convergence Hypothesis & Future -->
+<section>
+  <div class="slide-hdr"><span class="tag">17</span><h2>Convergence &amp; Future Outlook</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.8em;">
+        <h3>The Convergence Hypothesis</h3>
+        <p>Many architectures are converging mathematically:</p>
+        <ul>
+          <li>Mamba-2 SSD: selective SSMs <span class="g">=</span> structured attention</li>
+          <li>GLA, RetNet, RWKV: gated linear recurrences with matrix-valued states</li>
+          <li>mLSTM closely related to linear attention</li>
+        </ul>
+        <p style="margin-top:.4em;">The field may be discovering a <span class="g">common computational primitive</span> &mdash; a gated linear recurrence with input-dependent parameters.</p>
+      </div>
+      <div class="card amber">
+        <h3>Trajectory</h3>
+        <p>The question is shifting from <span class="a">"SSMs vs transformers"</span> to <span class="g">"what is the optimal ratio and placement of attention layers within a predominantly recurrent architecture?"</span></p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.8em;">
+        <h3>Open Questions</h3>
+        <ul>
+          <li><span class="p">State capacity:</span> Minimum state size to match transformer quality at scale?</li>
+          <li><span class="p">Optimal hybrid ratios:</span> How much attention vs recurrence? Does it change with scale?</li>
+          <li><span class="p">Training stability:</span> Multiplicative state updates at 100B+ scale</li>
+          <li><span class="p">Hardware co-design:</span> Custom hardware for scan ops (Groq LPU, FPGAs)</li>
+          <li><span class="p">Distillation:</span> Can pretrained transformers convert to SSM without retraining?</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>Scaling Gap</h3>
+        <p>No pure SSM model publicly trained at <span class="b">70B+</span> with comparable data. Jamba (52B active) is the strongest evidence that SSM-based architectures can scale to production quality.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">post-transformer-models &middot; future outlook</div>
+</section>
+
+<!-- SLIDE 19: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">18</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.8em;">
+        <h3>SSMs Work</h3>
+        <p>Mamba and successors achieve <span class="a">transformer-competitive quality</span> at moderate scales with linear complexity, O(1) inference memory, and 5x+ decode speedups.</p>
+      </div>
+      <div class="card green" style="margin-bottom:.8em;">
+        <h3>Hybrids Are the Sweet Spot</h3>
+        <p>Selective attention (10&ndash;15% of layers) within a recurrent backbone delivers <span class="g">best practical trade-off</span> &mdash; near-transformer quality at greatly reduced cost.</p>
+      </div>
+      <div class="card purple">
+        <h3>Ecosystem Is Maturing</h3>
+        <p>Custom CUDA kernels, Triton implementations, GGUF quantization, and serving framework support are closing the <span class="p">infrastructure gap</span>.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.8em;">
+        <h3>Architectures Are Converging</h3>
+        <p>SSD duality reveals that SSMs, linear attention, and gated RNNs are <span class="b">different implementations of the same primitive</span> &mdash; gated linear recurrence.</p>
+      </div>
+      <div class="card red">
+        <h3>The Transformer Is Not Dead</h3>
+        <p>Full attention remains <span class="r">unmatched</span> for precise retrieval, in-context learning, and frontier-scale models. But its position as the <span class="r">sole viable architecture</span> is no longer uncontested.</p>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.8em;color:var(--muted);font-size:.72em;font-family:'JetBrains Mono',monospace;">March 2026 &bull; Post-Transformer Language Models</p>
+  <div class="slide-footer">post-transformer-models &middot; conclusion</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

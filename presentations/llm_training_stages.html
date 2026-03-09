@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Training Stages | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: TITLE -->
+<section class="title-slide">
+  <p class="mono" style="font-size:.55em;color:var(--muted);margin-bottom:.2em">TECHNICAL REPORT</p>
+  <h1>LLM Training Stages</h1>
+  <p class="subtitle">Pre-Training, Mid-Training, and Post-Training in Large Language Model Development</p>
+  <div>
+    <span class="pill amber">Pre-Training</span>
+    <span class="pill green">Mid-Training</span>
+    <span class="pill purple">Post-Training</span>
+    <span class="pill blue">Scaling Laws</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">March 2026</p>
+  <div class="slide-footer">LLM Training Stages</div>
+</section>
+
+<!-- SLIDE 2: PIPELINE OVERVIEW -->
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>The Three-Stage Pipeline</h2></div>
+  <p>Modern LLM development follows a multi-stage pipeline, each stage with distinct objectives, data requirements, and computational profiles.</p>
+  <svg class="diagram" viewBox="0 0 900 160" width="860" height="153">
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#8888a8"/></marker>
+    </defs>
+    <rect x="10" y="30" width="240" height="100" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="130" y="65" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="17" font-weight="700">Pre-Training</text>
+    <text x="130" y="88" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">1T-15T+ tokens</text>
+    <text x="130" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">90-98% compute</text>
+    <line x1="260" y1="80" x2="320" y2="80" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="330" y="30" width="240" height="100" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="450" y="65" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="17" font-weight="700">Mid-Training</text>
+    <text x="450" y="88" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">100B-1T tokens</text>
+    <text x="450" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">1-5% compute</text>
+    <line x1="580" y1="80" x2="640" y2="80" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="650" y="30" width="240" height="100" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="770" y="65" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="17" font-weight="700">Post-Training</text>
+    <text x="770" y="88" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">1B-100B+ tokens</text>
+    <text x="770" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">1-10% compute</text>
+  </svg>
+  <p style="text-align:center;font-size:.72em;color:var(--muted);margin-top:.5em">Each stage builds on the previous, with feedback flowing backward to inform the next generation.</p>
+  <div class="slide-footer">LLM Training Stages &mdash; 1</div>
+</section>
+
+<!-- SLIDE 3: PRE-TRAINING OBJECTIVE -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRE-TRAINING</span><h2>Objective &amp; Formulation</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The dominant objective is <span class="a">causal language modeling</span> (next-token prediction): the model learns to predict the probability distribution over the next token given the preceding sequence.</p>
+      <ul>
+        <li>Training loss = <span class="b">cross-entropy</span> between predicted distribution and actual next token</li>
+        <li>Decoder-only architecture has become the universal paradigm (GPT-4, Claude, Llama, Gemini)</li>
+        <li>Encoder-decoder models (T5, UL2) use masked span prediction but are declining in usage</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Why Next-Token Prediction Works</h3>
+      <p>This deceptively simple objective, applied at sufficient scale, produces models with broad linguistic knowledge, reasoning ability, and world knowledge. Its simplicity, natural fit for generation, and favorable scaling properties drove the convergence on decoder-only architectures.</p>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 2</div>
+</section>
+
+<!-- SLIDE 4: DATA CURATION -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRE-TRAINING</span><h2>Data Collection &amp; Curation</h2></div>
+  <p>Modern LLMs train on <span class="a">1T to 15T+ tokens</span>. Raw web data is extremely noisy and must pass through a rigorous pipeline.</p>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Data Sources</h3>
+      <ul>
+        <li>Web crawls (Common Crawl)</li>
+        <li>Digitized books &amp; academic papers</li>
+        <li>Code repositories (GitHub, GitLab)</li>
+        <li>Forums &amp; Q&amp;A sites</li>
+        <li>Curated references (Wikipedia)</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Curation Pipeline</h3>
+      <ul>
+        <li><span class="b">Language ID</span> &mdash; fasttext classifiers</li>
+        <li><span class="b">Quality filtering</span> &mdash; perplexity + classifier-based</li>
+        <li><span class="b">Deduplication</span> &mdash; exact, MinHash/LSH, line-level</li>
+        <li><span class="b">Content filtering</span> &mdash; toxic/PII removal</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Llama 3 Data Mix</h3>
+    <p><span class="a">~50% web</span> &bull; <span class="g">~25% code</span> &bull; <span class="p">~15% books &amp; papers</span> &bull; <span class="b">~10% curated</span> &mdash; only ~15% of raw Common Crawl survives filtering</p>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 3</div>
+</section>
+
+<!-- SLIDE 5: ARCHITECTURE -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRE-TRAINING</span><h2>Architecture Decisions</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Model Size &amp; Shape</h3>
+      <ul>
+        <li>1B params (edge) to 1T+ params (frontier MoE)</li>
+        <li>Hidden dim, layers, heads, FFN dim</li>
+        <li>Deeper = better sequential reasoning</li>
+        <li>Wider = more capacity per layer</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Positional Encoding</h3>
+      <ul>
+        <li><span class="g">RoPE</span> is the modern standard</li>
+        <li>Replaces learned absolute embeddings</li>
+        <li>Encodes relative position via rotation matrices</li>
+        <li>Enables extrapolation to longer contexts</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Normalization</h3>
+      <ul>
+        <li><span class="p">RMSNorm</span> replaced LayerNorm</li>
+        <li>Pre-normalization is now standard</li>
+        <li>Improves training stability</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Activations</h3>
+      <ul>
+        <li><span class="b">SwiGLU</span> replaced ReLU/GELU</li>
+        <li>Gated activations improve quality at same compute</li>
+        <li>Context: 4K-8K tokens at pre-training time</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 4</div>
+</section>
+
+<!-- SLIDE 6: SCALING LAWS -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRE-TRAINING</span><h2>Scaling Laws</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Loss decreases as a <span class="a">power law</span> in model size (N), dataset size (D), and compute (C).</p>
+      <table>
+        <tr><th>Framework</th><th>Key Finding</th><th>Implication</th></tr>
+        <tr><td><span class="a">Kaplan (2020)</span></td><td>Larger models are more sample-efficient</td><td>Prioritize model size</td></tr>
+        <tr><td><span class="g">Chinchilla (2022)</span></td><td>Optimal ratio: D &asymp; 20N</td><td>Balanced scaling</td></tr>
+        <tr><td><span class="b">Post-Chinchilla</span></td><td>Inference cost dominates</td><td>Overtrain smaller models</td></tr>
+      </table>
+    </div>
+    <div class="card purple">
+      <h3>Llama 3 8B Example</h3>
+      <p>Trained on <span class="p">15T tokens</span> &mdash; ~250 tokens/param, roughly <span class="r">12x</span> the Chinchilla-optimal ratio. Smaller model, cheaper to serve, quality approaches larger Chinchilla-optimal models.</p>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 5</div>
+</section>
+
+<!-- SLIDE 7: TRAINING INFRASTRUCTURE -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRE-TRAINING</span><h2>Training Infrastructure</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Cluster Scale</h3>
+      <ul>
+        <li>Llama 3 405B: <span class="a">16,384 H100 GPUs</span></li>
+        <li>8 GPUs/node via NVLink</li>
+        <li>InfiniBand or custom interconnect</li>
+        <li>Runs for 2-4 months</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Parallelism Strategies</h3>
+      <ul>
+        <li><span class="g">Tensor</span> &mdash; split layers within node</li>
+        <li><span class="g">Pipeline</span> &mdash; layers across nodes</li>
+        <li><span class="g">Data</span> &mdash; replicate across groups</li>
+        <li><span class="g">Expert</span> &mdash; for MoE models (4D)</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Mixed Precision</h3>
+      <ul>
+        <li><span class="b">BF16</span> for fwd/bwd passes</li>
+        <li>FP32 master weights in optimizer</li>
+        <li>FP32 for loss &amp; gradient accum</li>
+        <li>Halves memory, doubles throughput</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 6</div>
+</section>
+
+<!-- SLIDE 8: TRAINING DYNAMICS & COST -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRE-TRAINING</span><h2>Training Dynamics &amp; Compute Cost</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Hyperparameters</h3>
+      <ul>
+        <li><span class="a">Learning rate</span>: warmup &rarr; cosine decay to ~10% of peak</li>
+        <li><span class="g">Batch size ramp</span>: 4M &rarr; 16M tokens (Llama 3)</li>
+        <li>Frontier runs: 4-60M tokens/step</li>
+        <li>Loss curve: rapid drop &rarr; slow power-law decrease</li>
+      </ul>
+      <h3 style="margin-top:.5em">Frontier Cost</h3>
+      <ul>
+        <li>Llama 3 405B: <span class="a">3.8 &times; 10<sup>25</sup> FLOPs</span></li>
+        <li>~30.8M GPU-hours on H100s</li>
+        <li><span class="r">$60-90M</span> in compute alone</li>
+        <li>GPT-4: estimated &gt;$100M</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.6em">
+        <h3>Common Failure Modes</h3>
+        <ul>
+          <li><span class="r">Loss spikes</span> &mdash; data quality, numerical issues; may require checkpoint rollback</li>
+          <li><span class="r">Training divergence</span> &mdash; excessive LR causes NaN loss</li>
+          <li><span class="r">Data contamination</span> &mdash; benchmark data in training set inflates metrics</li>
+          <li><span class="r">Slow degradation</span> &mdash; subtle issues, detectable only via scaling law comparison</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Llama 3 Reliability</h3>
+        <p><span class="a">466 job interruptions</span> during its 54-day training run &mdash; hardware failures, loss spikes, and other issues.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 7</div>
+</section>
+
+<!-- SLIDE 9: TOKENIZER & VOCAB -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRE-TRAINING</span><h2>Tokenization &amp; Vocabulary</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Text is converted to integer tokens via <span class="a">subword tokenization</span>, predominantly Byte Pair Encoding (BPE).</p>
+      <table>
+        <tr><th>Model</th><th>Vocab Size</th><th>Notes</th></tr>
+        <tr><td>GPT-4</td><td>~100K</td><td>Good general coverage</td></tr>
+        <tr><td>Llama 2</td><td>32K</td><td>English-focused</td></tr>
+        <tr><td>Llama 3</td><td><span class="a">128K</span></td><td>4x expansion for code &amp; multilingual</td></tr>
+      </table>
+    </div>
+    <div class="card green">
+      <h3>Design Trade-offs</h3>
+      <ul>
+        <li>Larger vocab &rarr; better compression, shorter sequences</li>
+        <li>Larger vocab &rarr; bigger embedding layers</li>
+        <li>Tokenizer trained on English fragments non-Latin scripts</li>
+        <li>Vocabulary determines cost &amp; quality for multilingual use</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 8</div>
+</section>
+
+<!-- SLIDE 10: MID-TRAINING OVERVIEW -->
+<section>
+  <div class="slide-hdr"><span class="tag">MID-TRAINING</span><h2>What Is Mid-Training?</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Continued pre-training <em>after</em> the initial run but <em>before</em> post-training alignment. Uses <span class="g">next-token prediction</span> with modified data, context length, or architecture.</p>
+      <ul>
+        <li>Tens of billions to low trillions of additional tokens</li>
+        <li>Term not widely used before 2024, but practice dates earlier</li>
+        <li>Now recognized as a deliberate, planned pipeline stage</li>
+      </ul>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Key Modifications</h3>
+        <ul>
+          <li>Data mixture shifts</li>
+          <li>Context length extension</li>
+          <li>Domain specialization</li>
+          <li>Architecture surgery (experimental)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 340 340" width="320" height="320">
+        <circle cx="170" cy="170" r="130" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+        <circle cx="170" cy="170" r="85" fill="none" stroke="var(--border)" stroke-width="1"/>
+        <!-- segments -->
+        <path d="M170,170 L170,40 A130,130 0 0,1 283,105 Z" fill="#4ecb8d22" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="235" y="80" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Context</text>
+        <text x="235" y="94" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Extension</text>
+        <path d="M170,170 L283,105 A130,130 0 0,1 283,235 Z" fill="#60a5fa22" stroke="#60a5fa" stroke-width="2"/>
+        <text x="268" y="175" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Domain</text>
+        <text x="258" y="189" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Adaptation</text>
+        <path d="M170,170 L283,235 A130,130 0 0,1 170,300 Z" fill="#a78bfa22" stroke="#a78bfa" stroke-width="2"/>
+        <text x="215" y="273" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Data</text>
+        <text x="215" y="287" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Annealing</text>
+        <path d="M170,170 L170,300 A130,130 0 0,1 57,235 Z" fill="#f8717122" stroke="#f87171" stroke-width="2"/>
+        <text x="80" y="280" fill="#f87171" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Model</text>
+        <text x="80" y="294" fill="#f87171" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Surgery</text>
+        <path d="M170,170 L57,235 A130,130 0 0,1 170,40 Z" fill="#f5a62322" stroke="#f5a623" stroke-width="2"/>
+        <text x="90" y="120" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Quality</text>
+        <text x="80" y="134" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Refinement</text>
+        <text x="170" y="167" text-anchor="middle" fill="#e8e8f0" font-family="Playfair Display,serif" font-size="14" font-weight="700">Mid-</text>
+        <text x="170" y="185" text-anchor="middle" fill="#e8e8f0" font-family="Playfair Display,serif" font-size="14" font-weight="700">Training</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 9</div>
+</section>
+
+<!-- SLIDE 11: LONG-CONTEXT EXTENSION -->
+<section>
+  <div class="slide-hdr"><span class="tag">MID-TRAINING</span><h2>Long-Context Extension</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>RoPE Frequency Scaling</h3>
+      <p>Increase base frequency (e.g., 10K &rarr; 500K-1M) to compress rotational frequencies, enabling position representation beyond original range.</p>
+      <ul>
+        <li><span class="g">NTK-aware interpolation</span> &mdash; standard approach</li>
+        <li><span class="g">YaRN</span> &mdash; scales different frequency components independently</li>
+        <li>Preserves short-range resolution while extending long-range</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Progressive Extension</h3>
+      <p>Context extended in stages, not a single jump:</p>
+      <div class="card green">
+        <h3>Llama 3 Context Ladder</h3>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:.72em;line-height:2">
+          8K &rarr; 16K &rarr; 32K &rarr; 65K &rarr; 128K<br>
+          <span style="color:var(--muted)">~800B tokens total mid-training</span>
+        </p>
+      </div>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>Data Requirements</h3>
+        <p>Must use data with <span class="b">genuine long-range dependencies</span>: book-length texts, long code files, multi-document sets, synthetic needle-in-a-haystack tasks.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 10</div>
+</section>
+
+<!-- SLIDE 12: DOMAIN ADAPTATION & ANNEALING -->
+<section>
+  <div class="slide-hdr"><span class="tag">MID-TRAINING</span><h2>Domain Adaptation &amp; Annealing</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Domain Adaptation</h3>
+      <ul>
+        <li>Continue pre-training on domain-specific data</li>
+        <li>Demonstrated for <span class="b">code, math, medicine, legal, science</span></li>
+        <li>Key risk: <span class="r">catastrophic forgetting</span></li>
+        <li>Solution: mix domain data with <span class="g">20-50% general data</span></li>
+        <li>Lower LR than peak pre-training (near final pre-training LR)</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Data Annealing</h3>
+      <ul>
+        <li>Shift mixture toward higher-quality sources in later stages</li>
+        <li>Early training: broad, diverse data for pattern learning</li>
+        <li>Later training: curated data for refined gradient signal</li>
+        <li>Cosine LR decay to near zero during annealing</li>
+        <li>Llama 3: annealing over final <span class="a">40M tokens</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-3" style="margin-top:.6em">
+    <div class="card amber">
+      <h3>Code Llama</h3>
+      <p>Llama 2 + <span class="a">500B</span> code tokens &rarr; context extended to 100K</p>
+    </div>
+    <div class="card green">
+      <h3>DeepSeek-V2/V3</h3>
+      <p>Multi-stage mid-training planned from the start of pipeline</p>
+    </div>
+    <div class="card red">
+      <h3>Depth Upscaling</h3>
+      <p>Experimental: duplicate layers (e.g., 32 &rarr; 48) to add capacity</p>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 11</div>
+</section>
+
+<!-- SLIDE 13: POST-TRAINING OVERVIEW -->
+<section>
+  <div class="slide-hdr"><span class="tag">POST-TRAINING</span><h2>Purpose &amp; Supervised Fine-Tuning</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Post-training transforms a capable but unrefined base model into a <span class="p">useful, safe, and steerable assistant</span>.</p>
+      <h3>Supervised Fine-Tuning (SFT)</h3>
+      <ul>
+        <li>First post-training step</li>
+        <li>Curated <span class="p">instruction-response pairs</span></li>
+        <li>Next-token prediction on <em>response only</em></li>
+        <li>10K to millions of examples</li>
+        <li><span class="a">Quality &gt;&gt; Quantity</span> (LIMA: 1K examples can work)</li>
+        <li>Covers Q&amp;A, code, math, creative writing, multi-turn chat</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>What Post-Training Teaches</h3>
+        <ul>
+          <li>Follow instructions</li>
+          <li>Produce helpful, coherent responses</li>
+          <li>Refuse harmful requests</li>
+          <li>Use tools &amp; function calling</li>
+          <li>Multi-turn conversation</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Compute Budget</h3>
+        <p>10<sup>21</sup>&ndash;10<sup>23</sup> FLOPs vs. pre-training's 10<sup>25</sup>. But the ratio is <span class="a">trending upward</span> as post-training becomes a key differentiator.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 12</div>
+</section>
+
+<!-- SLIDE 14: RLHF -->
+<section>
+  <div class="slide-hdr"><span class="tag">POST-TRAINING</span><h2>RLHF: Reward Modeling &amp; PPO</h2></div>
+  <svg class="diagram" viewBox="0 0 920 110" width="880" height="105">
+    <rect x="10" y="15" width="180" height="80" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="100" y="48" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Human Preference</text>
+    <text x="100" y="68" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">Pairwise comparisons</text>
+    <line x1="200" y1="55" x2="250" y2="55" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="260" y="15" width="180" height="80" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="350" y="48" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Reward Model</text>
+    <text x="350" y="68" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">Bradley-Terry scoring</text>
+    <line x1="450" y1="55" x2="500" y2="55" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="510" y="15" width="180" height="80" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="600" y="48" text-anchor="middle" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">PPO Optimization</text>
+    <text x="600" y="68" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">Policy + KL penalty</text>
+    <line x1="700" y1="55" x2="750" y2="55" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="760" y="15" width="150" height="80" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="835" y="48" text-anchor="middle" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Aligned Model</text>
+    <text x="835" y="68" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">Better than SFT alone</text>
+  </svg>
+  <div class="cols cols-2" style="margin-top:.4em">
+    <div class="card amber">
+      <h3>PPO Complexity</h3>
+      <ul>
+        <li><span class="a">4 models simultaneously</span>: policy, reference SFT, reward model, value model</li>
+        <li>Sensitive to KL penalty, clipping ratio, learning rate</li>
+        <li>Strongest optimization when reward model is accurate</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Reward Hacking</h3>
+      <p>Without KL constraint, the policy exploits spurious patterns in the reward model. The KL penalty keeps the policy close to the SFT starting point, preventing degenerate outputs.</p>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 13</div>
+</section>
+
+<!-- SLIDE 15: DPO & VARIANTS -->
+<section>
+  <div class="slide-hdr"><span class="tag">POST-TRAINING</span><h2>DPO &amp; Preference Optimization Variants</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p><span class="p">Direct Preference Optimization</span> eliminates the reward model and RL step entirely. It derives a closed-form mapping between rewards and optimal policies.</p>
+      <ul>
+        <li>Increases log-prob of preferred responses</li>
+        <li>Decreases log-prob of dispreferred responses</li>
+        <li>Implicit KL constraint via temperature parameter</li>
+        <li>Requires only the SFT model + preference dataset</li>
+      </ul>
+    </div>
+    <div>
+      <table>
+        <tr><th>Method</th><th>Key Innovation</th></tr>
+        <tr><td><span class="p">DPO</span></td><td>Direct closed-form optimization</td></tr>
+        <tr><td><span class="g">IPO</span></td><td>Robust regularization vs. overfitting</td></tr>
+        <tr><td><span class="b">KTO</span></td><td>Unpaired examples (no comparisons)</td></tr>
+        <tr><td><span class="a">ORPO</span></td><td>Combines SFT + preference in one stage</td></tr>
+        <tr><td><span class="r">SimPO</span></td><td>No reference model needed</td></tr>
+      </table>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.5em;font-size:.78em;color:var(--muted)">PPO vs. DPO at the frontier remains actively debated &mdash; PPO may be stronger with high-quality reward models; DPO is more stable and accessible.</p>
+  <div class="slide-footer">LLM Training Stages &mdash; 14</div>
+</section>
+
+<!-- SLIDE 16: CAI, SAFETY, TOOLS -->
+<section>
+  <div class="slide-hdr"><span class="tag">POST-TRAINING</span><h2>Safety, Constitutional AI &amp; Tool Use</h2></div>
+  <div class="cols cols-3">
+    <div class="card purple">
+      <h3>Constitutional AI</h3>
+      <ul>
+        <li>Principles-based alignment (Anthropic)</li>
+        <li>Model self-critiques against a <span class="p">constitution</span></li>
+        <li>Generates own preference data</li>
+        <li><span class="b">RLAIF</span>: AI generates preference judgments at scale</li>
+        <li>Comparable quality, dramatically lower cost</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Safety Training</h3>
+      <ul>
+        <li><span class="r">Red-teaming</span>: human + automated adversarial testing</li>
+        <li>Safety-specific SFT on refusal examples</li>
+        <li>Safety RLHF with dedicated reward models</li>
+        <li>Multi-objective: helpfulness vs. harmlessness</li>
+        <li>Over-refusal problem: benign vs. harmful distinction</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Tool Use &amp; Chat Format</h3>
+      <ul>
+        <li>SFT on tool invocation examples</li>
+        <li>Function calling with proper schemas</li>
+        <li>Multi-step tool planning</li>
+        <li>Chat templates (ChatML, Llama format)</li>
+        <li>System prompt adherence</li>
+        <li>Multi-turn context management</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 15</div>
+</section>
+
+<!-- SLIDE 17: COMPUTE ALLOCATION -->
+<section>
+  <div class="slide-hdr"><span class="tag">CROSS-CUTTING</span><h2>Compute Allocation &amp; Stage Interactions</h2></div>
+  <table>
+    <tr><th>Stage</th><th>Typical Token Count</th><th>% of Total Compute</th><th>Trend</th></tr>
+    <tr><td><span class="a">Pre-Training</span></td><td>1T &ndash; 15T+</td><td>90 &ndash; 98%</td><td>Stable, approaching data limits</td></tr>
+    <tr><td><span class="g">Mid-Training</span></td><td>100B &ndash; 1T</td><td>1 &ndash; 5%</td><td>Growing recognition as planned stage</td></tr>
+    <tr><td><span class="p">Post-Training</span></td><td>1B &ndash; 100B+ (multi-round)</td><td>1 &ndash; 10%</td><td><span class="a">Trending sharply upward</span></td></tr>
+  </table>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card green">
+      <h3>Forward Dependencies</h3>
+      <ul>
+        <li>Pre-training data quality sets the capability ceiling</li>
+        <li>Tokenizer determines multilingual &amp; code efficiency</li>
+        <li>Mid-training context extension enables post-training long-context tasks</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Backward Feedback</h3>
+      <ul>
+        <li>Post-training struggles inform next-gen pre-training data mix</li>
+        <li>Safety failures signal need for more aggressive pre-training filtering</li>
+        <li>Deployment data creates a <span class="p">flywheel</span> for iterative improvement</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">LLM Training Stages &mdash; 16</div>
+</section>
+
+<!-- SLIDE 18: CONCLUSION -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Pre-Training</h3>
+      <ul>
+        <li>Foundation of all capabilities</li>
+        <li>Data curation is paramount</li>
+        <li>Scaling laws guide decisions</li>
+        <li>Massive infrastructure required</li>
+        <li>Overtrain for inference efficiency</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Mid-Training</h3>
+      <ul>
+        <li>Now a deliberate pipeline stage</li>
+        <li>Context extension (8K &rarr; 128K+)</li>
+        <li>Domain specialization</li>
+        <li>Data quality annealing</li>
+        <li>Architecture modification (emerging)</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Post-Training</h3>
+      <ul>
+        <li>SFT &rarr; RLHF/DPO &rarr; Safety</li>
+        <li>Primary differentiator between models</li>
+        <li>Iterative data flywheel</li>
+        <li>Growing compute investment</li>
+        <li>Least transparent stage</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.8em;font-size:.82em">Future model development will look less like a single massive run and more like a <span class="a">carefully orchestrated multi-stage pipeline</span> where each phase is optimized for its specific contribution.</p>
+  <div class="slide-footer">LLM Training Stages &mdash; 17</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

@@ -24,7 +24,7 @@
     --muted:  #8888a8;
   }
   .reveal-viewport { background: var(--bg); }
-  .reveal .slides section { background: transparent; }
+  .reveal .slides section { background: transparent; overflow-y: auto !important; padding-top: .5em; }
   .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
   .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
   .reveal h1 { font-size: 2.4em; color: var(--amber); line-height: 1.15; }
@@ -804,7 +804,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
 <script>
-Reveal.initialize({ hash: true, center: true, transition: 'fade', transitionSpeed: 'fast',
+Reveal.initialize({ hash: true, center:false, transition: 'fade', transitionSpeed: 'fast',
   margin: 0.04, width: 1280, height: 720 });
 </script>
 </body>

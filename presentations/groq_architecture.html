@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groq's LPU Architecture | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 01: Title -->
+<section class="title-slide">
+  <h1>Groq's LPU Architecture</h1>
+  <div class="subtitle">Deterministic Inference with the Tensor Streaming Processor</div>
+  <div style="margin-bottom:1.2em">
+    <span class="pill amber">hardware</span>
+    <span class="pill green">inference</span>
+    <span class="pill purple">ASIC</span>
+    <span class="pill blue">deterministic</span>
+  </div>
+  <div class="meta">March 2026</div>
+  <div class="slide-footer">01 / 16</div>
+</section>
+
+<!-- Slide 02: Why GPUs Are Suboptimal -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Why GPUs Are Suboptimal</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Memory Bandwidth Bottleneck</h3>
+      <ul>
+        <li>Autoregressive decode reads <span class="a">full model weights</span> per token</li>
+        <li>H100: 3.35 TB/s HBM3, 989 TFLOPS FP16</li>
+        <li>70B FP16 = 140 GB weights &rarr; ~42 ms per read</li>
+        <li>Upper bound: <span class="r">~24 tok/s</span> single-stream</li>
+        <li>Arithmetic intensity <span class="r">&lt; 1 FLOP/byte</span> during decode</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Sources of Unpredictability</h3>
+      <ul>
+        <li><span class="r">Cache misses</span> &rarr; unpredictable stalls</li>
+        <li><span class="r">Dynamic warp scheduling</span> &rarr; variable timing</li>
+        <li><span class="r">Memory controller contention</span> across SMs</li>
+        <li><span class="r">PCIe / NVLink traffic</span> variance</li>
+        <li>Compute sits <span class="a">largely idle</span> during decode</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em;color:var(--muted);font-size:.72em">The mismatch between GPU architecture and inference workloads creates an opening for purpose-built hardware.</p>
+  <div class="slide-footer">02 / 16</div>
+</section>
+
+<!-- Slide 03: TSP Architecture Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>TSP Architecture Overview</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card green" style="margin-bottom:.8em">
+        <h3>Spatial Dataflow Processor</h3>
+        <p>Data flows through a pipeline of functional units in a predetermined order. The compiler plans exactly where every byte will be at every cycle.</p>
+      </div>
+      <div class="card purple">
+        <h3>Key Specifications</h3>
+        <ul>
+          <li>Die size: <span class="a">25 mm &times; 29 mm</span></li>
+          <li>Process: <span class="p">GlobalFoundries 14nm</span></li>
+          <li>Clock: <span class="g">900 MHz</span> nominal</li>
+          <li>Density: <span class="a">&gt;1 TeraOp/s per mm&sup2;</span></li>
+          <li>SRAM: <span class="b">~230 MB</span> on-chip</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 260 320" width="260">
+        <rect x="10" y="10" width="240" height="300" rx="10" fill="none" stroke="#2a2a3a" stroke-width="1.5"/>
+        <text x="130" y="35" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="13" font-weight="700">TSP Die</text>
+        <rect x="30" y="50" width="200" height="40" rx="5" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
+        <text x="130" y="75" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">ICU (Instruction Control)</text>
+        <rect x="30" y="100" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+        <text x="130" y="122" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">MXM (Matrix Multiply)</text>
+        <rect x="30" y="145" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="130" y="167" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">VXM (Vector Execution)</text>
+        <rect x="30" y="190" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1"/>
+        <text x="130" y="212" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">SXM (Shift/Rotate)</text>
+        <rect x="30" y="235" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#f87171" stroke-width="1"/>
+        <text x="130" y="257" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="11">MEM (SRAM Banks)</text>
+        <line x1="130" y1="90" x2="130" y2="100" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
+        <line x1="130" y1="135" x2="130" y2="145" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
+        <line x1="130" y1="180" x2="130" y2="190" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
+        <line x1="130" y1="225" x2="130" y2="235" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
+        <text x="130" y="290" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">88 slices &times; ~2.5 MB each</text>
+        <defs><marker id="arr" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">03 / 16</div>
+</section>
+
+<!-- Slide 04: Functional Units -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Functional Units</h2></div>
+  <table>
+    <thead>
+      <tr><th>Unit</th><th>Abbr</th><th>Role</th><th>Details</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Matrix Multiply Engine</span></td><td>MXM</td><td>Dense matrix operations</td><td>320B &times; 320B dot products; INT8/FP16 with 32-bit accum; 20-cycle pipeline</td></tr>
+      <tr><td><span class="g">Vector Execution Module</span></td><td>VXM</td><td>Elementwise vector arithmetic</td><td>Activations, normalization, non-linearities</td></tr>
+      <tr><td><span class="b">Shift/Rotate Module</span></td><td>SXM</td><td>Data permutation</td><td>Rearrangement and routing operations</td></tr>
+      <tr><td><span class="r">Memory Module</span></td><td>MEM</td><td>SRAM read/write</td><td>~2.5 MB per slice; 176-way concurrent access</td></tr>
+      <tr><td><span class="p">Instruction Control</span></td><td>ICU</td><td>Fetch &amp; dispatch</td><td>Organized horizontally across all slices</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card amber">
+      <h3>MXM Pipeline</h3>
+      <p>320B &times; 320B dot product loads in <span class="a">20 cycles</span>, executes in <span class="a">20 cycles</span>. Fully pipelined for continuous throughput.</p>
+    </div>
+    <div class="card blue">
+      <h3>Memory Parallelism</h3>
+      <p><span class="b">88 MEM slices</span> with heavy banking &rarr; <span class="b">176-way</span> concurrent access feeding <span class="a">20 TB/s</span> operand bandwidth to compute.</p>
+    </div>
+  </div>
+  <div class="slide-footer">04 / 16</div>
+</section>
+
+<!-- Slide 05: SRAM-Only Design -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>SRAM-Only Memory Design</h2></div>
+  <p style="text-align:center;color:var(--green);font-size:.85em;margin-bottom:.5em">No HBM. No DRAM. No caches. All data lives in on-chip SRAM.</p>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <thead><tr><th>Property</th><th>H100 HBM3</th><th>TSP SRAM</th></tr></thead>
+        <tbody>
+          <tr><td>Bandwidth</td><td>3.35 TB/s</td><td><span class="g">80 TB/s</span></td></tr>
+          <tr><td>Latency</td><td>~100s of ns</td><td><span class="g">Sub-ns</span></td></tr>
+          <tr><td>Capacity</td><td><span class="b">80 GB</span></td><td>~230 MB</td></tr>
+          <tr><td>Cache misses</td><td>Yes</td><td><span class="g">Impossible</span></td></tr>
+          <tr><td>Contention</td><td>Yes</td><td><span class="g">Eliminated</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>~24x Bandwidth Advantage</h3>
+        <p>80 TB/s vs 3.35 TB/s per chip. Directly translates to faster weight reads during decode.</p>
+      </div>
+      <div class="card red">
+        <h3>~350x Capacity Disadvantage</h3>
+        <p>230 MB vs 80 GB. Even a 7B model in FP16 (14 GB) requires <span class="r">~60 chips</span>. A 70B model needs <span class="r">300+</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">05 / 16</div>
+</section>
+
+<!-- Slide 06: Deterministic Execution -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Deterministic Execution</h2></div>
+  <p style="text-align:center;font-size:.78em;margin-bottom:.5em">Every operation mapped to a <span class="a">specific functional unit</span> at a <span class="g">specific clock cycle</span> at <span class="p">compile time</span>.</p>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>GPU: Runtime Decisions</h3>
+      <ul>
+        <li>Branch prediction hardware</li>
+        <li>Dynamic warp scheduling</li>
+        <li>Speculative execution</li>
+        <li>Runtime arbitration for shared resources</li>
+        <li>Variable latency per token</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>TSP: Compile-Time Planning</h3>
+      <ul>
+        <li><span class="g">No branches</span> &mdash; control flow fully unrolled</li>
+        <li><span class="g">No scheduler</span> &mdash; pre-planned instruction stream</li>
+        <li><span class="g">No speculation</span> &mdash; every op known needed</li>
+        <li><span class="g">No contention</span> &mdash; conflict-free by construction</li>
+        <li><span class="g">Fixed cycles</span> per operation, always</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em">
+    <h3>p99 = Median</h3>
+    <p>Every token takes the same time. The <span class="p">p99 latency</span> on a Groq system is essentially identical to the median &mdash; critical for real-time voice, robotics, and financial services.</p>
+  </div>
+  <div class="slide-footer">06 / 16</div>
+</section>
+
+<!-- Slide 07: Software-Scheduled Hardware -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Software-Scheduled Hardware</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Complexity Moved to Compiler</h3>
+        <p>GPUs invest billions of transistors in scheduling logic, cache controllers, branch predictors, and MMUs. The TSP <span class="a">eliminates all of these</span>, using freed silicon for more SRAM and compute.</p>
+      </div>
+      <div class="card purple" style="margin-bottom:.6em">
+        <h3>The Groq Compiler</h3>
+        <ul>
+          <li><span class="p">Graph optimization</span> &mdash; fusion, folding, DCE</li>
+          <li><span class="a">Memory allocation</span> &mdash; every tensor to a specific SRAM bank</li>
+          <li><span class="g">Instruction scheduling</span> &mdash; exact cycle per operation</li>
+          <li><span class="b">Multi-chip partitioning</span> &mdash; tensor parallel splits</li>
+          <li><span class="r">Quantization</span> &mdash; INT8 / FP8 post-training</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>Historical Analogy</h3>
+        <p>Similar to <span class="b">CISC &rarr; RISC</span> and <span class="b">OoO &rarr; VLIW</span>: moving intelligence from hardware to software yields efficiency when workloads are predictable.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 240 340" width="240">
+        <text x="120" y="20" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Compilation Pipeline</text>
+        <rect x="20" y="35" width="200" height="36" rx="6" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="120" y="57" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">PyTorch / ONNX Model</text>
+        <line x1="120" y1="71" x2="120" y2="85" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+        <rect x="20" y="85" width="200" height="36" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="120" y="107" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Graph Optimization</text>
+        <line x1="120" y1="121" x2="120" y2="135" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+        <rect x="20" y="135" width="200" height="36" rx="6" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <text x="120" y="157" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">Memory Allocation</text>
+        <line x1="120" y1="171" x2="120" y2="185" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+        <rect x="20" y="185" width="200" height="36" rx="6" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.2"/>
+        <text x="120" y="207" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">Static Scheduling</text>
+        <line x1="120" y1="221" x2="120" y2="235" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+        <rect x="20" y="235" width="200" height="36" rx="6" fill="#1a1a2e" stroke="#f87171" stroke-width="1.2"/>
+        <text x="120" y="257" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="10">Multi-Chip Partition</text>
+        <line x1="120" y1="271" x2="120" y2="285" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+        <rect x="20" y="285" width="200" height="36" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="120" y="307" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Deterministic Binary</text>
+        <defs><marker id="arr2" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">07 / 16</div>
+</section>
+
+<!-- Slide 08: Speed Advantage -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>The Bandwidth Speed Advantage</h2></div>
+  <table>
+    <thead>
+      <tr><th>Metric</th><th>NVIDIA H100 SXM</th><th>Groq TSP (per chip)</th><th>Advantage</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Memory type</td><td>HBM3</td><td>On-chip SRAM</td><td>&mdash;</td></tr>
+      <tr><td>Memory capacity</td><td><span class="b">80 GB</span></td><td>~230 MB</td><td><span class="r">0.003x</span></td></tr>
+      <tr><td>Memory bandwidth</td><td>3.35 TB/s</td><td><span class="g">~80 TB/s</span></td><td><span class="g">~24x</span></td></tr>
+      <tr><td>Memory latency</td><td>~100s of ns</td><td><span class="g">Sub-ns</span></td><td><span class="g">~100x+ lower</span></td></tr>
+      <tr><td>Cache misses</td><td>Variable</td><td><span class="g">None</span></td><td><span class="g">Eliminated</span></td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card green">
+      <h3>No Batching Required</h3>
+      <p>80 TB/s SRAM bandwidth keeps compute fed at <span class="g">batch size 1</span>. GPUs need large batches to amortize slow HBM reads &mdash; increasing latency.</p>
+    </div>
+    <div class="card amber">
+      <h3>Decode is Memory-Bound</h3>
+      <p>Since decode-phase performance is <span class="a">memory-bandwidth-bound</span>, the 24x bandwidth advantage translates directly to faster token generation.</p>
+    </div>
+  </div>
+  <div class="slide-footer">08 / 16</div>
+</section>
+
+<!-- Slide 09: Benchmark Performance -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Benchmark Performance</h2></div>
+  <table>
+    <thead>
+      <tr><th>Model</th><th>Groq Output</th><th>GPU Cloud</th><th>Speedup</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Llama 2 70B</td><td><span class="g">~300 tok/s</span></td><td>~30 tok/s (H100)</td><td><span class="a">~10x</span></td></tr>
+      <tr><td>Llama 3 70B</td><td><span class="g">~284 tok/s</span></td><td>~25&ndash;35 tok/s</td><td><span class="a">~8&ndash;11x</span></td></tr>
+      <tr><td>Mixtral 8x7B</td><td><span class="g">~430 tok/s</span></td><td>~40&ndash;60 tok/s</td><td><span class="a">~7&ndash;10x</span></td></tr>
+      <tr><td>Llama 3 70B + spec. decoding</td><td><span class="g">~1,665 tok/s</span></td><td>&mdash;</td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-3" style="margin-top:.8em">
+    <div class="card green">
+      <h3>TTFT</h3>
+      <p><span class="g">&lt;200 ms</span><br>vs 300&ndash;500 ms on GPU</p>
+    </div>
+    <div class="card amber">
+      <h3>Inter-Token Latency</h3>
+      <p><span class="a">Low single-digit ms</span><br>Consistent cadence</p>
+    </div>
+    <div class="card purple">
+      <h3>Batch Size Note</h3>
+      <p>Gap narrows at high batch: <span class="p">~2.5x</span> vs V100 at large batch vs <span class="p">17.6x</span> at batch=1</p>
+    </div>
+  </div>
+  <div class="slide-footer">09 / 16</div>
+</section>
+
+<!-- Slide 10: Multi-Chip Scaling -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Multi-Chip Scaling</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card purple" style="margin-bottom:.6em">
+        <h3>Plesiosynchronous Interconnect</h3>
+        <ul>
+          <li>Each chip has its own <span class="p">crystal oscillator</span></li>
+          <li>"Nearly synchronous" protocol compensates for clock drift</li>
+          <li>Software-initiated periodic synchronization</li>
+          <li>Hundreds of LPUs operate as <span class="g">one logical processor</span></li>
+          <li>Compiler predicts <span class="a">exact arrival time</span> of data at each chip</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Tensor Parallelism</h3>
+        <ul>
+          <li>Weight matrices <span class="g">partitioned</span> across chips</li>
+          <li>Each chip holds a slice in local SRAM</li>
+          <li>Partial results exchanged with neighbors</li>
+          <li>Communication scheduled as part of <span class="a">static instruction stream</span></li>
+          <li>Computation and communication <span class="b">interleaved</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.6em">
+        <h3>FEC, Not Retransmission</h3>
+        <p>Inter-chip links use <span class="b">Forward Error Correction</span> rather than retransmission. Retransmission would introduce non-deterministic delays, violating the architecture's core guarantee.</p>
+      </div>
+      <div class="card amber">
+        <h3>GPU Contrast</h3>
+        <p>GPU clusters use <span class="r">asynchronous</span> NVLink/PCIe communication with variable latency. Groq extends <span class="g">determinism from chip to system</span>.</p>
+      </div>
+      <div class="card red" style="margin-top:.6em">
+        <h3>Scaling Target</h3>
+        <p>Architecture designed for <span class="a">&gt;10,000 chips</span> with minimal latency degradation.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">10 / 16</div>
+</section>
+
+<!-- Slide 11: Physical Configurations -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Physical Configurations</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <table>
+        <thead><tr><th>Config</th><th>Description</th><th>Power</th></tr></thead>
+        <tbody>
+          <tr><td><span class="a">GroqCard</span></td><td>Single TSP, PCIe Gen4 x16</td><td>375W max / 240W avg</td></tr>
+          <tr><td><span class="g">GroqNode</span></td><td>8 interconnected GroqCards</td><td>~4 kW max</td></tr>
+          <tr><td><span class="p">GroqRack</span></td><td>9 GroqNodes (72 chips)</td><td>~36 kW max</td></tr>
+        </tbody>
+      </table>
+      <div class="card blue" style="margin-top:.8em">
+        <h3>Deployment Examples</h3>
+        <ul>
+          <li>Mixtral 8x7B: <span class="b">576 chips</span> (8 racks &times; 9 nodes)</li>
+          <li>Llama 3 70B FP8: <span class="b">300+ chips</span> (~4+ racks)</li>
+          <li>Next-gen: chips mounted directly on motherboards</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 240 340" width="240">
+        <text x="120" y="18" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="11" font-weight="700">System Hierarchy</text>
+        <!-- GroqCard -->
+        <rect x="70" y="30" width="100" height="45" rx="6" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="120" y="48" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">GroqCard</text>
+        <text x="120" y="65" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">1 TSP &bull; 230 MB</text>
+        <line x1="120" y1="75" x2="120" y2="95" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <!-- GroqNode -->
+        <rect x="30" y="95" width="180" height="70" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="120" y="113" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">GroqNode</text>
+        <g transform="translate(45, 122)">
+          <rect x="0" y="0" width="18" height="24" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".8"/>
+          <rect x="22" y="0" width="18" height="24" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".8"/>
+          <rect x="44" y="0" width="18" height="24" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".8"/>
+          <rect x="66" y="0" width="18" height="24" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".8"/>
+          <rect x="88" y="0" width="18" height="24" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".8"/>
+          <rect x="110" y="0" width="18" height="24" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".8"/>
+          <rect x="132" y="0" width="18" height="24" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".8"/>
+        </g>
+        <text x="120" y="157" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">8 cards &bull; ~1.8 GB SRAM</text>
+        <line x1="120" y1="165" x2="120" y2="185" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <!-- GroqRack -->
+        <rect x="10" y="185" width="220" height="140" rx="6" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="120" y="203" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">GroqRack</text>
+        <g transform="translate(25, 210)">
+          <rect x="0" y="0" width="190" height="14" rx="2" fill="#0e0e18" stroke="#4ecb8d" stroke-width=".6"/>
+          <rect x="0" y="17" width="190" height="14" rx="2" fill="#0e0e18" stroke="#4ecb8d" stroke-width=".6"/>
+          <rect x="0" y="34" width="190" height="14" rx="2" fill="#0e0e18" stroke="#4ecb8d" stroke-width=".6"/>
+          <rect x="0" y="51" width="190" height="14" rx="2" fill="#0e0e18" stroke="#4ecb8d" stroke-width=".6"/>
+          <rect x="0" y="68" width="190" height="14" rx="2" fill="#0e0e18" stroke="#4ecb8d" stroke-width=".6"/>
+          <rect x="0" y="85" width="190" height="14" rx="2" fill="#0e0e18" stroke="#4ecb8d" stroke-width=".6"/>
+          <text x="95" y="10" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">Node 1</text>
+          <text x="95" y="27" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">Node 2</text>
+          <text x="95" y="44" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">Node 3</text>
+          <text x="95" y="61" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">...</text>
+          <text x="95" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">Node 8</text>
+          <text x="95" y="95" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">Node 9</text>
+        </g>
+        <text x="120" y="320" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">72 chips &bull; ~16 GB SRAM</text>
+        <defs><marker id="arr3" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">11 / 16</div>
+</section>
+
+<!-- Slide 12: Trade-Offs -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Trade-Offs &amp; Limitations</h2></div>
+  <div class="cols cols-3" style="margin-bottom:.6em">
+    <div class="card red">
+      <h3>Inference Only</h3>
+      <p>No training support. Static scheduling incompatible with SGD, dynamic loss scaling, and backward passes.</p>
+    </div>
+    <div class="card amber">
+      <h3>No Flexibility</h3>
+      <p>Changing architecture requires <span class="a">recompilation</span> (hours). No dynamic control flow. No adaptive computation.</p>
+    </div>
+    <div class="card purple">
+      <h3>Narrow Ecosystem</h3>
+      <p>No equivalent to CUDA's thousands of libraries. Limited operator support compared to GPU frameworks.</p>
+    </div>
+  </div>
+  <h3 style="margin-top:.3em">SRAM Capacity &rarr; Chip Count</h3>
+  <table>
+    <thead><tr><th>Model Size</th><th>Chips (FP8)</th><th>Chips (FP16)</th><th>H100 Equivalent</th></tr></thead>
+    <tbody>
+      <tr><td>7B</td><td><span class="a">~30</span></td><td>~60</td><td><span class="g">1 GPU</span></td></tr>
+      <tr><td>70B</td><td><span class="a">~300</span></td><td>~600+</td><td><span class="g">1&ndash;2 GPUs</span></td></tr>
+      <tr><td>405B</td><td><span class="r">~1,700+</span></td><td>~3,500+</td><td><span class="g">5&ndash;8 GPUs</span></td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">12 / 16</div>
+</section>
+
+<!-- Slide 13: Cost & Batch Economics -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Cost &amp; Batch Economics</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card red" style="margin-bottom:.6em">
+        <h3>Capital Cost: 70B Model</h3>
+        <ul>
+          <li>GroqCard: <span class="a">~$20,000</span> per chip</li>
+          <li>300 chips &times; $20K = <span class="r">~$6M</span> chip cost</li>
+          <li>Excludes servers, networking, power, cooling</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>GPU Comparison</h3>
+        <ul>
+          <li>H100: $25K&ndash;$40K per GPU</li>
+          <li>2&ndash;8 GPUs for 70B = <span class="g">$50K&ndash;$320K</span></li>
+          <li><span class="r">~20&ndash;120x</span> lower upfront</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Where Groq Wins on Cost</h3>
+        <ul>
+          <li><span class="g">Cost per token (low batch)</span>: competitive &mdash; higher tok/s amortizes hardware</li>
+          <li><span class="g">Cost per unit of latency</span>: wins by wide margin</li>
+          <li>GroqCloud pricing competitive with GPU providers</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>Where GPUs Win on Cost</h3>
+        <ul>
+          <li><span class="b">Cost per token (high batch)</span>: batching amortizes weight reads across many sequences</li>
+          <li>Offline processing, batch embeddings</li>
+          <li>High-concurrency API where latency is secondary</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;font-size:.72em;color:var(--muted);margin-top:.4em">Power: 300 chips &times; 240W avg = <span class="r">~72 kW</span> vs ~1.4 kW for 2&times; H100</p>
+  <div class="slide-footer">13 / 16</div>
+</section>
+
+<!-- Slide 14: Competitive Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Competitive Landscape</h2></div>
+  <table>
+    <thead>
+      <tr><th>Company</th><th>Architecture</th><th>Key Differentiator</th><th>vs Groq</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="b">Cerebras</span></td><td>Wafer-Scale Engine (WSE-3)</td><td>46,225 mm&sup2; die; 40 GB SRAM</td><td><span class="r">~6x faster</span> on Llama 3.3 70B; no multi-chip overhead</td></tr>
+      <tr><td><span class="g">SambaNova</span></td><td>Reconfigurable Dataflow (RDU)</td><td>3-tier memory: SRAM+HBM+DRAM</td><td>Supports training + inference; more flexible</td></tr>
+      <tr><td><span class="p">Tenstorrent</span></td><td>RISC-V mesh architecture</td><td>Open-source ISA; chiplets</td><td>Cost-efficient; modular scaling</td></tr>
+      <tr><td><span class="a">Google TPU</span></td><td>Systolic array + HBM</td><td>TF/JAX integration; cloud scale</td><td>Massive ecosystem; training + inference</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red">
+      <h3>Cerebras Threat</h3>
+      <p>WSE-3 achieves <span class="r">&gt;2,500 tok/s</span> on Llama 3.3 70B via <span class="b">40 GB</span> on-chip SRAM (vs Groq's 230 MB/chip). No multi-chip communication overhead.</p>
+    </div>
+    <div class="card green">
+      <h3>GPU Software Closing Gap</h3>
+      <ul>
+        <li><span class="g">TensorRT-LLM</span>: fused kernels, FP8, paged KV-cache</li>
+        <li><span class="g">vLLM</span>: 2&ndash;4x throughput improvement</li>
+        <li><span class="g">Speculative decoding</span> on GPU</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">14 / 16</div>
+</section>
+
+<!-- Slide 15: Future Directions -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Future Directions</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>LPU v2: 4nm Samsung</h3>
+      <ul>
+        <li><span class="a">15&ndash;20x</span> power efficiency gain</li>
+        <li>Substantial SRAM capacity increase</li>
+        <li>Target: <span class="g">1 GB+ per chip</span></li>
+        <li>70B FP8: ~70 chips instead of 300+</li>
+        <li>Dramatically improved cost equation</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>NVIDIA Acquisition</h3>
+      <ul>
+        <li>December 2025: <span class="p">~$20B</span> deal announced</li>
+        <li>Jonathan Ross &amp; Sunny Madra joining NVIDIA</li>
+        <li>Non-exclusive licensing arrangement</li>
+        <li>May integrate TSP concepts into future GPUs</li>
+        <li>Or offer as separate product line</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Scaling Challenges</h3>
+      <ul>
+        <li>405B+ models: <span class="r">1,700+ chips</span> in FP8</li>
+        <li>Path forward: aggressive quantization (FP4, sub-4-bit)</li>
+        <li>Potential <span class="b">hybrid architectures</span>: SRAM for weights, off-chip for KV-cache</li>
+        <li>Market may fragment by workload profile</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.8em">
+    <h3>The Broader Question</h3>
+    <p>Will LLM inference converge on GPUs with better software, or fragment into specialized hardware? Historical precedent (networking ASICs, video encoders, crypto miners) suggests sufficiently large, stable workloads <span class="g">eventually justify purpose-built hardware</span>. Most likely: <span class="a">coexistence</span> &mdash; GPUs for training + flexible inference, Groq for latency-critical serving, Cerebras for extreme on-chip capacity.</p>
+  </div>
+  <div class="slide-footer">15 / 16</div>
+</section>
+
+<!-- Slide 16: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Architecture Innovation</h3>
+      <ul>
+        <li>Trade memory <span class="r">capacity</span> for <span class="g">bandwidth</span> (80 TB/s SRAM)</li>
+        <li>Trade hardware <span class="r">flexibility</span> for <span class="g">determinism</span></li>
+        <li>Trade runtime scheduling for <span class="g">compile-time planning</span></li>
+        <li>Result: <span class="a">~10x</span> single-stream token speed vs GPU</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Best-Fit Workloads</h3>
+      <ul>
+        <li><span class="a">Latency-critical</span>: voice, chat, coding assistants</li>
+        <li><span class="a">Low-batch / single-stream</span> serving</li>
+        <li><span class="a">Deterministic requirements</span>: robotics, finance</li>
+        <li>Models in the <span class="a">7B&ndash;70B</span> range</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Clear Limitations</h3>
+      <ul>
+        <li><span class="r">Inference only</span> &mdash; no training</li>
+        <li><span class="r">230 MB/chip</span> &rarr; 300 chips for 70B</li>
+        <li><span class="r">~$6M</span> chip cost for a single 70B deployment</li>
+        <li>Static compilation; narrow software ecosystem</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Market Position</h3>
+      <ul>
+        <li>NVIDIA acquisition validates the approach</li>
+        <li>Cerebras WSE-3 is the strongest competitor</li>
+        <li>LPU v2 (4nm) could transform economics</li>
+        <li>The <span class="p">memory bandwidth wall</span>, not compute, is the barrier worth breaking</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em;font-size:.78em;color:var(--green)">The LPU's contribution: demonstrating that the design space for inference hardware is far larger than the GPU-centric ecosystem assumed.</p>
+  <div class="slide-footer">16 / 16</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,transition:'fade',transitionSpeed:'fast',controlsTutorial:false,controlsLayout:'edges',progress:true,center:true});</script>
+</body>
+</html>

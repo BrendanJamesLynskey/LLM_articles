@@ -229,12 +229,6 @@
     border: 1px solid rgba(78,203,141,.25);
   }
   .link-md:hover { background: rgba(78,203,141,.2); }
-  .link-pdf {
-    background: rgba(167,139,250,.1);
-    color: var(--purple);
-    border: 1px solid rgba(167,139,250,.25);
-  }
-  .link-pdf:hover { background: rgba(167,139,250,.2); }
 
   /* ── Footer ── */
   .site-footer {
@@ -258,9 +252,12 @@
   .site-footer a:hover { text-decoration: underline; }
 
   /* ── Responsive ── */
-  @media (max-width: 700px) {
+  @media (max-width: 960px) {
+    .articles-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
     .hero h1 { font-size: 2em; }
-    .article-card { grid-template-columns: 1fr; }
+    .articles-grid { grid-template-columns: 1fr; }
     .article-links { justify-content: flex-start; }
     .container { padding: 2em 1em 3em; }
   }
@@ -289,8 +286,8 @@
       Each article includes an interactive slide presentation.
     </p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">25</div><div class="stat-label">ARTICLES</div></div>
-      <div class="stat"><div class="stat-num">25</div><div class="stat-label">PRESENTATIONS</div></div>
+      <div class="stat"><div class="stat-num">26</div><div class="stat-label">ARTICLES</div></div>
+      <div class="stat"><div class="stat-num">26</div><div class="stat-label">PRESENTATIONS</div></div>
       <div class="stat"><div class="stat-num">5</div><div class="stat-label">CATEGORIES</div></div>
     </div>
   </header>
@@ -333,7 +330,6 @@
       <div class="article-links">
         <a href="presentations/positional_encodings.html" class="link-slides">Slides</a>
         <a href="articles/positional_encodings.md" class="link-md">MD</a>
-        <a href="articles/positional_encodings.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -346,7 +342,6 @@
       <div class="article-links">
         <a href="presentations/mixture_of_experts.html" class="link-slides">Slides</a>
         <a href="articles/mixture_of_experts.md" class="link-md">MD</a>
-        <a href="articles/mixture_of_experts.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -359,7 +354,6 @@
       <div class="article-links">
         <a href="presentations/post_transformer_models.html" class="link-slides">Slides</a>
         <a href="articles/post_transformer_models.md" class="link-md">MD</a>
-        <a href="articles/post_transformer_models.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -372,7 +366,6 @@
       <div class="article-links">
         <a href="presentations/context_window_scaling.html" class="link-slides">Slides</a>
         <a href="articles/context_window_scaling.md" class="link-md">MD</a>
-        <a href="articles/context_window_scaling.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -385,7 +378,6 @@
       <div class="article-links">
         <a href="presentations/tokenization.html" class="link-slides">Slides</a>
         <a href="articles/tokenization.md" class="link-md">MD</a>
-        <a href="articles/tokenization.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -399,7 +391,6 @@
       <div class="article-links">
         <a href="presentations/flash_attention.html" class="link-slides">Slides</a>
         <a href="articles/flash_attention.md" class="link-md">MD</a>
-        <a href="articles/flash_attention.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -412,7 +403,6 @@
       <div class="article-links">
         <a href="presentations/paged_attention.html" class="link-slides">Slides</a>
         <a href="articles/paged_attention.md" class="link-md">MD</a>
-        <a href="articles/paged_attention.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -425,7 +415,6 @@
       <div class="article-links">
         <a href="presentations/kv_cache_optimization.html" class="link-slides">Slides</a>
         <a href="articles/kv_cache_optimization.md" class="link-md">MD</a>
-        <a href="articles/kv_cache_optimization.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -438,7 +427,6 @@
       <div class="article-links">
         <a href="presentations/batching_report.html" class="link-slides">Slides</a>
         <a href="articles/batching_report.md" class="link-md">MD</a>
-        <a href="articles/batching_report.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -451,7 +439,6 @@
       <div class="article-links">
         <a href="presentations/speculative_decoding.html" class="link-slides">Slides</a>
         <a href="articles/speculative_decoding.md" class="link-md">MD</a>
-        <a href="articles/speculative_decoding.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -464,7 +451,6 @@
       <div class="article-links">
         <a href="presentations/quantization_for_inference.html" class="link-slides">Slides</a>
         <a href="articles/quantization_for_inference.md" class="link-md">MD</a>
-        <a href="articles/quantization_for_inference.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -477,7 +463,6 @@
       <div class="article-links">
         <a href="presentations/mixed_precision_arithmetic.html" class="link-slides">Slides</a>
         <a href="articles/mixed_precision_arithmetic.md" class="link-md">MD</a>
-        <a href="articles/mixed_precision_arithmetic.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -490,7 +475,6 @@
       <div class="article-links">
         <a href="presentations/memory_hierarchy_and_offloading.html" class="link-slides">Slides</a>
         <a href="articles/memory_hierarchy_and_offloading.md" class="link-md">MD</a>
-        <a href="articles/memory_hierarchy_and_offloading.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -503,7 +487,6 @@
       <div class="article-links">
         <a href="presentations/distributed_llm_inference_report.html" class="link-slides">Slides</a>
         <a href="articles/distributed_llm_inference_report.md" class="link-md">MD</a>
-        <a href="articles/distributed_llm_inference_report.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -517,7 +500,6 @@
       <div class="article-links">
         <a href="presentations/llm_training_stages.html" class="link-slides">Slides</a>
         <a href="articles/llm_training_stages.md" class="link-md">MD</a>
-        <a href="articles/llm_training_stages.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -530,7 +512,6 @@
       <div class="article-links">
         <a href="presentations/distributed_training.html" class="link-slides">Slides</a>
         <a href="articles/distributed_training.md" class="link-md">MD</a>
-        <a href="articles/distributed_training.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -543,7 +524,6 @@
       <div class="article-links">
         <a href="presentations/rlhf_and_alignment.html" class="link-slides">Slides</a>
         <a href="articles/rlhf_and_alignment.md" class="link-md">MD</a>
-        <a href="articles/rlhf_and_alignment.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -556,7 +536,6 @@
       <div class="article-links">
         <a href="presentations/ring_attention_and_sequence_parallelism.html" class="link-slides">Slides</a>
         <a href="articles/ring_attention_and_sequence_parallelism.md" class="link-md">MD</a>
-        <a href="articles/ring_attention_and_sequence_parallelism.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -570,7 +549,6 @@
       <div class="article-links">
         <a href="presentations/gpu_power_variability.html" class="link-slides">Slides</a>
         <a href="articles/gpu_power_variability.md" class="link-md">MD</a>
-        <a href="articles/gpu_power_variability.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -583,7 +561,18 @@
       <div class="article-links">
         <a href="presentations/power_and_thermal_management.html" class="link-slides">Slides</a>
         <a href="articles/power_and_thermal_management.md" class="link-md">MD</a>
-        <a href="articles/power_and_thermal_management.pdf" class="link-pdf">PDF</a>
+      </div>
+    </div>
+
+    <div class="article-card" data-cat="hardware" data-title="Groq's LPU Architecture">
+      <div class="article-info">
+        <span class="category cat-hardware">HARDWARE</span>
+        <h3>Groq's LPU Architecture</h3>
+        <p class="desc">Tensor Streaming Processor, SRAM-only design, deterministic execution, multi-chip scaling, and GroqCloud benchmarks.</p>
+      </div>
+      <div class="article-links">
+        <a href="presentations/groq_architecture.html" class="link-slides">Slides</a>
+        <a href="articles/groq_architecture.md" class="link-md">MD</a>
       </div>
     </div>
 
@@ -597,7 +586,6 @@
       <div class="article-links">
         <a href="presentations/prompt_engineering.html" class="link-slides">Slides</a>
         <a href="articles/prompt_engineering.md" class="link-md">MD</a>
-        <a href="articles/prompt_engineering.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -610,7 +598,6 @@
       <div class="article-links">
         <a href="presentations/evaluation_and_benchmarks.html" class="link-slides">Slides</a>
         <a href="articles/evaluation_and_benchmarks.md" class="link-md">MD</a>
-        <a href="articles/evaluation_and_benchmarks.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -623,7 +610,6 @@
       <div class="article-links">
         <a href="presentations/open_weights_llm_landscape.html" class="link-slides">Slides</a>
         <a href="articles/open_weights_llm_landscape.md" class="link-md">MD</a>
-        <a href="articles/open_weights_llm_landscape.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 
@@ -636,7 +622,6 @@
       <div class="article-links">
         <a href="presentations/ollama_nondeterminism.html" class="link-slides">Slides</a>
         <a href="articles/ollama_nondeterminism.md" class="link-md">MD</a>
-        <a href="articles/ollama_nondeterminism.pdf" class="link-pdf">PDF</a>
       </div>
     </div>
 

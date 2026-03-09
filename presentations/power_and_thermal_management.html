@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power &amp; Thermal Management for GPU-Based LLM Inference | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta">TECHNICAL REPORT</p>
+  <h1>Power &amp; Thermal Management</h1>
+  <p class="subtitle">Engineering Heat and Energy for GPU-Based LLM Inference</p>
+  <div>
+    <span class="pill amber">GPU Power</span>
+    <span class="pill green">Cooling</span>
+    <span class="pill purple">DVFS</span>
+    <span class="pill blue">Efficiency</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">Power &amp; Thermal Management</div>
+</section>
+
+<!-- SLIDE 2: Why It Matters -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why Power &amp; Thermal Matter</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>The Scale Problem</h3>
+      <ul>
+        <li>A single high-end GPU draws <span class="a">300&ndash;700 W</span> under load</li>
+        <li>Multi-GPU racks push <span class="a">4&ndash;6 kW per server</span></li>
+        <li>Power and heat are <span class="r">first-order</span> engineering constraints</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The Opportunity</h3>
+      <ul>
+        <li>Performance-power curve is <span class="g">nonlinear</span></li>
+        <li>10&ndash;20% power reduction &rarr; only 5&ndash;10% throughput loss</li>
+        <li>Quantization cuts energy <span class="g">30&ndash;50%</span></li>
+        <li>Thermal management prevents costly throttling</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 01</div>
+</section>
+
+<!-- SLIDE 3: GPU Power Anatomy -->
+<section>
+  <div class="slide-hdr"><span class="tag">FUNDAMENTALS</span><h2>GPU Power Anatomy</h2></div>
+  <svg class="diagram" viewBox="0 0 900 320" width="850">
+    <rect x="30" y="30" width="840" height="270" rx="12" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="450" y="22" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="13">GPU Power Domains</text>
+    <!-- Compute -->
+    <rect x="60" y="60" width="180" height="100" rx="8" fill="#181824" stroke="#f5a623" stroke-width="2"/>
+    <text x="150" y="95" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="15" font-weight="700">Compute Cores</text>
+    <text x="150" y="118" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">CUDA / Tensor Cores</text>
+    <text x="150" y="140" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Dominates in prefill</text>
+    <!-- Memory -->
+    <rect x="270" y="60" width="180" height="100" rx="8" fill="#181824" stroke="#a78bfa" stroke-width="2"/>
+    <text x="360" y="95" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display" font-size="15" font-weight="700">Memory</text>
+    <text x="360" y="118" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">HBM / GDDR6 + Controllers</text>
+    <text x="360" y="140" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Dominates in decode</text>
+    <!-- Interconnect -->
+    <rect x="480" y="60" width="180" height="100" rx="8" fill="#181824" stroke="#60a5fa" stroke-width="2"/>
+    <text x="570" y="95" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display" font-size="15" font-weight="700">Interconnect</text>
+    <text x="570" y="118" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">NVLink / PCIe PHYs</text>
+    <text x="570" y="140" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Fixed + data-dependent</text>
+    <!-- Auxiliary -->
+    <rect x="690" y="60" width="150" height="100" rx="8" fill="#181824" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="765" y="95" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display" font-size="15" font-weight="700">Auxiliary</text>
+    <text x="765" y="118" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">VRMs, Fans, I/O</text>
+    <text x="765" y="140" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Always-on baseline</text>
+    <!-- Arrow: All to heat -->
+    <line x1="450" y1="175" x2="450" y2="220" stroke="#f87171" stroke-width="2" marker-end="url(#arrowR)"/>
+    <defs><marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#f87171"/></marker></defs>
+    <rect x="310" y="225" width="280" height="50" rx="8" fill="#181824" stroke="#f87171" stroke-width="2"/>
+    <text x="450" y="256" text-anchor="middle" fill="#f87171" font-family="Playfair Display" font-size="15" font-weight="700">100% converted to heat</text>
+  </svg>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 02</div>
+</section>
+
+<!-- SLIDE 4: Phase-Dependent Power Profile -->
+<section>
+  <div class="slide-hdr"><span class="tag">WORKLOAD</span><h2>Phase-Dependent Power Profile</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Prefill Phase</h3>
+      <ul>
+        <li><span class="p">Compute-bound</span> &mdash; processes full input in parallel</li>
+        <li>Draws <span class="r">peak power</span> from compute cores</li>
+        <li>High GPU utilization, high clock speeds</li>
+        <li>Short duration, intense thermal spike</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Decode Phase</h3>
+      <ul>
+        <li><span class="b">Memory-bandwidth-bound</span> &mdash; sequential token generation</li>
+        <li>Memory subsystem <span class="b">dominates</span> power draw</li>
+        <li>Compute cores underutilized at max clocks</li>
+        <li>Longer duration, sustained thermal load</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.8em;color:var(--muted);font-size:.72em;">
+    This variable thermal profile means cooling must handle <span class="r">peak prefill spikes</span> while being efficient during <span class="b">sustained decode</span>.
+  </p>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 03</div>
+</section>
+
+<!-- SLIDE 5: Small vs Large GPU Power -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCALING</span><h2>Power Scaling: Small vs Large GPUs</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>Each chip adds its own <span class="a">idle baseline</span>, VRM losses, and interconnect power</li>
+        <li>Smaller chips run at <span class="g">lower voltages and frequencies</span></li>
+        <li>Per-chip: <span class="g">75&ndash;150 W</span> vs <span class="r">300&ndash;700 W</span> for large accelerators</li>
+        <li>Lower per-chip thermal density <span class="g">simplifies chip-level cooling</span></li>
+        <li>But many heat sources <span class="r">complicate system-level cooling</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Tradeoff Summary</h3>
+      <table>
+        <tr><th>Aspect</th><th>Small GPUs</th><th>Large GPUs</th></tr>
+        <tr><td>Per-chip power</td><td class="g">75&ndash;150 W</td><td class="r">300&ndash;700 W</td></tr>
+        <tr><td>Chip cooling</td><td class="g">Easier</td><td class="r">Harder</td></tr>
+        <tr><td>System cooling</td><td class="r">Complex</td><td class="g">Simpler</td></tr>
+        <tr><td>Idle overhead</td><td class="r">Higher total</td><td class="g">Lower total</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 04</div>
+</section>
+
+<!-- SLIDE 6: Thermal Fundamentals -->
+<section>
+  <div class="slide-hdr"><span class="tag">THERMAL</span><h2>Thermal Fundamentals</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Heat Generation</h3>
+      <p>Every watt consumed &rarr; 1 watt of heat. 16 GPUs at 150 W = <span class="r">2.4 kW</span> GPU heat alone. Full server: <span class="r">4&ndash;6 kW</span>.</p>
+    </div>
+    <div class="card amber">
+      <h3>Thermal Throttling</h3>
+      <p>Junction temp exceeds <span class="a">83&ndash;95&deg;C</span> &rarr; firmware reduces clocks. In distributed inference, <span class="r">one throttled GPU bottlenecks the entire pipeline</span>.</p>
+    </div>
+    <div class="card blue">
+      <h3>Ambient &amp; Altitude</h3>
+      <p>Data centers: <span class="b">18&ndash;27&deg;C</span> inlet air. Higher temps &rarr; faster fans &rarr; more power. Altitude: <span class="b">&minus;3&ndash;4%</span> cooling per 300m above sea level.</p>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.6em">
+    <rect x="10" y="15" width="780" height="55" rx="27" fill="#181824" stroke="#2a2a3a"/>
+    <text x="30" y="48" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">18&deg;C</text>
+    <!-- gradient bar -->
+    <rect x="90" y="28" width="600" height="28" rx="14" fill="url(#tempGrad)"/>
+    <defs><linearGradient id="tempGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#60a5fa"/><stop offset="50%" stop-color="#f5a623"/><stop offset="100%" stop-color="#f87171"/>
+    </linearGradient></defs>
+    <text x="710" y="48" fill="#f87171" font-family="JetBrains Mono" font-size="12">95&deg;C</text>
+    <!-- markers -->
+    <line x1="520" y1="25" x2="520" y2="60" stroke="#f5a623" stroke-width="2" stroke-dasharray="3"/>
+    <text x="520" y="78" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Throttle zone &rarr;</text>
+  </svg>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 05</div>
+</section>
+
+<!-- SLIDE 7: Cooling Strategies Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">COOLING</span><h2>Cooling Strategies Overview</h2></div>
+  <svg class="diagram" viewBox="0 0 900 280" width="860">
+    <!-- Air -->
+    <rect x="20" y="30" width="270" height="230" rx="10" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="155" y="60" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display" font-size="17" font-weight="700">Air Cooling</text>
+    <text x="155" y="85" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">Most common approach</text>
+    <line x1="45" y1="98" x2="265" y2="98" stroke="#2a2a3a"/>
+    <text x="40" y="120" fill="#8888a8" font-family="DM Sans" font-size="11">+ Simple, low upfront cost</text>
+    <text x="40" y="140" fill="#8888a8" font-family="DM Sans" font-size="11">+ Hot/cold aisle containment</text>
+    <text x="40" y="160" fill="#8888a8" font-family="DM Sans" font-size="11">+ Blower-style for density</text>
+    <text x="40" y="185" fill="#f87171" font-family="DM Sans" font-size="11">&minus; Limited thermal density</text>
+    <text x="40" y="205" fill="#f87171" font-family="DM Sans" font-size="11">&minus; Fan noise &amp; power draw</text>
+    <text x="155" y="240" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">~1x thermal capacity</text>
+    <!-- Liquid -->
+    <rect x="315" y="30" width="270" height="230" rx="10" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="450" y="60" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display" font-size="17" font-weight="700">Liquid Cooling</text>
+    <text x="450" y="85" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">Direct-to-chip cold plates</text>
+    <line x1="340" y1="98" x2="560" y2="98" stroke="#2a2a3a"/>
+    <text x="335" y="120" fill="#8888a8" font-family="DM Sans" font-size="11">+ 2&ndash;3x better conductivity</text>
+    <text x="335" y="140" fill="#8888a8" font-family="DM Sans" font-size="11">+ Higher sustained power</text>
+    <text x="335" y="160" fill="#8888a8" font-family="DM Sans" font-size="11">+ Denser GPU packing</text>
+    <text x="335" y="185" fill="#f87171" font-family="DM Sans" font-size="11">&minus; Higher upfront cost</text>
+    <text x="335" y="205" fill="#f87171" font-family="DM Sans" font-size="11">&minus; Plumbing complexity</text>
+    <text x="450" y="240" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">~2&ndash;3x thermal capacity</text>
+    <!-- Immersion -->
+    <rect x="610" y="30" width="270" height="230" rx="10" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="745" y="60" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display" font-size="17" font-weight="700">Immersion</text>
+    <text x="745" y="85" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">Dielectric fluid submersion</text>
+    <line x1="635" y1="98" x2="855" y2="98" stroke="#2a2a3a"/>
+    <text x="630" y="120" fill="#8888a8" font-family="DM Sans" font-size="11">+ No fans, zero noise</text>
+    <text x="630" y="140" fill="#8888a8" font-family="DM Sans" font-size="11">+ 100+ kW per rack</text>
+    <text x="630" y="160" fill="#8888a8" font-family="DM Sans" font-size="11">+ Best energy efficiency</text>
+    <text x="630" y="185" fill="#f87171" font-family="DM Sans" font-size="11">&minus; Maintenance complexity</text>
+    <text x="630" y="205" fill="#f87171" font-family="DM Sans" font-size="11">&minus; Dielectric fluid cost</text>
+    <text x="745" y="240" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">&gt;5x thermal capacity</text>
+  </svg>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 06</div>
+</section>
+
+<!-- SLIDE 8: Air Cooling Best Practices -->
+<section>
+  <div class="slide-hdr"><span class="tag">AIR</span><h2>Air Cooling for Multi-GPU Systems</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Airflow Design Principles</h3>
+      <ul>
+        <li><span class="b">Hot-aisle / cold-aisle</span> containment prevents exhaust recirculation</li>
+        <li>Each GPU must receive <span class="g">fresh cool air</span>, not preheated exhaust</li>
+        <li><span class="a">Blower-style</span> coolers preferred in dense configs &mdash; exhaust heat directly out of chassis</li>
+        <li>Open-air coolers create <span class="r">internal hot spots</span> in multi-card setups</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 280" width="300">
+        <text x="160" y="18" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Airflow Path</text>
+        <!-- Chassis -->
+        <rect x="20" y="30" width="280" height="230" rx="8" fill="#10101a" stroke="#2a2a3a"/>
+        <!-- Cold air in -->
+        <polygon points="10,145 45,125 45,165" fill="#60a5fa" opacity="0.7"/>
+        <text x="55" y="148" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">Cold In</text>
+        <!-- GPU slots -->
+        <rect x="110" y="50" width="40" height="190" rx="4" fill="#181824" stroke="#f5a623"/>
+        <rect x="165" y="50" width="40" height="190" rx="4" fill="#181824" stroke="#f5a623"/>
+        <rect x="220" y="50" width="40" height="190" rx="4" fill="#181824" stroke="#a78bfa"/>
+        <text x="130" y="150" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9" transform="rotate(-90,130,150)">GPU 1</text>
+        <text x="185" y="150" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9" transform="rotate(-90,185,150)">GPU 2</text>
+        <text x="240" y="150" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9" transform="rotate(-90,240,150)">GPU 3</text>
+        <!-- Hot air out -->
+        <polygon points="310,145 275,125 275,165" fill="#f87171" opacity="0.7"/>
+        <text x="262" y="118" fill="#f87171" font-family="JetBrains Mono" font-size="10">Hot</text>
+        <text x="262" y="130" fill="#f87171" font-family="JetBrains Mono" font-size="10">Out</text>
+        <!-- Arrows -->
+        <line x1="55" y1="145" x2="105" y2="145" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowB)"/>
+        <defs><marker id="arrowB" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L6,2.5 L0,5Z" fill="#60a5fa"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 07</div>
+</section>
+
+<!-- SLIDE 9: Liquid & Immersion Cooling Detail -->
+<section>
+  <div class="slide-hdr"><span class="tag">ADVANCED</span><h2>Liquid &amp; Immersion Cooling</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Direct-to-Chip Liquid</h3>
+      <ul>
+        <li>Cold plates attached to GPU die</li>
+        <li>Closed-loop <span class="p">water / water-glycol</span></li>
+        <li>Connected to facility chilled water or dedicated <span class="p">CDU</span></li>
+        <li><span class="g">2&ndash;3x</span> thermal conductivity vs air</li>
+        <li>Reduced fan power, improved utilization</li>
+        <li>ROI through <span class="g">operational savings</span> despite higher upfront cost</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Immersion Cooling</h3>
+      <ul>
+        <li>Entire server submerged in <span class="g">dielectric fluid</span></li>
+        <li>Single-phase or two-phase variants</li>
+        <li>Handles <span class="a">&gt;100 kW per rack</span></li>
+        <li>Eliminates fans entirely &mdash; zero noise</li>
+        <li>Growing adoption for AI inference workloads</li>
+        <li>Drawback: hardware extraction needed for service</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 08</div>
+</section>
+
+<!-- SLIDE 10: Power Capping -->
+<section>
+  <div class="slide-hdr"><span class="tag">POWER</span><h2>Power Capping &amp; Frequency Scaling</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 280 240" width="260">
+        <text x="140" y="18" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Power vs Throughput</text>
+        <!-- Axes -->
+        <line x1="40" y1="210" x2="260" y2="210" stroke="#2a2a3a" stroke-width="1.5"/>
+        <line x1="40" y1="210" x2="40" y2="30" stroke="#2a2a3a" stroke-width="1.5"/>
+        <text x="150" y="235" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Power (W)</text>
+        <text x="15" y="120" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10" transform="rotate(-90,15,120)">Throughput</text>
+        <!-- Curve showing diminishing returns -->
+        <path d="M50,200 Q100,80 160,60 Q200,50 250,45" fill="none" stroke="#4ecb8d" stroke-width="2.5"/>
+        <!-- Sweet spot -->
+        <circle cx="160" cy="60" r="6" fill="none" stroke="#f5a623" stroke-width="2"/>
+        <text x="168" y="50" fill="#f5a623" font-family="JetBrains Mono" font-size="9">Sweet spot</text>
+        <!-- Annotations -->
+        <line x1="160" y1="66" x2="160" y2="210" stroke="#f5a623" stroke-width="1" stroke-dasharray="4"/>
+        <text x="160" y="222" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">80%</text>
+        <text x="250" y="222" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">100%</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Power Capping via nvidia-smi</h3>
+        <ul>
+          <li>Set max power below rated TDP</li>
+          <li><span class="a">10&ndash;20%</span> power reduction &rarr; only <span class="g">5&ndash;10%</span> throughput loss</li>
+          <li>Nonlinear curve makes this the <span class="g">most effective efficiency lever</span></li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.8em">
+        <h3>Dynamic Frequency Scaling (DVFS)</h3>
+        <ul>
+          <li>Auto-adjusts clocks based on workload</li>
+          <li>Decode phase: <span class="b">downclock compute</span> without affecting token speed</li>
+          <li>Prefill phase: <span class="p">ramp up</span> for parallel workload</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 09</div>
+</section>
+
+<!-- SLIDE 11: nvidia-smi Commands -->
+<section>
+  <div class="slide-hdr"><span class="tag">TOOLS</span><h2>Power Management Commands</h2></div>
+  <pre><code># Set power cap to 200W (from default 300W TDP)
+nvidia-smi -pl 200
+
+# Monitor power, temperature, and clocks in real-time
+nvidia-smi dmon -s pcut -d 1
+
+# Query current power and thermal state
+nvidia-smi --query-gpu=power.draw,temperature.gpu,clocks.sm,\
+  clocks.mem,power.limit --format=csv
+
+# Lock GPU clocks for consistent performance
+nvidia-smi -lgc 1200,1800</code></pre>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card green">
+      <h3>Key Telemetry</h3>
+      <p>Power draw, junction temp, SM clocks, memory clocks, throttle reason, fan speed</p>
+    </div>
+    <div class="card purple">
+      <h3>Monitoring Stack</h3>
+      <p>NVIDIA DCGM &rarr; Prometheus &rarr; Grafana. Correlate with inference latency &amp; throughput.</p>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 10</div>
+</section>
+
+<!-- SLIDE 12: Quantization as Power Strategy -->
+<section>
+  <div class="slide-hdr"><span class="tag">QUANTIZATION</span><h2>Quantization as a Power Strategy</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Energy per Operation</h3>
+      <table>
+        <tr><th>Precision</th><th>Relative Energy</th><th>Memory BW</th></tr>
+        <tr><td><span class="r">FP16</span></td><td>1.0x (baseline)</td><td>1.0x</td></tr>
+        <tr><td><span class="a">INT8</span></td><td>~0.5x</td><td>~0.5x</td></tr>
+        <tr><td><span class="g">INT4</span></td><td>~0.25x</td><td>~0.25x</td></tr>
+      </table>
+    </div>
+    <div class="card green">
+      <h3>Compound Benefits</h3>
+      <ul>
+        <li><span class="g">Fewer bits</span> &rarr; less compute energy</li>
+        <li><span class="g">Less data moved</span> &rarr; less memory power</li>
+        <li>Multi-GPU memory-bound systems benefit most</li>
+        <li>Total system power reduction: <span class="a">30&ndash;50%</span></li>
+        <li>Acceptable quality with modern quantization methods</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em;font-size:.72em;color:var(--muted);">
+    Quantization is simultaneously a <span class="g">memory</span>, <span class="p">compute</span>, and <span class="a">energy</span> optimization.
+  </p>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 11</div>
+</section>
+
+<!-- SLIDE 13: Batch-Aware Power Management -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCHEDULING</span><h2>Batch-Aware Power Management</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Clock Gating</h3>
+      <ul>
+        <li>Reduce frequency to minimum during idle intervals</li>
+        <li>GPUs idle at <span class="r">30&ndash;50% of TDP</span></li>
+        <li>Aggressive gating reclaims this waste</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Request Batching</h3>
+      <ul>
+        <li>Consolidate work onto fewer GPUs</li>
+        <li>Power down unused cards</li>
+        <li>Idle timeouts trigger consolidation</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Workload Routing</h3>
+      <ul>
+        <li>Route to <span class="b">already-active</span> GPUs first</li>
+        <li>Wake idle GPUs only when needed</li>
+        <li>Reduces total active GPU count</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 100" width="760" style="margin-top:.6em">
+    <text x="400" y="15" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">GPU Power State Timeline</text>
+    <!-- Timeline -->
+    <line x1="40" y1="60" x2="760" y2="60" stroke="#2a2a3a" stroke-width="1.5"/>
+    <!-- Active blocks -->
+    <rect x="60" y="35" width="120" height="25" rx="4" fill="#f5a623" opacity="0.6"/>
+    <text x="120" y="52" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">ACTIVE</text>
+    <rect x="210" y="35" width="60" height="25" rx="4" fill="#2a2a3a" opacity="0.6"/>
+    <text x="240" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">IDLE</text>
+    <rect x="300" y="35" width="180" height="25" rx="4" fill="#f5a623" opacity="0.6"/>
+    <text x="390" y="52" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">BATCHED ACTIVE</text>
+    <rect x="510" y="35" width="100" height="25" rx="4" fill="#2a2a3a" opacity="0.6"/>
+    <text x="560" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">GATED</text>
+    <rect x="640" y="35" width="100" height="25" rx="4" fill="#f5a623" opacity="0.6"/>
+    <text x="690" y="52" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">ACTIVE</text>
+    <!-- Power line -->
+    <polyline points="60,85 60,75 180,75 180,85 210,85 210,82 270,82 270,85 300,85 300,75 480,75 480,85 510,85 510,90 610,90 610,85 640,85 640,75 740,75 740,85" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="30" y="82" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">W</text>
+  </svg>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 12</div>
+</section>
+
+<!-- SLIDE 14: Power Delivery Infrastructure -->
+<section>
+  <div class="slide-hdr"><span class="tag">INFRASTRUCTURE</span><h2>Power Delivery Infrastructure</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <svg class="diagram" viewBox="0 0 360 260" width="340">
+        <text x="180" y="18" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Power Budget: 8x 150W GPU System</text>
+        <!-- Stacked bar -->
+        <rect x="80" y="35" width="200" height="35" rx="0" fill="#f5a623" opacity="0.8"/>
+        <text x="180" y="58" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="11" font-weight="600">GPUs: 1200 W</text>
+        <rect x="80" y="70" width="100" height="30" rx="0" fill="#60a5fa" opacity="0.7"/>
+        <text x="130" y="90" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="10">CPU: ~200 W</text>
+        <rect x="80" y="100" width="60" height="28" rx="0" fill="#a78bfa" opacity="0.7"/>
+        <text x="110" y="118" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9">RAM/SSD</text>
+        <rect x="80" y="128" width="70" height="28" rx="0" fill="#4ecb8d" opacity="0.7"/>
+        <text x="115" y="146" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9">Fans/NIC</text>
+        <rect x="80" y="156" width="50" height="28" rx="0" fill="#f87171" opacity="0.7"/>
+        <text x="105" y="174" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9">PSU loss</text>
+        <!-- Total -->
+        <line x1="60" y1="195" x2="300" y2="195" stroke="#f5a623" stroke-width="1" stroke-dasharray="3"/>
+        <text x="180" y="215" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">Total: 1.8&ndash;2.2 kW</text>
+        <text x="180" y="240" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">PSU rated: &ge;2.4 kW</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>PSU Efficiency</h3>
+        <ul>
+          <li><span class="g">90&ndash;96%</span> efficient at 50&ndash;80% load</li>
+          <li>Drops at very low or very high utilization</li>
+          <li>Oversizing wastes money; undersizing causes shutdowns</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.8em">
+        <h3>Common Pitfalls</h3>
+        <ul>
+          <li>Forgetting non-GPU power draw in budget</li>
+          <li>No headroom for prefill power spikes</li>
+          <li>Multiple GPUs sharing PCIe power rails</li>
+          <li>Ignoring PSU efficiency curve</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 13</div>
+</section>
+
+<!-- SLIDE 15: Monitoring & Observability -->
+<section>
+  <div class="slide-hdr"><span class="tag">MONITORING</span><h2>Monitoring &amp; Observability</h2></div>
+  <svg class="diagram" viewBox="0 0 850 180" width="820">
+    <!-- Pipeline -->
+    <rect x="20" y="50" width="150" height="70" rx="8" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="95" y="80" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="13" font-weight="700">nvidia-smi</text>
+    <text x="95" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">DCGM Exporter</text>
+    <line x1="175" y1="85" x2="225" y2="85" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arwG)"/>
+    <defs><marker id="arwG" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L6,2.5 L0,5Z" fill="#4ecb8d"/></marker></defs>
+
+    <rect x="230" y="50" width="140" height="70" rx="8" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="300" y="80" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display" font-size="13" font-weight="700">Prometheus</text>
+    <text x="300" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Time-series DB</text>
+    <line x1="375" y1="85" x2="425" y2="85" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arwG)"/>
+
+    <rect x="430" y="50" width="140" height="70" rx="8" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="500" y="80" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display" font-size="13" font-weight="700">Grafana</text>
+    <text x="500" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Dashboards</text>
+    <line x1="575" y1="85" x2="625" y2="85" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arwG)"/>
+
+    <rect x="630" y="50" width="180" height="70" rx="8" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+    <text x="720" y="80" text-anchor="middle" fill="#f87171" font-family="Playfair Display" font-size="13" font-weight="700">Alerts</text>
+    <text x="720" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Throttle / Power limits</text>
+
+    <text x="425" y="160" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">Correlate GPU telemetry (power, temp, clocks) with inference metrics (latency, throughput)</text>
+  </svg>
+  <div class="cols cols-2" style="margin-top:.4em">
+    <div class="card blue">
+      <h3>Key Metrics to Track</h3>
+      <ul>
+        <li>Power draw per GPU (instantaneous &amp; average)</li>
+        <li>Junction temperature &amp; throttle events</li>
+        <li>Clock speeds (SM and memory)</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Alert Thresholds</h3>
+      <ul>
+        <li>Temp approaching throttle: <span class="r">&gt;80&deg;C warning</span></li>
+        <li>Power at limit: <span class="r">&gt;95% of cap</span></li>
+        <li>Throttle reason != None</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 14</div>
+</section>
+
+<!-- SLIDE 16: Efficiency Metrics & Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">METRICS</span><h2>Energy Efficiency Comparison</h2></div>
+  <table>
+    <tr>
+      <th>Configuration</th>
+      <th>GPU Power</th>
+      <th>System Power</th>
+      <th>Tokens/Sec</th>
+      <th>Tokens/Joule</th>
+    </tr>
+    <tr>
+      <td>1x H100 (FP16)</td>
+      <td><span class="r">700 W</span></td>
+      <td>~1000 W</td>
+      <td>~80</td>
+      <td><span class="a">~0.08</span></td>
+    </tr>
+    <tr>
+      <td>8x RTX 4090 (INT4)</td>
+      <td><span class="r">8 x 300 W</span></td>
+      <td>~3000 W</td>
+      <td>~120</td>
+      <td>~0.04</td>
+    </tr>
+    <tr>
+      <td>8x RTX 4090 (INT4, capped)</td>
+      <td><span class="a">8 x 200 W</span></td>
+      <td>~2100 W</td>
+      <td>~110</td>
+      <td><span class="g">~0.05</span></td>
+    </tr>
+  </table>
+  <p style="text-align:center;font-size:.68em;color:var(--muted);margin-top:.5em">Approximate comparison for 70B model decode throughput. Values are illustrative and workload-dependent.</p>
+  <div class="cols cols-2" style="margin-top:.5em">
+    <div class="card green">
+      <h3>Tokens per Joule</h3>
+      <p>Primary efficiency metric. Captures throughput relative to energy cost. <span class="mono">1 J = 1 W&middot;s</span></p>
+    </div>
+    <div class="card purple">
+      <h3>Tokens per Dollar</h3>
+      <p>Incorporates hardware amortization + electricity cost for full economic picture.</p>
+    </div>
+  </div>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 15</div>
+</section>
+
+<!-- SLIDE 17: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>1. Power Cap Aggressively</h3>
+      <p>The performance-power curve is <span class="a">nonlinear and favorable</span>. 10&ndash;20% power reduction costs only 5&ndash;10% throughput.</p>
+    </div>
+    <div class="card green">
+      <h3>2. Quantize for Energy</h3>
+      <p>Quantization is a <span class="g">triple optimization</span>: memory, compute, and energy. INT4 can cut system power 30&ndash;50%.</p>
+    </div>
+    <div class="card blue">
+      <h3>3. Design Cooling Carefully</h3>
+      <p>Dense multi-card configs need <span class="b">proper airflow</span>. Consider liquid cooling for sustained high-density workloads.</p>
+    </div>
+    <div class="card purple">
+      <h3>4. Monitor Continuously</h3>
+      <p>Catch <span class="p">thermal throttling</span> before it impacts latency. One throttled GPU bottlenecks the entire distributed pipeline.</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.8em;font-size:.78em;">
+    Treat power as a <span class="a">first-class design variable</span> to build the most cost-effective and sustainable inference systems.
+  </p>
+  <div class="slide-footer">Power &amp; Thermal Management &mdash; 16</div>
+</section>
+
+<!-- SLIDE 18: End -->
+<section class="title-slide">
+  <p class="meta">TECHNICAL REPORT</p>
+  <h1>Thank You</h1>
+  <p class="subtitle">Power &amp; Thermal Management for GPU-Based LLM Inference</p>
+  <div>
+    <span class="pill amber">Power Capping</span>
+    <span class="pill green">Quantization</span>
+    <span class="pill purple">DVFS</span>
+    <span class="pill blue">Cooling</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">Power &amp; Thermal Management</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

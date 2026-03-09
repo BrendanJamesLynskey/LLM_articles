@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speculative Decoding | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Speculative Decoding</h1>
+  <p class="subtitle">Accelerating LLM Inference with Draft Models</p>
+  <div>
+    <span class="pill amber">inference</span>
+    <span class="pill green">latency</span>
+    <span class="pill purple">draft-verify</span>
+    <span class="pill blue">distributed</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">speculative-decoding / 01</div>
+</section>
+
+<!-- SLIDE 2: The Core Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The Autoregressive Bottleneck</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Why Decoding Is Slow</h3>
+      <ul>
+        <li>Each token requires a <span class="r">full forward pass</span></li>
+        <li>Strictly sequential: token N+1 depends on token N</li>
+        <li>GPU reads full weight matrix but does <span class="r">minimal arithmetic</span></li>
+        <li>Decode is <span class="a">memory-bandwidth-bound</span>, not compute-bound</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Distributed Penalty</h3>
+      <ul>
+        <li>Each step triggers <span class="b">2L all-reduce operations</span> (L = layers)</li>
+        <li>Tensor parallelism adds collective communication</li>
+        <li>Pipeline parallelism adds point-to-point transfers</li>
+        <li>Communication can consume <span class="r">60&ndash;70%</span> of decode time on PCIe</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 02</div>
+</section>
+
+<!-- SLIDE 3: The Opportunity -->
+<section>
+  <div class="slide-hdr"><span class="tag">INSIGHT</span><h2>Prefill vs. Decode Asymmetry</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Prefill Phase</h3>
+      <ul>
+        <li>Processes <span class="a">many tokens in parallel</span></li>
+        <li><span class="g">Compute-bound</span> &mdash; GPU fully utilized</li>
+        <li>Cost of K tokens &asymp; cost of 1 token</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The Speculative Idea</h3>
+      <ul>
+        <li>If K candidate tokens can be <span class="g">verified simultaneously</span>, cost is near one forward pass</li>
+        <li>Draft cheaply with a small model, verify in bulk with the target</li>
+        <li>Result: <span class="a">2&ndash;3x fewer</span> target-model forward passes</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.8em">
+    <rect x="10" y="15" width="120" height="55" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="70" y="47" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">Draft Model</text>
+    <line x1="130" y1="42" x2="200" y2="42" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowG)"/>
+    <text x="165" y="35" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">K tokens</text>
+    <rect x="200" y="15" width="220" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="310" y="47" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">Target Model (1 pass)</text>
+    <line x1="420" y1="42" x2="490" y2="42" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowG)"/>
+    <text x="455" y="35" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">verify</text>
+    <rect x="490" y="15" width="150" height="55" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="565" y="42" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">Accept / Reject</text>
+    <text x="565" y="57" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">+ resample</text>
+    <defs><marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="slide-footer">speculative-decoding / 03</div>
+</section>
+
+<!-- SLIDE 4: The Draft-Then-Verify Loop -->
+<section>
+  <div class="slide-hdr"><span class="tag">ALGORITHM</span><h2>The Draft-Then-Verify Loop</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>1. Draft</h3>
+      <p>Small model generates <span class="a">K candidate tokens</span> autoregressively. Typically <span class="a">10&ndash;50x fewer</span> parameters than target.</p>
+    </div>
+    <div class="card green">
+      <h3>2. Verify</h3>
+      <p>Target model runs a <span class="g">single forward pass</span> over all K candidates in parallel, producing distributions at each position.</p>
+    </div>
+    <div class="card purple">
+      <h3>3. Accept / Reject</h3>
+      <p>Tokens accepted left-to-right via stochastic criterion. First rejection triggers <span class="p">resample</span>; subsequent tokens discarded.</p>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Key Property</h3>
+    <p>When the draft is correct, <span class="a">multiple tokens advance</span> in one target call. When wrong, the system <span class="g">falls back gracefully</span> with no quality loss.</p>
+  </div>
+  <div class="slide-footer">speculative-decoding / 04</div>
+</section>
+
+<!-- SLIDE 5: Acceptance Criterion -->
+<section>
+  <div class="slide-hdr"><span class="tag">MATH</span><h2>The Acceptance Criterion</h2></div>
+  <div class="card purple" style="margin-bottom:.8em">
+    <h3>Stochastic Acceptance Rule</h3>
+    <p>For each position <em>i</em>, accept the draft token with probability:</p>
+    <pre><code>P(accept) = min(1, p_target(x_i) / p_draft(x_i))</code></pre>
+    <p>If rejected, sample corrected token from a <span class="p">modified distribution</span> that accounts for the rejected mass.</p>
+  </div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Lossless Guarantee</h3>
+      <p>The output distribution is <span class="g">provably identical</span> to what the target model would produce on its own. No quality degradation.</p>
+    </div>
+    <div class="card amber">
+      <h3>Intuition</h3>
+      <p>When <code>p_target &ge; p_draft</code>, always accept. When <code>p_target &lt; p_draft</code>, accept proportionally. The draft <span class="a">over-predicts</span> tokens the target would not favor.</p>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 05</div>
+</section>
+
+<!-- SLIDE 6: Expected Speedup -->
+<section>
+  <div class="slide-hdr"><span class="tag">PERFORMANCE</span><h2>Expected Speedup</h2></div>
+  <div class="card amber" style="margin-bottom:.8em">
+    <h3>Speedup Formula</h3>
+    <p>Expected accepted tokens per step: <code class="mono">K&alpha; / (1 - &alpha;<sup>K</sup>)</code></p>
+    <p>Net speedup &asymp; <code class="mono">(accepted tokens) / (1 + cost_ratio)</code></p>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Acceptance Rate (&alpha;)</th><th>K = 4</th><th>K = 6</th><th>K = 8</th><th>Typical Domain</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="g">0.90</span></td><td>3.4 tokens</td><td>4.7 tokens</td><td>5.7 tokens</td><td>Code, structured data</td></tr>
+      <tr><td><span class="a">0.85</span></td><td>3.0 tokens</td><td>3.9 tokens</td><td>4.6 tokens</td><td>Fluent natural language</td></tr>
+      <tr><td><span class="p">0.70</span></td><td>2.3 tokens</td><td>2.7 tokens</td><td>3.0 tokens</td><td>Mixed / moderate</td></tr>
+      <tr><td><span class="r">0.50</span></td><td>1.6 tokens</td><td>1.8 tokens</td><td>1.9 tokens</td><td>Creative / reasoning</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">speculative-decoding / 06</div>
+</section>
+
+<!-- SLIDE 7: Draft Strategy Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">STRATEGIES</span><h2>Draft Model Approaches</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Independent Small Model</h3>
+      <ul>
+        <li>Separate smaller model from same family</li>
+        <li>E.g., <span class="a">Llama 3 8B</span> drafting for <span class="a">Llama 3 70B</span></li>
+        <li>Requires matching vocabulary &amp; tokenizer</li>
+        <li>Runs on dedicated GPU</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Self-Speculative Decoding</h3>
+      <ul>
+        <li>Target model in <span class="g">degraded mode</span></li>
+        <li>Layer skipping, early exit, fewer attention heads</li>
+        <li>No second model to load &mdash; saves memory</li>
+        <li>Acceptance rate: <span class="g">0.7&ndash;0.85</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Medusa (Multi-Head)</h3>
+      <ul>
+        <li>Lightweight prediction heads on target model</li>
+        <li>Predict positions +1, +2, +3 <span class="p">in parallel</span></li>
+        <li>No autoregressive draft steps needed</li>
+        <li><span class="p">2&ndash;3x</span> speedup, negligible memory</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>N-gram / Prompt Lookup</h3>
+      <ul>
+        <li>Match n-grams from the <span class="b">input prompt</span></li>
+        <li>Zero additional parameters or compute</li>
+        <li>Ideal for copy-heavy tasks (code edit, reformat)</li>
+        <li>Acceptance rate can exceed <span class="b">0.9</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 07</div>
+</section>
+
+<!-- SLIDE 8: Independent Small Models Deep Dive -->
+<section>
+  <div class="slide-hdr"><span class="tag">STRATEGY 1</span><h2>Independent Draft Models</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The most straightforward approach: pair a <span class="a">small model</span> from the same family with the large target.</p>
+      <ul>
+        <li>Draft model is <span class="a">10&ndash;50x smaller</span> than target</li>
+        <li>Runs on a single small GPU</li>
+        <li>Vocabulary and tokenizer <span class="r">must match</span> for valid token-level comparison</li>
+        <li>Can be pipelined with target verification</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 220" width="300">
+        <rect x="10" y="10" width="130" height="60" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="75" y="35" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">Draft: 8B</text>
+        <text x="75" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">1 GPU</text>
+        <rect x="10" y="100" width="300" height="100" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="160" y="130" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Target: 70B</text>
+        <text x="160" y="150" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">8 GPUs &mdash; Tensor Parallel</text>
+        <rect x="25" y="165" width="50" height="25" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="50" y="182" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">GPU 0</text>
+        <rect x="85" y="165" width="50" height="25" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="110" y="182" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">GPU 1</text>
+        <rect x="145" y="165" width="50" height="25" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="170" y="182" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">GPU 2</text>
+        <text x="220" y="182" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="12">...</text>
+        <rect x="245" y="165" width="50" height="25" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="270" y="182" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">GPU 7</text>
+        <line x1="75" y1="70" x2="75" y2="100" stroke="#8888a8" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrowM)"/>
+        <text x="95" y="88" fill="#8888a8" font-family="JetBrains Mono" font-size="9">K tokens</text>
+        <defs><marker id="arrowM" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 08</div>
+</section>
+
+<!-- SLIDE 9: Medusa Deep Dive -->
+<section>
+  <div class="slide-hdr"><span class="tag">STRATEGY 2</span><h2>Medusa: Multi-Head Drafting</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>Adds small <span class="p">prediction heads</span> on top of the target model</li>
+        <li>Each head predicts a future token position (+1, +2, +3, ...)</li>
+        <li>Heads are lightweight: a few linear layers each</li>
+        <li>Generates candidate <span class="p">tree of continuations</span> without autoregressive steps</li>
+        <li>Target verifies tree in a single pass using <span class="a">tree attention</span></li>
+      </ul>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Why Medusa?</h3>
+        <p>Negligible memory overhead. Ideal when no spare GPU is available for a separate draft model.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 260" width="280">
+        <rect x="60" y="10" width="180" height="45" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="150" y="37" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Target Hidden State</text>
+        <line x1="90" y1="55" x2="50" y2="90" stroke="#a78bfa" stroke-width="1.2"/>
+        <line x1="150" y1="55" x2="150" y2="90" stroke="#a78bfa" stroke-width="1.2"/>
+        <line x1="210" y1="55" x2="250" y2="90" stroke="#a78bfa" stroke-width="1.2"/>
+        <rect x="10" y="90" width="80" height="35" rx="5" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="50" y="112" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Head +1</text>
+        <rect x="110" y="90" width="80" height="35" rx="5" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="150" y="112" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Head +2</text>
+        <rect x="210" y="90" width="80" height="35" rx="5" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="250" y="112" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Head +3</text>
+        <line x1="50" y1="125" x2="50" y2="155" stroke="#8888a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="150" y1="125" x2="150" y2="155" stroke="#8888a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="250" y1="125" x2="250" y2="155" stroke="#8888a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <rect x="20" y="155" width="260" height="40" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="150" y="180" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">Tree Attention Verify</text>
+        <line x1="150" y1="195" x2="150" y2="225" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowM)"/>
+        <text x="150" y="245" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Accepted Tokens</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 09</div>
+</section>
+
+<!-- SLIDE 10: N-gram / Prompt Lookup -->
+<section>
+  <div class="slide-hdr"><span class="tag">STRATEGY 3</span><h2>Prompt Lookup &amp; N-gram Drafting</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card blue">
+        <h3>How It Works</h3>
+        <ul>
+          <li>Look up <span class="b">n-gram matches</span> in the prompt context</li>
+          <li><span class="g">Zero parameters</span>, zero compute for drafting</li>
+          <li>Acceptance rate highly workload-dependent</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Ideal Workloads</h3>
+        <ul>
+          <li>Code editing &amp; refactoring</li>
+          <li>Document reformatting</li>
+          <li>Extractive summarization</li>
+          <li>Acceptance rate can exceed <span class="g">&gt; 0.9</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Example: Code Editing</h3>
+        <pre><code>// Input prompt contains:
+function add(a, b) {
+  return a + b;
+}
+
+// Output likely repeats
+// most of the original code
+// Draft from n-gram match!</code></pre>
+        <p style="margin-top:.4em">Subsequent tokens matched directly from prompt context &mdash; <span class="a">near-free drafting</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 10</div>
+</section>
+
+<!-- SLIDE 11: Communication Reduction -->
+<section>
+  <div class="slide-hdr"><span class="tag">DISTRIBUTED</span><h2>Communication Reduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Without Speculative Decoding</h3>
+      <ul>
+        <li>Each decode step: <span class="r">2L all-reduce ops</span></li>
+        <li>70B on 8 GPUs via PCIe</li>
+        <li>Communication = <span class="r">60&ndash;70%</span> of decode time</li>
+        <li>100 tokens = 100 rounds of sync</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>With Speculative Decoding</h3>
+      <ul>
+        <li>Accept avg. <span class="g">3 tokens per step</span></li>
+        <li>All-reduce rounds drop by <span class="g">&sim;3x</span></li>
+        <li>100 tokens &asymp; 33 rounds of sync</li>
+        <li>Substantial wall-clock improvement</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 80" width="750" style="margin-top:.6em">
+    <text x="10" y="25" fill="#f87171" font-family="JetBrains Mono" font-size="10">Standard:</text>
+    <rect x="90" y="12" width="20" height="22" rx="2" fill="#f87171" opacity=".3" stroke="#f87171" stroke-width=".8"/><text x="100" y="27" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="7">t1</text>
+    <rect x="115" y="12" width="20" height="22" rx="2" fill="#f87171" opacity=".3" stroke="#f87171" stroke-width=".8"/><text x="125" y="27" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="7">t2</text>
+    <rect x="140" y="12" width="20" height="22" rx="2" fill="#f87171" opacity=".3" stroke="#f87171" stroke-width=".8"/><text x="150" y="27" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="7">t3</text>
+    <rect x="165" y="12" width="20" height="22" rx="2" fill="#f87171" opacity=".3" stroke="#f87171" stroke-width=".8"/><text x="175" y="27" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="7">t4</text>
+    <rect x="190" y="12" width="20" height="22" rx="2" fill="#f87171" opacity=".3" stroke="#f87171" stroke-width=".8"/><text x="200" y="27" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="7">t5</text>
+    <rect x="215" y="12" width="20" height="22" rx="2" fill="#f87171" opacity=".3" stroke="#f87171" stroke-width=".8"/><text x="225" y="27" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="7">t6</text>
+    <text x="245" y="27" fill="#8888a8" font-family="JetBrains Mono" font-size="10">... (6 sync rounds)</text>
+
+    <text x="10" y="65" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Speculative:</text>
+    <rect x="90" y="48" width="70" height="26" rx="2" fill="#4ecb8d" opacity=".15" stroke="#4ecb8d" stroke-width=".8"/><text x="125" y="65" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="7">t1 t2 t3</text>
+    <rect x="170" y="48" width="70" height="26" rx="2" fill="#4ecb8d" opacity=".15" stroke="#4ecb8d" stroke-width=".8"/><text x="205" y="65" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="7">t4 t5 t6</text>
+    <text x="250" y="65" fill="#8888a8" font-family="JetBrains Mono" font-size="10">... (2 sync rounds)</text>
+  </svg>
+  <div class="slide-footer">speculative-decoding / 11</div>
+</section>
+
+<!-- SLIDE 12: Draft Model Placement -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEPLOYMENT</span><h2>Draft Model Placement</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Dedicated GPU</h3>
+      <p>Draft runs on a <span class="a">separate GPU</span> outside the tensor-parallel group. Allows <span class="g">pipelining</span> draft generation with target verification.</p>
+    </div>
+    <div class="card green">
+      <h3>Shared GPU</h3>
+      <p>Draft shares a GPU with one shard of the target. Runs during <span class="g">idle intervals</span> (e.g., pipeline bubbles). No extra hardware needed.</p>
+    </div>
+    <div class="card purple">
+      <h3>Self-Draft / Medusa</h3>
+      <p>Avoids placement question entirely. No second model. Draft via <span class="p">layer skip</span> or lightweight heads on the target itself.</p>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 12</div>
+</section>
+
+<!-- SLIDE 13: Batch Interaction -->
+<section>
+  <div class="slide-hdr"><span class="tag">SERVING</span><h2>Batch Interaction &amp; Continuous Batching</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>Different sequences have <span class="r">different acceptance rates</span></li>
+        <li>Sequences advance by varying numbers of tokens per step</li>
+        <li>Frameworks (vLLM, TensorRT-LLM) handle via <span class="b">padding + masking</span></li>
+        <li>Efficiency improves at <span class="g">smaller batch sizes</span> where decode is most memory-bandwidth-bound</li>
+      </ul>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Practical Implication</h3>
+        <p>Speculative decoding is most beneficial for <span class="a">latency-sensitive, low-batch</span> workloads. At high batch sizes, the decode phase becomes more compute-bound, reducing the benefit.</p>
+      </div>
+    </div>
+    <div>
+      <table>
+        <thead><tr><th>Batch Size</th><th>Spec. Benefit</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><span class="g">Highest (2&ndash;3x)</span></td></tr>
+          <tr><td>4</td><td><span class="g">High (1.8&ndash;2.5x)</span></td></tr>
+          <tr><td>16</td><td><span class="a">Moderate (1.3&ndash;1.8x)</span></td></tr>
+          <tr><td>64+</td><td><span class="r">Diminishing</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 13</div>
+</section>
+
+<!-- SLIDE 14: Acceptance Rate by Domain -->
+<section>
+  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>Acceptance Rates by Domain</h2></div>
+  <table>
+    <thead>
+      <tr><th>Domain</th><th>Acceptance Rate</th><th>Typical Speedup</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Code (boilerplate)</td><td><span class="g">0.90&ndash;0.95</span></td><td>3&ndash;4x</td><td>Highly predictable patterns</td></tr>
+      <tr><td>Structured data / JSON</td><td><span class="g">0.85&ndash;0.95</span></td><td>2.5&ndash;3.5x</td><td>Schema-constrained output</td></tr>
+      <tr><td>Formulaic text</td><td><span class="g">0.85&ndash;0.90</span></td><td>2.5&ndash;3x</td><td>Templates, legal, medical</td></tr>
+      <tr><td>Natural language (fluent)</td><td><span class="a">0.80&ndash;0.85</span></td><td>2&ndash;2.5x</td><td>Standard prose</td></tr>
+      <tr><td>Creative writing</td><td><span class="r">0.50&ndash;0.70</span></td><td>1.3&ndash;1.7x</td><td>Less predictable choices</td></tr>
+      <tr><td>Complex reasoning</td><td><span class="r">0.50&ndash;0.65</span></td><td>1.2&ndash;1.5x</td><td>Many branching decisions</td></tr>
+    </tbody>
+  </table>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Key Takeaway</h3>
+    <p>Draft quality matters more than draft speed. A <span class="a">slightly slower draft</span> with higher acceptance rate often outperforms a faster but less accurate one, because each rejected token <span class="r">wastes a target-model verification slot</span>.</p>
+  </div>
+  <div class="slide-footer">speculative-decoding / 14</div>
+</section>
+
+<!-- SLIDE 15: Tree-Based Verification -->
+<section>
+  <div class="slide-hdr"><span class="tag">ADVANCED</span><h2>Tree-Based Verification</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card purple">
+        <h3>Linear vs. Tree Verification</h3>
+        <ul>
+          <li><span class="a">Linear:</span> verify a single sequence of K tokens</li>
+          <li><span class="p">Tree:</span> verify a tree of candidate continuations</li>
+          <li>Increases probability of accepting <span class="g">deeper paths</span></li>
+          <li>Cost: wider (but still single) forward pass</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Benefit</h3>
+        <p>Even if individual branches have moderate acceptance rates, the probability that <span class="g">at least one path</span> extends far is much higher with tree search.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 220" width="260">
+        <circle cx="140" cy="20" r="12" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="24" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">t0</text>
+        <line x1="132" y1="30" x2="80" y2="70" stroke="#8888a8" stroke-width="1"/>
+        <line x1="148" y1="30" x2="200" y2="70" stroke="#8888a8" stroke-width="1"/>
+        <circle cx="80" cy="80" r="12" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="80" y="84" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">A</text>
+        <circle cx="200" cy="80" r="12" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="200" y="84" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">B</text>
+        <line x1="72" y1="90" x2="40" y2="130" stroke="#8888a8" stroke-width="1"/>
+        <line x1="88" y1="90" x2="120" y2="130" stroke="#8888a8" stroke-width="1"/>
+        <line x1="192" y1="90" x2="170" y2="130" stroke="#8888a8" stroke-width="1"/>
+        <line x1="208" y1="90" x2="240" y2="130" stroke="#8888a8" stroke-width="1"/>
+        <circle cx="40" cy="140" r="12" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="40" y="144" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">A1</text>
+        <circle cx="120" cy="140" r="12" fill="none" stroke="#f87171" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <text x="120" y="144" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">A2</text>
+        <circle cx="170" cy="140" r="12" fill="none" stroke="#f87171" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <text x="170" y="144" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">B1</text>
+        <circle cx="240" cy="140" r="12" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="240" y="144" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">B2</text>
+        <line x1="32" y1="150" x2="15" y2="185" stroke="#4ecb8d" stroke-width="1"/>
+        <circle cx="15" cy="195" r="12" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="15" y="199" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">A1a</text>
+        <text x="90" y="205" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">accepted path</text>
+        <text x="90" y="218" fill="#f87171" font-family="JetBrains Mono" font-size="9">- - rejected</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 15</div>
+</section>
+
+<!-- SLIDE 16: Quantization Synergy -->
+<section>
+  <div class="slide-hdr"><span class="tag">SYNERGY</span><h2>Composing with Other Optimizations</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Quantization</h3>
+      <ul>
+        <li>Draft model can be aggressively quantized (<span class="a">INT4</span>)</li>
+        <li>Predictions only need to be <em>approximately</em> correct</li>
+        <li>Combined with quantized target: reduces memory + communication</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>PagedAttention</h3>
+      <ul>
+        <li>Efficient KV cache management</li>
+        <li>Speculative tokens share <span class="g">paged blocks</span></li>
+        <li>Rejected tokens: discard pages, no fragmentation</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Continuous Batching</h3>
+      <ul>
+        <li>New requests slot in during verify steps</li>
+        <li>Spec decoding <span class="b">composes naturally</span> with dynamic scheduling</li>
+        <li>Supported in vLLM, TensorRT-LLM</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>KV Cache Compression</h3>
+      <ul>
+        <li>Reduces memory per sequence</li>
+        <li>More room for speculative candidates in cache</li>
+        <li>Allows <span class="p">larger K</span> values</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">speculative-decoding / 16</div>
+</section>
+
+<!-- SLIDE 17: Strategy Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARISON</span><h2>Draft Strategy Trade-offs</h2></div>
+  <table>
+    <thead>
+      <tr><th>Strategy</th><th>Extra Memory</th><th>Acceptance Rate</th><th>Speedup</th><th>Best For</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Independent Model</span></td><td>High (full model)</td><td>0.80&ndash;0.90</td><td>2&ndash;3x</td><td>Multi-GPU with spare capacity</td></tr>
+      <tr><td><span class="g">Self-Speculative</span></td><td>None</td><td>0.70&ndash;0.85</td><td>1.5&ndash;2.5x</td><td>Memory-constrained setups</td></tr>
+      <tr><td><span class="p">Medusa Heads</span></td><td>Minimal (&lt;1%)</td><td>0.65&ndash;0.80</td><td>2&ndash;3x</td><td>Single-GPU / small setups</td></tr>
+      <tr><td><span class="b">N-gram Lookup</span></td><td>None</td><td>0.50&ndash;0.95</td><td>1&ndash;4x</td><td>Copy-heavy workloads</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">speculative-decoding / 17</div>
+</section>
+
+<!-- SLIDE 18: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Core Benefits</h3>
+      <ul>
+        <li><span class="g">2&ndash;3x reduction</span> in target-model forward passes</li>
+        <li><span class="g">Lossless</span> &mdash; output distribution provably unchanged</li>
+        <li>No retraining of target model required (for independent draft / n-gram)</li>
+        <li>Directly addresses the <span class="a">memory-bandwidth bottleneck</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>When to Use</h3>
+      <ul>
+        <li>Deploying large models on <span class="a">resource-constrained hardware</span></li>
+        <li>Latency-sensitive, <span class="a">low-batch</span> serving</li>
+        <li>Distributed systems where <span class="r">communication dominates</span></li>
+        <li>Composes with quantization, PagedAttention, continuous batching</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Bottom Line</h3>
+    <p>For any practitioner deploying large models on resource-constrained hardware, speculative decoding should be <span class="p">among the first techniques evaluated</span>. It is one of the most impactful inference optimizations available for distributed small-GPU systems.</p>
+  </div>
+  <div class="slide-footer">speculative-decoding / 18</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

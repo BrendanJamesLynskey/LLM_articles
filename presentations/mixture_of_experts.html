@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mixture of Experts | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Mixture of Experts</h1>
+  <p class="subtitle">Sparse Architectures, Routing, and Serving Infrastructure</p>
+  <div>
+    <span class="pill amber">sparse-activation</span>
+    <span class="pill green">routing</span>
+    <span class="pill purple">expert-parallelism</span>
+    <span class="pill blue">inference</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">mixture-of-experts / title</div>
+</section>
+
+<!-- SLIDE 2: What is MoE? -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>What is Mixture of Experts?</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>MoE is an architecture paradigm that <span class="a">decouples model capacity from computational cost</span>. Each token is routed to a small subset of specialized sub-networks (<span class="g">experts</span>), activating only a fraction of total parameters per forward pass.</p>
+      <ul>
+        <li>Scale to <span class="p">very large</span> total parameter counts</li>
+        <li>Keep per-token compute <span class="b">manageable</span></li>
+        <li>Achieve dense-model quality at a <span class="g">fraction of FLOPS</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Core Insight</h3>
+      <p>Sparse activation lets you have the representational capacity of a huge model while paying the compute cost of a small one.</p>
+    </div>
+  </div>
+  <div class="slide-footer">mixture-of-experts / introduction</div>
+</section>
+
+<!-- SLIDE 3: MoE Layer Structure -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Structure of an MoE Layer</h2></div>
+  <svg class="diagram" viewBox="0 0 900 320" width="820" height="290">
+    <!-- Input token -->
+    <rect x="20" y="130" width="110" height="50" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="75" y="160" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13">Input Token</text>
+    <!-- Router -->
+    <rect x="200" y="120" width="120" height="70" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="260" y="150" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13">Router</text>
+    <text x="260" y="172" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">(gating network)</text>
+    <!-- Arrow input -> router -->
+    <line x1="130" y1="155" x2="200" y2="155" stroke="#2a2a3a" stroke-width="2" marker-end="url(#arr)"/>
+    <!-- Experts -->
+    <rect x="410" y="10" width="130" height="44" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="475" y="37" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">Expert 1 (FFN)</text>
+    <rect x="410" y="70" width="130" height="44" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="2.5"/>
+    <text x="475" y="97" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">Expert 2 (FFN)</text>
+    <rect x="410" y="138" width="130" height="44" rx="6" fill="#2a2a3a" stroke="#2a2a3a" stroke-width="1.5"/>
+    <text x="475" y="165" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="12">Expert 3</text>
+    <text x="475" y="220" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="16">...</text>
+    <rect x="410" y="240" width="130" height="44" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="475" y="267" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">Expert N (FFN)</text>
+    <!-- Arrows router -> selected experts (2 and N highlighted) -->
+    <line x1="320" y1="145" x2="410" y2="92" stroke="#f5a623" stroke-width="2" marker-end="url(#arr2)"/>
+    <line x1="320" y1="160" x2="410" y2="262" stroke="#60a5fa" stroke-width="2" marker-end="url(#arr3)"/>
+    <line x1="320" y1="150" x2="410" y2="32" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="5,4"/>
+    <line x1="320" y1="155" x2="410" y2="160" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="5,4"/>
+    <!-- Weighted combine -->
+    <rect x="630" y="120" width="130" height="70" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="695" y="150" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">Weighted</text>
+    <text x="695" y="172" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">Combine</text>
+    <line x1="540" y1="92" x2="630" y2="148" stroke="#f5a623" stroke-width="2"/>
+    <line x1="540" y1="262" x2="630" y2="162" stroke="#60a5fa" stroke-width="2"/>
+    <!-- Output -->
+    <rect x="820" y="130" width="70" height="50" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="855" y="160" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13">Out</text>
+    <line x1="760" y1="155" x2="820" y2="155" stroke="#2a2a3a" stroke-width="2" marker-end="url(#arr)"/>
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1.2"/></marker>
+      <marker id="arr2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#f5a623" stroke-width="1.2"/></marker>
+      <marker id="arr3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#60a5fa" stroke-width="1.2"/></marker>
+    </defs>
+  </svg>
+  <p style="text-align:center;font-size:.72em;color:var(--muted);margin-top:.3em">Standard FFN replaced with <span class="a">N experts</span> + <span class="g">router</span>. Only <span class="b">top-k</span> experts activated per token (k=1 or 2).</p>
+  <div class="slide-footer">mixture-of-experts / architecture</div>
+</section>
+
+<!-- SLIDE 4: Sparsity and Effective Parameters -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Sparsity &amp; Effective Parameters</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>The Key Advantage</h3>
+      <p>Total parameter count is very large, but <strong style="color:var(--green)">active parameters per token</strong> are much smaller. Inference compute scales with active params, not total params.</p>
+    </div>
+    <div class="card amber">
+      <h3>Mixtral 8x7B Example</h3>
+      <ul>
+        <li><span class="a">47B</span> total parameters across 8 experts</li>
+        <li>Each token activates <span class="g">2 of 8</span> experts per layer</li>
+        <li>~<span class="b">13B</span> active parameters per token</li>
+        <li>Dense-13B compute, 47B capacity</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Scale Precedents</h3>
+    <p><span class="a">Switch Transformer</span> and <span class="a">GShard</span> demonstrated this principle at even larger scales&mdash;top-1 routing across <span class="p">hundreds of experts</span>, reaching up to <span class="r">1.6 trillion</span> total parameters.</p>
+  </div>
+  <div class="slide-footer">mixture-of-experts / sparsity</div>
+</section>
+
+<!-- SLIDE 5: Token-Choice Routing -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Token-Choice Routing</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The most common routing approach: each token <span class="a">independently selects</span> its top-k experts based on router output probabilities.</p>
+      <ul>
+        <li>Router is a <span class="g">simple linear layer</span></li>
+        <li>Projects token representation into per-expert scores</li>
+        <li>Applies <span class="b">softmax</span> then <span class="p">top-k selection</span></li>
+        <li>Used by Mixtral, Switch Transformer, most modern MoE models</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Router Function</h3>
+        <pre><code>scores = W_gate @ x    # linear
+probs  = softmax(scores)
+top_k  = select_top(probs, k=2)
+output = sum(w_i * expert_i(x))</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mixture-of-experts / routing</div>
+</section>
+
+<!-- SLIDE 6: Expert-Choice Routing -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Expert-Choice Routing</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>How It Works</h3>
+      <p>Inverts the selection: each <span class="g">expert selects</span> the top-k tokens it wants to process from the full batch.</p>
+      <ul>
+        <li>Perfect load balance by construction</li>
+        <li>Every expert processes the <span class="a">same number</span> of tokens</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Some tokens may be selected by <span class="r">zero</span> experts</li>
+        <li>Others by <span class="p">many</span> experts</li>
+        <li>Variable processing can <span class="r">affect quality</span></li>
+        <li>Adds complexity to serving systems</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 700 130" width="640" height="120" style="margin-top:.6em">
+    <text x="60" y="20" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">Tokens</text>
+    <rect x="10" y="30" width="30" height="30" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="25" y="50" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">t1</text>
+    <rect x="50" y="30" width="30" height="30" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="65" y="50" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">t2</text>
+    <rect x="90" y="30" width="30" height="30" rx="4" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+    <text x="105" y="50" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">t3</text>
+    <rect x="130" y="30" width="30" height="30" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="145" y="50" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">t4</text>
+    <text x="350" y="20" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">Expert picks tokens</text>
+    <rect x="270" y="35" width="160" height="80" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="350" y="58" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Expert A: picks t1, t4</text>
+    <text x="350" y="78" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">Expert B: picks t2, t4</text>
+    <text x="350" y="98" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Expert C: picks t1, t2</text>
+    <text x="560" y="55" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11">t3: 0 experts</text>
+    <text x="560" y="75" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">t4: 2 experts</text>
+    <text x="560" y="95" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">t1: 2 experts</text>
+  </svg>
+  <div class="slide-footer">mixture-of-experts / expert-choice</div>
+</section>
+
+<!-- SLIDE 7: Shared & Fine-Grained Experts -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Shared &amp; Fine-Grained Experts</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Shared Experts</h3>
+      <p>Always-active experts that process <span class="p">every token</span>, providing a baseline level of processing alongside routed experts.</p>
+      <ul>
+        <li>Guarantees minimum computation per token</li>
+        <li>Used by <span class="a">DeepSeek-V2</span> and <span class="a">V3</span></li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Fine-Grained Experts</h3>
+      <p>Smaller but <span class="b">more numerous</span> experts allow more precise routing decisions and better load distribution.</p>
+      <ul>
+        <li>More routing flexibility</li>
+        <li>Better utilization across devices</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.7em">
+    <h3>Hybrid Formula</h3>
+    <p style="font-family:'JetBrains Mono',monospace;font-size:.72em;color:var(--text);text-align:center;margin:.3em 0">
+      output = <span class="g">shared_expert(x)</span> + &Sigma; w<sub>i</sub> &middot; <span class="p">routed_expert<sub>i</sub>(x)</span>
+    </p>
+  </div>
+  <div class="slide-footer">mixture-of-experts / shared-experts</div>
+</section>
+
+<!-- SLIDE 8: Load Balancing Challenge -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Training: Load Balancing</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 220 250" width="200" height="230">
+        <text x="110" y="18" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Token Distribution</text>
+        <!-- Bars representing unbalanced load -->
+        <rect x="20" y="40" width="30" height="180" rx="3" fill="#f5a623" opacity="0.8"/>
+        <text x="35" y="235" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">E1</text>
+        <rect x="60" y="160" width="30" height="60" rx="3" fill="#f87171" opacity="0.5"/>
+        <text x="75" y="235" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">E2</text>
+        <rect x="100" y="190" width="30" height="30" rx="3" fill="#f87171" opacity="0.3"/>
+        <text x="115" y="235" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">E3</text>
+        <rect x="140" y="200" width="30" height="20" rx="3" fill="#f87171" opacity="0.2"/>
+        <text x="155" y="235" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">E4</text>
+        <rect x="180" y="210" width="30" height="10" rx="3" fill="#f87171" opacity="0.15"/>
+        <text x="195" y="235" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">E5</text>
+        <text x="110" y="250" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="10">Collapsed routing</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>The Problem</h3>
+        <p>Without intervention, routing <span class="r">collapses</span>: a few popular experts get most tokens while others are starved. This wastes capacity and creates compute bottlenecks.</p>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>The Solution</h3>
+        <p><span class="g">Auxiliary load-balancing loss</span> penalizes uneven expert utilization, added to the main training objective.</p>
+        <ul>
+          <li><span class="r">Too little</span> &rarr; routing collapse</li>
+          <li><span class="r">Too much</span> &rarr; forced uniformity, no specialization</li>
+          <li><span class="g">Just right</span> &rarr; balanced, meaningful experts</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mixture-of-experts / load-balancing</div>
+</section>
+
+<!-- SLIDE 9: Expert Specialization -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Training: Expert Specialization</h2></div>
+  <p>Effective MoE models develop experts that specialize in <span class="a">different aspects</span> of the input distribution.</p>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Languages</h3>
+      <p>Experts may specialize in particular languages or language families.</p>
+    </div>
+    <div class="card green">
+      <h3>Domains</h3>
+      <p>Code, math, science, or conversational text may each gravitate to different experts.</p>
+    </div>
+    <div class="card purple">
+      <h3>Syntax</h3>
+      <p>Certain syntactic patterns or token types may preferentially route to specific experts.</p>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.7em">
+    <h3>Key Observations</h3>
+    <ul>
+      <li>Specialization <span class="b">varies across layers</span>&mdash;early layers show less, later layers show more</li>
+      <li>The nature of specialization is <span class="p">difficult to control directly</span>&mdash;it emerges from training dynamics</li>
+      <li>Understanding and encouraging useful specialization remains an <span class="a">active research area</span></li>
+    </ul>
+  </div>
+  <div class="slide-footer">mixture-of-experts / specialization</div>
+</section>
+
+<!-- SLIDE 10: Memory Requirements -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Inference: Memory Requirements</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Despite computational efficiency, MoE models have <span class="r">large total parameter counts</span> that must reside in memory. All expert weights must be accessible even though only a subset is active per token.</p>
+      <div class="card red" style="margin-top:.5em">
+        <h3>The Asymmetry</h3>
+        <p>Compute scales with <span class="g">active params</span>, but memory scales with <span class="r">total params</span>. This is the central deployment challenge.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 260 230" width="240" height="210">
+        <text x="130" y="18" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Mixtral 8x7B</text>
+        <!-- Memory bar -->
+        <rect x="30" y="35" width="80" height="170" rx="4" fill="#f87171" opacity="0.35"/>
+        <rect x="30" y="35" width="80" height="170" rx="4" fill="none" stroke="#f87171" stroke-width="1.5"/>
+        <text x="70" y="125" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="13" font-weight="600">47B</text>
+        <text x="70" y="143" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="10">memory</text>
+        <!-- Compute bar -->
+        <rect x="150" y="135" width="80" height="70" rx="4" fill="#4ecb8d" opacity="0.35"/>
+        <rect x="150" y="135" width="80" height="70" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="190" y="173" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13" font-weight="600">13B</text>
+        <text x="190" y="191" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="10">compute</text>
+        <text x="130" y="225" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">3.6x memory-to-compute ratio</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">mixture-of-experts / memory</div>
+</section>
+
+<!-- SLIDE 11: Batching Complexity -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Inference: Batching Complexity</h2></div>
+  <p>Different tokens in the same batch may route to <span class="a">different experts</span>, creating uneven workloads and complex communication patterns.</p>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>1. Dispatch</h3>
+      <p>Tokens are routed to the GPU hosting their selected expert via <span class="a">all-to-all</span> communication.</p>
+    </div>
+    <div class="card green">
+      <h3>2. Compute</h3>
+      <p>Each expert processes its assigned tokens. Workloads may be <span class="r">uneven</span> across devices.</p>
+    </div>
+    <div class="card blue">
+      <h3>3. Gather</h3>
+      <p>Results are sent back to the original token positions via another <span class="b">all-to-all</span> exchange.</p>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.7em">
+    <h3>Expert Parallelism</h3>
+    <p>Different experts placed on different devices. Efficient implementation of the <span class="a">dispatch&ndash;compute&ndash;gather</span> pattern is critical for serving performance.</p>
+  </div>
+  <div class="slide-footer">mixture-of-experts / batching</div>
+</section>
+
+<!-- SLIDE 12: Expert Offloading -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Expert Offloading</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>When GPU memory is insufficient, experts can be loaded <span class="b">on demand</span> from CPU memory or storage.</p>
+      <ul>
+        <li>Router determines needed experts <span class="g">before</span> computation</li>
+        <li><span class="a">Prefetching</span> loads experts while other computation proceeds</li>
+        <li>Enables MoE inference on <span class="p">single consumer GPUs</span></li>
+      </ul>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Notable Systems</h3>
+        <ul>
+          <li><span class="a">MoE-Offloading</span></li>
+          <li><span class="a">Fiddler</span></li>
+        </ul>
+        <p>Acceptable throughput with careful scheduling, though <span class="r">latency increases</span> vs. fully GPU-resident.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 240 280" width="220" height="260">
+        <!-- GPU -->
+        <rect x="50" y="10" width="140" height="80" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="120" y="38" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">GPU Memory</text>
+        <text x="120" y="58" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Active experts</text>
+        <text x="120" y="76" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">E2, E5 loaded</text>
+        <!-- Arrow -->
+        <line x1="120" y1="90" x2="120" y2="130" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="165" y="115" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="10">prefetch</text>
+        <!-- CPU -->
+        <rect x="30" y="130" width="180" height="80" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="120" y="158" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">CPU Memory</text>
+        <text x="120" y="178" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">All expert weights</text>
+        <text x="120" y="198" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">E1 E2 E3 E4 E5 E6 E7 E8</text>
+        <!-- Storage -->
+        <line x1="120" y1="210" x2="120" y2="240" stroke="#2a2a3a" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <rect x="50" y="240" width="140" height="35" rx="6" fill="#10101a" stroke="#2a2a3a" stroke-width="1.5"/>
+        <text x="120" y="262" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Disk / NVMe</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">mixture-of-experts / offloading</div>
+</section>
+
+<!-- SLIDE 13: Dense vs MoE Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Dense vs. MoE Comparison</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Characteristic</th>
+        <th>Dense Model</th>
+        <th>MoE Model</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Parameters per token</td>
+        <td>All parameters active</td>
+        <td><span class="g">Subset active</span> (e.g., 2 of 8 experts)</td>
+      </tr>
+      <tr>
+        <td>Training FLOPS efficiency</td>
+        <td>Baseline</td>
+        <td><span class="g">Better quality per FLOP</span></td>
+      </tr>
+      <tr>
+        <td>Memory footprint</td>
+        <td><span class="g">Proportional to active params</span></td>
+        <td><span class="r">Proportional to total params</span></td>
+      </tr>
+      <tr>
+        <td>Inference throughput</td>
+        <td>Predictable, uniform</td>
+        <td><span class="a">Higher but variable</span> per token</td>
+      </tr>
+      <tr>
+        <td>Serving complexity</td>
+        <td>Standard</td>
+        <td><span class="r">Requires expert parallelism</span></td>
+      </tr>
+      <tr>
+        <td>Hardware utilization</td>
+        <td>Consistent</td>
+        <td><span class="r">Can be uneven</span> across devices</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">mixture-of-experts / comparison</div>
+</section>
+
+<!-- SLIDE 14: Notable MoE Models -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Notable MoE Models</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Switch Transformer</h3>
+      <p>Top-1 routing at scale, up to <span class="a">1.6T parameters</span>. Proved sparse scaling works.</p>
+    </div>
+    <div class="card green">
+      <h3>Mixtral 8x7B / 8x22B</h3>
+      <p>Open-weight MoE by Mistral AI. <span class="g">Matched or exceeded</span> much larger dense models.</p>
+    </div>
+    <div class="card purple">
+      <h3>DeepSeek-V2 / V3</h3>
+      <p>Fine-grained experts + shared expert design. <span class="p">State-of-the-art efficiency</span>.</p>
+    </div>
+    <div class="card blue">
+      <h3>Grok-1</h3>
+      <p>Large MoE architecture by xAI for <span class="b">conversational AI</span> system.</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.7em;font-size:.78em;color:var(--muted)">MoE has moved from research curiosity to <span class="a">mainstream architectural choice</span> for frontier models.</p>
+  <div class="slide-footer">mixture-of-experts / models</div>
+</section>
+
+<!-- SLIDE 15: Future Directions -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Future Directions</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Finer-Grained Experts</h3>
+      <p>Larger expert counts with smaller experts improve <span class="g">routing precision</span> and specialization.</p>
+    </div>
+    <div class="card purple">
+      <h3>Hybrid Architectures</h3>
+      <p>Mix dense and MoE layers within a single model. Place MoE where <span class="p">sparsity helps most</span>.</p>
+    </div>
+    <div class="card blue">
+      <h3>Improved Routing</h3>
+      <p>Learned and <span class="b">RL-based routers</span> aim to better balance specialization with load distribution.</p>
+    </div>
+    <div class="card amber">
+      <h3>Optimized Infrastructure</h3>
+      <p>Custom kernels and communication libraries for the MoE <span class="a">dispatch pattern</span>. Faster interconnects and flexible memory hierarchies.</p>
+    </div>
+  </div>
+  <div class="slide-footer">mixture-of-experts / future</div>
+</section>
+
+<!-- SLIDE 16: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li><span class="a">MoE decouples</span> model capacity from per-token computation</li>
+        <li>Routing (token-choice, expert-choice, shared) is the <span class="g">critical design axis</span></li>
+        <li>Load balancing requires careful <span class="p">auxiliary loss tuning</span></li>
+        <li>Memory scales with <span class="r">total params</span>, compute with <span class="g">active params</span></li>
+        <li>Expert parallelism and offloading solve the <span class="b">deployment puzzle</span></li>
+        <li>Frontier-quality at a <span class="a">fraction of the cost</span> of dense equivalents</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Bottom Line</h3>
+      <p>MoE architectures are <span class="g">poised to become the dominant architecture</span> for large-scale language model deployment as infrastructure matures.</p>
+    </div>
+  </div>
+  <div class="slide-footer">mixture-of-experts / takeaways</div>
+</section>
+
+<!-- SLIDE 17: Thank You -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Mixture of Experts</h1>
+  <p class="subtitle">Sparse Architectures, Routing, and Serving Infrastructure</p>
+  <div>
+    <span class="pill amber">sparse-activation</span>
+    <span class="pill green">routing</span>
+    <span class="pill purple">expert-parallelism</span>
+    <span class="pill blue">inference</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">mixture-of-experts / end</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

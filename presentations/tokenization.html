@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tokenization | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Tokenization</h1>
+  <p class="subtitle">Vocabulary Design and Its Impact on Language Model Behavior</p>
+  <div>
+    <span class="pill amber">BPE</span>
+    <span class="pill green">SentencePiece</span>
+    <span class="pill purple">Byte-Level</span>
+    <span class="pill blue">Multilingual</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">tokenization / 01</div>
+</section>
+
+<!-- SLIDE 2: Why Tokenization Matters -->
+<section>
+  <div class="slide-hdr"><span class="tag">INTRO</span><h2>Why Tokenization Matters</h2></div>
+  <p>Tokenization is the <span class="a">first and most foundational step</span> in the LLM pipeline. Before any neural network computation occurs, raw text must be converted into discrete tokens from a fixed vocabulary.</p>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card amber">
+      <h3>What It Affects</h3>
+      <ul>
+        <li>Effective context length in characters</li>
+        <li>Multilingual capability</li>
+        <li>Arithmetic and reasoning ability</li>
+        <li>Code generation quality</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Key Insight</h3>
+      <p>Despite its fundamental importance, tokenization often receives <span class="g">less attention</span> than model architecture or training methodology &mdash; yet its design decisions propagate through every aspect of model behavior.</p>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 02</div>
+</section>
+
+<!-- SLIDE 3: The Tokenization Pipeline -->
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>The Tokenization Pipeline</h2></div>
+  <svg class="diagram" viewBox="0 0 1000 180" width="900">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#f5a623"/></marker>
+    </defs>
+    <!-- Raw Text -->
+    <rect x="10" y="50" width="180" height="70" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="100" y="80" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">Raw Text</text>
+    <text x="100" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">"Hello world"</text>
+    <line x1="195" y1="85" x2="260" y2="85" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <!-- Tokenizer -->
+    <rect x="265" y="50" width="180" height="70" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="355" y="80" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13" font-weight="600">Tokenizer</text>
+    <text x="355" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">BPE / Unigram</text>
+    <line x1="450" y1="85" x2="515" y2="85" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <!-- Token IDs -->
+    <rect x="520" y="50" width="180" height="70" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="610" y="80" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13" font-weight="600">Token IDs</text>
+    <text x="610" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">[9906, 1917]</text>
+    <line x1="705" y1="85" x2="770" y2="85" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <!-- Embeddings -->
+    <rect x="775" y="50" width="200" height="70" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="875" y="80" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="13" font-weight="600">Embeddings</text>
+    <text x="875" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Dense vectors → Model</text>
+  </svg>
+  <p style="text-align:center;margin-top:.8em">The tokenizer defines the <span class="a">discrete vocabulary</span> that bridges raw text and neural computation. Every design choice here cascades downstream.</p>
+  <div class="slide-footer">tokenization / 03</div>
+</section>
+
+<!-- SLIDE 4: Byte Pair Encoding -->
+<section>
+  <div class="slide-hdr"><span class="tag">ALGORITHM</span><h2>Byte Pair Encoding (BPE)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The <span class="a">most widely used</span> tokenization algorithm in modern LLMs.</p>
+      <ol>
+        <li>Start with a base vocabulary of individual characters or bytes</li>
+        <li>Find the <span class="g">most frequent adjacent pair</span> of tokens</li>
+        <li>Merge that pair into a new token</li>
+        <li>Repeat until desired vocabulary size is reached</li>
+      </ol>
+      <p style="margin-top:.5em">Encoding is <span class="p">deterministic</span> &mdash; merges are applied in strict priority order.</p>
+    </div>
+    <div class="card amber">
+      <h3>Models Using BPE</h3>
+      <ul>
+        <li>GPT-2, GPT-3, GPT-4</li>
+        <li>Llama family</li>
+        <li>Mistral / Mixtral</li>
+      </ul>
+      <h3 style="margin-top:.6em">Properties</h3>
+      <ul>
+        <li>Deterministic encoding</li>
+        <li>Fast at inference time</li>
+        <li>Good balance of efficiency and coverage</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 04</div>
+</section>
+
+<!-- SLIDE 5: BPE Merge Visualization -->
+<section>
+  <div class="slide-hdr"><span class="tag">ALGORITHM</span><h2>BPE Merge Process</h2></div>
+  <svg class="diagram" viewBox="0 0 950 300" width="880">
+    <!-- Step 0 -->
+    <text x="60" y="30" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">Initial</text>
+    <rect x="10" y="42" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="24" y="63" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="13">l</text>
+    <rect x="42" y="42" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="56" y="63" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="13">o</text>
+    <rect x="74" y="42" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="88" y="63" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="13">w</text>
+    <!-- Arrow -->
+    <line x1="130" y1="58" x2="190" y2="58" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text x="160" y="50" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">merge</text>
+    <!-- Step 1 -->
+    <text x="255" y="30" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12" font-weight="600">Step 1</text>
+    <rect x="200" y="42" width="48" height="32" rx="4" fill="#181824" stroke="#4ecb8d"/>
+    <text x="224" y="63" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13">lo</text>
+    <rect x="252" y="42" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="266" y="63" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="13">w</text>
+    <!-- Arrow -->
+    <line x1="308" y1="58" x2="368" y2="58" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text x="338" y="50" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">merge</text>
+    <!-- Step 2 -->
+    <text x="425" y="30" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12" font-weight="600">Step 2</text>
+    <rect x="378" y="42" width="68" height="32" rx="4" fill="#181824" stroke="#a78bfa"/>
+    <text x="412" y="63" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">low</text>
+
+    <!-- Longer example -->
+    <text x="80" y="140" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">Full word example</text>
+    <rect x="10" y="155" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="24" y="176" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="12">t</text>
+    <rect x="42" y="155" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="56" y="176" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="12">o</text>
+    <rect x="74" y="155" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="88" y="176" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="12">k</text>
+    <rect x="106" y="155" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="120" y="176" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="12">e</text>
+    <rect x="138" y="155" width="28" height="32" rx="4" fill="#181824" stroke="#2a2a3a"/>
+    <text x="152" y="176" text-anchor="middle" fill="#cdd6f4" font-family="JetBrains Mono" font-size="12">n</text>
+
+    <line x1="185" y1="171" x2="250" y2="171" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <rect x="260" y="155" width="55" height="32" rx="4" fill="#181824" stroke="#4ecb8d"/>
+    <text x="287" y="176" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">tok</text>
+    <rect x="319" y="155" width="42" height="32" rx="4" fill="#181824" stroke="#4ecb8d"/>
+    <text x="340" y="176" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">en</text>
+
+    <line x1="380" y1="171" x2="445" y2="171" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <rect x="455" y="155" width="85" height="32" rx="4" fill="#181824" stroke="#a78bfa"/>
+    <text x="497" y="176" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">token</text>
+
+    <!-- Key insight -->
+    <rect x="580" y="130" width="350" height="80" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1"/>
+    <text x="755" y="158" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="14" font-weight="700">Key Insight</text>
+    <text x="755" y="180" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">Common words become single tokens.</text>
+    <text x="755" y="198" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="12">Rare words decompose into subword pieces.</text>
+  </svg>
+  <div class="slide-footer">tokenization / 05</div>
+</section>
+
+<!-- SLIDE 6: SentencePiece & Unigram -->
+<section>
+  <div class="slide-hdr"><span class="tag">ALGORITHM</span><h2>SentencePiece &amp; Unigram</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>SentencePiece Framework</h3>
+      <ul>
+        <li><span class="g">Language-independent</span> &mdash; treats input as raw byte stream</li>
+        <li>No language-specific pre-processing or whitespace handling needed</li>
+        <li>Supports both BPE and Unigram algorithms</li>
+        <li>Used by Llama, Gemma, and many multilingual models</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Unigram Algorithm</h3>
+      <ul>
+        <li>Starts with a <span class="p">large candidate vocabulary</span></li>
+        <li>Iteratively prunes tokens that contribute least to corpus likelihood</li>
+        <li>Uses a unigram language model for evaluation</li>
+        <li>Can produce <span class="p">different segmentations</span> for the same input</li>
+        <li>Enables subword regularization for data augmentation</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>BPE vs. Unigram: Direction of Construction</h3>
+    <p><span class="a">BPE</span> builds bottom-up (merging frequent pairs) &nbsp;|&nbsp; <span class="p">Unigram</span> prunes top-down (removing low-value tokens)</p>
+  </div>
+  <div class="slide-footer">tokenization / 06</div>
+</section>
+
+<!-- SLIDE 7: Byte-Level Tokenization -->
+<section>
+  <div class="slide-hdr"><span class="tag">ALGORITHM</span><h2>Byte-Level Tokenization</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Operates on <span class="b">raw bytes (0&ndash;255)</span> rather than Unicode characters, guaranteeing any input can be encoded without unknown tokens.</p>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>Advantages</h3>
+        <ul>
+          <li>Universal coverage &mdash; handles any language, code, or binary content</li>
+          <li>No <code>&lt;UNK&gt;</code> tokens needed</li>
+          <li>Introduced by GPT-2 as byte-level BPE</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.5em">
+        <h3>Trade-off</h3>
+        <p>Non-ASCII characters (CJK languages) require <span class="r">multiple bytes per character</span>, reducing effective context length for these languages.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 280" width="320">
+        <text x="160" y="20" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="13" font-weight="600">Bytes per character</text>
+        <!-- Bars -->
+        <rect x="40" y="45" width="80" height="30" rx="4" fill="#60a5fa" opacity="0.8"/>
+        <text x="135" y="65" fill="#cdd6f4" font-family="JetBrains Mono" font-size="11">ASCII: 1 byte</text>
+        <rect x="40" y="90" width="160" height="30" rx="4" fill="#a78bfa" opacity="0.8"/>
+        <text x="215" y="110" fill="#cdd6f4" font-family="JetBrains Mono" font-size="11">Latin ext: 2</text>
+        <rect x="40" y="135" width="240" height="30" rx="4" fill="#f5a623" opacity="0.8"/>
+        <text x="290" y="155" fill="#cdd6f4" font-family="JetBrains Mono" font-size="11">CJK: 3</text>
+        <rect x="40" y="180" width="280" height="30" rx="4" fill="#f87171" opacity="0.8"/>
+        <text x="290" y="200" fill="#cdd6f4" font-family="JetBrains Mono" font-size="11">Emoji: 4</text>
+        <!-- Note -->
+        <text x="160" y="250" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">More bytes = more tokens consumed</text>
+        <text x="160" y="268" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">per character of content</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 07</div>
+</section>
+
+<!-- SLIDE 8: Hybrid & Byte Fallback -->
+<section>
+  <div class="slide-hdr"><span class="tag">ALGORITHM</span><h2>Byte Fallback &amp; Hybrid Approaches</h2></div>
+  <svg class="diagram" viewBox="0 0 900 200" width="860">
+    <rect x="20" y="30" width="160" height="60" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="100" y="55" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">Input Text</text>
+    <text x="100" y="75" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">"café 日本語"</text>
+
+    <line x1="185" y1="60" x2="270" y2="40" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="185" y1="60" x2="270" y2="130" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <!-- Common path -->
+    <rect x="275" y="15" width="200" height="55" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="375" y="37" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11" font-weight="600">Subword Tokenizer</text>
+    <text x="375" y="55" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Known vocabulary → efficient tokens</text>
+
+    <!-- Fallback path -->
+    <rect x="275" y="110" width="200" height="55" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="375" y="132" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11" font-weight="600">Byte Fallback</text>
+    <text x="375" y="150" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Unknown chars → individual bytes</text>
+
+    <line x1="480" y1="42" x2="560" y2="75" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="480" y1="137" x2="560" y2="95" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <rect x="565" y="55" width="180" height="55" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="655" y="77" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11" font-weight="600">Combined Output</text>
+    <text x="655" y="95" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Efficiency + Universal coverage</text>
+  </svg>
+  <div class="cols cols-2" style="margin-top:.4em">
+    <div class="card green">
+      <h3>Models Using Hybrid</h3>
+      <ul>
+        <li><span class="g">Llama 3</span> &mdash; BPE + byte fallback</li>
+        <li><span class="g">Gemma</span> &mdash; BPE + byte fallback</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Best of Both Worlds</h3>
+      <p>Common text tokenized efficiently as subwords; rare or unusual sequences fall back to individual byte tokens for universal coverage.</p>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 08</div>
+</section>
+
+<!-- SLIDE 9: Vocabulary Size Trade-offs -->
+<section>
+  <div class="slide-hdr"><span class="tag">DESIGN</span><h2>Vocabulary Size Trade-offs</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Larger Vocabularies (100K–200K)</h3>
+      <ul>
+        <li>More compact text encoding</li>
+        <li>Fewer tokens per document</li>
+        <li><span class="a">Effectively extends context window</span></li>
+        <li>Larger embedding matrices</li>
+        <li>Increased memory footprint</li>
+        <li>May dilute training signal for rare tokens</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Smaller Vocabularies (32K–50K)</h3>
+      <ul>
+        <li>More memory-efficient</li>
+        <li>Smaller embedding tables</li>
+        <li><span class="b">Longer token sequences</span></li>
+        <li>Reduced effective context length</li>
+        <li>Better training signal per token</li>
+        <li>Simpler to manage</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.6em">
+    <h3>Industry Trend</h3>
+    <p>Modern models have converged on <span class="a">32K to 128K</span> vocabulary sizes, with a trend toward larger vocabularies as model sizes increase.</p>
+  </div>
+  <div class="slide-footer">tokenization / 09</div>
+</section>
+
+<!-- SLIDE 10: Training Data Composition -->
+<section>
+  <div class="slide-hdr"><span class="tag">DESIGN</span><h2>Training Data Composition</h2></div>
+  <p>The corpus used to train the tokenizer determines which tokens are created and how efficiently different text types are encoded.</p>
+  <div class="cols cols-3" style="margin-top:.5em">
+    <div class="card amber">
+      <h3>English-Heavy Corpus</h3>
+      <ul>
+        <li>Efficient English tokenization</li>
+        <li><span class="r">Verbose</span> for other languages</li>
+        <li>More tokens per word in non-English</li>
+        <li>Wastes context window</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Multilingual Corpus</h3>
+      <ul>
+        <li>Balanced token efficiency</li>
+        <li>Equitable cross-language support</li>
+        <li>e.g., Llama 3 vs Llama 2</li>
+        <li>Significant efficiency gains</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Code-Inclusive Corpus</h3>
+      <ul>
+        <li>Tokens for indentation patterns</li>
+        <li>Programming keywords merged</li>
+        <li>Common API patterns captured</li>
+        <li>Fewer tokens per line of code</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 10</div>
+</section>
+
+<!-- SLIDE 11: Special Tokens -->
+<section>
+  <div class="slide-hdr"><span class="tag">DESIGN</span><h2>Special Tokens</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Special tokens serve as <span class="a">control signals</span> that structure the model's input and behavior.</p>
+      <table style="margin-top:.5em">
+        <thead><tr><th>Token Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;BOS&gt;</code></td><td>Beginning of sequence marker</td></tr>
+          <tr><td><code>&lt;EOS&gt;</code></td><td>End of sequence / generation stop</td></tr>
+          <tr><td><code>&lt;SEP&gt;</code></td><td>Separator for multi-segment inputs</td></tr>
+          <tr><td><code>&lt;TOOL&gt;</code></td><td>Tool-use and function-calling delimiters</td></tr>
+          <tr><td><code>&lt;|system|&gt;</code></td><td>Role markers in chat formats</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card red">
+      <h3>Pitfall</h3>
+      <p>Poor special token design can cause:</p>
+      <ul>
+        <li>Failure to recognize conversation boundaries</li>
+        <li>Premature generation termination</li>
+        <li>Broken tool integration</li>
+        <li>Subtle, hard-to-debug errors in multi-turn chat</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 11</div>
+</section>
+
+<!-- SLIDE 12: Multilingual Impact -->
+<section>
+  <div class="slide-hdr"><span class="tag">IMPACT</span><h2>Multilingual Performance</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 280 250" width="270">
+        <text x="140" y="20" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">Tokens per concept</text>
+        <!-- English -->
+        <rect x="30" y="45" width="50" height="25" rx="3" fill="#4ecb8d" opacity="0.85"/>
+        <text x="95" y="63" fill="#cdd6f4" font-family="JetBrains Mono" font-size="11">English: 1×</text>
+        <!-- Spanish -->
+        <rect x="30" y="80" width="75" height="25" rx="3" fill="#60a5fa" opacity="0.85"/>
+        <text x="120" y="98" fill="#cdd6f4" font-family="JetBrains Mono" font-size="11">Spanish: ~1.5×</text>
+        <!-- Japanese -->
+        <rect x="30" y="115" width="200" height="25" rx="3" fill="#a78bfa" opacity="0.85"/>
+        <text x="245" y="133" fill="#cdd6f4" font-family="JetBrains Mono" font-size="10">JP: ~4×</text>
+        <!-- Burmese -->
+        <rect x="30" y="150" width="250" height="25" rx="3" fill="#f87171" opacity="0.85"/>
+        <text x="250" y="168" fill="#cdd6f4" font-family="JetBrains Mono" font-size="10">Low-res: up to 10×</text>
+        <text x="140" y="210" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Relative token count for</text>
+        <text x="140" y="225" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">equivalent semantic content</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>The Tokenization Inequality</h3>
+        <p>Underrepresented languages may require <span class="r">3&ndash;10&times; more tokens</span> for the same semantic content, consuming proportionally more context window and computation.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>The Fix</h3>
+        <p>Balanced tokenizer training is <span class="g">one of the most impactful steps</span> toward equitable multilingual models. Llama 3's tokenizer (128K vocab, multilingual corpus) dramatically improved non-English efficiency over Llama 2 (32K vocab).</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 12</div>
+</section>
+
+<!-- SLIDE 13: Arithmetic & Numbers -->
+<section>
+  <div class="slide-hdr"><span class="tag">IMPACT</span><h2>Arithmetic &amp; Numerical Reasoning</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>How numbers are tokenized <span class="a">significantly affects</span> a model's arithmetic ability.</p>
+      <div class="card red" style="margin-top:.5em">
+        <h3>Problematic: Arbitrary Splits</h3>
+        <pre><code>"12345" → ["123", "45"]</code></pre>
+        <p>Model must learn digit alignment across token boundaries &mdash; much harder than single-digit operations.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Better: Individual Digits</h3>
+        <pre><code>"12345" → ["1", "2", "3", "4", "5"]</code></pre>
+        <p>Simpler arithmetic but longer sequences for large numbers.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card amber" style="margin-top:1.5em">
+        <h3>Research Finding</h3>
+        <p>Tokenizer design accounts for a <span class="a">meaningful fraction of the variance</span> in LLM arithmetic performance. The way numbers are split into tokens determines whether the model can learn positional digit alignment.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em">
+        <h3>Design Options</h3>
+        <ul>
+          <li><span class="p">Single digits</span> &mdash; simple arithmetic, long sequences</li>
+          <li><span class="a">Common patterns</span> &mdash; tokens for frequent numbers</li>
+          <li><span class="r">Arbitrary chunks</span> &mdash; misaligned digit boundaries</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 13</div>
+</section>
+
+<!-- SLIDE 14: Code Generation -->
+<section>
+  <div class="slide-hdr"><span class="tag">IMPACT</span><h2>Code Generation</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Code has fundamentally different statistical properties than natural language:</p>
+      <div class="cols cols-2" style="margin-top:.4em">
+        <div class="card purple">
+          <h3>Code Properties</h3>
+          <ul>
+            <li>Significant whitespace</li>
+            <li>Frequent special characters</li>
+            <li>Highly repetitive patterns</li>
+            <li>Exact character sensitivity</li>
+          </ul>
+        </div>
+        <div class="card green">
+          <h3>Code-Aware Tokens</h3>
+          <ul>
+            <li>Indentation levels (<code>    </code>)</li>
+            <li>Keywords (<code>def</code>, <code>class</code>)</li>
+            <li>Common API calls</li>
+            <li>Syntax patterns (<code>():</code>)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card amber" style="margin-top:1.2em">
+      <h3>Dual Benefit</h3>
+      <p><span class="a">Efficiency:</span> Fewer tokens per line of code, leaving more context window for surrounding code.</p>
+      <p style="margin-top:.3em"><span class="g">Quality:</span> Model reasons about code in larger, semantically meaningful chunks rather than character-by-character.</p>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 14</div>
+</section>
+
+<!-- SLIDE 15: Tokenizer Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARISON</span><h2>Major Tokenizers Compared</h2></div>
+  <table>
+    <thead>
+      <tr><th>Tokenizer</th><th>Model Family</th><th>Vocab Size</th><th>Algorithm</th><th>Notable Features</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">cl100k_base</span></td><td>GPT-4, GPT-3.5</td><td>100,256</td><td>Byte-level BPE</td><td>Good multilingual, code-aware</td></tr>
+      <tr><td><span class="a">o200k_base</span></td><td>GPT-4o</td><td>200,000</td><td>Byte-level BPE</td><td>Improved multilingual efficiency</td></tr>
+      <tr><td><span class="g">SentencePiece</span></td><td>Llama 2</td><td>32,000</td><td>BPE + byte fallback</td><td>Compact vocabulary</td></tr>
+      <tr><td><span class="g">SentencePiece</span></td><td>Llama 3</td><td>128,256</td><td>BPE + byte fallback</td><td>4x larger, better multilingual</td></tr>
+      <tr><td><span class="p">SentencePiece</span></td><td>Gemma</td><td>256,000</td><td>BPE + byte fallback</td><td>Very large vocabulary</td></tr>
+      <tr><td><span class="b">tiktoken</span></td><td>Mistral/Mixtral</td><td>32,768</td><td>Byte-level BPE</td><td>Efficient for European langs</td></tr>
+    </tbody>
+  </table>
+  <p style="text-align:center;margin-top:.6em;color:var(--muted)">Vocabulary sizes range from <span class="b">32K</span> to <span class="p">256K</span>, reflecting the industry trend toward larger vocabularies.</p>
+  <div class="slide-footer">tokenization / 15</div>
+</section>
+
+<!-- SLIDE 16: Pitfalls & Edge Cases -->
+<section>
+  <div class="slide-hdr"><span class="tag">PITFALLS</span><h2>Tokenization Edge Cases</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Token Boundary Effects</h3>
+      <p>Models behave differently depending on how a word is segmented, leading to inconsistencies in string processing tasks.</p>
+    </div>
+    <div class="card red">
+      <h3>Prompt Injection via Tokens</h3>
+      <p>Attacks exploit unusual Unicode characters or whitespace that tokenizes differently than expected.</p>
+    </div>
+    <div class="card amber">
+      <h3>Invisible Characters</h3>
+      <p>Trailing whitespace, zero-width characters, and Unicode normalization differences can change tokenization in surprising ways.</p>
+    </div>
+    <div class="card amber">
+      <h3>Token Counting Errors</h3>
+      <p>Context window management must use the <span class="a">actual tokenizer</span> &mdash; word count approximations fail because token-to-word ratios vary across languages and content types.</p>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 16</div>
+</section>
+
+<!-- SLIDE 17: Future Directions -->
+<section>
+  <div class="slide-hdr"><span class="tag">FUTURE</span><h2>Future Directions</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Token-Free Models</h3>
+      <p>Operate directly on <span class="b">bytes or characters</span>, eliminating tokenization artifacts entirely. Challenges remain with sequence length and computational efficiency.</p>
+    </div>
+    <div class="card green">
+      <h3>Dynamic Vocabularies</h3>
+      <p>Vocabularies that <span class="g">adapt to input domain</span> could improve efficiency for specialized applications without the fixed-vocabulary constraint.</p>
+    </div>
+    <div class="card purple">
+      <h3>Megabyte Architecture</h3>
+      <p>Processes bytes at a <span class="p">coarse level then refines</span> at a fine level &mdash; a middle ground between byte-level and subword approaches.</p>
+    </div>
+    <div class="card amber">
+      <h3>Better Multilingual Tokenization</h3>
+      <p>Balanced training and larger vocabularies continue to <span class="a">reduce cross-language performance disparities</span> &mdash; one of the most impactful areas of active research.</p>
+    </div>
+  </div>
+  <div class="slide-footer">tokenization / 17</div>
+</section>
+
+<!-- SLIDE 18: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Deceptively Important</h3>
+        <p>Tokenization design decisions <span class="a">propagate through every aspect</span> of model behavior &mdash; from multilingual capability to arithmetic to code generation.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Critical Trade-offs</h3>
+        <ul>
+          <li>Vocabulary size vs. embedding cost</li>
+          <li>Compression efficiency vs. coverage</li>
+          <li>Language balance vs. dominant-language performance</li>
+          <li>Subword vs. byte-level granularity</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Design Decisions That Matter</h3>
+        <ul>
+          <li><span class="a">Algorithm:</span> BPE, Unigram, byte-level, or hybrid</li>
+          <li><span class="g">Vocab size:</span> 32K to 256K range</li>
+          <li><span class="p">Training data:</span> Language and domain balance</li>
+          <li><span class="b">Special tokens:</span> Control signal design</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>Looking Ahead</h3>
+        <p>The field is moving toward larger vocabularies, better multilingual coverage, and potentially <span class="b">tokenizer-free architectures</span>.</p>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em;font-style:italic;color:var(--muted)">The often-overlooked tokenizer deserves careful attention proportional to its outsized impact on model capability.</p>
+  <div class="slide-footer">tokenization / 18</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body>
+</html>

@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batching in LLM Inference | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root {
+    --amber:  #f5a623;
+    --green:  #4ecb8d;
+    --purple: #a78bfa;
+    --blue:   #60a5fa;
+    --red:    #f87171;
+    --bg:     #0a0a0f;
+    --bg2:    #10101a;
+    --bg3:    #181824;
+    --border: #2a2a3a;
+    --text:   #e8e8f0;
+    --muted:  #8888a8;
+  }
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { background: transparent; }
+  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal h1 { font-size: 2.4em; color: var(--amber); line-height: 1.15; }
+  .reveal h2 { font-size: 1.7em; color: var(--amber); margin-bottom: .4em; }
+  .reveal h3 { font-size: 1.1em; color: var(--green); margin-bottom: .3em; }
+  .reveal p  { font-size: .82em; line-height: 1.65; color: var(--text); }
+  .reveal li { font-size: .80em; line-height: 1.65; margin-bottom: .2em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .78em; }
+  .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
+                 border-radius: 6px; padding: .6em .9em; margin: .5em 0; }
+  .reveal pre code { font-size: .72em; line-height: 1.5; background: transparent; color: #cdd6f4; }
+  .slide-hdr {
+    display: flex; align-items: center; gap: .6em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .35em; margin-bottom: .6em;
+  }
+  .slide-hdr .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .55em; font-weight: 500;
+    color: var(--bg); background: var(--amber);
+    padding: .15em .5em; border-radius: 3px;
+    letter-spacing: .04em;
+  }
+  .slide-hdr h2 { margin: 0; font-size: 1.3em; }
+  .cols   { display: grid; gap: 1.2em; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-6040 { grid-template-columns: 6fr 4fr; }
+  .cols-4060 { grid-template-columns: 4fr 6fr; }
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .8em 1em;
+  }
+  .card.amber { border-left: 3px solid var(--amber); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.purple{ border-left: 3px solid var(--purple); }
+  .card.blue  { border-left: 3px solid var(--blue); }
+  .card.red   { border-left: 3px solid var(--red); }
+  .card h3 { font-size: .9em; margin: 0 0 .3em; }
+  .card p  { font-size: .76em; margin: 0; color: #b8b8d0; }
+  .card ul { margin: 0; padding-left: 1.2em; }
+  .card li { font-size: .76em; color: #b8b8d0; margin-bottom: .1em; }
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .74em; }
+  .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
+                     padding: .45em .7em; border: 1px solid var(--border); text-align: left; }
+  .reveal table td { padding: .4em .7em; border: 1px solid var(--border); color: #ccc; }
+  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+  .a  { color: var(--amber); font-weight: 600; }
+  .g  { color: var(--green); font-weight: 600; }
+  .p  { color: var(--purple); font-weight: 600; }
+  .b  { color: var(--blue); font-weight: 600; }
+  .r  { color: var(--red); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  svg.diagram { display: block; margin: 0 auto; overflow: visible; }
+  .pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: .6em; padding: .1em .5em; border-radius: 99px;
+    border: 1px solid; margin: 0 .1em;
+  }
+  .pill.amber { color: var(--amber); border-color: var(--amber); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.purple{ color: var(--purple); border-color: var(--purple); }
+  .pill.blue  { color: var(--blue); border-color: var(--blue); }
+  .reveal .slide-footer {
+    position: absolute; bottom: .6em; right: 1.2em;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .45em; color: var(--muted); letter-spacing: .05em;
+  }
+  .title-slide h1 { font-size: 2.6em; }
+  .title-slide .subtitle {
+    font-size: .95em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-weight: 300; letter-spacing: .04em; margin: .5em 0 1.2em;
+  }
+  .title-slide .meta { font-size: .68em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .reveal ul, .reveal ol { margin: .25em 0 .25em 1.2em; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============ SLIDE 1: TITLE ============ -->
+<section class="title-slide">
+  <p style="font-family:'JetBrains Mono',monospace; font-size:.6em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <h1>Batching in LLM Inference</h1>
+  <div class="subtitle">Techniques, Strategies, and Applications</div>
+  <hr style="border: none; border-top: 2px solid var(--amber); width: 5em; margin: 0 auto 1em;">
+  <span class="pill amber">GPU Optimization</span>
+  <span class="pill green">Inference</span>
+  <span class="pill purple">Systems</span>
+  <span class="pill blue">Throughput</span>
+  <p style="max-width:36em; margin:1em auto .8em; font-size:.78em; color:#b8b8d0;">
+    How grouping inference requests unlocks GPU efficiency &mdash; from naive static batching to
+    continuous batching, disaggregated serving, and speculative decoding.
+  </p>
+  <p class="meta">February 2026 &nbsp;|&nbsp; LLM Infrastructure</p>
+</section>
+
+<!-- ============ SLIDE 2: WHY BATCHING MATTERS ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">01</span>
+    <h2>Why Batching Matters</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>The Core Insight</h3>
+      <p>GPUs are designed for <span class="a">massively parallel computation</span>. A single inference request leaves most compute capacity idle. Batching amortizes fixed overheads &mdash; memory transfers, kernel launches &mdash; across many requests.</p>
+    </div>
+    <div class="card green">
+      <h3>Memory-Bound Problem</h3>
+      <p>Autoregressive decoding reads the <span class="g">full model weights</span> every forward pass but performs little arithmetic per byte loaded. Batching increases compute per memory access, shifting toward a <span class="g">compute-bound</span> regime.</p>
+    </div>
+  </div>
+  <div style="margin-top:.8em;">
+    <svg class="diagram" viewBox="0 0 900 120" width="820" height="110">
+      <rect x="10" y="15" width="180" height="90" rx="8" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+      <text x="100" y="50" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="14" font-weight="600">Single Request</text>
+      <text x="100" y="75" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">Low GPU utilization</text>
+      <line x1="200" y1="60" x2="310" y2="60" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="255" y="50" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">batch</text>
+      <rect x="320" y="15" width="250" height="90" rx="8" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+      <text x="445" y="50" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="14" font-weight="600">Batched Requests (N)</text>
+      <text x="445" y="75" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">High GPU utilization</text>
+      <line x1="580" y1="60" x2="660" y2="60" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="670" y="15" width="210" height="90" rx="8" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="775" y="45" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="14" font-weight="600">Throughput &uarr;</text>
+      <text x="775" y="68" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="14" font-weight="600">Cost per token &darr;</text>
+      <text x="775" y="88" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">Better economics</text>
+      <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8888a8"/></marker></defs>
+    </svg>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 3: TWO PHASES ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">02</span>
+    <h2>Two Phases of LLM Inference</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Prefill Phase</h3>
+      <ul>
+        <li>Processes <span class="a">all input tokens in parallel</span></li>
+        <li><span class="a">Compute-intensive</span> &mdash; resembles a training forward pass</li>
+        <li>Benefits from high-FLOPS hardware</li>
+        <li>Also called "prompt processing"</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Decode Phase</h3>
+      <ul>
+        <li>Generates tokens <span class="p">one at a time</span> autoregressively</li>
+        <li><span class="p">Memory-bandwidth bound</span> &mdash; reads entire model weights per token</li>
+        <li>Benefits from high-bandwidth memory</li>
+        <li>Dominant cost in long-generation tasks</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em;">
+    <h3>Key Takeaway</h3>
+    <p>Effective batching strategies must account for these <span class="b">fundamentally different computational characteristics</span>. Mixing prefill and decode in the same batch can cause interference.</p>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 4: STATIC BATCHING ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">03</span>
+    <h2>Static (Naive) Batching</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The simplest strategy: collect a <span class="a">fixed number of requests</span> and process them together. All sequences begin and end processing together.</p>
+      <div class="card red" style="margin-top:.6em;">
+        <h3>Limitations</h3>
+        <ul>
+          <li>Shorter sequences must be <span class="r">padded</span> to match the longest</li>
+          <li>Entire batch blocked until the <span class="r">longest sequence completes</span></li>
+          <li>GPU resources idle as individual sequences finish</li>
+          <li>Poor memory efficiency due to over-allocation</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 340 280" width="320" height="260">
+        <text x="170" y="18" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Static Batch — Padding Waste</text>
+        <rect x="20" y="30" width="300" height="40" rx="4" fill="none" stroke="#f5a623" stroke-width="1"/>
+        <rect x="22" y="32" width="296" height="36" rx="3" fill="#f5a62330"/>
+        <text x="170" y="55" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="12">Seq 1 (long) ████████████████</text>
+        <rect x="20" y="80" width="300" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
+        <rect x="22" y="82" width="160" height="36" rx="3" fill="#4ecb8d30"/>
+        <rect x="184" y="82" width="134" height="36" rx="3" fill="#f8717120" stroke="#f87171" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="100" y="105" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="12">Seq 2</text>
+        <text x="250" y="105" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11">padding</text>
+        <rect x="20" y="130" width="300" height="40" rx="4" fill="none" stroke="#60a5fa" stroke-width="1"/>
+        <rect x="22" y="132" width="90" height="36" rx="3" fill="#60a5fa30"/>
+        <rect x="114" y="132" width="204" height="36" rx="3" fill="#f8717120" stroke="#f87171" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="68" y="155" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="12">Seq 3</text>
+        <text x="216" y="155" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11">padding</text>
+        <line x1="320" y1="30" x2="320" y2="170" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="315" y="185" text-anchor="end" fill="#f87171" font-family="JetBrains Mono" font-size="10">blocked until longest done</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 5: CONTINUOUS BATCHING ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">04</span>
+    <h2>Continuous Batching</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Introduced by <span class="a">Orca</span>, adopted by <span class="g">vLLM</span> and <span class="b">TensorRT-LLM</span>. Sequences enter and leave the batch <span class="a">dynamically at each iteration</span>.</p>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Advantages</h3>
+        <ul>
+          <li>No wasted cycles on completed sequences</li>
+          <li>New requests fill slots <span class="g">immediately</span></li>
+          <li>Dramatically improved GPU utilization</li>
+          <li><span class="g">De facto standard</span> in production serving</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 340 260" width="320" height="240">
+        <text x="170" y="18" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Continuous — Dynamic Slot Filling</text>
+        <!-- time axis -->
+        <line x1="30" y1="240" x2="320" y2="240" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="175" y="255" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">time →</text>
+        <!-- sequences -->
+        <rect x="30" y="35" width="280" height="28" rx="4" fill="#f5a62325" stroke="#f5a623" stroke-width="1"/>
+        <text x="170" y="54" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="11">Seq A</text>
+        <rect x="30" y="70" width="140" height="28" rx="4" fill="#4ecb8d25" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="100" y="89" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">Seq B</text>
+        <rect x="180" y="70" width="130" height="28" rx="4" fill="#a78bfa25" stroke="#a78bfa" stroke-width="1"/>
+        <text x="245" y="89" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="11">Seq D (new!)</text>
+        <rect x="30" y="105" width="200" height="28" rx="4" fill="#60a5fa25" stroke="#60a5fa" stroke-width="1"/>
+        <text x="130" y="124" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="11">Seq C</text>
+        <rect x="240" y="105" width="70" height="28" rx="4" fill="#f8717125" stroke="#f87171" stroke-width="1"/>
+        <text x="275" y="124" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11">Seq E</text>
+        <!-- arrow showing swap -->
+        <path d="M172 82 C175 98, 178 75, 178 82" stroke="#4ecb8d" stroke-width="1" fill="none" marker-end="url(#arrow2)"/>
+        <defs><marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#4ecb8d"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 6: DISAGGREGATED PREFILL/DECODE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">05</span>
+    <h2>Disaggregated Prefill &amp; Decode</h2>
+  </div>
+  <p>Separate prefill and decode onto <span class="a">different hardware pools</span>, each optimized for its workload profile.</p>
+  <div class="cols cols-2" style="margin-top:.5em;">
+    <div class="card amber">
+      <h3>Prefill Pool</h3>
+      <ul>
+        <li>Compute-heavy &rarr; high-FLOPS accelerators</li>
+        <li>Large batch of prompt tokens processed in parallel</li>
+        <li>Optimized for <span class="a">throughput</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Decode Pool</h3>
+      <ul>
+        <li>Memory-bandwidth bound &rarr; high-HBM configs</li>
+        <li>Latency-sensitive token generation</li>
+        <li>Optimized for <span class="p">low latency</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.6em;">
+    <h3>Systems: Splitwise &amp; DistServe</h3>
+    <p>By disaggregating, each phase can be batched and optimized independently, <span class="g">avoiding interference</span> between compute-heavy prefill and latency-sensitive decode operations. Demonstrated significant efficiency gains in practice.</p>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 7: SPECULATIVE DECODING ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">06</span>
+    <h2>Speculative Decoding</h2>
+  </div>
+  <svg class="diagram" viewBox="0 0 900 130" width="840" height="120">
+    <rect x="10" y="20" width="170" height="90" rx="8" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="95" y="50" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Draft Model</text>
+    <text x="95" y="70" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Small &amp; fast</text>
+    <text x="95" y="88" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Proposes K tokens</text>
+    <line x1="185" y1="65" x2="290" y2="65" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="237" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">K candidates</text>
+    <rect x="295" y="20" width="250" height="90" rx="8" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="420" y="50" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="13" font-weight="600">Target Model</text>
+    <text x="420" y="70" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Batched verification</text>
+    <text x="420" y="88" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Single forward pass</text>
+    <line x1="550" y1="65" x2="640" y2="65" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="595" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">accept/reject</text>
+    <rect x="645" y="20" width="230" height="90" rx="8" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="760" y="50" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="13" font-weight="600">Output Tokens</text>
+    <text x="760" y="70" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Preserves target distribution</text>
+    <text x="760" y="88" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Fewer total forward passes</text>
+  </svg>
+  <div class="cols cols-2" style="margin-top:.5em;">
+    <div class="card green">
+      <h3>How It Works</h3>
+      <p>Converts <span class="g">multiple sequential decode steps</span> into a single parallel verification step. Incorrect tokens are rejected; the system falls back to the target model's distribution.</p>
+    </div>
+    <div class="card blue">
+      <h3>Best When</h3>
+      <p>The draft model has <span class="b">high acceptance rates</span>. Particularly effective for predictable text patterns, code generation, and structured outputs.</p>
+    </div>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 8: STRATEGY COMPARISON TABLE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">07</span>
+    <h2>Strategy Comparison</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Strategy</th>
+        <th>Throughput</th>
+        <th>Latency</th>
+        <th>Complexity</th>
+        <th>Memory Eff.</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Static Batching</span></td>
+        <td>Low&ndash;Medium</td>
+        <td><span class="r">High</span> (padding waste)</td>
+        <td>Low</td>
+        <td><span class="r">Poor</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">Continuous Batching</span></td>
+        <td><span class="g">High</span></td>
+        <td>Low&ndash;Medium</td>
+        <td>Medium</td>
+        <td><span class="g">Good</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">Disaggregated P/D</span></td>
+        <td><span class="g">Very High</span></td>
+        <td><span class="g">Low</span></td>
+        <td><span class="r">High</span></td>
+        <td><span class="g">Very Good</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">Speculative Decoding</span></td>
+        <td><span class="g">High</span></td>
+        <td><span class="g">Very Low</span></td>
+        <td><span class="r">High</span></td>
+        <td><span class="g">Good</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="card blue" style="margin-top:.8em;">
+    <h3>Choosing a Strategy</h3>
+    <p>Production systems increasingly combine strategies: <span class="b">continuous batching</span> as the base, with <span class="b">disaggregated serving</span> for scale and <span class="b">speculative decoding</span> for latency-critical paths.</p>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 9: PAGEDATTENTION ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">08</span>
+    <h2>PagedAttention &amp; Memory Management</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Introduced by <span class="a">vLLM</span>, PagedAttention borrows from <span class="g">OS virtual memory</span> to manage the KV cache.</p>
+      <div class="card amber" style="margin-top:.5em;">
+        <h3>Traditional Approach</h3>
+        <p>Pre-allocates contiguous memory for each sequence's <span class="a">maximum possible length</span> &rarr; severe fragmentation and waste.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>PagedAttention</h3>
+        <ul>
+          <li>Stores KV cache in <span class="g">non-contiguous pages</span></li>
+          <li>Allocates memory <span class="g">on demand</span></li>
+          <li>Shares pages across sequences (e.g., common system prompts)</li>
+          <li>Enables much <span class="g">larger effective batch sizes</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 300" width="300" height="280">
+        <text x="160" y="18" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">KV Cache Pages</text>
+        <!-- GPU Memory block -->
+        <rect x="20" y="30" width="280" height="250" rx="6" fill="none" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="160" y="50" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">GPU Memory</text>
+        <!-- Pages -->
+        <rect x="35" y="60" width="55" height="40" rx="3" fill="#f5a62320" stroke="#f5a623" stroke-width="1"/>
+        <text x="62" y="84" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">S1-P0</text>
+        <rect x="100" y="60" width="55" height="40" rx="3" fill="#4ecb8d20" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="127" y="84" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">S2-P0</text>
+        <rect x="165" y="60" width="55" height="40" rx="3" fill="#f5a62320" stroke="#f5a623" stroke-width="1"/>
+        <text x="192" y="84" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">S1-P1</text>
+        <rect x="230" y="60" width="55" height="40" rx="3" fill="#a78bfa20" stroke="#a78bfa" stroke-width="1"/>
+        <text x="257" y="84" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">S3-P0</text>
+        <rect x="35" y="110" width="55" height="40" rx="3" fill="#a78bfa20" stroke="#a78bfa" stroke-width="1"/>
+        <text x="62" y="134" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">S3-P1</text>
+        <rect x="100" y="110" width="55" height="40" rx="3" fill="#4ecb8d20" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="127" y="134" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">S2-P1</text>
+        <rect x="165" y="110" width="55" height="40" rx="3" fill="#60a5fa20" stroke="#60a5fa" stroke-width="1"/>
+        <text x="192" y="134" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">shared</text>
+        <rect x="230" y="110" width="55" height="40" rx="3" fill="#18182400" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="257" y="134" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">free</text>
+        <!-- Legend -->
+        <rect x="35" y="170" width="12" height="12" rx="2" fill="#f5a62340" stroke="#f5a623" stroke-width="1"/>
+        <text x="55" y="181" fill="#f5a623" font-family="DM Sans" font-size="10">Seq 1</text>
+        <rect x="105" y="170" width="12" height="12" rx="2" fill="#4ecb8d40" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="125" y="181" fill="#4ecb8d" font-family="DM Sans" font-size="10">Seq 2</text>
+        <rect x="175" y="170" width="12" height="12" rx="2" fill="#a78bfa40" stroke="#a78bfa" stroke-width="1"/>
+        <text x="195" y="181" fill="#a78bfa" font-family="DM Sans" font-size="10">Seq 3</text>
+        <rect x="235" y="170" width="12" height="12" rx="2" fill="#60a5fa40" stroke="#60a5fa" stroke-width="1"/>
+        <text x="255" y="181" fill="#60a5fa" font-family="DM Sans" font-size="10">Shared</text>
+        <text x="160" y="210" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Non-contiguous allocation</text>
+        <text x="160" y="228" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">eliminates fragmentation</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 10: DYNAMIC SCHEDULING ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">09</span>
+    <h2>Dynamic Scheduling &amp; Priority Queues</h2>
+  </div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Scheduling Factors</h3>
+      <ul>
+        <li>Arrival time</li>
+        <li>Priority level</li>
+        <li>Estimated generation length</li>
+        <li>Current system load</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Balancing Act</h3>
+      <ul>
+        <li><span class="g">Throughput</span>: process as many requests as possible</li>
+        <li><span class="a">Latency</span>: keep response times low per request</li>
+        <li>These goals are often in tension</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Preemption</h3>
+      <ul>
+        <li>Low-priority or long-running requests can be <span class="p">temporarily evicted</span></li>
+        <li>Makes room for higher-priority requests</li>
+        <li>Requires saving/restoring KV cache state</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 900 100" width="840" height="90" style="margin-top:.6em;">
+    <rect x="10" y="10" width="160" height="70" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="90" y="38" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="12" font-weight="600">Request Queue</text>
+    <text x="90" y="58" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">sorted by priority</text>
+    <line x1="175" y1="45" x2="280" y2="45" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="285" y="10" width="200" height="70" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="385" y="38" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="12" font-weight="600">Scheduler</text>
+    <text x="385" y="58" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">admission control + preemption</text>
+    <line x1="490" y1="45" x2="580" y2="45" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="585" y="10" width="180" height="70" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="675" y="38" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="12" font-weight="600">Active Batch</text>
+    <text x="675" y="58" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">GPU execution</text>
+    <path d="M675 80 Q675 95, 385 95 Q385 90, 385 80" stroke="#f87171" stroke-width="1" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow3)"/>
+    <text x="530" y="92" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">preempt</text>
+    <defs><marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f87171"/></marker></defs>
+  </svg>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 11: QUANTIZATION ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">10</span>
+    <h2>Quantization &amp; Reduced-Precision Batching</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Reducing precision from <span class="a">FP16/BF16</span> to <span class="g">INT8, INT4, or FP8</span> shrinks memory requirements and increases effective memory bandwidth.</p>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Impact on Batching</h3>
+        <ul>
+          <li>Smaller model footprint &rarr; <span class="g">more KV cache space</span></li>
+          <li>More sequences fit in memory simultaneously</li>
+          <li>Directly increases achievable <span class="g">batch sizes</span></li>
+          <li>Particularly impactful for decode phase</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Precision Formats</h3>
+        <table style="font-size:.9em;">
+          <tr><th>Format</th><th>Bits</th><th>Memory Savings</th></tr>
+          <tr><td>FP16 / BF16</td><td>16</td><td>Baseline</td></tr>
+          <tr><td>FP8</td><td>8</td><td><span class="g">2&times;</span></td></tr>
+          <tr><td>INT8</td><td>8</td><td><span class="g">2&times;</span></td></tr>
+          <tr><td>INT4</td><td>4</td><td><span class="g">4&times;</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em;">
+    <h3>Modern Practice</h3>
+    <p>Production inference engines <span class="b">combine quantization with continuous batching</span> to maximize throughput on a given hardware budget. The memory-bandwidth bottleneck during decode is directly alleviated.</p>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 12: API SERVING ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">11</span>
+    <h2>Application: API Serving &amp; Cloud Inference</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Scale Requirements</h3>
+      <ul>
+        <li>Providers like <span class="a">OpenAI, Anthropic, Google</span> serve millions of concurrent users</li>
+        <li>Must maintain consistent <span class="a">latency SLAs</span></li>
+        <li>Infrastructure costs must remain manageable</li>
+        <li>Heterogeneous workloads: short chat &harr; long documents</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Production Stack</h3>
+      <ul>
+        <li><span class="g">Continuous batching</span> as the foundation</li>
+        <li><span class="g">PagedAttention</span> for memory efficiency</li>
+        <li>KV cache compression</li>
+        <li>Multi-level scheduling</li>
+        <li>Dynamic batch composition in real time</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 13: OFFLINE & EDGE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">12</span>
+    <h2>Applications: Offline &amp; Edge Inference</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Offline / Batch Processing</h3>
+      <ul>
+        <li>Document summarization, extraction, classification</li>
+        <li>Latency less critical than <span class="p">throughput &amp; cost</span></li>
+        <li>Requests sorted by length to <span class="p">minimize padding</span></li>
+        <li>Large static/semi-static batches maximize utilization</li>
+        <li>Providers offer <span class="p">cost discounts</span> (e.g., Anthropic's Message Batches API)</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Edge / On-Device</h3>
+      <ul>
+        <li>Limited memory and compute</li>
+        <li>Concurrent requests are rare on a single device</li>
+        <li><span class="b">Internal batching</span>: speculative decoding, chunked prefill</li>
+        <li>Batch speculative tokens or prompt chunks to improve <span class="b">single-user latency</span></li>
+        <li>Better time-to-first-token and tokens/sec</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 14: TRAINING & EVAL ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">13</span>
+    <h2>Application: Training &amp; Evaluation Pipelines</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>RLHF &amp; Preference Optimization</h3>
+      <p>Training loops require <span class="a">generating completions from a policy model</span> at each step. Efficient batched generation keeps the training process moving without becoming the bottleneck.</p>
+    </div>
+    <div class="card green">
+      <h3>Model Evaluation</h3>
+      <p>Evaluation suites run <span class="g">thousands of benchmark examples</span> across multiple models. Batched inference makes it feasible to complete evaluations within practical time budgets.</p>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 900 100" width="840" height="90" style="margin-top:.6em;">
+    <rect x="10" y="15" width="180" height="65" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="100" y="42" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="12" font-weight="600">Training Step</text>
+    <text x="100" y="60" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Policy update</text>
+    <line x1="195" y1="47" x2="280" y2="47" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="285" y="15" width="240" height="65" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="405" y="42" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="12" font-weight="600">Batched Generation</text>
+    <text x="405" y="60" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">N completions in parallel</text>
+    <line x1="530" y1="47" x2="610" y2="47" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="615" y="15" width="180" height="65" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="705" y="42" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="12" font-weight="600">Reward / Ranking</text>
+    <text x="705" y="60" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Human or model feedback</text>
+    <path d="M705 80 Q705 95, 100 95 Q100 85, 100 80" stroke="#8888a8" stroke-width="1" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <text x="400" y="92" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">training loop</text>
+  </svg>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 15: CHALLENGES ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">14</span>
+    <h2>Challenges &amp; Trade-Offs</h2>
+  </div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Memory Pressure</h3>
+      <ul>
+        <li>Larger batches need more GPU memory for KV caches</li>
+        <li>Tension between <span class="r">batch size</span> and <span class="r">max sequence length</span></li>
+        <li>Requires PagedAttention or KV cache eviction</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Latency vs Throughput</h3>
+      <ul>
+        <li>Requests may wait for <span class="a">batch assembly</span></li>
+        <li>Shared compute resources across many sequences</li>
+        <li>Individual request latency can increase when optimizing for throughput</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Fairness &amp; QoS</h3>
+      <ul>
+        <li>Multi-tenant environments with different SLAs</li>
+        <li>High-priority requests must not be <span class="p">starved</span> by batch workloads</li>
+        <li>Priority scheduling &amp; admission control required</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em;">
+    <h3>System Complexity</h3>
+    <p>Interaction between batching and <span class="b">tensor parallelism</span>, <span class="b">pipeline parallelism</span>, and <span class="b">expert parallelism</span> (MoE models) adds significant engineering complexity to production systems.</p>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 16: FUTURE DIRECTIONS ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">15</span>
+    <h2>Future Directions</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>MoE Architectures</h3>
+      <ul>
+        <li>Different tokens routed to <span class="a">different expert subnetworks</span></li>
+        <li>Requires load-balancing across experts</li>
+        <li>Managing <span class="a">sparse compute patterns</span></li>
+        <li>New batching challenges and opportunities</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Hardware Advances</h3>
+      <ul>
+        <li><span class="g">HBM3E and beyond</span> &mdash; higher bandwidth memory</li>
+        <li>Increased on-chip SRAM</li>
+        <li>Dedicated inference accelerators</li>
+        <li>Shifts compute-vs-bandwidth balance &rarr; larger batches</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em;">
+    <div class="card purple">
+      <h3>Software Innovations</h3>
+      <ul>
+        <li><span class="p">Prefix caching</span> for shared prompt prefixes</li>
+        <li>Radix-tree-based KV cache sharing</li>
+        <li>Adaptive scheduling algorithms</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Longer Context Windows</h3>
+      <ul>
+        <li>4K &rarr; 128K+ tokens</li>
+        <li>Enormous pressure on <span class="b">KV cache memory</span></li>
+        <li>Makes memory-efficient batching <span class="b">essential</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 17: KEY TAKEAWAYS ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">16</span>
+    <h2>Key Takeaways</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>1. Batching is Foundational</h3>
+        <p>Transforms underutilized, memory-bandwidth-bound GPU workloads into efficient, high-throughput serving systems.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>2. Continuous Batching Wins</h3>
+        <p>Dynamic slot filling has become the <span class="g">de facto standard</span> in production, replacing wasteful static batching.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em;">
+        <h3>3. Memory is the Bottleneck</h3>
+        <p>PagedAttention, quantization, and KV cache management are critical enablers for larger batch sizes.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>4. Disaggregation Unlocks Scale</h3>
+        <p>Separating prefill and decode phases onto specialized hardware pools avoids interference and maximizes efficiency.</p>
+      </div>
+      <div class="card red" style="margin-top:.5em;">
+        <h3>5. Trade-Offs Are Real</h3>
+        <p>Latency vs. throughput, memory vs. batch size, and fairness across tenants require careful engineering.</p>
+      </div>
+      <div class="card amber" style="margin-top:.5em;">
+        <h3>6. Evolution Continues</h3>
+        <p>MoE models, longer contexts, and new hardware will keep pushing batching techniques forward.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Batching in LLM Inference</div>
+</section>
+
+<!-- ============ SLIDE 18: CLOSING ============ -->
+<section class="title-slide">
+  <p style="font-family:'JetBrains Mono',monospace; font-size:.6em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <h1>Batching in LLM Inference</h1>
+  <div class="subtitle">Techniques, Strategies, and Applications</div>
+  <hr style="border: none; border-top: 2px solid var(--amber); width: 5em; margin: 0 auto 1em;">
+  <p style="max-width:34em; margin:0 auto; font-size:.78em; color:#b8b8d0;">
+    As models grow larger, context windows extend further, and user demand increases,
+    batching strategies will remain at the <span class="a">core of efficient LLM inference infrastructure</span>.
+  </p>
+  <p class="meta" style="margin-top:1.5em;">February 2026 &nbsp;|&nbsp; LLM Infrastructure</p>
+</section>
+
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>
+Reveal.initialize({ hash: true, center: true, transition: 'fade', transitionSpeed: 'fast',
+  margin: 0.04, width: 1280, height: 720 });
+</script>
+</body>
+</html>

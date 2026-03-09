@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mixed-Precision Arithmetic | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Mixed-Precision Arithmetic</h1>
+  <p class="subtitle">Numerical Format Strategies for Efficient LLM Deployment</p>
+  <div style="margin-top:1.5em">
+    <span class="pill amber">FP8</span>
+    <span class="pill green">INT4</span>
+    <span class="pill purple">NVFP4</span>
+    <span class="pill blue">BF16</span>
+  </div>
+  <p class="meta" style="margin-top:1.8em">March 2026</p>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 2: The Core Idea -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>The Core Idea</h2></div>
+  <p>Not all operations in a transformer need the same numerical precision. Mixed precision assigns <span class="a">higher precision</span> to sensitive operations and <span class="g">lower precision</span> where it can be tolerated.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card green">
+      <h3>Low Precision (FP8/INT4/FP4)</h3>
+      <ul>
+        <li>Feed-forward GEMMs</li>
+        <li>Attention projection weights</li>
+        <li>KV cache storage</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>High Precision (BF16/FP32)</h3>
+      <ul>
+        <li>Softmax computation</li>
+        <li>Layer normalisation</li>
+        <li>Residual additions</li>
+        <li>Embedding &amp; lm_head</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.6em;color:var(--muted);font-size:.72em">Result: most compute benefits from low-precision acceleration while the critical path maintains full fidelity.</p>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 3: Numerical Format Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>The Format Landscape</h2></div>
+  <table>
+    <thead>
+      <tr><th>Format</th><th>Bits</th><th>Sign / Exp / Mantissa</th><th>Dynamic Range</th><th>Key Property</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="b">FP32</span></td><td>32</td><td>1 / 8 / 23</td><td>~10<sup>38</sup></td><td>Universal baseline</td></tr>
+      <tr><td><span class="b">BF16</span></td><td>16</td><td>1 / 8 / 7</td><td>~10<sup>38</sup></td><td>FP32 range, reduced precision</td></tr>
+      <tr><td><span class="b">FP16</span></td><td>16</td><td>1 / 5 / 10</td><td>~10<sup>4.8</sup></td><td>Higher precision, limited range</td></tr>
+      <tr><td><span class="a">FP8 E4M3</span></td><td>8</td><td>1 / 4 / 3</td><td>~10<sup>2.4</sup></td><td>Weights &amp; activations</td></tr>
+      <tr><td><span class="a">FP8 E5M2</span></td><td>8</td><td>1 / 5 / 2</td><td>~10<sup>4.8</sup></td><td>Gradients (wider range)</td></tr>
+      <tr><td><span class="g">INT8</span></td><td>8</td><td>uniform 256 levels</td><td>fixed</td><td>Uniform spacing</td></tr>
+      <tr><td><span class="g">INT4</span></td><td>4</td><td>uniform 16 levels</td><td>fixed</td><td>4x mem reduction</td></tr>
+      <tr><td><span class="p">FP4 E2M1</span></td><td>4</td><td>1 / 2 / 1</td><td>8 magnitudes</td><td>Log-spaced, needs microscaling</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 4: BF16 - The Baseline -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>BF16: The De Facto Baseline</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p><span class="b">BF16</span> retains FP32's 8-bit exponent while truncating the mantissa to 7 bits. This preserves the full dynamic range while halving memory.</p>
+      <ul>
+        <li>Models trained in BF16 can be <span class="g">served directly</span> -- no conversion needed</li>
+        <li>Handles <span class="a">activation outliers</span> gracefully due to wide range</li>
+        <li>All lower-precision strategies are measured against BF16 as baseline</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 200" width="320" height="200">
+        <rect x="10" y="20" width="300" height="35" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="20" y="42" font-family="JetBrains Mono" font-size="11" fill="#8888a8">FP32</text>
+        <rect x="65" y="26" width="18" height="23" rx="2" fill="#f87171"/><text x="69" y="42" font-size="9" fill="#0a0a0f" font-weight="600">S</text>
+        <rect x="87" y="26" width="90" height="23" rx="2" fill="#60a5fa"/><text x="110" y="42" font-size="9" fill="#0a0a0f" font-weight="600">EXP (8)</text>
+        <rect x="181" y="26" width="120" height="23" rx="2" fill="#4ecb8d"/><text x="210" y="42" font-size="9" fill="#0a0a0f" font-weight="600">MANT (23)</text>
+        <rect x="10" y="75" width="300" height="35" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="20" y="97" font-family="JetBrains Mono" font-size="11" fill="#8888a8">BF16</text>
+        <rect x="65" y="81" width="18" height="23" rx="2" fill="#f87171"/><text x="69" y="97" font-size="9" fill="#0a0a0f" font-weight="600">S</text>
+        <rect x="87" y="81" width="90" height="23" rx="2" fill="#60a5fa"/><text x="110" y="97" font-size="9" fill="#0a0a0f" font-weight="600">EXP (8)</text>
+        <rect x="181" y="81" width="55" height="23" rx="2" fill="#4ecb8d"/><text x="190" y="97" font-size="9" fill="#0a0a0f" font-weight="600">M (7)</text>
+        <rect x="10" y="130" width="300" height="35" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="20" y="152" font-family="JetBrains Mono" font-size="11" fill="#8888a8">FP16</text>
+        <rect x="65" y="136" width="18" height="23" rx="2" fill="#f87171"/><text x="69" y="152" font-size="9" fill="#0a0a0f" font-weight="600">S</text>
+        <rect x="87" y="136" width="55" height="23" rx="2" fill="#60a5fa"/><text x="95" y="152" font-size="9" fill="#0a0a0f" font-weight="600">E (5)</text>
+        <rect x="146" y="136" width="90" height="23" rx="2" fill="#4ecb8d"/><text x="168" y="152" font-size="9" fill="#0a0a0f" font-weight="600">MANT (10)</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 5: FP8 - Production Workhorse -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>FP8: The Production Workhorse</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>2x Memory Reduction</h3>
+      <p>Half the footprint of BF16 with negligible accuracy loss (&lt;0.5% perplexity change)</p>
+    </div>
+    <div class="card green">
+      <h3>Hardware Accelerated</h3>
+      <p>Native tensor core support on Hopper &amp; Blackwell at same throughput as INT8</p>
+    </div>
+    <div class="card purple">
+      <h3>Minimal Friction</h3>
+      <p>Simple post-training calibration step. In vLLM, just set the quantization parameter</p>
+    </div>
+  </div>
+  <div style="margin-top:.8em">
+    <svg class="diagram" viewBox="0 0 700 80" width="700" height="80">
+      <rect x="10" y="10" width="330" height="55" rx="5" fill="#181824" stroke="#2a2a3a"/>
+      <text x="20" y="32" font-family="JetBrains Mono" font-size="12" fill="#f5a623">E4M3 (weights &amp; activations)</text>
+      <text x="20" y="52" font-family="JetBrains Mono" font-size="11" fill="#8888a8">4 exp + 3 mant = moderate range + precision</text>
+      <rect x="360" y="10" width="330" height="55" rx="5" fill="#181824" stroke="#2a2a3a"/>
+      <text x="370" y="32" font-family="JetBrains Mono" font-size="12" fill="#a78bfa">E5M2 (gradients only)</text>
+      <text x="370" y="52" font-family="JetBrains Mono" font-size="11" fill="#8888a8">5 exp + 2 mant = wider range, less precision</text>
+    </svg>
+  </div>
+  <p style="font-size:.72em;color:var(--muted)">Tensor cores compute in FP8 but <span class="a">accumulate in FP32</span>, preventing rounding error compounding across thousands of MACs.</p>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 6: Integer Precision -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>INT8 &amp; INT4: Integer Formats</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Integer formats distribute precision <span class="b">uniformly</span> across the range, while floating-point formats concentrate it <span class="g">logarithmically near zero</span>.</p>
+      <ul>
+        <li><span class="b">INT8</span> -- 256 levels, well-suited to pre-processed weight distributions</li>
+        <li><span class="g">INT4</span> -- 16 levels, <span class="a">4x memory reduction</span> over BF16</li>
+        <li>Outliers consume disproportionate range in integer formats</li>
+        <li>FP8 often beats INT8 for <span class="r">activation</span> quantization</li>
+        <li>INT4 with per-group scaling remains competitive for <span class="p">weight-only</span> quantization</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 260 220" width="260" height="220">
+        <text x="10" y="18" font-family="JetBrains Mono" font-size="11" fill="#60a5fa">Integer (uniform)</text>
+        <line x1="20" y1="35" x2="240" y2="35" stroke="#2a2a3a" stroke-width="2"/>
+        <line x1="20" y1="30" x2="20" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <line x1="48" y1="30" x2="48" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <line x1="76" y1="30" x2="76" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <line x1="104" y1="30" x2="104" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <line x1="130" y1="30" x2="130" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <line x1="158" y1="30" x2="158" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <line x1="186" y1="30" x2="186" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <line x1="213" y1="30" x2="213" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <line x1="240" y1="30" x2="240" y2="40" stroke="#60a5fa" stroke-width="2"/>
+        <text x="10" y="80" font-family="JetBrains Mono" font-size="11" fill="#4ecb8d">Float (log-spaced)</text>
+        <line x1="20" y1="97" x2="240" y2="97" stroke="#2a2a3a" stroke-width="2"/>
+        <line x1="20" y1="92" x2="20" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="28" y1="92" x2="28" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="38" y1="92" x2="38" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="52" y1="92" x2="52" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="72" y1="92" x2="72" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="100" y1="92" x2="100" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="140" y1="92" x2="140" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="190" y1="92" x2="190" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="240" y1="92" x2="240" y2="102" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="20" y="140" font-family="DM Sans" font-size="11" fill="#b8b8d0">More precision near zero</text>
+        <text x="20" y="155" font-family="DM Sans" font-size="11" fill="#b8b8d0">where most values lie</text>
+        <line x1="20" y1="115" x2="72" y2="115" stroke="#4ecb8d" stroke-width="1" stroke-dasharray="4"/>
+        <text x="80" y="119" font-family="JetBrains Mono" font-size="9" fill="#4ecb8d">dense</text>
+        <line x1="140" y1="115" x2="240" y2="115" stroke="#f87171" stroke-width="1" stroke-dasharray="4"/>
+        <text x="160" y="132" font-family="JetBrains Mono" font-size="9" fill="#f87171">sparse</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 7: FP4 & Microscaling -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>FP4 &amp; Microscaling Formats</h2></div>
+  <div class="cols cols-3">
+    <div class="card blue">
+      <h3>Plain FP4 (E2M1)</h3>
+      <ul>
+        <li>2 exp + 1 mantissa</li>
+        <li>Only 8 magnitude levels</li>
+        <li>Impractical without scaling</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>MXFP4 (OCP Spec)</h3>
+      <ul>
+        <li>Block of <span class="p">32 elements</span></li>
+        <li>E8M0 (power-of-2) scale</li>
+        <li>~3.8x effective reduction</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>NVFP4 (Blackwell)</h3>
+      <ul>
+        <li>Block of <span class="a">16 elements</span></li>
+        <li>E4M3 scale + FP32 per-tensor</li>
+        <li>~3.5x reduction, near-FP8 accuracy</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.8em">
+    <h3>Microscaling Principle</h3>
+    <p>A shared high-precision scale factor across a small block of low-precision elements. The block's max-magnitude element is recovered at near-FP8 precision, even though stored in only <span class="a">4 bits</span>. This two-level approach gives NVFP4 finer-grained adaptation to local value distributions.</p>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 8: Prefill vs Decode -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Prefill vs. Decode Asymmetry</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Prefill Phase</h3>
+      <ul>
+        <li>Processes entire prompt at once</li>
+        <li><span class="a">Compute-bound</span> -- large matrix multiplications</li>
+        <li>Benefits from low-precision tensor cores</li>
+        <li>Best with <span class="a">W4A4</span> or <span class="a">W8A8</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Decode Phase</h3>
+      <ul>
+        <li>Generates one token at a time</li>
+        <li><span class="g">Memory-bandwidth-bound</span> -- reads full model weights</li>
+        <li>Benefit is reducing data volume from HBM</li>
+        <li>Best with <span class="g">W4A16</span> or <span class="g">W8A16</span></li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 700 70" width="700" height="70" style="margin-top:.6em">
+    <rect x="10" y="10" width="330" height="50" rx="6" fill="none" stroke="#f5a623" stroke-width="2"/>
+    <text x="90" y="40" font-family="JetBrains Mono" font-size="13" fill="#f5a623">PREFILL: W4A4 (max FLOPS)</text>
+    <rect x="360" y="10" width="330" height="50" rx="6" fill="none" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="415" y="40" font-family="JetBrains Mono" font-size="13" fill="#4ecb8d">DECODE: W4A16 (max BW)</text>
+    <line x1="342" y1="20" x2="358" y2="35" stroke="#8888a8" stroke-width="1.5"/>
+    <line x1="342" y1="50" x2="358" y2="35" stroke="#8888a8" stroke-width="1.5"/>
+  </svg>
+  <p style="font-size:.72em;color:var(--muted);text-align:center">Phase-adaptive mixed precision: switch strategy between prefill and decode for optimal efficiency.</p>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 9: Layer-Wise Sensitivity -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Layer-Wise Sensitivity</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Not all layers respond equally to quantization:</p>
+      <ul>
+        <li><span class="r">First &amp; last layers</span> are most sensitive -- they establish internal representations and produce logit distributions</li>
+        <li><span class="g">Middle layers</span> tolerate aggressive quantization</li>
+        <li><span class="a">Embeddings &amp; lm_head</span> are frequently kept at higher precision</li>
+      </ul>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Advanced Methods</h3>
+        <ul>
+          <li><span class="p">SliM-LLM</span> -- salience metrics per layer/group</li>
+          <li><span class="p">Any-Precision LLM</span> -- bitplane encoding for dynamic runtime precision</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 260 280" width="260" height="280">
+        <text x="55" y="18" font-family="JetBrains Mono" font-size="10" fill="#8888a8">LAYER SENSITIVITY</text>
+        <!-- bars representing sensitivity -->
+        <rect x="90" y="35" width="130" height="18" rx="3" fill="#f87171" opacity=".8"/><text x="15" y="49" font-family="JetBrains Mono" font-size="9" fill="#ccc">Layer 0</text><text x="100" y="48" font-size="9" fill="#0a0a0f" font-weight="600">HIGH -- BF16</text>
+        <rect x="90" y="58" width="110" height="18" rx="3" fill="#f5a623" opacity=".7"/><text x="15" y="72" font-family="JetBrains Mono" font-size="9" fill="#ccc">Layer 1</text><text x="100" y="71" font-size="9" fill="#0a0a0f" font-weight="600">MED -- FP8</text>
+        <rect x="90" y="81" width="60" height="18" rx="3" fill="#4ecb8d" opacity=".6"/><text x="15" y="95" font-family="JetBrains Mono" font-size="9" fill="#ccc">Layer 2</text><text x="100" y="94" font-size="9" fill="#0a0a0f" font-weight="600">LOW</text>
+        <text x="130" y="120" font-family="JetBrains Mono" font-size="12" fill="#8888a8">...</text>
+        <rect x="90" y="135" width="45" height="18" rx="3" fill="#4ecb8d" opacity=".5"/><text x="15" y="149" font-family="JetBrains Mono" font-size="9" fill="#ccc">Layer N-4</text>
+        <rect x="90" y="158" width="50" height="18" rx="3" fill="#4ecb8d" opacity=".55"/><text x="15" y="172" font-family="JetBrains Mono" font-size="9" fill="#ccc">Layer N-3</text>
+        <rect x="90" y="181" width="75" height="18" rx="3" fill="#f5a623" opacity=".6"/><text x="15" y="195" font-family="JetBrains Mono" font-size="9" fill="#ccc">Layer N-2</text>
+        <rect x="90" y="204" width="100" height="18" rx="3" fill="#f5a623" opacity=".7"/><text x="15" y="218" font-family="JetBrains Mono" font-size="9" fill="#ccc">Layer N-1</text><text x="100" y="217" font-size="9" fill="#0a0a0f" font-weight="600">MED</text>
+        <rect x="90" y="227" width="140" height="18" rx="3" fill="#f87171" opacity=".8"/><text x="15" y="241" font-family="JetBrains Mono" font-size="9" fill="#ccc">Layer N</text><text x="100" y="240" font-size="9" fill="#0a0a0f" font-weight="600">HIGH -- BF16</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 10: GPU Hardware Support -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Hardware Support by Generation</h2></div>
+  <table>
+    <thead>
+      <tr><th>Generation</th><th>GPU</th><th>Precision Support</th><th>Key Advance</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="b">Volta</span></td><td>V100</td><td>FP16</td><td>First tensor cores</td></tr>
+      <tr><td><span class="b">Ampere</span></td><td>A100</td><td>FP16, BF16, INT8, TF32</td><td>BF16 + INT8 tensor cores</td></tr>
+      <tr><td><span class="a">Hopper</span></td><td>H100</td><td>+ FP8 (E4M3/E5M2)</td><td>Transformer Engine, FP8 at INT8 speed</td></tr>
+      <tr><td><span class="p">Blackwell</span></td><td>B200</td><td>+ FP4, FP6, NVFP4, MXFP4</td><td>18 PFLOPS FP4, 5th-gen tensor cores</td></tr>
+    </tbody>
+  </table>
+  <div class="card green" style="margin-top:.7em">
+    <h3>Accumulation is Key</h3>
+    <p>Tensor cores compute in low precision but <span class="a">accumulate in FP32</span>. Without this, rounding errors from thousands of MAC operations would compound catastrophically.</p>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 11: Memory Bandwidth Bottleneck -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>The Memory Bandwidth Wall</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Modern GPUs have far more compute than memory bandwidth, especially at low precisions.</p>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>H100 SXM Example</h3>
+        <ul>
+          <li><span class="a">1,979 TFLOPS</span> FP8 compute</li>
+          <li><span class="b">3.35 TB/s</span> HBM bandwidth</li>
+          <li>70B model at FP8 = ~70 GB weights</li>
+          <li>One decode step = read all 70 GB</li>
+          <li>70 GB / 3.35 TB/s = <span class="r">~21 ms/token</span></li>
+          <li>Max ~48 tokens/sec (single batch)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 240" width="280" height="240">
+        <text x="70" y="20" font-family="JetBrains Mono" font-size="11" fill="#8888a8">DECODE LATENCY</text>
+        <!-- bar chart -->
+        <rect x="40" y="40" width="60" height="150" rx="4" fill="#60a5fa" opacity=".7"/>
+        <text x="45" y="70" font-family="JetBrains Mono" font-size="10" fill="#e8e8f0">FP16</text>
+        <text x="48" y="85" font-family="JetBrains Mono" font-size="9" fill="#e8e8f0">42ms</text>
+        <rect x="120" y="115" width="60" height="75" rx="4" fill="#f5a623" opacity=".7"/>
+        <text x="130" y="140" font-family="JetBrains Mono" font-size="10" fill="#e8e8f0">FP8</text>
+        <text x="133" y="155" font-family="JetBrains Mono" font-size="9" fill="#e8e8f0">21ms</text>
+        <rect x="200" y="152" width="60" height="38" rx="4" fill="#4ecb8d" opacity=".7"/>
+        <text x="210" y="170" font-family="JetBrains Mono" font-size="10" fill="#e8e8f0">FP4</text>
+        <text x="213" y="183" font-family="JetBrains Mono" font-size="9" fill="#e8e8f0">~11ms</text>
+        <line x1="35" y1="190" x2="270" y2="190" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="70" y="210" font-family="JetBrains Mono" font-size="9" fill="#8888a8">70B model, single-batch decode</text>
+        <text x="50" y="225" font-family="JetBrains Mono" font-size="9" fill="#4ecb8d">Lower precision = less data to read = faster</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 12: W8A8 FP8 Strategy -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Strategy: W8A8 FP8</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>The Simplest Production Path</h3>
+      <ul>
+        <li>Weights quantized <span class="a">statically</span> via post-training calibration</li>
+        <li>Per-tensor or per-channel scaling factors</li>
+        <li>Activations quantized <span class="g">dynamically</span> per-token at runtime</li>
+        <li>Softmax, LayerNorm, residuals, lm_head stay in <span class="b">BF16/FP32</span></li>
+      </ul>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Transformer Engine</h3>
+        <p>NVIDIA's automated FP8 management maintains a history of activation magnitudes and updates scaling factors to track distribution over time.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 280" width="280" height="280">
+        <text x="65" y="18" font-family="JetBrains Mono" font-size="11" fill="#f5a623">W8A8 PIPELINE</text>
+        <rect x="60" y="30" width="160" height="32" rx="5" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="90" y="50" font-family="JetBrains Mono" font-size="10" fill="#60a5fa">Input (BF16)</text>
+        <line x1="140" y1="62" x2="140" y2="78" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="40" y="80" width="200" height="32" rx="5" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="60" y="100" font-family="JetBrains Mono" font-size="10" fill="#f5a623">Quantize Act -> FP8</text>
+        <line x1="140" y1="112" x2="140" y2="128" stroke="#8888a8" stroke-width="1.5"/>
+        <rect x="40" y="130" width="200" height="32" rx="5" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="55" y="150" font-family="JetBrains Mono" font-size="10" fill="#a78bfa">GEMM (FP8 x FP8 -> FP32)</text>
+        <line x1="140" y1="162" x2="140" y2="178" stroke="#8888a8" stroke-width="1.5"/>
+        <rect x="40" y="180" width="200" height="32" rx="5" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="60" y="200" font-family="JetBrains Mono" font-size="10" fill="#4ecb8d">LayerNorm (BF16)</text>
+        <line x1="140" y1="212" x2="140" y2="228" stroke="#8888a8" stroke-width="1.5"/>
+        <rect x="40" y="230" width="200" height="32" rx="5" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="65" y="250" font-family="JetBrains Mono" font-size="10" fill="#60a5fa">Output (BF16)</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 13: W4A16 INT4 Strategy -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Strategy: W4A16 Weight-Only INT4</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>GPTQ</h3>
+      <ul>
+        <li>Post-training quantization using inverse Hessian</li>
+        <li>Per-group scaling (group size 128)</li>
+        <li>1-3% perplexity increase typical</li>
+        <li>Broad ecosystem support</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>AWQ</h3>
+      <ul>
+        <li>Activation-aware weight quantization</li>
+        <li>Protects salient weight channels</li>
+        <li>1-2% perplexity increase typical</li>
+        <li>Often slightly better than GPTQ</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.6em">At inference: weights <span class="p">dequantized to BF16 on-the-fly</span> before GEMM via optimised kernels (e.g., Marlin) that fuse dequant + matmul.</p>
+  <p><span class="b">Best for:</span> single/low-batch decode, consumer GPUs, cost-sensitive cloud serving -- where the bottleneck is reading weights, not computing.</p>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 14: KV Cache Quantization -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>KV Cache Quantization</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The KV cache stores attention state for all processed tokens and can dominate GPU memory at long contexts or large batches.</p>
+      <ul>
+        <li>BF16 -> <span class="a">FP8</span> KV cache halves memory</li>
+        <li>Enables <span class="g">2-3x larger batch sizes</span> or longer contexts</li>
+        <li>FP8 preferred over INT8 for KV -- better dynamic range for attention values</li>
+        <li><span class="p">KIVI</span> explores asymmetric 2-bit KV cache quantization</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 260 200" width="260" height="200">
+        <text x="50" y="18" font-family="JetBrains Mono" font-size="10" fill="#8888a8">GPU MEMORY USAGE</text>
+        <!-- stacked bar: before -->
+        <text x="30" y="45" font-family="JetBrains Mono" font-size="9" fill="#ccc">Before</text>
+        <rect x="80" y="32" width="80" height="28" rx="3" fill="#a78bfa" opacity=".7"/>
+        <text x="95" y="50" font-size="9" fill="#e8e8f0">Weights</text>
+        <rect x="160" y="32" width="80" height="28" rx="3" fill="#f5a623" opacity=".7"/>
+        <text x="168" y="50" font-size="9" fill="#e8e8f0">KV (BF16)</text>
+        <!-- stacked bar: after -->
+        <text x="35" y="95" font-family="JetBrains Mono" font-size="9" fill="#ccc">After</text>
+        <rect x="80" y="82" width="80" height="28" rx="3" fill="#a78bfa" opacity=".7"/>
+        <text x="95" y="100" font-size="9" fill="#e8e8f0">Weights</text>
+        <rect x="160" y="82" width="40" height="28" rx="3" fill="#4ecb8d" opacity=".7"/>
+        <text x="163" y="100" font-size="9" fill="#e8e8f0">KV</text>
+        <text x="205" y="100" font-family="JetBrains Mono" font-size="9" fill="#4ecb8d">FP8</text>
+        <rect x="160" y="120" width="80" height="28" rx="3" fill="none" stroke="#4ecb8d" stroke-dasharray="4" stroke-width="1.5"/>
+        <text x="163" y="139" font-size="9" fill="#4ecb8d">Free for more batches!</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 15: Outlier Handling -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Outlier Handling Strategies</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>SmoothQuant</h3>
+      <p>Migrates quantization difficulty from activations to weights via per-channel scaling. Mathematically equivalent transformation that produces smoother activation distributions.</p>
+    </div>
+    <div class="card green">
+      <h3>QuaRot</h3>
+      <p>Applies Hadamard rotations to weight &amp; activation matrices, redistributing outlier energy across all channels for more uniform, quantization-friendly distributions.</p>
+    </div>
+    <div class="card purple">
+      <h3>Microscaling</h3>
+      <p>Block structure provides inherent outlier resilience -- each block's scale factor adapts to the local maximum, preventing one outlier from affecting the entire tensor.</p>
+    </div>
+  </div>
+  <p style="font-size:.72em;color:var(--muted);margin-top:.6em">Activation outliers -- values several standard deviations from the mean -- appear in specific channels and can dominate the quantization range, compressing the majority of values into just a few levels.</p>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 16: Scaling Granularity -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Calibration &amp; Scaling Granularity</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Static vs. Dynamic</h3>
+      <div class="card blue" style="margin-top:.3em">
+        <ul>
+          <li><span class="b">Static</span> -- computed once during calibration, zero runtime cost, requires representative data</li>
+          <li><span class="g">Dynamic</span> -- computed per input at runtime, more robust to outliers, adds overhead</li>
+          <li>Weights always use static (they don't change)</li>
+          <li>Activations: dynamic per-token is more robust but slower</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3>Granularity Spectrum</h3>
+      <div class="card amber" style="margin-top:.3em">
+        <ul>
+          <li><span class="r">Per-tensor</span> -- single scale, coarsest, fastest</li>
+          <li><span class="a">Per-channel</span> -- one scale per output channel</li>
+          <li><span class="g">Per-group</span> -- 32 or 128 elements, finest practical</li>
+          <li><span class="p">Per-block (microscaling)</span> -- optimised for tensor core layout (NVFP4 = 16 elements)</li>
+        </ul>
+      </div>
+      <p style="font-size:.72em;color:var(--muted)">Trend: finer granularity as hardware adds native support.</p>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 17: Accuracy Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Accuracy-Efficiency Comparison</h2></div>
+  <table>
+    <thead>
+      <tr><th>Configuration</th><th>Mem Reduction</th><th>Accuracy Impact</th><th>Hardware</th><th>Best Use</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="b">BF16</span></td><td>1x (baseline)</td><td>None</td><td>Any modern GPU</td><td>Quality-critical</td></tr>
+      <tr><td><span class="a">W8A8 FP8</span></td><td>2x</td><td>&lt;0.5% ppl</td><td>Hopper/Blackwell</td><td>Production serving</td></tr>
+      <tr><td><span class="g">W8A8 INT8</span></td><td>2x</td><td>Negligible-Minor</td><td>Ampere+</td><td>Broad HW compat.</td></tr>
+      <tr><td><span class="g">W4A16 GPTQ</span></td><td>4x weights</td><td>1-3% ppl increase</td><td>Any GPU</td><td>Edge / consumer</td></tr>
+      <tr><td><span class="g">W4A16 AWQ</span></td><td>4x weights</td><td>1-2% ppl increase</td><td>Any GPU</td><td>Edge / consumer</td></tr>
+      <tr><td><span class="p">W4A4 NVFP4</span></td><td>~3.5x</td><td>&lt;1% w/ calibration</td><td>Blackwell</td><td>High-throughput</td></tr>
+      <tr><td><span class="p">W4A4 MXFP4</span></td><td>~3.8x</td><td>Minor-Moderate</td><td>Blackwell</td><td>Research</td></tr>
+      <tr><td><span class="a">FP8 KV + W4A16</span></td><td>4x W / 2x KV</td><td>Minor</td><td>Hopper/Blackwell</td><td>Long-context</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:.68em;color:var(--muted);margin-top:.4em">Larger models generally tolerate quantization better. Task-specific evaluation is always recommended before deployment.</p>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 18: Software Ecosystem -->
+<section>
+  <div class="slide-hdr"><span class="tag">17</span><h2>Software Ecosystem</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>vLLM</h3>
+      <ul>
+        <li>Most widely used open-source serving engine</li>
+        <li>GPTQ, AWQ, FP8 integration</li>
+        <li>PagedAttention + quantized KV</li>
+        <li>NVFP4 support for Blackwell</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>TensorRT-LLM</h3>
+      <ul>
+        <li>NVIDIA's optimised engine</li>
+        <li>Deepest HW integration (FP8 TE, NVFP4)</li>
+        <li>Best single-GPU NVIDIA perf</li>
+        <li>Less portable</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>llama.cpp</h3>
+      <ul>
+        <li>CPU &amp; consumer GPU target</li>
+        <li>GGUF format: Q2 through Q8</li>
+        <li>Block sizes optimised for CPU SIMD</li>
+        <li>Apple Metal GPU support</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.7em">
+    <h3>Quantization Toolkit Workflow</h3>
+    <p>Select base model --> Choose quantization method &amp; precision --> Run calibration with representative data --> Validate on benchmarks --> Deploy. Tools: <span class="a">AutoGPTQ</span>, <span class="g">llm-compressor</span>, <span class="p">TensorRT Model Optimizer</span></p>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 19: Emerging Directions -->
+<section>
+  <div class="slide-hdr"><span class="tag">18</span><h2>Emerging Directions</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Phase-Adaptive Precision</h3>
+      <p>Progressive mixed precision during decode: start at higher precision, gradually lower it as sequence progresses. Early tokens are more influential than later ones.</p>
+    </div>
+    <div class="card green">
+      <h3>Format-Specialised Quantization</h3>
+      <p><span class="g">MR-GPTQ</span> tailors quantization to FP4 properties with fused Hadamard rotations. Achieves 3.6x layer-wise speedup on Blackwell B200.</p>
+    </div>
+    <div class="card purple">
+      <h3>Mixed Precision for MoE</h3>
+      <p>Expert-aware allocation: frequently activated experts get higher precision, rarely used experts tolerate aggressive quantization based on activation frequency.</p>
+    </div>
+    <div class="card red">
+      <h3>1-Bit &amp; Sub-2-Bit</h3>
+      <p><span class="r">BitNet</span> (1.58-bit ternary {-1,0,1}) eliminates multiplication entirely. <span class="r">BinaryMoS</span> uses token-adaptive scaling. Promising for on-device power efficiency.</p>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+<!-- SLIDE 20: Decision Framework -->
+<section>
+  <div class="slide-hdr"><span class="tag">KEY</span><h2>Practical Decision Framework</h2></div>
+  <table>
+    <thead>
+      <tr><th>Scenario</th><th>Recommended Strategy</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Cloud / Hopper / Quality-first</span></td><td>FP8 W8A8 + FP8 KV</td><td>Best quality-to-cost ratio, minimal friction</td></tr>
+      <tr><td><span class="g">Cloud / Blackwell / Cost-first</span></td><td>NVFP4 W4A4 prefill + W4A16 decode</td><td>Maximum throughput, phase-adaptive</td></tr>
+      <tr><td><span class="p">Edge / Consumer GPU</span></td><td>INT4 W4A16 (GPTQ/AWQ)</td><td>Broad HW compat, 4x weight reduction</td></tr>
+      <tr><td><span class="b">Latency-critical (TTFT)</span></td><td>NVFP4 W4A4 on Blackwell</td><td>Fastest prefill performance available</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-3" style="margin-top:.6em">
+    <div class="card amber">
+      <h3>Always Do</h3>
+      <p>Keep embeddings &amp; lm_head at higher precision</p>
+    </div>
+    <div class="card green">
+      <h3>Always Do</h3>
+      <p>Quantize KV cache to FP8 for batch size gains</p>
+    </div>
+    <div class="card blue">
+      <h3>Always Do</h3>
+      <p>Validate on task-specific benchmarks, not just perplexity</p>
+    </div>
+  </div>
+  <div class="slide-footer">mixed-precision-arithmetic</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

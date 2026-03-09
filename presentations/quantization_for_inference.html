@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantization for Inference | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Quantization for Inference</h1>
+  <p class="subtitle">Precision Reduction Techniques for Efficient LLM Deployment</p>
+  <div>
+    <span class="pill amber">FP8</span>
+    <span class="pill green">INT8</span>
+    <span class="pill purple">INT4</span>
+    <span class="pill blue">GPTQ</span>
+    <span class="pill amber">AWQ</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">quantization_for_inference</div>
+</section>
+
+<!-- SLIDE 2: Why Quantization Matters -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>Why Quantization Matters</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Memory Bandwidth Bottleneck</h3>
+      <p>Autoregressive decode is <span class="a">memory-bandwidth bound</span> &mdash; each token requires reading the full model weights from GPU memory with little compute per byte loaded.</p>
+      <ul>
+        <li>16-bit &rarr; 8-bit: <span class="g">2x</span> effective bandwidth</li>
+        <li>16-bit &rarr; 4-bit: <span class="g">4x</span> effective bandwidth</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Memory Capacity &amp; Accessibility</h3>
+      <p>A <span class="a">70B</span> parameter model in FP16 requires <span class="r">~140 GB</span> &mdash; exceeding any single consumer GPU.</p>
+      <ul>
+        <li>INT4 reduces this to <span class="g">~35 GB</span></li>
+        <li>Fits on a single 48 GB GPU</li>
+        <li>Democratizes frontier-class models</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 01</div>
+</section>
+
+<!-- SLIDE 3: The Core Idea (SVG Diagram) -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>The Core Idea</h2></div>
+  <p style="text-align:center;margin-bottom:.6em">Reduce numerical precision of weights, activations, and KV cache</p>
+  <svg class="diagram" viewBox="0 0 900 200" width="820" height="180">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8888a8"/>
+      </marker>
+    </defs>
+    <rect x="10" y="50" width="160" height="80" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="90" y="85" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="14" font-weight="600">FP32 / FP16</text>
+    <text x="90" y="110" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">Full Precision</text>
+    <line x1="180" y1="90" x2="280" y2="90" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="290" y="50" width="160" height="80" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="370" y="85" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="14" font-weight="600">FP8 / INT8</text>
+    <text x="370" y="110" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">2x Savings</text>
+    <line x1="460" y1="90" x2="560" y2="90" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="570" y="50" width="160" height="80" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="650" y="85" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="14" font-weight="600">INT4 / INT3</text>
+    <text x="650" y="110" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">4&ndash;8x Savings</text>
+    <line x1="740" y1="90" x2="830" y2="90" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="835" y="65" width="55" height="50" rx="6" fill="#10101a" stroke="#f87171" stroke-width="2"/>
+    <text x="862" y="95" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="13" font-weight="600">INT2</text>
+    <text x="90" y="160" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Baseline</text>
+    <text x="370" y="160" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Production</text>
+    <text x="650" y="160" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Edge / Cost-opt</text>
+    <text x="862" y="160" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Research</text>
+  </svg>
+  <div class="slide-footer">quantization_for_inference &mdash; 02</div>
+</section>
+
+<!-- SLIDE 4: Uniform vs Non-Uniform Quantization -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Uniform vs. Non-Uniform Quantization</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Uniform Quantization</h3>
+      <ul>
+        <li>Maps values to <span class="g">evenly spaced</span> integer levels</li>
+        <li>Defined by a <span class="a">scale factor</span> and <span class="a">zero-point</span></li>
+        <li>Hardware-friendly &mdash; dominates practical deployment</li>
+        <li>Simple dequantization logic</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Non-Uniform Quantization</h3>
+      <ul>
+        <li>Unevenly spaced levels based on <span class="p">value distribution</span></li>
+        <li>Higher precision for frequently occurring values</li>
+        <li>Can achieve better accuracy theoretically</li>
+        <li>Less hardware support, more complex</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em;color:var(--muted);font-size:.75em">In practice, <span class="g">uniform quantization</span> is the dominant approach for LLM deployment due to hardware compatibility.</p>
+  <div class="slide-footer">quantization_for_inference &mdash; 03</div>
+</section>
+
+<!-- SLIDE 5: Weight-Only vs Weight-and-Activation -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Weight-Only vs. Weight-and-Activation</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Weight-Only Quantization</h3>
+      <ul>
+        <li>Quantizes only <span class="a">static weights</span></li>
+        <li>Activations remain in FP16/BF16</li>
+        <li>Careful offline calibration possible</li>
+        <li><span class="g">Minimal quality impact</span></li>
+        <li>Most widely used for LLM inference</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Weight + Activation (W8A8, W4A8)</h3>
+      <ul>
+        <li>Quantizes <span class="b">dynamic activations</span> at runtime</li>
+        <li>Enables INT8 / FP8 tensor core usage</li>
+        <li>Additional speedups from integer matmul</li>
+        <li>Harder &mdash; activations have <span class="r">outliers</span></li>
+        <li>Requires more careful calibration</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 04</div>
+</section>
+
+<!-- SLIDE 6: Quantization Granularity -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Quantization Granularity</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Per-Tensor</h3>
+      <p>Single scale &amp; zero-point for the <span class="a">entire matrix</span>. Simple but loses precision when ranges vary across channels.</p>
+    </div>
+    <div class="card green">
+      <h3>Per-Channel</h3>
+      <p>Separate parameters for each <span class="g">output channel</span>. Better range capture per channel with modest overhead.</p>
+    </div>
+    <div class="card purple">
+      <h3>Per-Group</h3>
+      <p>Independent parameters per <span class="p">group of 32&ndash;128</span> elements. Finest granularity, best accuracy, slightly more complex dequantization.</p>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 110" width="750" height="100" style="margin-top:.5em">
+    <text x="20" y="20" fill="#8888a8" font-family="DM Sans" font-size="12">Granularity spectrum:</text>
+    <rect x="20" y="35" width="200" height="45" rx="6" fill="none" stroke="#f5a623" stroke-width="2"/>
+    <text x="120" y="63" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13">1 scale/matrix</text>
+    <rect x="260" y="35" width="200" height="45" rx="6" fill="none" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="360" y="63" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13">1 scale/channel</text>
+    <rect x="500" y="35" width="250" height="45" rx="6" fill="none" stroke="#a78bfa" stroke-width="2"/>
+    <text x="625" y="63" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">1 scale/32-128 elems</text>
+    <text x="120" y="100" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Least accurate</text>
+    <text x="625" y="100" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Most accurate</text>
+    <line x1="220" y1="57" x2="258" y2="57" stroke="#2a2a3a" stroke-width="1.5" stroke-dasharray="4"/>
+    <line x1="460" y1="57" x2="498" y2="57" stroke="#2a2a3a" stroke-width="1.5" stroke-dasharray="4"/>
+  </svg>
+  <div class="slide-footer">quantization_for_inference &mdash; 05</div>
+</section>
+
+<!-- SLIDE 7: GPTQ -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>GPTQ</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>One-Shot Weight Quantization</h3>
+      <ul>
+        <li>Based on <span class="a">approximate second-order information</span></li>
+        <li>Processes weight matrix <span class="g">column by column</span></li>
+        <li>Quantizes each column, then adjusts remaining columns to <span class="b">compensate for error</span></li>
+        <li>Uses approximate <span class="p">inverse Hessian</span> from calibration data</li>
+        <li>Can quantize a large model in <span class="a">hours on a single GPU</span></li>
+      </ul>
+    </div>
+    <div class="card green" style="align-self:center">
+      <h3>Key Properties</h3>
+      <ul>
+        <li>Produces INT4 / INT3 models</li>
+        <li>Remarkably low perplexity degradation</li>
+        <li>Standard method in open-source community</li>
+        <li>Optimized kernels via <span class="b">Marlin</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 06</div>
+</section>
+
+<!-- SLIDE 8: AWQ -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>AWQ &mdash; Activation-Aware Weight Quantization</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Key Insight</h3>
+      <p>Not all weights are <span class="a">equally important</span> for model accuracy. AWQ identifies salient weight channels by examining <span class="g">activation magnitudes</span> from a calibration set.</p>
+      <h3 style="margin-top:.6em">Method</h3>
+      <ul>
+        <li>Identify important channels via activation statistics</li>
+        <li>Apply <span class="p">per-channel scaling</span> to protect salient channels</li>
+        <li>Concentrate quantization error on <span class="b">less important</span> channels</li>
+      </ul>
+    </div>
+    <div class="card amber" style="align-self:center">
+      <h3>AWQ vs. GPTQ</h3>
+      <ul>
+        <li><span class="g">Better accuracy</span> than naive RTN at same bit width</li>
+        <li><span class="g">Lower compute cost</span> than GPTQ</li>
+        <li>No second-order computation needed</li>
+        <li>Simpler calibration pipeline</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 07</div>
+</section>
+
+<!-- SLIDE 9: Mixed-Precision Methods -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Mixed-Precision: SqueezeLLM &amp; SpQR</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>SqueezeLLM</h3>
+      <ul>
+        <li>Sensitivity-based <span class="p">non-uniform quantization</span></li>
+        <li>Uses a <span class="a">lookup table</span> for level mapping</li>
+        <li>Outlier weights stored at higher precision (FP16)</li>
+        <li>Majority quantized to 3-bit or 2-bit</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>SpQR</h3>
+      <ul>
+        <li>Isolates outliers via <span class="b">second-order sensitivity analysis</span></li>
+        <li>Sensitive weights kept in FP16</li>
+        <li>Remaining weights at very low precision</li>
+        <li>Competitive accuracy at <span class="g">extremely low avg. bit widths</span></li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.5em;font-size:.78em;color:var(--muted)">Both methods achieve strong results by treating <span class="r">outlier weights</span> differently from the bulk distribution.</p>
+  <div class="slide-footer">quantization_for_inference &mdash; 08</div>
+</section>
+
+<!-- SLIDE 10: FP8 Quantization -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>FP8 Quantization</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>E4M3 (Weights)</h3>
+      <ul>
+        <li>4 exponent bits, 3 mantissa bits</li>
+        <li>Better precision for weight distributions</li>
+        <li>Preferred format for <span class="a">model weights</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>E5M2 (Activations)</h3>
+      <ul>
+        <li>5 exponent bits, 2 mantissa bits</li>
+        <li>Wider dynamic range for activations/gradients</li>
+        <li>Handles <span class="r">outlier values</span> better</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Hardware Support</h3>
+    <p>FP8 is natively supported on <span class="g">NVIDIA Hopper and Blackwell</span> GPUs. FP8 tensor cores deliver the <span class="a">same throughput as INT8</span> while naturally handling wide dynamic ranges better than integer formats. FP8 has become the <span class="g">preferred 8-bit format</span> for inference on modern NVIDIA hardware.</p>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 09</div>
+</section>
+
+<!-- SLIDE 11: QAT and QLoRA -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Quantization-Aware Training &amp; QLoRA</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Quantization-Aware Training (QAT)</h3>
+      <ul>
+        <li>Incorporates <span class="a">quantization simulation</span> into training</li>
+        <li>Model learns to compensate for quantization error</li>
+        <li>Generally <span class="g">better accuracy</span> than post-training quantization</li>
+        <li>Requires training data and significant compute</li>
+        <li>Most commonly applied during <span class="b">fine-tuning</span></li>
+      </ul>
+    </div>
+    <div class="card purple" style="align-self:center">
+      <h3>QLoRA</h3>
+      <ul>
+        <li>Combines <span class="p">LoRA</span> with 4-bit quantized base weights</li>
+        <li>Fine-tune large models on <span class="g">consumer hardware</span></li>
+        <li>Quality approaches full-precision fine-tuning</li>
+        <li>Uses NF4 (Normal Float 4) format</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 10</div>
+</section>
+
+<!-- SLIDE 12: Accuracy Trade-Offs Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Accuracy Trade-Offs Across Precision Levels</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Precision</th>
+        <th>Memory Savings</th>
+        <th>Perplexity Impact</th>
+        <th>Hardware Support</th>
+        <th>Common Use</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">FP16 / BF16</span></td>
+        <td>Baseline</td>
+        <td>None (reference)</td>
+        <td>Universal</td>
+        <td>Training, reference</td>
+      </tr>
+      <tr>
+        <td><span class="g">FP8 (E4M3)</span></td>
+        <td>2x</td>
+        <td>Negligible</td>
+        <td>Hopper / Blackwell</td>
+        <td>Production serving</td>
+      </tr>
+      <tr>
+        <td><span class="b">INT8 (W8A8)</span></td>
+        <td>2x</td>
+        <td>Negligible&ndash;Minor</td>
+        <td>Most modern GPUs</td>
+        <td>Production serving</td>
+      </tr>
+      <tr>
+        <td><span class="p">INT4 (weight-only)</span></td>
+        <td>4x</td>
+        <td>Minor (1&ndash;3% ppl)</td>
+        <td>Dequant kernels</td>
+        <td>Edge / cost-sensitive</td>
+      </tr>
+      <tr>
+        <td><span class="p">INT4 (W4A8)</span></td>
+        <td>~3x effective</td>
+        <td>Minor&ndash;Moderate</td>
+        <td>Emerging</td>
+        <td>Experimental serving</td>
+      </tr>
+      <tr>
+        <td><span class="r">INT3 / INT2</span></td>
+        <td>5&ndash;8x</td>
+        <td>Moderate&ndash;Significant</td>
+        <td>Custom kernels</td>
+        <td>Research, extreme edge</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">quantization_for_inference &mdash; 11</div>
+</section>
+
+<!-- SLIDE 13: Deployment Decision Framework (SVG) -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Deployment Decision Framework</h2></div>
+  <svg class="diagram" viewBox="0 0 900 300" width="850" height="280">
+    <!-- Top question -->
+    <rect x="300" y="5" width="300" height="45" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="450" y="33" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="14" font-weight="600">What is your deployment target?</text>
+    <!-- Branches -->
+    <line x1="350" y1="50" x2="140" y2="100" stroke="#4ecb8d" stroke-width="1.5"/>
+    <line x1="450" y1="50" x2="450" y2="100" stroke="#60a5fa" stroke-width="1.5"/>
+    <line x1="550" y1="50" x2="760" y2="100" stroke="#a78bfa" stroke-width="1.5"/>
+    <!-- Left: High-end -->
+    <rect x="30" y="100" width="220" height="80" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="140" y="125" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">High-End GPU Serving</text>
+    <text x="140" y="148" text-anchor="middle" fill="#ccc" font-family="DM Sans" font-size="11">Hopper / Blackwell GPUs</text>
+    <text x="140" y="168" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">FP8</text>
+    <!-- Center: Cost-opt -->
+    <rect x="310" y="100" width="280" height="80" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="450" y="125" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="13" font-weight="600">Cost-Optimized Serving</text>
+    <text x="450" y="148" text-anchor="middle" fill="#ccc" font-family="DM Sans" font-size="11">Single GPU / edge deployment</text>
+    <text x="450" y="168" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">INT4 (GPTQ / AWQ)</text>
+    <!-- Right: Edge -->
+    <rect x="650" y="100" width="220" height="80" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="760" y="125" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="13" font-weight="600">Extreme Edge</text>
+    <text x="760" y="148" text-anchor="middle" fill="#ccc" font-family="DM Sans" font-size="11">Laptop / mobile</text>
+    <text x="760" y="168" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">INT3 / INT2 + Mixed</text>
+    <!-- Outcome labels -->
+    <line x1="140" y1="180" x2="140" y2="220" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="450" y1="180" x2="450" y2="220" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="760" y1="180" x2="760" y2="220" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4"/>
+    <text x="140" y="240" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">No quality loss</text>
+    <text x="140" y="258" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">Native HW support</text>
+    <text x="450" y="240" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="11">1-3% ppl increase</text>
+    <text x="450" y="258" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="11">Strong accuracy-efficiency</text>
+    <text x="760" y="240" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="11">Noticeable quality impact</text>
+    <text x="760" y="258" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="11">Requires outlier handling</text>
+  </svg>
+  <div class="slide-footer">quantization_for_inference &mdash; 12</div>
+</section>
+
+<!-- SLIDE 14: Calibration -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Calibration: The Underappreciated Factor</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Why Calibration Matters</h3>
+      <ul>
+        <li>Determines scale factors and zero-points for quantization</li>
+        <li>Calibration data should be <span class="a">representative of deployment distribution</span></li>
+        <li>Using mismatched data leads to <span class="r">suboptimal quantization decisions</span></li>
+      </ul>
+      <div class="card red" style="margin-top:.5em">
+        <h3>Common Pitfall</h3>
+        <p>Calibrating with general web text for a model that processes <span class="r">code</span> or <span class="r">domain-specific</span> content.</p>
+      </div>
+    </div>
+    <div class="card green">
+      <h3>Practical Guidelines</h3>
+      <ul>
+        <li>Only <span class="a">128&ndash;512 samples</span> needed</li>
+        <li>Curate <span class="g">domain-specific</span> calibration sets</li>
+        <li>Match calibration to deployment distribution</li>
+        <li>Small investment, significant quality payoff</li>
+      </ul>
+      <h3 style="margin-top:.6em">Per Method</h3>
+      <ul>
+        <li><span class="b">GPTQ:</span> Hessian from calibration data</li>
+        <li><span class="b">AWQ:</span> Activation magnitudes from calibration</li>
+        <li><span class="b">FP8:</span> Per-tensor scaling from calibration ranges</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 13</div>
+</section>
+
+<!-- SLIDE 15: Runtime Kernel Support -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Runtime Kernel Support</h2></div>
+  <p>Theoretical memory savings only translate to <span class="a">actual speedups</span> with optimized dequantization and matmul kernels.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Library</th>
+        <th>Format</th>
+        <th>Key Feature</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Marlin</span></td>
+        <td>GPTQ (INT4)</td>
+        <td>Optimized INT4 dequant + matmul kernels</td>
+      </tr>
+      <tr>
+        <td><span class="g">CUTLASS</span></td>
+        <td>FP8</td>
+        <td>NVIDIA's template library for FP8 tensor core ops</td>
+      </tr>
+      <tr>
+        <td><span class="p">bitsandbytes</span></td>
+        <td>NF4</td>
+        <td>Normal Float 4-bit for QLoRA fine-tuning</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="card red" style="margin-top:.6em">
+    <h3>Warning</h3>
+    <p>Choosing a quantization format <span class="r">without corresponding kernel support</span> can negate much of the potential benefit. Always verify runtime support before committing to a format.</p>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 14</div>
+</section>
+
+<!-- SLIDE 16: Method Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>PTQ Method Comparison</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Approach</th>
+        <th>Bit Width</th>
+        <th>Compute Cost</th>
+        <th>Accuracy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">RTN</span></td>
+        <td>Round-to-nearest</td>
+        <td>INT8 / INT4</td>
+        <td><span class="g">Minimal</span></td>
+        <td>Baseline</td>
+      </tr>
+      <tr>
+        <td><span class="b">GPTQ</span></td>
+        <td>2nd-order error compensation</td>
+        <td>INT4 / INT3</td>
+        <td><span class="a">Moderate</span></td>
+        <td><span class="g">Strong</span></td>
+      </tr>
+      <tr>
+        <td><span class="g">AWQ</span></td>
+        <td>Activation-aware scaling</td>
+        <td>INT4</td>
+        <td><span class="g">Low</span></td>
+        <td><span class="g">Strong</span></td>
+      </tr>
+      <tr>
+        <td><span class="p">SqueezeLLM</span></td>
+        <td>Non-uniform + outlier isolation</td>
+        <td>3-bit / 2-bit</td>
+        <td><span class="a">Moderate</span></td>
+        <td><span class="g">Good at low bits</span></td>
+      </tr>
+      <tr>
+        <td><span class="p">SpQR</span></td>
+        <td>Sensitivity-based mixed precision</td>
+        <td>3-bit / 2-bit</td>
+        <td><span class="a">Moderate</span></td>
+        <td><span class="g">Good at low bits</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">FP8</span></td>
+        <td>Hardware-native float format</td>
+        <td>FP8</td>
+        <td><span class="g">Minimal</span></td>
+        <td><span class="g">Excellent</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">quantization_for_inference &mdash; 15</div>
+</section>
+
+<!-- SLIDE 17: Future Directions -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Future Directions</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Sub-4-bit Advances</h3>
+      <ul>
+        <li>Better <span class="a">outlier handling</span></li>
+        <li>Learned codebook approaches</li>
+        <li>Narrowing gap to full precision</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Hardware Evolution</h3>
+      <ul>
+        <li>Native <span class="g">INT4 tensor cores</span> on roadmap</li>
+        <li>Dedicated INT2 support planned</li>
+        <li>Expanding low-precision ecosystem</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Dynamic Quantization</h3>
+      <ul>
+        <li>Adapt precision based on <span class="p">generation difficulty</span></li>
+        <li>Per-token or per-layer precision selection</li>
+        <li>Active research area</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Compound Optimizations</h3>
+      <ul>
+        <li>Quantization + <span class="b">pruning</span></li>
+        <li>Quantization + <span class="b">distillation</span></li>
+        <li>Quantization + <span class="b">sparsity</span></li>
+        <li>Compounding efficiency gains</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 16</div>
+</section>
+
+<!-- SLIDE 18: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">17</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <ul>
+        <li>Quantization is <span class="a">indispensable</span> for practical LLM inference</li>
+        <li>Addresses the core <span class="g">memory-bandwidth bottleneck</span></li>
+        <li><span class="b">FP8</span> on modern GPUs: best quality-to-speedup ratio</li>
+        <li><span class="p">INT4</span> (GPTQ/AWQ): strong choice for cost-sensitive and edge</li>
+        <li>Sub-4-bit: viable for extreme constraints with outlier handling</li>
+        <li>Calibration data selection is <span class="r">critical</span> and often overlooked</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 260" width="300" height="240">
+        <text x="160" y="20" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="16" font-weight="700">The Quantization Spectrum</text>
+        <!-- Bars -->
+        <rect x="30" y="45" width="260" height="32" rx="4" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <rect x="30" y="45" width="260" height="32" rx="4" fill="#4ecb8d" fill-opacity="0.15"/>
+        <text x="40" y="66" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">FP8    2x savings   ~0% ppl loss</text>
+
+        <rect x="30" y="87" width="260" height="32" rx="4" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <rect x="30" y="87" width="260" height="32" rx="4" fill="#60a5fa" fill-opacity="0.15"/>
+        <text x="40" y="108" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">INT8   2x savings   ~0% ppl loss</text>
+
+        <rect x="30" y="129" width="260" height="32" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <rect x="30" y="129" width="260" height="32" rx="4" fill="#a78bfa" fill-opacity="0.15"/>
+        <text x="40" y="150" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">INT4   4x savings  1-3% ppl loss</text>
+
+        <rect x="30" y="171" width="260" height="32" rx="4" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+        <rect x="30" y="171" width="260" height="32" rx="4" fill="#f87171" fill-opacity="0.15"/>
+        <text x="40" y="192" fill="#f87171" font-family="JetBrains Mono" font-size="12">INT2  5-8x savings   notable loss</text>
+
+        <text x="160" y="230" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">More savings &darr; &mdash; More quality impact &darr;</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">quantization_for_inference &mdash; 17</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

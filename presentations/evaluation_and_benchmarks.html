@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Evaluation &amp; Benchmarks | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65;color:var(--text)}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px;letter-spacing:.04em}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted);letter-spacing:.05em}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;letter-spacing:.04em;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="mono" style="color:var(--muted);font-size:.7em;letter-spacing:.15em;margin-bottom:.2em">TECHNICAL REPORT</p>
+  <h1>Evaluation &amp; Benchmarks</h1>
+  <p class="subtitle">LLM Evaluation Methodology, Benchmarks, and Best Practices</p>
+  <div style="width:80px;height:3px;background:var(--amber);margin:0 auto 1.2em"></div>
+  <div style="margin-bottom:1em">
+    <span class="pill amber">BENCHMARKS</span>
+    <span class="pill green">METHODOLOGY</span>
+    <span class="pill purple">SAFETY</span>
+    <span class="pill blue">BEST PRACTICES</span>
+  </div>
+  <p style="font-size:.72em;color:#b8b8d0;max-width:700px;margin:0 auto .8em">A comprehensive survey of how large language models are evaluated, from standardized benchmarks to human judgment, data contamination risks, and emerging frontiers.</p>
+  <p class="meta">February 2026</p>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 2: The Evaluation Challenge -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">01</span>
+    <h2>The Evaluation Challenge</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Unlike traditional ML tasks with <span class="a">clear ground-truth labels</span>, LLM outputs are open-ended, subjective, and multidimensional.</p>
+      <ul>
+        <li>A model that excels at <span class="g">mathematical reasoning</span> may struggle with creative writing</li>
+        <li>A <span class="b">highly helpful</span> model may be more susceptible to producing harmful content</li>
+        <li>No single metric captures the full picture</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Core Tension</h3>
+      <p>Evaluation is both <strong>critically important</strong> and <strong>stubbornly difficult</strong> &mdash; the inherent complexity of open-ended generation resists simple measurement.</p>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 3: Categories of Evaluation Overview -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">02</span>
+    <h2>Categories of Evaluation</h2>
+  </div>
+  <svg class="diagram" viewBox="0 0 900 300" width="850">
+    <rect x="50" y="30" width="180" height="90" rx="10" fill="none" stroke="var(--amber)" stroke-width="2"/>
+    <text x="140" y="65" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display,serif" font-size="15" font-weight="700">Knowledge &amp;</text>
+    <text x="140" y="85" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display,serif" font-size="15" font-weight="700">Reasoning</text>
+    <text x="140" y="108" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="11">MMLU, GSM8K, ARC</text>
+    <rect x="280" y="30" width="180" height="90" rx="10" fill="none" stroke="var(--green)" stroke-width="2"/>
+    <text x="370" y="70" text-anchor="middle" fill="var(--green)" font-family="Playfair Display,serif" font-size="15" font-weight="700">Coding</text>
+    <text x="370" y="108" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="11">HumanEval, SWE-bench</text>
+    <rect x="510" y="30" width="180" height="90" rx="10" fill="none" stroke="var(--purple)" stroke-width="2"/>
+    <text x="600" y="65" text-anchor="middle" fill="var(--purple)" font-family="Playfair Display,serif" font-size="15" font-weight="700">Instruction</text>
+    <text x="600" y="85" text-anchor="middle" fill="var(--purple)" font-family="Playfair Display,serif" font-size="15" font-weight="700">Following</text>
+    <text x="600" y="108" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="11">MT-Bench, Chatbot Arena</text>
+    <rect x="280" y="170" width="180" height="90" rx="10" fill="none" stroke="var(--red)" stroke-width="2"/>
+    <text x="370" y="205" text-anchor="middle" fill="var(--red)" font-family="Playfair Display,serif" font-size="15" font-weight="700">Safety &amp;</text>
+    <text x="370" y="225" text-anchor="middle" fill="var(--red)" font-family="Playfair Display,serif" font-size="15" font-weight="700">Alignment</text>
+    <text x="370" y="248" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="11">TruthfulQA, BBQ, Red-teaming</text>
+    <!-- connecting lines -->
+    <line x1="140" y1="120" x2="310" y2="170" stroke="var(--border)" stroke-width="1"/>
+    <line x1="370" y1="120" x2="370" y2="170" stroke="var(--border)" stroke-width="1"/>
+    <line x1="600" y1="120" x2="430" y2="170" stroke="var(--border)" stroke-width="1"/>
+  </svg>
+  <p style="text-align:center;color:var(--muted);font-size:.72em;margin-top:.3em">Four primary dimensions of LLM evaluation, each with distinct benchmarks and methodologies</p>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 4: Knowledge & Reasoning Benchmarks -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">03</span>
+    <h2>Knowledge &amp; Reasoning Benchmarks</h2>
+  </div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>MMLU</h3>
+      <p>Massive Multitask Language Understanding &mdash; <strong>57 subjects</strong> from elementary math to professional medicine. The broadest knowledge test.</p>
+    </div>
+    <div class="card green">
+      <h3>GSM8K &amp; MATH</h3>
+      <p><strong>GSM8K</strong>: grade-school math problems. <strong>MATH</strong>: competition-level mathematics. Tests structured problem-solving.</p>
+    </div>
+    <div class="card purple">
+      <h3>ARC &amp; Commonsense</h3>
+      <p><strong>ARC</strong>: scientific reasoning. <strong>HellaSwag</strong> &amp; <strong>WinoGrande</strong>: commonsense inference and contextual understanding.</p>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Key Limitation</h3>
+    <p>These benchmarks provide <strong>standardized, reproducible</strong> measurements but capture only a <span class="r">narrow slice</span> of model capability. Structured questions with verifiable answers cannot measure open-ended generation quality.</p>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 5: Coding Benchmarks -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">04</span>
+    <h2>Coding Benchmarks</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.8em">
+        <h3>Function-Level</h3>
+        <ul>
+          <li><span class="a">HumanEval</span> &mdash; 164 hand-written programming problems with unit tests</li>
+          <li><span class="a">MBPP</span> &mdash; Mostly Basic Python Problems for code generation</li>
+          <li>Metric: <code>pass@k</code></li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <h3>System-Level</h3>
+        <ul>
+          <li><span class="a">SWE-bench</span> &mdash; resolve real GitHub issues across large codebases</li>
+          <li><span class="a">LiveCodeBench</span> &mdash; fresh competitive programming problems to reduce contamination</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card amber">
+      <h3>Why Code Evals Work Well</h3>
+      <p style="margin-bottom:.5em">Code generation is uniquely suited to automated evaluation:</p>
+      <ul>
+        <li><span class="g">Unambiguous correctness</span> &mdash; code either passes tests or it doesn't</li>
+        <li>Execution-based testing removes subjectivity</li>
+        <li>Easy to scale and automate</li>
+      </ul>
+      <h3 style="margin-top:.6em">Blind Spots</h3>
+      <ul>
+        <li>Code <span class="r">quality</span> and readability</li>
+        <li>Architectural decisions</li>
+        <li>Maintainability</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 6: Instruction Following & Helpfulness -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">05</span>
+    <h2>Instruction Following &amp; Helpfulness</h2>
+  </div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>MT-Bench</h3>
+      <ul>
+        <li>Two-turn conversation format</li>
+        <li>LLM judge (GPT-4) scoring</li>
+        <li><span class="a">1&ndash;10 scale</span></li>
+        <li>Tests multi-turn coherence</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>AlpacaEval</h3>
+      <ul>
+        <li>Compares against reference model</li>
+        <li>LLM judge determines <span class="g">win rates</span></li>
+        <li>Quick iteration metric</li>
+        <li>Automated &amp; scalable</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Chatbot Arena</h3>
+      <ul>
+        <li><span class="p">Blind human comparisons</span></li>
+        <li>Real-time conversations</li>
+        <li>Produces Elo rating</li>
+        <li>Gold standard for helpfulness</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.7em;color:var(--muted);font-size:.74em">These evaluations are closer to measuring <span class="g">real-world usefulness</span> but introduce subjectivity and potential biases in both human and LLM judges.</p>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 7: Safety & Alignment Evaluation -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">06</span>
+    <h2>Safety &amp; Alignment Evaluation</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Safety evaluation tests models against taxonomies of <span class="r">harmful content</span> types:</p>
+      <div class="cols cols-2" style="margin-top:.5em">
+        <div class="card red">
+          <h3>TruthfulQA</h3>
+          <p>Measures tendency to reproduce common <strong>misconceptions</strong>. Scores on truth + informativeness.</p>
+        </div>
+        <div class="card red">
+          <h3>BBQ</h3>
+          <p>Bias Benchmark for QA &mdash; tests for <strong>social biases</strong> across protected categories.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Harm Taxonomy</h3>
+        <ul>
+          <li>Toxicity</li>
+          <li>Bias &amp; discrimination</li>
+          <li>Misinformation</li>
+          <li>Dangerous instructions</li>
+          <li>Privacy violations</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.8em">
+        <h3>Red-Teaming</h3>
+        <p>Human-driven and automated adversarial prompting to elicit harmful behaviors. New attack vectors are <span class="r">continually discovered</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 8: Evaluation Methodologies Overview -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">07</span>
+    <h2>Evaluation Methodologies</h2>
+  </div>
+  <svg class="diagram" viewBox="0 0 900 280" width="850">
+    <!-- Three pillars -->
+    <rect x="40" y="40" width="240" height="200" rx="12" fill="var(--bg2)" stroke="var(--amber)" stroke-width="2"/>
+    <text x="160" y="75" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display,serif" font-size="16" font-weight="700">Human Evaluation</text>
+    <text x="160" y="105" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="11">Gold standard</text>
+    <text x="160" y="130" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">+ High quality</text>
+    <text x="160" y="150" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">+ Nuanced judgment</text>
+    <text x="160" y="175" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- Expensive &amp; slow</text>
+    <text x="160" y="195" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- Inter-annotator variability</text>
+    <text x="160" y="215" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- Hard to scale</text>
+
+    <rect x="330" y="40" width="240" height="200" rx="12" fill="var(--bg2)" stroke="var(--green)" stroke-width="2"/>
+    <text x="450" y="75" text-anchor="middle" fill="var(--green)" font-family="Playfair Display,serif" font-size="16" font-weight="700">LLM-as-Judge</text>
+    <text x="450" y="105" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="11">Practical alternative</text>
+    <text x="450" y="130" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">+ Fast &amp; cheap</text>
+    <text x="450" y="150" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">+ Scalable</text>
+    <text x="450" y="175" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- Systematic biases</text>
+    <text x="450" y="195" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- Position bias</text>
+    <text x="450" y="215" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- Self-preference</text>
+
+    <rect x="620" y="40" width="240" height="200" rx="12" fill="var(--bg2)" stroke="var(--purple)" stroke-width="2"/>
+    <text x="740" y="75" text-anchor="middle" fill="var(--purple)" font-family="Playfair Display,serif" font-size="16" font-weight="700">Reference-Based</text>
+    <text x="740" y="105" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="11">Traditional NLP metrics</text>
+    <text x="740" y="130" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">+ Deterministic</text>
+    <text x="740" y="150" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">+ Fast to compute</text>
+    <text x="740" y="175" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- Poor correlation w/ quality</text>
+    <text x="740" y="195" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- Only suits constrained tasks</text>
+    <text x="740" y="215" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="11">- BLEU, ROUGE, BERTScore</text>
+  </svg>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 9: Human Evaluation Deep Dive -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">08</span>
+    <h2>Human Evaluation</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.8em">
+        <h3>Best Practices</h3>
+        <ul>
+          <li>Carefully <span class="g">calibrated annotators</span></li>
+          <li>Clear, detailed rubrics</li>
+          <li>Sufficient sample sizes</li>
+          <li>Appropriate statistical analysis</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Pairwise &gt; Absolute</h3>
+        <p><span class="a">A/B testing</span> is more reliable than absolute scoring because humans are better at relative judgments than calibrated ratings.</p>
+      </div>
+    </div>
+    <div class="card red">
+      <h3>Limitations</h3>
+      <ul>
+        <li><span class="r">Cost</span> &mdash; requires paid, trained annotators</li>
+        <li><span class="r">Speed</span> &mdash; days or weeks per evaluation cycle</li>
+        <li><span class="r">Scalability</span> &mdash; cannot evaluate thousands of variants</li>
+        <li><span class="r">Variability</span> &mdash; annotators disagree on subjective dimensions</li>
+        <li><span class="r">Diversity</span> &mdash; annotator pools may not represent real users</li>
+      </ul>
+      <p style="margin-top:.5em">Despite these challenges, human evaluation remains the <span class="a">gold standard</span> for assessing open-ended model outputs.</p>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 10: LLM-as-Judge -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">09</span>
+    <h2>LLM-as-Judge</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Using strong LLMs to evaluate weaker LLM outputs has become a <span class="g">practical alternative</span> to human evaluation. Enables rapid iteration during model development.</p>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Systematic Biases</h3>
+        <ul>
+          <li>Prefer <span class="p">longer responses</span></li>
+          <li>Favor certain writing styles</li>
+          <li>Show <span class="r">position bias</span> in pairwise comparisons</li>
+          <li>May <span class="r">self-prefer</span> their own outputs</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card green">
+      <h3>Mitigation Strategies</h3>
+      <ul>
+        <li>Use <span class="g">multiple judge models</span></li>
+        <li>Randomize comparison order</li>
+        <li>Provide detailed evaluation rubrics</li>
+        <li>Calibrate against human judgments on a <span class="a">held-out set</span></li>
+      </ul>
+      <p style="margin-top:.5em">The goal is to combine the speed and scalability of automated judging with the reliability of human evaluation.</p>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 11: Reference-Based Metrics -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">10</span>
+    <h2>Reference-Based Metrics</h2>
+  </div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>BLEU</h3>
+      <p>N-gram precision overlap between generated and reference text. Widely used in <strong>machine translation</strong>.</p>
+    </div>
+    <div class="card green">
+      <h3>ROUGE</h3>
+      <p>Recall-oriented n-gram overlap. Standard metric for <strong>summarization</strong> tasks.</p>
+    </div>
+    <div class="card purple">
+      <h3>BERTScore</h3>
+      <p>Embedding similarity using contextual representations. Better semantic matching than n-gram methods.</p>
+    </div>
+  </div>
+  <div class="card red" style="margin-top:.8em">
+    <h3>The Core Problem</h3>
+    <p>These metrics <span class="r">correlate poorly</span> with human quality judgments for open-ended generation &mdash; there are many valid ways to express the same information. Useful for constrained tasks (translation, summarization) but <strong>insufficient as the sole metric</strong> for modern LLMs.</p>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 12: Data Contamination -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">11</span>
+    <h2>Data Contamination</h2>
+  </div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 280 260" width="260">
+        <circle cx="140" cy="100" r="85" fill="none" stroke="var(--amber)" stroke-width="2" stroke-dasharray="6,3"/>
+        <text x="140" y="70" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display,serif" font-size="13" font-weight="700">Training Data</text>
+        <text x="140" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">Trillions of tokens</text>
+        <circle cx="140" cy="125" r="35" fill="rgba(248,113,113,0.15)" stroke="var(--red)" stroke-width="2"/>
+        <text x="140" y="122" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="10" font-weight="600">Benchmark</text>
+        <text x="140" y="136" text-anchor="middle" fill="var(--red)" font-family="DM Sans,sans-serif" font-size="10" font-weight="600">Data</text>
+        <text x="140" y="220" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="11">Inflated scores ≠ genuine capability</text>
+      </svg>
+    </div>
+    <div>
+      <p>Benchmark test data appearing in training corpora <span class="r">inflates performance</span> without reflecting genuine capability.</p>
+      <div class="card red" style="margin-top:.5em;margin-bottom:.5em">
+        <h3>The Scale Problem</h3>
+        <p>With trillions of tokens scraped from the internet, contamination is <strong>nearly unavoidable</strong> for public benchmarks. MMLU, GSM8K, and HumanEval have all been found contaminated.</p>
+      </div>
+      <div class="card green">
+        <h3>Mitigation Strategies</h3>
+        <ul>
+          <li>Private held-out test sets</li>
+          <li>Fresh problems generated continuously (LiveCodeBench)</li>
+          <li>Canary strings to detect memorization</li>
+          <li>Test <span class="g">understanding</span> rather than recall</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 13: Major Benchmarks Summary Table -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">12</span>
+    <h2>Major Benchmarks Summary</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Benchmark</th>
+        <th>Domain</th>
+        <th>Metric</th>
+        <th>Contamination Risk</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">MMLU</span></td>
+        <td>Broad knowledge (57 subjects)</td>
+        <td>Accuracy</td>
+        <td><span class="r">High</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">GSM8K</span></td>
+        <td>Grade school math</td>
+        <td>Accuracy</td>
+        <td><span class="r">High</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">HumanEval</span></td>
+        <td>Code generation</td>
+        <td>pass@k</td>
+        <td><span class="p">Moderate&ndash;High</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">SWE-bench</span></td>
+        <td>Real-world software engineering</td>
+        <td>Resolved rate</td>
+        <td><span class="g">Low</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">MT-Bench</span></td>
+        <td>Instruction following</td>
+        <td>LLM judge score (1&ndash;10)</td>
+        <td><span class="g">Low</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">Chatbot Arena</span></td>
+        <td>General helpfulness</td>
+        <td>Elo rating</td>
+        <td><span class="g">Very Low</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">TruthfulQA</span></td>
+        <td>Factual accuracy</td>
+        <td>Truth + Info scores</td>
+        <td><span class="p">Moderate</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">MATH</span></td>
+        <td>Competition mathematics</td>
+        <td>Accuracy</td>
+        <td><span class="p">Moderate</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">ARC</span></td>
+        <td>Scientific reasoning</td>
+        <td>Accuracy</td>
+        <td><span class="p">Moderate&ndash;High</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 14: Designing Robust Evaluations -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">13</span>
+    <h2>Designing Robust Evaluations</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Principles</h3>
+      <ul>
+        <li>Cover <span class="a">multiple capability dimensions</span> &mdash; never rely on a single benchmark</li>
+        <li>Test sets large enough for <span class="g">statistical significance</span></li>
+        <li>Diverse enough to capture real-world use</li>
+        <li>Match <span class="b">deployment conditions</span>: prompt format, temperature, system prompt</li>
+        <li>Report with <span class="p">confidence intervals</span> and ablations</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Custom Benchmarks</h3>
+      <p style="margin-bottom:.5em">For organizations building LLM products, the most valuable evaluations are often <span class="a">custom benchmarks</span> built from:</p>
+      <ul>
+        <li>Representative samples of <strong>actual user queries</strong></li>
+        <li>Task-specific quality criteria</li>
+        <li>Annotations matched to business outcomes</li>
+      </ul>
+      <p style="margin-top:.5em">These complement public benchmarks by directly measuring performance on the <span class="g">workload that matters most</span>.</p>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 15: Evaluation Pipeline Diagram -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">14</span>
+    <h2>A Comprehensive Evaluation Pipeline</h2>
+  </div>
+  <svg class="diagram" viewBox="0 0 950 300" width="900">
+    <!-- Stage 1 -->
+    <rect x="20" y="60" width="170" height="70" rx="8" fill="var(--bg2)" stroke="var(--amber)" stroke-width="2"/>
+    <text x="105" y="90" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display,serif" font-size="13" font-weight="700">Automated</text>
+    <text x="105" y="110" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display,serif" font-size="13" font-weight="700">Benchmarks</text>
+    <text x="105" y="155" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">MMLU, HumanEval,</text>
+    <text x="105" y="170" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">GSM8K, SWE-bench</text>
+    <!-- Arrow -->
+    <line x1="190" y1="95" x2="230" y2="95" stroke="var(--border)" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <!-- Stage 2 -->
+    <rect x="230" y="60" width="170" height="70" rx="8" fill="var(--bg2)" stroke="var(--green)" stroke-width="2"/>
+    <text x="315" y="90" text-anchor="middle" fill="var(--green)" font-family="Playfair Display,serif" font-size="13" font-weight="700">LLM-as-Judge</text>
+    <text x="315" y="110" text-anchor="middle" fill="var(--green)" font-family="Playfair Display,serif" font-size="13" font-weight="700">Assessment</text>
+    <text x="315" y="155" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">MT-Bench, AlpacaEval</text>
+    <text x="315" y="170" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">Multi-judge panels</text>
+    <!-- Arrow -->
+    <line x1="400" y1="95" x2="440" y2="95" stroke="var(--border)" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <!-- Stage 3 -->
+    <rect x="440" y="60" width="170" height="70" rx="8" fill="var(--bg2)" stroke="var(--purple)" stroke-width="2"/>
+    <text x="525" y="90" text-anchor="middle" fill="var(--purple)" font-family="Playfair Display,serif" font-size="13" font-weight="700">Human</text>
+    <text x="525" y="110" text-anchor="middle" fill="var(--purple)" font-family="Playfair Display,serif" font-size="13" font-weight="700">Evaluation</text>
+    <text x="525" y="155" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">Pairwise comparison</text>
+    <text x="525" y="170" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">Chatbot Arena</text>
+    <!-- Arrow -->
+    <line x1="610" y1="95" x2="650" y2="95" stroke="var(--border)" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <!-- Stage 4 -->
+    <rect x="650" y="60" width="170" height="70" rx="8" fill="var(--bg2)" stroke="var(--red)" stroke-width="2"/>
+    <text x="735" y="90" text-anchor="middle" fill="var(--red)" font-family="Playfair Display,serif" font-size="13" font-weight="700">Safety</text>
+    <text x="735" y="110" text-anchor="middle" fill="var(--red)" font-family="Playfair Display,serif" font-size="13" font-weight="700">Testing</text>
+    <text x="735" y="155" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">Red-teaming, TruthfulQA</text>
+    <text x="735" y="170" text-anchor="middle" fill="var(--muted)" font-family="DM Sans,sans-serif" font-size="10">BBQ, adversarial probes</text>
+    <!-- Arrowhead definition -->
+    <defs>
+      <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="var(--border)"/>
+      </marker>
+    </defs>
+    <!-- Bottom bar -->
+    <rect x="20" y="220" width="800" height="45" rx="8" fill="var(--bg2)" stroke="var(--blue)" stroke-width="1.5"/>
+    <text x="420" y="248" text-anchor="middle" fill="var(--blue)" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Custom Internal Benchmarks &mdash; representative user queries with task-specific criteria</text>
+    <!-- Vertical connectors -->
+    <line x1="105" y1="130" x2="105" y2="220" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="315" y1="130" x2="315" y2="220" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="525" y1="130" x2="525" y2="220" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="735" y1="130" x2="735" y2="220" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>
+  </svg>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 16: Future Directions -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">15</span>
+    <h2>Future Directions</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.8em">
+        <h3>Live Evaluation Platforms</h3>
+        <p>Fresh problems generated <span class="a">continuously</span> to defeat contamination. Dynamic, ever-changing test sets replace static benchmarks.</p>
+      </div>
+      <div class="card green">
+        <h3>Multi-Modal Evaluation</h3>
+        <p>Testing <span class="g">vision, audio, and cross-modal reasoning</span> alongside text is expanding rapidly as models become multi-modal.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.8em">
+        <h3>Agent &amp; Tool-Use Evaluation</h3>
+        <p>Measuring ability to accomplish <span class="p">complex multi-step tasks</span> in realistic environments. An active frontier of research.</p>
+      </div>
+      <div class="card red">
+        <h3>Beyond Human-Level</h3>
+        <p>How do we evaluate capabilities that <span class="r">approach or exceed human performance</span>? When evaluators themselves cannot reliably assess correctness, new paradigms are needed.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 17: Key Takeaways -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">16</span>
+    <h2>Key Takeaways</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>1. No Single Benchmark Suffices</h3>
+        <p>Combine automated benchmarks, LLM judges, human evaluation, and safety testing across <span class="a">multiple dimensions</span>.</p>
+      </div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>2. Contamination is Real</h3>
+        <p>Public benchmarks are increasingly contaminated. Prefer <span class="g">live, dynamic evaluation</span> and private test sets.</p>
+      </div>
+      <div class="card purple">
+        <h3>3. Match Your Workload</h3>
+        <p>Custom benchmarks from <span class="p">real user queries</span> are often the most informative evaluation for production systems.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.6em">
+        <h3>4. Methodology Matters</h3>
+        <p>Pairwise comparisons beat absolute scoring. Report <span class="b">confidence intervals</span>. Match evaluation to deployment conditions.</p>
+      </div>
+      <div class="card red" style="margin-bottom:.6em">
+        <h3>5. Safety is Non-Negotiable</h3>
+        <p>Evaluate across the full <span class="r">harm taxonomy</span>. Red-team continuously as new attack vectors emerge.</p>
+      </div>
+      <div class="card amber">
+        <h3>6. The Field is Evolving</h3>
+        <p>Multi-modal, agentic, and super-human evaluation are <span class="a">active frontiers</span> reshaping how we assess models.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+<!-- SLIDE 18: Closing -->
+<section class="title-slide">
+  <p class="mono" style="color:var(--muted);font-size:.7em;letter-spacing:.15em;margin-bottom:.2em">TECHNICAL REPORT</p>
+  <h1>Evaluation &amp; Benchmarks</h1>
+  <p class="subtitle">Measuring What Matters in Language Models</p>
+  <div style="width:80px;height:3px;background:var(--amber);margin:0 auto 1.2em"></div>
+  <p style="font-size:.76em;color:#b8b8d0;max-width:700px;margin:0 auto 1em">The most informative evaluation strategies combine automated benchmarks, LLM-as-judge assessment, targeted human evaluation, and safety testing &mdash; reflecting the increasingly consequential role that language models play in society.</p>
+  <div style="margin-bottom:1em">
+    <span class="pill amber">BENCHMARKS</span>
+    <span class="pill green">METHODOLOGY</span>
+    <span class="pill purple">SAFETY</span>
+    <span class="pill blue">BEST PRACTICES</span>
+  </div>
+  <p class="meta">February 2026</p>
+  <div class="slide-footer">EVALUATION &amp; BENCHMARKS</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body>
+</html>

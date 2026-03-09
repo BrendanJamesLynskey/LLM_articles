@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KV Cache Optimization | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65;color:var(--text)}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px;letter-spacing:.04em}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted);letter-spacing:.05em}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;letter-spacing:.04em;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="mono" style="font-size:.7em;color:var(--muted);letter-spacing:.15em;margin-bottom:.1em">TECHNICAL REPORT</p>
+  <h1>KV Cache Optimization</h1>
+  <div class="subtitle">Memory Management Strategies for Efficient LLM Serving</div>
+  <div style="width:60px;height:3px;background:var(--amber);margin:0 auto 1.2em"></div>
+  <div style="margin-bottom:1em">
+    <span class="pill amber">PagedAttention</span>
+    <span class="pill green">Quantization</span>
+    <span class="pill purple">GQA / MQA</span>
+    <span class="pill blue">Prefix Caching</span>
+  </div>
+  <p style="font-size:.72em;color:#b8b8d0;max-width:700px;margin:0 auto .8em">Examining strategies for managing KV cache memory in production LLM inference &mdash; from architectural innovations to compression techniques and system-level memory management.</p>
+  <div class="meta">February 2026 &bull; LLM Infrastructure</div>
+  <div class="slide-footer">KV Cache Optimization &bull; 1 / 16</div>
+</section>
+
+<!-- SLIDE 2: Why KV Cache Matters -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>Why the KV Cache Matters</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>During autoregressive decoding, every attention head at every layer computes <span class="a">key</span> and <span class="a">value</span> projections for each token. Caching these avoids redundant recomputation &mdash; but the cache rapidly becomes the <span class="r">dominant consumer</span> of GPU memory.</p>
+      <ul>
+        <li>Often exceeds model weight memory for long sequences</li>
+        <li>Directly determines <span class="g">concurrent batch size</span></li>
+        <li>Limits maximum supported <span class="b">context length</span></li>
+        <li>Impacts <span class="p">cost per generated token</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Core Trade-off</h3>
+      <p>Caching keys and values <span class="g">eliminates redundant compute</span> but creates a memory bottleneck that constrains throughput, concurrency, and context length.</p>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 2 / 16</div>
+</section>
+
+<!-- SLIDE 3: Memory Footprint Analysis -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Memory Footprint Analysis</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>KV cache memory scales with <span class="a">layers</span>, <span class="g">heads</span>, <span class="b">head dimension</span>, <span class="p">sequence length</span>, and <span class="r">batch size</span>.</p>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>70B Model Example (FP16)</h3>
+        <ul>
+          <li>80 layers, 64 heads, dim 128</li>
+          <li>Single sequence @ 4K tokens: <span class="a">~5 GB</span></li>
+          <li>Batch of 32 @ 4K tokens: <span class="r">~160 GB</span></li>
+          <li>Exceeds single GPU capacity</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 340 280" width="340" height="280">
+        <rect x="20" y="30" width="60" height="220" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <rect x="20" y="220" width="60" height="30" rx="0" fill="#4ecb8d" opacity=".8"/>
+        <text x="50" y="240" text-anchor="middle" fill="#0a0a0f" font-size="11" font-weight="600">5GB</text>
+        <text x="50" y="268" text-anchor="middle" fill="#8888a8" font-size="10">BS=1</text>
+
+        <rect x="110" y="30" width="60" height="220" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <rect x="110" y="110" width="60" height="140" rx="0" fill="#f5a623" opacity=".8"/>
+        <text x="140" y="186" text-anchor="middle" fill="#0a0a0f" font-size="11" font-weight="600">40GB</text>
+        <text x="140" y="268" text-anchor="middle" fill="#8888a8" font-size="10">BS=8</text>
+
+        <rect x="200" y="30" width="60" height="220" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <rect x="200" y="30" width="60" height="220" rx="0" fill="#f87171" opacity=".8"/>
+        <text x="230" y="146" text-anchor="middle" fill="#0a0a0f" font-size="11" font-weight="600">160GB</text>
+        <text x="230" y="268" text-anchor="middle" fill="#8888a8" font-size="10">BS=32</text>
+
+        <line x1="290" y1="30" x2="290" y2="250" stroke="#2a2a3a" stroke-dasharray="4"/>
+        <text x="295" y="248" fill="#8888a8" font-size="9">0 GB</text>
+        <text x="295" y="38" fill="#8888a8" font-size="9">160 GB</text>
+        <text x="170" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">KV Cache @ 4K seq len</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 3 / 16</div>
+</section>
+
+<!-- SLIDE 4: Internal Fragmentation -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>The Fragmentation Problem</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Naive Pre-allocation</h3>
+      <p>Traditional systems allocate contiguous memory for the <span class="a">maximum possible sequence length</span>. Most sequences finish early, leaving vast unused memory.</p>
+      <ul>
+        <li><span class="r">60&ndash;80%</span> of allocated KV cache memory wasted</li>
+        <li>Drastically reduces effective batch size</li>
+        <li>Memory is reserved but never used</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 400 240" width="400" height="240">
+        <text x="200" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Pre-allocated vs. Actual Usage</text>
+        <!-- Allocated blocks -->
+        <rect x="20" y="35" width="360" height="35" rx="4" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+        <rect x="20" y="35" width="120" height="35" rx="4" fill="#f87171" opacity=".4"/>
+        <text x="80" y="57" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">Used</text>
+        <text x="260" y="57" text-anchor="middle" fill="#8888a8" font-size="10">Wasted (~67%)</text>
+        <text x="10" y="57" text-anchor="end" fill="#8888a8" font-size="9">Seq A</text>
+
+        <rect x="20" y="80" width="360" height="35" rx="4" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+        <rect x="20" y="80" width="200" height="35" rx="4" fill="#f87171" opacity=".4"/>
+        <text x="110" y="102" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">Used</text>
+        <text x="310" y="102" text-anchor="middle" fill="#8888a8" font-size="10">Wasted (~44%)</text>
+        <text x="10" y="102" text-anchor="end" fill="#8888a8" font-size="9">Seq B</text>
+
+        <rect x="20" y="125" width="360" height="35" rx="4" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+        <rect x="20" y="125" width="80" height="35" rx="4" fill="#f87171" opacity=".4"/>
+        <text x="60" y="147" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">Used</text>
+        <text x="250" y="147" text-anchor="middle" fill="#8888a8" font-size="10">Wasted (~78%)</text>
+        <text x="10" y="147" text-anchor="end" fill="#8888a8" font-size="9">Seq C</text>
+
+        <text x="200" y="195" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">Average waste: 60&ndash;80% of allocated memory</text>
+        <text x="200" y="215" text-anchor="middle" fill="#8888a8" font-size="10">Contiguous allocation for max_seq_len per sequence</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 4 / 16</div>
+</section>
+
+<!-- SLIDE 5: Strategy Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Optimization Strategy Landscape</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>System-Level</h3>
+      <ul>
+        <li>PagedAttention</li>
+        <li>Prefix Caching</li>
+        <li>CPU/NVMe Offloading</li>
+      </ul>
+      <p style="margin-top:.4em"><span class="a">No quality impact</span> &mdash; pure memory management improvements</p>
+    </div>
+    <div class="card green">
+      <h3>Runtime Compression</h3>
+      <ul>
+        <li>INT8 / INT4 / FP8 Quantization</li>
+        <li>Token Eviction (H2O)</li>
+        <li>Attention-based Pruning</li>
+      </ul>
+      <p style="margin-top:.4em"><span class="g">Minimal to moderate</span> quality trade-off for large savings</p>
+    </div>
+    <div class="card purple">
+      <h3>Architecture-Level</h3>
+      <ul>
+        <li>Grouped Query Attention</li>
+        <li>Multi-Query Attention</li>
+        <li>Cross-Layer Sharing</li>
+      </ul>
+      <p style="margin-top:.4em"><span class="p">Must be designed at training time</span> &mdash; greatest structural reduction</p>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 5 / 16</div>
+</section>
+
+<!-- SLIDE 6: PagedAttention -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>PagedAttention &amp; Virtual Memory</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <p>Introduced in <span class="a">vLLM</span>, PagedAttention applies OS virtual memory concepts to KV cache management.</p>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Key Properties</h3>
+        <ul>
+          <li>Fixed-size pages (~16 tokens each)</li>
+          <li>Page table maps logical &rarr; physical</li>
+          <li>On-demand allocation &amp; freeing</li>
+          <li><span class="g">Eliminates internal fragmentation</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 420 250" width="420" height="250">
+        <text x="210" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Paged KV Cache Architecture</text>
+        <!-- Logical sequences -->
+        <text x="60" y="42" text-anchor="middle" fill="#f5a623" font-size="10" font-weight="600">Logical View</text>
+        <rect x="10" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".6" stroke="#f5a623"/>
+        <rect x="42" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".6" stroke="#f5a623"/>
+        <rect x="74" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".6" stroke="#f5a623"/>
+        <text x="55" y="66" text-anchor="middle" fill="#0a0a0f" font-size="9" font-weight="600">Seq A</text>
+
+        <rect x="10" y="82" width="30" height="24" rx="3" fill="#a78bfa" opacity=".6" stroke="#a78bfa"/>
+        <rect x="42" y="82" width="30" height="24" rx="3" fill="#a78bfa" opacity=".6" stroke="#a78bfa"/>
+        <text x="40" y="98" text-anchor="middle" fill="#0a0a0f" font-size="9" font-weight="600">Seq B</text>
+
+        <!-- Page Table -->
+        <rect x="140" y="45" width="80" height="70" rx="4" fill="#181824" stroke="#2a2a3a"/>
+        <text x="180" y="62" text-anchor="middle" fill="#4ecb8d" font-size="10" font-weight="600">Page Table</text>
+        <text x="180" y="78" text-anchor="middle" fill="#8888a8" font-size="8">logical &rarr; physical</text>
+        <text x="180" y="93" text-anchor="middle" fill="#8888a8" font-size="8">mapping per seq</text>
+
+        <!-- Arrows -->
+        <line x1="106" y1="62" x2="138" y2="70" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="74" y1="94" x2="138" y2="82" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <!-- Physical pages -->
+        <text x="330" y="42" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600">Physical Memory</text>
+        <rect x="260" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".4" stroke="#f5a623"/>
+        <rect x="295" y="50" width="30" height="24" rx="3" fill="#a78bfa" opacity=".4" stroke="#a78bfa"/>
+        <rect x="330" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".4" stroke="#f5a623"/>
+        <rect x="365" y="50" width="30" height="24" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/>
+        <rect x="260" y="80" width="30" height="24" rx="3" fill="#a78bfa" opacity=".4" stroke="#a78bfa"/>
+        <rect x="295" y="80" width="30" height="24" rx="3" fill="#f5a623" opacity=".4" stroke="#f5a623"/>
+        <rect x="330" y="80" width="30" height="24" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/>
+        <rect x="365" y="80" width="30" height="24" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/>
+        <text x="380" y="66" fill="#8888a8" font-size="8">free</text>
+        <text x="330" y="118" fill="#8888a8" font-size="8">Non-contiguous OK</text>
+
+        <line x1="222" y1="70" x2="258" y2="62" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="222" y1="82" x2="258" y2="92" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <!-- Copy on write -->
+        <rect x="10" y="140" width="395" height="55" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="210" y="162" text-anchor="middle" fill="#4ecb8d" font-size="11" font-weight="600">Copy-on-Write Sharing</text>
+        <text x="210" y="180" text-anchor="middle" fill="#b8b8d0" font-size="10">Shared prefixes (e.g., system prompts) reference the same physical pages</text>
+
+        <defs><marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 6 / 16</div>
+</section>
+
+<!-- SLIDE 7: PagedAttention Adoption -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>PagedAttention Adoption</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>PagedAttention has been <span class="a">widely adopted</span> across the LLM inference ecosystem:</p>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>Framework Support</h3>
+        <ul>
+          <li><span class="a">vLLM</span> &mdash; original implementation</li>
+          <li><span class="g">TensorRT-LLM</span> &mdash; NVIDIA's inference engine</li>
+          <li><span class="b">SGLang</span> &mdash; structured generation</li>
+          <li>Most major serving frameworks</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Benefits</h3>
+        <ul>
+          <li><span class="g">~0% internal fragmentation</span> (vs. 60&ndash;80%)</li>
+          <li>Memory sharing via copy-on-write</li>
+          <li>Dynamic allocation matches actual usage</li>
+          <li>No quality impact &mdash; purely system-level</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Enabling Capability</h3>
+        <p>Serves as the <span class="b">foundation layer</span> for combining with other optimization techniques like quantization and prefix caching.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 7 / 16</div>
+</section>
+
+<!-- SLIDE 8: Quantization -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>KV Cache Quantization</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Reduce cached K/V tensor precision from <span class="a">FP16/BF16</span> to lower-bit formats. KV cache is <span class="g">read-heavy</span>, so quantize/dequantize cost amortizes well.</p>
+      <table>
+        <thead><tr><th>Format</th><th>Reduction</th><th>Quality Impact</th></tr></thead>
+        <tbody>
+          <tr><td><span class="g">INT8</span></td><td>2x</td><td>Negligible</td></tr>
+          <tr><td><span class="b">FP8</span></td><td>2x</td><td>Negligible</td></tr>
+          <tr><td><span class="p">INT4</span></td><td>4x</td><td>Minor&ndash;Moderate</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card red" style="margin-top:.3em">
+        <h3>INT4 Caution</h3>
+        <p>75% memory savings but may degrade tasks requiring <span class="r">precise factual recall</span> or <span class="r">mathematical reasoning</span>.</p>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>INT8 Sweet Spot</h3>
+        <p>Halves memory with <span class="g">negligible quality loss</span>. The most commonly deployed KV cache quantization in production.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 8 / 16</div>
+</section>
+
+<!-- SLIDE 9: Token Eviction -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Token Eviction &amp; Pruning</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Not all cached tokens matter equally. Eviction strategies remove <span class="r">low-importance tokens</span> to reclaim memory.</p>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>H2O (Heavy Hitter Oracle)</h3>
+        <p>Observes that a <span class="a">small subset of tokens</span> consistently receive high attention weights. Evicts tokens with low cumulative attention scores.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em">
+        <h3>Scissorhands &amp; Similar</h3>
+        <p>Uses <span class="p">attention pattern analysis</span> to identify and preserve tokens most likely to be attended to in future steps.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 360 250" width="360" height="250">
+        <text x="180" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Token Importance Distribution</text>
+        <!-- Attention score bars -->
+        <rect x="30" y="35" width="18" height="160" rx="2" fill="#f5a623" opacity=".9"/>
+        <rect x="55" y="55" width="18" height="140" rx="2" fill="#f5a623" opacity=".8"/>
+        <rect x="80" y="80" width="18" height="115" rx="2" fill="#f5a623" opacity=".7"/>
+        <rect x="105" y="120" width="18" height="75" rx="2" fill="#a78bfa" opacity=".5"/>
+        <rect x="130" y="140" width="18" height="55" rx="2" fill="#a78bfa" opacity=".4"/>
+        <rect x="155" y="155" width="18" height="40" rx="2" fill="#8888a8" opacity=".3"/>
+        <rect x="180" y="162" width="18" height="33" rx="2" fill="#8888a8" opacity=".3"/>
+        <rect x="205" y="168" width="18" height="27" rx="2" fill="#8888a8" opacity=".3"/>
+        <rect x="230" y="172" width="18" height="23" rx="2" fill="#8888a8" opacity=".2"/>
+        <rect x="255" y="178" width="18" height="17" rx="2" fill="#8888a8" opacity=".2"/>
+        <rect x="280" y="182" width="18" height="13" rx="2" fill="#8888a8" opacity=".2"/>
+        <rect x="305" y="185" width="18" height="10" rx="2" fill="#8888a8" opacity=".2"/>
+        <line x1="25" y1="196" x2="330" y2="196" stroke="#2a2a3a"/>
+        <text x="65" y="215" text-anchor="middle" fill="#f5a623" font-size="9" font-weight="600">Heavy Hitters</text>
+        <text x="65" y="227" text-anchor="middle" fill="#f5a623" font-size="9">(Keep)</text>
+        <text x="240" y="215" text-anchor="middle" fill="#8888a8" font-size="9">Low attention tokens</text>
+        <text x="240" y="227" text-anchor="middle" fill="#f87171" font-size="9">(Evict)</text>
+        <line x1="100" y1="30" x2="100" y2="196" stroke="#f87171" stroke-dasharray="4" stroke-width="1.5"/>
+      </svg>
+      <div class="card green" style="margin-top:.2em">
+        <h3>Reduction: 2&ndash;5x</h3>
+        <p>50&ndash;80% cache size reduction with <span class="g">minimal quality impact</span> on many tasks.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 9 / 16</div>
+</section>
+
+<!-- SLIDE 10: GQA and MQA -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>GQA &amp; MQA: Architectural Approaches</h2></div>
+  <div class="cols cols-3">
+    <div class="card blue">
+      <h3>Multi-Head Attention</h3>
+      <p style="margin-bottom:.3em"><span class="b">Baseline</span>: separate K/V per head</p>
+      <svg class="diagram" viewBox="0 0 160 90" width="160" height="90">
+        <rect x="5" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/><text x="16" y="20" text-anchor="middle" fill="#fff" font-size="8">Q</text>
+        <rect x="5" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/><text x="16" y="47" text-anchor="middle" fill="#fff" font-size="8">K</text>
+        <rect x="5" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/><text x="16" y="74" text-anchor="middle" fill="#fff" font-size="8">V</text>
+        <rect x="35" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="35" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
+        <rect x="35" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+        <rect x="65" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="65" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
+        <rect x="65" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+        <rect x="95" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="95" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
+        <rect x="95" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+      </svg>
+      <p>KV cache: <span class="r">1x</span> (full)</p>
+    </div>
+    <div class="card purple">
+      <h3>Grouped Query (GQA)</h3>
+      <p style="margin-bottom:.3em"><span class="p">Groups share</span> K/V heads</p>
+      <svg class="diagram" viewBox="0 0 160 90" width="160" height="90">
+        <rect x="5" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="35" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="20" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
+        <rect x="20" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+        <rect x="75" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="105" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="90" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
+        <rect x="90" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+      </svg>
+      <p>KV cache: <span class="g">4&ndash;8x smaller</span></p>
+    </div>
+    <div class="card amber">
+      <h3>Multi-Query (MQA)</h3>
+      <p style="margin-bottom:.3em"><span class="a">All queries share</span> 1 K/V</p>
+      <svg class="diagram" viewBox="0 0 160 90" width="160" height="90">
+        <rect x="5" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="35" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="65" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="95" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
+        <rect x="48" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
+        <rect x="48" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+      </svg>
+      <p>KV cache: <span class="g">32&ndash;128x smaller</span></p>
+    </div>
+  </div>
+  <p style="margin-top:.5em;text-align:center">Modern models (<span class="a">Llama 3</span>, <span class="g">Mistral</span>, <span class="b">Gemma 2</span>) use <span class="p">GQA</span> as default &mdash; best quality-efficiency trade-off.</p>
+  <div class="slide-footer">KV Cache Optimization &bull; 10 / 16</div>
+</section>
+
+<!-- SLIDE 11: Cross-Layer Sharing -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Cross-Layer KV Cache Sharing</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>K/V representations are often <span class="p">highly similar</span> between neighboring layers. Cross-layer sharing exploits this redundancy.</p>
+      <div class="card purple" style="margin-top:.5em">
+        <h3>YOCO (You Only Cache Once)</h3>
+        <p>Assigns KV caches to only a <span class="p">subset of layers</span>; other layers reference them.</p>
+      </div>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>CLA (Cross-Layer Attention)</h3>
+        <p>Adjacent layers share KV caches with <span class="b">modest quality trade-offs</span>.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Result</h3>
+        <p>Reduces total KV cache memory by <span class="g">2x or more</span>.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
+        <text x="150" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Standard vs. Cross-Layer Sharing</text>
+        <!-- Standard -->
+        <text x="75" y="42" text-anchor="middle" fill="#8888a8" font-size="10">Standard</text>
+        <rect x="35" y="50" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="67" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 1 KV</text>
+        <rect x="35" y="82" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="99" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 2 KV</text>
+        <rect x="35" y="114" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="131" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 3 KV</text>
+        <rect x="35" y="146" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="163" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 4 KV</text>
+        <rect x="35" y="178" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="195" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 5 KV</text>
+        <rect x="35" y="210" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="227" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 6 KV</text>
+        <!-- Shared -->
+        <text x="225" y="42" text-anchor="middle" fill="#4ecb8d" font-size="10">Cross-Layer</text>
+        <rect x="185" y="50" width="80" height="26" rx="3" fill="#4ecb8d" opacity=".5" stroke="#4ecb8d"/><text x="225" y="67" text-anchor="middle" fill="#e8e8f0" font-size="9">Shared KV</text>
+        <rect x="185" y="82" width="80" height="26" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/><text x="225" y="99" text-anchor="middle" fill="#8888a8" font-size="9">&uarr; reuse</text>
+        <rect x="185" y="114" width="80" height="26" rx="3" fill="#4ecb8d" opacity=".5" stroke="#4ecb8d"/><text x="225" y="131" text-anchor="middle" fill="#e8e8f0" font-size="9">Shared KV</text>
+        <rect x="185" y="146" width="80" height="26" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/><text x="225" y="163" text-anchor="middle" fill="#8888a8" font-size="9">&uarr; reuse</text>
+        <rect x="185" y="178" width="80" height="26" rx="3" fill="#4ecb8d" opacity=".5" stroke="#4ecb8d"/><text x="225" y="195" text-anchor="middle" fill="#e8e8f0" font-size="9">Shared KV</text>
+        <rect x="185" y="210" width="80" height="26" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/><text x="225" y="227" text-anchor="middle" fill="#8888a8" font-size="9">&uarr; reuse</text>
+        <text x="225" y="260" text-anchor="middle" fill="#4ecb8d" font-size="10" font-weight="600">50% memory saved</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 11 / 16</div>
+</section>
+
+<!-- SLIDE 12: Prefix Caching -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Prefix Caching &amp; Radix Trees</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Many workloads involve <span class="a">repeated prefixes</span> &mdash; system prompts, few-shot examples, shared documents.</p>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>How It Works</h3>
+        <ul>
+          <li>Store KV cache for common prefixes</li>
+          <li>Reuse across multiple requests</li>
+          <li>Eliminates redundant prefill computation</li>
+          <li>Radix tree enables <span class="a">partial prefix matching</span></li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>SGLang RadixAttention</h3>
+        <p>Reduces <span class="g">time-to-first-token by 3&ndash;5x</span> for workloads with high prefix overlap.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 360 260" width="360" height="260">
+        <text x="180" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Radix Tree Prefix Sharing</text>
+        <!-- Root -->
+        <rect x="135" y="30" width="90" height="28" rx="4" fill="#f5a623" opacity=".6" stroke="#f5a623"/>
+        <text x="180" y="49" text-anchor="middle" fill="#e8e8f0" font-size="9">System Prompt</text>
+        <!-- Branch 1 -->
+        <line x1="155" y1="58" x2="95" y2="85" stroke="#4ecb8d" stroke-width="1.5"/>
+        <rect x="45" y="85" width="100" height="28" rx="4" fill="#4ecb8d" opacity=".4" stroke="#4ecb8d"/>
+        <text x="95" y="104" text-anchor="middle" fill="#e8e8f0" font-size="9">Few-shot Examples</text>
+        <!-- Branch 2 -->
+        <line x1="205" y1="58" x2="265" y2="85" stroke="#a78bfa" stroke-width="1.5"/>
+        <rect x="215" y="85" width="100" height="28" rx="4" fill="#a78bfa" opacity=".4" stroke="#a78bfa"/>
+        <text x="265" y="104" text-anchor="middle" fill="#e8e8f0" font-size="9">Document Context</text>
+        <!-- Leaves -->
+        <line x1="70" y1="113" x2="45" y2="140" stroke="#60a5fa" stroke-width="1"/>
+        <rect x="10" y="140" width="70" height="24" rx="3" fill="#60a5fa" opacity=".3" stroke="#60a5fa"/>
+        <text x="45" y="156" text-anchor="middle" fill="#e8e8f0" font-size="8">User Query A</text>
+
+        <line x1="120" y1="113" x2="140" y2="140" stroke="#60a5fa" stroke-width="1"/>
+        <rect x="105" y="140" width="70" height="24" rx="3" fill="#60a5fa" opacity=".3" stroke="#60a5fa"/>
+        <text x="140" y="156" text-anchor="middle" fill="#e8e8f0" font-size="8">User Query B</text>
+
+        <line x1="240" y1="113" x2="220" y2="140" stroke="#60a5fa" stroke-width="1"/>
+        <rect x="185" y="140" width="70" height="24" rx="3" fill="#60a5fa" opacity=".3" stroke="#60a5fa"/>
+        <text x="220" y="156" text-anchor="middle" fill="#e8e8f0" font-size="8">User Query C</text>
+
+        <line x1="290" y1="113" x2="310" y2="140" stroke="#60a5fa" stroke-width="1"/>
+        <rect x="275" y="140" width="70" height="24" rx="3" fill="#60a5fa" opacity=".3" stroke="#60a5fa"/>
+        <text x="310" y="156" text-anchor="middle" fill="#e8e8f0" font-size="8">User Query D</text>
+
+        <!-- Legend -->
+        <rect x="60" y="190" width="240" height="50" rx="5" fill="#181824" stroke="#2a2a3a"/>
+        <text x="180" y="210" text-anchor="middle" fill="#f5a623" font-size="10" font-weight="600">Shared prefixes cached once</text>
+        <text x="180" y="228" text-anchor="middle" fill="#8888a8" font-size="9">All queries reuse cached KV &mdash; no redundant prefill</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 12 / 16</div>
+</section>
+
+<!-- SLIDE 13: Offloading -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Offloading &amp; Hierarchical Storage</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <p>When GPU memory is insufficient, <span class="b">spill KV cache pages</span> to slower memory tiers.</p>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>Memory Hierarchy</h3>
+        <ul>
+          <li><span class="g">GPU HBM</span> &mdash; fastest, limited</li>
+          <li><span class="b">CPU DRAM</span> &mdash; larger, slower</li>
+          <li><span class="p">NVMe SSD</span> &mdash; vast, slowest</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Prefetching</h3>
+        <p>Predict which pages are needed next and <span class="g">overlap transfer with computation</span> to hide latency.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 380 260" width="380" height="260">
+        <text x="190" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">KV Cache Memory Tiers</text>
+        <!-- GPU -->
+        <rect x="100" y="30" width="180" height="55" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="190" y="52" text-anchor="middle" fill="#4ecb8d" font-size="11" font-weight="600">GPU HBM</text>
+        <text x="190" y="72" text-anchor="middle" fill="#8888a8" font-size="9">Hot pages &bull; ~80GB &bull; ~3 TB/s</text>
+        <!-- Arrow -->
+        <text x="190" y="100" text-anchor="middle" fill="#f5a623" font-size="14">&darr; spill / &uarr; fetch</text>
+        <!-- CPU -->
+        <rect x="100" y="110" width="180" height="55" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="2"/>
+        <text x="190" y="132" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">CPU DRAM</text>
+        <text x="190" y="152" text-anchor="middle" fill="#8888a8" font-size="9">Warm pages &bull; ~512GB &bull; ~50 GB/s</text>
+        <!-- Arrow -->
+        <text x="190" y="180" text-anchor="middle" fill="#f5a623" font-size="14">&darr; spill / &uarr; fetch</text>
+        <!-- NVMe -->
+        <rect x="100" y="190" width="180" height="55" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="2"/>
+        <text x="190" y="212" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">NVMe SSD</text>
+        <text x="190" y="232" text-anchor="middle" fill="#8888a8" font-size="9">Cold pages &bull; ~TBs &bull; ~7 GB/s</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 13 / 16</div>
+</section>
+
+<!-- SLIDE 14: Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Strategy Comparison</h2></div>
+  <table>
+    <thead>
+      <tr><th>Strategy</th><th>Memory Reduction</th><th>Quality Impact</th><th>Implementation</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">PagedAttention</span></td><td>~60&ndash;80% waste eliminated</td><td><span class="g">None</span></td><td>System-level</td></tr>
+      <tr><td><span class="g">INT8 Quantization</span></td><td>2x</td><td><span class="g">Negligible</span></td><td>Runtime</td></tr>
+      <tr><td><span class="p">INT4 Quantization</span></td><td>4x</td><td><span class="r">Minor&ndash;Moderate</span></td><td>Runtime</td></tr>
+      <tr><td><span class="b">Token Eviction (H2O)</span></td><td>2&ndash;5x</td><td>Minor (task-dependent)</td><td>Runtime</td></tr>
+      <tr><td><span class="p">GQA (at training)</span></td><td>4&ndash;8x</td><td><span class="g">Minimal</span></td><td>Architecture</td></tr>
+      <tr><td><span class="a">MQA (at training)</span></td><td>32&ndash;128x</td><td><span class="r">Minor&ndash;Moderate</span></td><td>Architecture</td></tr>
+      <tr><td><span class="b">Cross-Layer Sharing</span></td><td>2x</td><td>Minor</td><td>Architecture</td></tr>
+      <tr><td><span class="g">Prefix Caching</span></td><td>Variable</td><td><span class="g">None</span></td><td>System-level</td></tr>
+      <tr><td><span class="p">CPU/NVMe Offloading</span></td><td>Extends beyond GPU</td><td><span class="g">None</span> (latency cost)</td><td>System-level</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">KV Cache Optimization &bull; 14 / 16</div>
+</section>
+
+<!-- SLIDE 15: Practical Stack -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Production Serving Stack</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>In practice, strategies are <span class="a">layered together</span>. A typical high-performance stack combines:</p>
+      <svg class="diagram" viewBox="0 0 360 230" width="360" height="230">
+        <rect x="20" y="10" width="320" height="38" rx="5" fill="#a78bfa" opacity=".3" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="180" y="34" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">GQA Architecture (training time)</text>
+        <rect x="20" y="56" width="320" height="38" rx="5" fill="#f5a623" opacity=".3" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="180" y="80" text-anchor="middle" fill="#f5a623" font-size="11" font-weight="600">PagedAttention Memory Management</text>
+        <rect x="20" y="102" width="320" height="38" rx="5" fill="#4ecb8d" opacity=".3" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="180" y="126" text-anchor="middle" fill="#4ecb8d" font-size="11" font-weight="600">INT8 KV Cache Quantization</text>
+        <rect x="20" y="148" width="320" height="38" rx="5" fill="#60a5fa" opacity=".3" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="180" y="172" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">Prefix Caching for Common Prompts</text>
+        <rect x="20" y="194" width="320" height="38" rx="5" fill="#8888a8" opacity=".2" stroke="#8888a8" stroke-width="1.5"/>
+        <text x="180" y="218" text-anchor="middle" fill="#8888a8" font-size="11" font-weight="600">CPU/NVMe Offloading (fallback)</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>Integration Challenges</h3>
+        <ul>
+          <li>Quantized caches change memory access patterns &mdash; may affect optimal page size</li>
+          <li>Token eviction must respect prefix caching boundaries</li>
+          <li>Careful engineering required for technique interactions</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Key Monitoring Metrics</h3>
+        <ul>
+          <li>Cache hit rate (prefix caching)</li>
+          <li>Average page occupancy</li>
+          <li>Eviction frequency</li>
+          <li>Offload bandwidth utilization</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 15 / 16</div>
+</section>
+
+<!-- SLIDE 16: Future Directions -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Future Directions</h2></div>
+  <div class="cols cols-3">
+    <div class="card green">
+      <h3>Learned Compression</h3>
+      <p>Lightweight neural networks trained to <span class="g">compress and decompress</span> KV cache entries, going beyond fixed quantization schemes.</p>
+    </div>
+    <div class="card blue">
+      <h3>Hardware-Aware Design</h3>
+      <p>Co-design cache formats with <span class="b">GPU memory hierarchy</span> &mdash; exploiting L2 cache, shared memory, and register files for lower latency.</p>
+    </div>
+    <div class="card purple">
+      <h3>Beyond KV Caches</h3>
+      <p>Linear attention variants and <span class="p">state-space models (Mamba)</span> replace KV caches entirely with fixed-size recurrent states &mdash; fundamentally changing memory scaling.</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.8em;color:var(--muted);font-size:.78em">As models and context windows grow, continued innovation in KV cache management remains essential for practical and cost-effective LLM deployment.</p>
+  <div class="slide-footer">KV Cache Optimization &bull; 16 / 16</div>
+</section>
+
+<!-- SLIDE 17: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Multi-Layered Challenge</h3>
+        <p>KV cache optimization spans <span class="a">model architecture</span>, <span class="g">runtime systems</span>, and <span class="b">hardware utilization</span> &mdash; no single technique is sufficient.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Proven Combination</h3>
+        <ul>
+          <li><span class="a">PagedAttention</span> eliminates fragmentation</li>
+          <li><span class="g">Quantization + eviction</span> for compression</li>
+          <li><span class="p">GQA</span> for structural reduction</li>
+          <li><span class="b">Prefix caching</span> for workload reuse</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Impact</h3>
+        <p>These techniques collectively enable LLM serving systems to handle <span class="g">much larger batch sizes</span> and <span class="b">context lengths</span> than would otherwise be possible.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em">
+        <h3>Looking Ahead</h3>
+        <p>Learned compression, hardware co-design, and <span class="p">alternative architectures</span> (SSMs, linear attention) promise to push efficiency further as context windows scale to millions of tokens.</p>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:.8em">
+    <span class="pill amber">PagedAttention</span>
+    <span class="pill green">Quantization</span>
+    <span class="pill purple">GQA / MQA</span>
+    <span class="pill blue">Prefix Caching</span>
+  </div>
+  <div class="slide-footer">KV Cache Optimization &bull; 16 / 16</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

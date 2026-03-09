@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RLHF &amp; Alignment | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: TITLE -->
+<section class="title-slide">
+  <p class="mono" style="font-size:.6em;color:var(--muted);margin-bottom:.3em;">TECHNICAL REPORT</p>
+  <h1>RLHF &amp; Alignment</h1>
+  <p class="subtitle">Reinforcement Learning from Human Feedback<br>and Preference Optimization</p>
+  <div>
+    <span class="pill amber">RLHF</span>
+    <span class="pill green">DPO</span>
+    <span class="pill purple">Constitutional AI</span>
+    <span class="pill blue">Reward Models</span>
+  </div>
+  <p class="meta" style="margin-top:1.4em;">February 2026</p>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 1 / 16</div>
+</section>
+
+<!-- SLIDE 2: THE ALIGNMENT PROBLEM -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>The Alignment Problem</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Pre-trained LLMs optimize for <span class="a">next-token prediction</span>, not helpfulness or safety. This mismatch causes models to:</p>
+      <ul>
+        <li>Generate <span class="r">toxic or harmful</span> content</li>
+        <li>Fabricate information confidently</li>
+        <li>Follow dangerous instructions</li>
+        <li>Produce verbose, unhelpful responses</li>
+      </ul>
+      <p style="margin-top:.5em;"><span class="g">RLHF</span> was the first practical solution at scale &mdash; InstructGPT showed that a small amount of human feedback could dramatically improve GPT-3.</p>
+    </div>
+    <div class="card amber">
+      <h3>Core Challenge</h3>
+      <p>Modify model behavior to be consistent with <span class="a">human values and intentions</span> while preserving the model's underlying capabilities.</p>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 2 / 16</div>
+</section>
+
+<!-- SLIDE 3: RLHF PIPELINE OVERVIEW -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>The RLHF Pipeline</h2></div>
+  <svg class="diagram" viewBox="0 0 1100 220" width="1050" height="210">
+    <!-- Step 1: SFT -->
+    <rect x="10" y="60" width="240" height="100" rx="10" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="130" y="95" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 1</text>
+    <text x="130" y="120" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Supervised</text>
+    <text x="130" y="140" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Fine-Tuning (SFT)</text>
+    <!-- Arrow 1 -->
+    <polygon points="260,110 290,100 290,120" fill="#8888a8"/>
+    <!-- Step 2: RM -->
+    <rect x="300" y="60" width="240" height="100" rx="10" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="420" y="95" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 2</text>
+    <text x="420" y="120" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Reward Model</text>
+    <text x="420" y="140" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Training</text>
+    <!-- Arrow 2 -->
+    <polygon points="550,110 580,100 580,120" fill="#8888a8"/>
+    <!-- Step 3: PPO -->
+    <rect x="590" y="60" width="240" height="100" rx="10" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="710" y="95" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 3</text>
+    <text x="710" y="120" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Policy Optimization</text>
+    <text x="710" y="140" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">with PPO</text>
+    <!-- Arrow 3 -->
+    <polygon points="840,110 870,100 870,120" fill="#8888a8"/>
+    <!-- Result -->
+    <rect x="880" y="60" width="200" height="100" rx="10" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="980" y="100" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display,serif" font-size="18" font-weight="700">Aligned</text>
+    <text x="980" y="125" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Model</text>
+    <!-- Labels below -->
+    <text x="130" y="190" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Demo data</text>
+    <text x="420" y="190" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Preference pairs</text>
+    <text x="710" y="190" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">RL optimization</text>
+    <text x="980" y="190" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Helpful + Safe</text>
+  </svg>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 3 / 16</div>
+</section>
+
+<!-- SLIDE 4: SUPERVISED FINE-TUNING -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Step 1: Supervised Fine-Tuning</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>The pre-trained model is trained on <span class="a">curated instruction-response pairs</span> written by human annotators.</p>
+      <h3>What SFT Teaches</h3>
+      <ul>
+        <li>Following instructions accurately</li>
+        <li>Providing structured, organized answers</li>
+        <li>Maintaining appropriate tone</li>
+        <li>Basic format of helpful responses</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.8em;">
+        <h3>Strengths</h3>
+        <ul>
+          <li>Simple supervised learning objective</li>
+          <li>Provides a strong starting point</li>
+          <li>Low computational complexity</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <h3>Limitations</h3>
+        <ul>
+          <li>Bounded by diversity of demo data</li>
+          <li>Cannot exceed annotator quality</li>
+          <li>Does not capture preference nuances</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 4 / 16</div>
+</section>
+
+<!-- SLIDE 5: REWARD MODELING -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Step 2: Reward Modeling</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>A reward model is trained to <span class="g">predict human preferences</span> between model outputs.</p>
+      <ul>
+        <li>Annotators compare pairs of responses to the same prompt</li>
+        <li>Typically initialized from the SFT model</li>
+        <li>Assigns <span class="a">scalar reward scores</span> to prompt-response pairs</li>
+        <li>Distills human judgment into a differentiable function</li>
+      </ul>
+      <h3>Critical Requirements</h3>
+      <ul>
+        <li>Annotator calibration &amp; inter-annotator agreement</li>
+        <li>Diversity of comparison data</li>
+        <li>Consistent evaluation criteria</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 340 320" width="340" height="320">
+        <rect x="20" y="10" width="300" height="50" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="170" y="40" text-anchor="middle" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="14">Prompt: "Explain X"</text>
+        <line x1="100" y1="60" x2="100" y2="90" stroke="#8888a8" stroke-width="1.5"/>
+        <line x1="240" y1="60" x2="240" y2="90" stroke="#8888a8" stroke-width="1.5"/>
+        <rect x="20" y="90" width="160" height="50" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="100" y="120" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13">Response A</text>
+        <rect x="200" y="90" width="120" height="50" rx="8" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+        <text x="260" y="120" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="13">Response B</text>
+        <text x="170" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Human: A &gt; B</text>
+        <line x1="170" y1="180" x2="170" y2="210" stroke="#8888a8" stroke-width="1.5"/>
+        <rect x="50" y="210" width="240" height="50" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="170" y="240" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="14">Reward Model Training</text>
+        <line x1="170" y1="260" x2="170" y2="285" stroke="#8888a8" stroke-width="1.5"/>
+        <text x="170" y="305" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="12">r(prompt, response) &rarr; score</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 5 / 16</div>
+</section>
+
+<!-- SLIDE 6: PPO OPTIMIZATION -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Step 3: PPO Policy Optimization</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>The language model (policy) is optimized via <span class="p">Proximal Policy Optimization</span> to maximize reward model scores.</p>
+      <h3>Training Loop</h3>
+      <ol>
+        <li>Policy generates responses to a batch of prompts</li>
+        <li>Reward model scores each response</li>
+        <li>Policy updated to increase probability of high-scoring outputs</li>
+        <li><span class="b">KL penalty</span> prevents divergence from SFT model</li>
+      </ol>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Four Simultaneous Models</h3>
+        <ul>
+          <li><span class="a">Policy</span> &mdash; the model being trained</li>
+          <li><span class="g">Reference policy</span> &mdash; frozen SFT model</li>
+          <li><span class="p">Reward model</span> &mdash; scores outputs</li>
+          <li><span class="b">Value model</span> &mdash; estimates expected reward</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.8em;">
+        <h3>Failure Modes</h3>
+        <ul>
+          <li>Training instability</li>
+          <li>Reward hacking</li>
+          <li>Mode collapse</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 6 / 16</div>
+</section>
+
+<!-- SLIDE 7: DPO -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Direct Preference Optimization</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>DPO collapses reward modeling and RL into a <span class="g">single supervised learning objective</span>.</p>
+      <h3>Key Insight</h3>
+      <p>A closed-form expression for the optimal policy given a reward function can be used to construct a loss that directly optimizes preferences with an <span class="b">implicit KL constraint</span>.</p>
+      <h3>Advantages</h3>
+      <ul>
+        <li>No separate reward model needed</li>
+        <li>No value network or PPO loop</li>
+        <li>Far more stable and accessible to train</li>
+        <li>Requires only preference data + SFT model</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.8em;">
+        <h3>DPO Variants</h3>
+        <ul>
+          <li><span class="a">IPO</span> &mdash; Identity Preference Optimization</li>
+          <li><span class="g">KTO</span> &mdash; Kahneman-Tversky Optimization</li>
+          <li><span class="p">ORPO</span> &mdash; Odds Ratio Preference Opt.</li>
+          <li><span class="b">SimPO</span> &mdash; Simple Preference Opt.</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <h3>Trade-off</h3>
+        <p>PPO-based RLHF may still outperform DPO at the frontier when the reward model is very strong.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 7 / 16</div>
+</section>
+
+<!-- SLIDE 8: RLHF vs DPO -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>RLHF (PPO) vs. DPO</h2></div>
+  <svg class="diagram" viewBox="0 0 1100 180" width="1050" height="170">
+    <!-- RLHF pipeline -->
+    <text x="20" y="30" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700">RLHF (PPO)</text>
+    <rect x="20" y="45" width="160" height="40" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="100" y="70" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">SFT Model</text>
+    <polygon points="185,65 205,58 205,72" fill="#8888a8"/>
+    <rect x="210" y="45" width="180" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="300" y="70" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">Reward Model</text>
+    <polygon points="395,65 415,58 415,72" fill="#8888a8"/>
+    <rect x="420" y="45" width="180" height="40" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="510" y="70" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">PPO Training</text>
+    <polygon points="605,65 625,58 625,72" fill="#8888a8"/>
+    <rect x="630" y="45" width="160" height="40" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="710" y="70" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">Aligned Model</text>
+    <!-- DPO pipeline -->
+    <text x="20" y="120" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="16" font-weight="700">DPO</text>
+    <rect x="20" y="135" width="160" height="40" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="100" y="160" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">SFT Model</text>
+    <polygon points="185,155 205,148 205,162" fill="#8888a8"/>
+    <rect x="210" y="135" width="280" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="350" y="160" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">Direct Preference Optimization</text>
+    <polygon points="495,155 515,148 515,162" fill="#8888a8"/>
+    <rect x="520" y="135" width="160" height="40" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="600" y="160" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">Aligned Model</text>
+  </svg>
+  <p style="text-align:center;margin-top:.4em;">DPO removes the need for a <span class="r">separate reward model</span>, <span class="r">value network</span>, and the <span class="r">complex PPO loop</span></p>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 8 / 16</div>
+</section>
+
+<!-- SLIDE 9: BRADLEY-TERRY & REWARD MODELS -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Reward Model Design</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.8em;">
+        <h3>Bradley-Terry Model</h3>
+        <p>Probability of preferring response A over B is a function of the <span class="a">difference in reward scores</span>:</p>
+        <p style="text-align:center;margin-top:.4em;"><code>P(A &gt; B) = &sigma;(r(A) - r(B))</code></p>
+      </div>
+      <div class="card red">
+        <h3>Limitations</h3>
+        <ul>
+          <li>Assumes single scalar quality dimension</li>
+          <li>Cannot capture context-dependent preferences</li>
+          <li>Struggles with ties or near-equal comparisons</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3>Alternative Approaches</h3>
+      <div class="card green" style="margin-bottom:.6em;">
+        <h3>Thurstone Models</h3>
+        <p>Probabilistic ranking with noise-based preference modeling</p>
+      </div>
+      <div class="card purple" style="margin-bottom:.6em;">
+        <h3>Listwise Ranking</h3>
+        <p>Rank multiple responses simultaneously instead of pairwise</p>
+      </div>
+      <div class="card blue">
+        <h3>Multi-Objective RM</h3>
+        <p>Separately evaluate <span class="a">helpfulness</span>, <span class="g">harmlessness</span>, and <span class="b">factual accuracy</span></p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 9 / 16</div>
+</section>
+
+<!-- SLIDE 10: REWARD HACKING -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Reward Hacking</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>The policy learns to <span class="r">exploit patterns in the reward model</span> that don't correspond to genuine quality improvements.</p>
+      <h3>Common Manifestations</h3>
+      <div class="card red" style="margin-top:.3em;">
+        <ul>
+          <li><span class="r">Excessive verbosity</span> &mdash; reward models often rate longer responses higher</li>
+          <li><span class="r">Sycophancy</span> &mdash; agreeing with user premises regardless of accuracy</li>
+          <li><span class="r">Superficial quality markers</span> &mdash; hedging language, structured formatting without substance</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3>Mitigations</h3>
+      <div class="card green" style="margin-bottom:.5em;">
+        <h3>Stronger KL Penalties</h3>
+        <p>Constrain divergence from the reference policy</p>
+      </div>
+      <div class="card purple" style="margin-bottom:.5em;">
+        <h3>Reward Model Ensembles</h3>
+        <p>Multiple RMs reduce single-model exploitability</p>
+      </div>
+      <div class="card blue" style="margin-bottom:.5em;">
+        <h3>Iterative RM Retraining</h3>
+        <p>Update reward model as policy evolves</p>
+      </div>
+      <div class="card amber">
+        <h3>Constitutional AI</h3>
+        <p>Rules-based evaluation alongside learned rewards</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 10 / 16</div>
+</section>
+
+<!-- SLIDE 11: CONSTITUTIONAL AI -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Constitutional AI (CAI)</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <p>Developed by <span class="p">Anthropic</span>, CAI reduces reliance on human preference labels.</p>
+      <div class="card purple" style="margin-top:.5em;">
+        <h3>Benefits</h3>
+        <ul>
+          <li>Scales beyond human annotation capacity</li>
+          <li>Makes alignment criteria explicit &amp; auditable</li>
+          <li>Self-generated preference pairs for training</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 520 320" width="500" height="310">
+        <rect x="140" y="5" width="240" height="40" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="260" y="30" text-anchor="middle" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="13">Constitution (Principles)</text>
+        <line x1="260" y1="45" x2="260" y2="75" stroke="#8888a8" stroke-width="1.5"/>
+        <rect x="100" y="75" width="320" height="45" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="260" y="95" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="13">Model generates initial response</text>
+        <line x1="260" y1="120" x2="260" y2="150" stroke="#8888a8" stroke-width="1.5"/>
+        <rect x="100" y="150" width="320" height="45" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="260" y="170" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13">Critique phase: identify problems</text>
+        <line x1="260" y1="195" x2="260" y2="225" stroke="#8888a8" stroke-width="1.5"/>
+        <rect x="100" y="225" width="320" height="45" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="260" y="245" text-anchor="middle" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="13">Revision phase: generate improved response</text>
+        <line x1="260" y1="270" x2="260" y2="295" stroke="#8888a8" stroke-width="1.5"/>
+        <text x="260" y="315" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Self-generated preference pairs &rarr; RLHF / DPO</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 11 / 16</div>
+</section>
+
+<!-- SLIDE 12: RLAIF -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>RLAIF: AI-Generated Feedback</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p><span class="b">Reinforcement Learning from AI Feedback</span> uses a separate AI model to generate preference judgments in place of human annotators.</p>
+      <h3>Key Findings</h3>
+      <ul>
+        <li>Comparable alignment quality to human-labeled RLHF for many tasks</li>
+        <li>Works best when the AI judge is <span class="g">well-calibrated</span></li>
+        <li>Evaluation criteria must be clearly specified</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.8em;">
+        <h3>Advantages</h3>
+        <ul>
+          <li><span class="g">Dramatically reduced cost</span> vs. human annotation</li>
+          <li>Lower latency for preference data generation</li>
+          <li>Enables more frequent alignment iterations</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Relationship to CAI</h3>
+        <p>RLAIF extends the Constitutional AI concept &mdash; both reduce reliance on human labels, but RLAIF uses a <span class="b">separate judge model</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 12 / 16</div>
+</section>
+
+<!-- SLIDE 13: PROCESS REWARD MODELS -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Process Reward Models</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Outcome vs. Process Reward</h3>
+      <div class="card red" style="margin-bottom:.6em;">
+        <h3>Outcome-Based (Standard)</h3>
+        <p>Single score for the <span class="r">complete response</span>. Correct final answer gets reward even with flawed reasoning.</p>
+      </div>
+      <div class="card green">
+        <h3>Process-Based</h3>
+        <p>Feedback on <span class="g">individual reasoning steps</span>. Rewards correct intermediate steps even if the final answer is wrong.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 420 300" width="400" height="290">
+        <text x="210" y="20" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="15" font-weight="700">Step-Level Supervision</text>
+        <rect x="40" y="40" width="340" height="36" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="210" y="63" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="12">Step 1: Define variables &check;</text>
+        <rect x="40" y="90" width="340" height="36" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="210" y="113" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="12">Step 2: Set up equation &check;</text>
+        <rect x="40" y="140" width="340" height="36" rx="6" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+        <text x="210" y="163" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="12">Step 3: Arithmetic error &cross;</text>
+        <rect x="40" y="190" width="340" height="36" rx="6" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+        <text x="210" y="213" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="12">Step 4: Wrong answer &cross;</text>
+        <text x="210" y="260" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Process RM: rewards Steps 1 &amp; 2,</text>
+        <text x="210" y="280" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">penalizes Step 3 &mdash; pinpoints the error</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 13 / 16</div>
+</section>
+
+<!-- SLIDE 14: ALIGNMENT LANDSCAPE TABLE -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>The Alignment Landscape</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Key Mechanism</th>
+        <th>Complexity</th>
+        <th>Data Requirements</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">SFT</span></td>
+        <td>Imitation of demonstrations</td>
+        <td><span class="g">Low</span></td>
+        <td>Curated examples</td>
+      </tr>
+      <tr>
+        <td><span class="a">RLHF (PPO)</span></td>
+        <td>RL with reward model</td>
+        <td><span class="r">High</span></td>
+        <td>Preference pairs + RL infra</td>
+      </tr>
+      <tr>
+        <td><span class="g">DPO</span></td>
+        <td>Direct preference optimization</td>
+        <td><span class="a">Medium</span></td>
+        <td>Preference pairs only</td>
+      </tr>
+      <tr>
+        <td><span class="p">Constitutional AI</span></td>
+        <td>Self-critique + revision</td>
+        <td><span class="a">Medium</span></td>
+        <td>Principles + self-generated data</td>
+      </tr>
+      <tr>
+        <td><span class="b">RLAIF</span></td>
+        <td>AI-generated preferences</td>
+        <td><span class="a">Medium</span></td>
+        <td>AI judge + prompts</td>
+      </tr>
+      <tr>
+        <td><span class="p">Process RM</span></td>
+        <td>Step-level reward</td>
+        <td><span class="r">High</span></td>
+        <td>Step-annotated solutions</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 14 / 16</div>
+</section>
+
+<!-- SLIDE 15: EVALUATION -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Evaluating Alignment</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Automated Benchmarks</h3>
+      <ul>
+        <li><span class="a">MT-Bench</span> &mdash; multi-turn evaluation via LLM judge</li>
+        <li><span class="a">AlpacaEval</span> &mdash; instruction-following quality</li>
+        <li>Fast and scalable</li>
+        <li>Can be <span class="r">gamed</span> by optimizing for judge preferences</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Human Evaluation</h3>
+      <ul>
+        <li>Remains the <span class="g">gold standard</span></li>
+        <li>Captures subtle quality differences</li>
+        <li>Expensive, slow, subject to annotator bias</li>
+        <li>Difficult to scale</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Red Teaming</h3>
+      <ul>
+        <li>Tests against <span class="r">harmful content taxonomies</span></li>
+        <li>Adversarial prompt injection</li>
+        <li>Automated classifiers + human testers</li>
+        <li>Essential for safety validation</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em;">Most robust strategy: <span class="g">combine all three approaches</span> across multiple dimensions</p>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 15 / 16</div>
+</section>
+
+<!-- SLIDE 16: FUTURE DIRECTIONS -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Future Directions</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue" style="margin-bottom:.8em;">
+      <h3>Scalable Oversight</h3>
+      <p>Models assist humans in evaluating outputs too complex for direct human assessment. Critical as capabilities grow beyond human evaluation capacity.</p>
+    </div>
+    <div class="card green" style="margin-bottom:.8em;">
+      <h3>Multi-Turn &amp; Agentic Alignment</h3>
+      <p>Steering behavior across extended interactions and tool-use scenarios where consequences of individual actions <span class="r">compound</span>.</p>
+    </div>
+    <div class="card purple" style="margin-bottom:.8em;">
+      <h3>Mechanistic Interpretability</h3>
+      <p>Understanding <span class="p">how</span> alignment training changes model internals &mdash; moving beyond behavioral evaluation to understand <span class="p">why</span> aligned models behave as they do.</p>
+    </div>
+    <div class="card amber">
+      <h3>Robust Evaluation Frameworks</h3>
+      <p>Developing evaluation methods that <span class="a">keep pace with model capabilities</span> &mdash; one of the field's most pressing challenges.</p>
+    </div>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; 16 / 16</div>
+</section>
+
+<!-- SLIDE 17: CONCLUSION -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <ul>
+        <li>RLHF transformed LLMs from uncontrolled text generators into <span class="g">useful, safe assistants</span></li>
+        <li>The progression from <span class="a">PPO</span> to <span class="g">DPO</span> has <span class="b">democratized alignment</span></li>
+        <li><span class="p">Constitutional AI</span> and <span class="b">RLAIF</span> reduce dependence on expensive human annotation</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Open Challenges</h3>
+        <ul>
+          <li><span class="r">Reward hacking</span> remains persistent</li>
+          <li>Scalable oversight is increasingly urgent</li>
+          <li>Evaluation robustness lags capability growth</li>
+          <li>Alignment research will remain <span class="a">central to LLM development</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:1.2em;">
+    <span class="pill amber">RLHF</span>
+    <span class="pill green">DPO</span>
+    <span class="pill purple">CAI</span>
+    <span class="pill blue">RLAIF</span>
+    <span class="pill amber">Process RM</span>
+  </div>
+  <div class="slide-footer">RLHF &amp; Alignment &mdash; END</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body>
+</html>

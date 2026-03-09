@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open-Weights LLM Landscape | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>The Open-Weights LLM Landscape</h1>
+  <p class="subtitle">Surveying model families, architectures, and deployment strategies for resource-constrained inference</p>
+  <div style="margin-top:1.2em">
+    <span class="pill amber">Open Weights</span>
+    <span class="pill green">Small-GPU</span>
+    <span class="pill purple">Quantization</span>
+    <span class="pill blue">MoE</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 2: Open Weights vs Open Source -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>Open Weights vs. Open Source</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Open Weights</h3>
+      <ul>
+        <li>Trained weights released publicly</li>
+        <li>Sometimes includes inference code</li>
+        <li>Training data and pipeline <span class="r">not published</span></li>
+        <li>Most "open" LLMs fall here</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Truly Open Source</h3>
+      <ul>
+        <li>Weights <span class="g">+</span> training data <span class="g">+</span> code <span class="g">+</span> hyperparameters</li>
+        <li>Fully reproducible from scratch</li>
+        <li>Examples: <span class="g">OLMo</span> (AI2), <span class="g">LLM360</span></li>
+        <li>Rare but growing</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 3: Licensing Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>The Licensing Landscape</h2></div>
+  <table>
+    <tr><th>License Type</th><th>Commercial Use</th><th>Examples</th></tr>
+    <tr><td><span class="g">Apache 2.0 / MIT</span></td><td>Fully permissive</td><td>Qwen 2.5, OLMo, Mistral 7B</td></tr>
+    <tr><td><span class="a">Meta Community License</span></td><td>Permitted under 700M MAU</td><td>Llama 3.1, Llama 3.2, Llama 4</td></tr>
+    <tr><td><span class="p">Restricted</span></td><td>Use-case limitations</td><td>Certain DeepSeek releases</td></tr>
+    <tr><td><span class="b">Permissive with caveats</span></td><td>Minimal restrictions</td><td>Gemma 2, Gemma 3</td></tr>
+  </table>
+  <p style="margin-top:.6em;color:var(--muted);font-size:.72em;">Practitioners must evaluate licensing terms against their specific deployment scenario before adoption.</p>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 4: Model Family Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Major Model Families at a Glance</h2></div>
+  <svg class="diagram" viewBox="0 0 1100 400" width="1100" height="400">
+    <!-- Llama -->
+    <rect x="20" y="30" width="190" height="150" rx="10" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="115" y="62" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="18" font-weight="700">Llama</text>
+    <text x="115" y="85" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Meta</text>
+    <text x="115" y="110" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="13">1B - 405B</text>
+    <text x="115" y="132" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">GQA + RoPE + SwiGLU</text>
+    <text x="115" y="155" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">128K context</text>
+    <!-- Mistral -->
+    <rect x="240" y="30" width="190" height="150" rx="10" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="335" y="62" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="18" font-weight="700">Mistral</text>
+    <text x="335" y="85" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Mistral AI</text>
+    <text x="335" y="110" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="13">7B / 8x7B MoE</text>
+    <text x="335" y="132" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Sliding Window Attn</text>
+    <text x="335" y="155" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">13B active (MoE)</text>
+    <!-- Qwen -->
+    <rect x="460" y="30" width="190" height="150" rx="10" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="555" y="62" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="18" font-weight="700">Qwen</text>
+    <text x="555" y="85" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Alibaba Cloud</text>
+    <text x="555" y="110" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="13">0.5B - 72B</text>
+    <text x="555" y="132" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Apache 2.0</text>
+    <text x="555" y="155" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Code + Math variants</text>
+    <!-- Gemma -->
+    <rect x="680" y="30" width="190" height="150" rx="10" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="775" y="62" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display,serif" font-size="18" font-weight="700">Gemma</text>
+    <text x="775" y="85" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Google DeepMind</text>
+    <text x="775" y="110" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="13">1B - 27B</text>
+    <text x="775" y="132" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Local-Global Attn</text>
+    <text x="775" y="155" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Reduced KV-cache</text>
+    <!-- DeepSeek -->
+    <rect x="900" y="30" width="190" height="150" rx="10" fill="#10101a" stroke="#f87171" stroke-width="2"/>
+    <text x="995" y="62" text-anchor="middle" fill="#f87171" font-family="Playfair Display,serif" font-size="18" font-weight="700">DeepSeek</text>
+    <text x="995" y="85" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">DeepSeek AI</text>
+    <text x="995" y="110" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="13">V2 / V3 / R1</text>
+    <text x="995" y="132" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">MLA (latent attn)</text>
+    <text x="995" y="155" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">MoE + RL reasoning</text>
+    <!-- Bottom row: secondary families -->
+    <rect x="130" y="220" width="170" height="130" rx="10" fill="#10101a" stroke="#2a2a3a" stroke-width="1.5"/>
+    <text x="215" y="252" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700">Phi</text>
+    <text x="215" y="272" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="11">Microsoft</text>
+    <text x="215" y="295" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">1.5B - 14B</text>
+    <text x="215" y="315" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Synthetic data trained</text>
+    <!-- Yi -->
+    <rect x="350" y="220" width="170" height="130" rx="10" fill="#10101a" stroke="#2a2a3a" stroke-width="1.5"/>
+    <text x="435" y="252" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="16" font-weight="700">Yi</text>
+    <text x="435" y="272" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="11">01.AI</text>
+    <text x="435" y="295" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">9B / 34B</text>
+    <text x="435" y="315" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">200K context</text>
+    <!-- Falcon -->
+    <rect x="570" y="220" width="170" height="130" rx="10" fill="#10101a" stroke="#2a2a3a" stroke-width="1.5"/>
+    <text x="655" y="252" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display,serif" font-size="16" font-weight="700">Falcon</text>
+    <text x="655" y="272" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="11">TII</text>
+    <text x="655" y="295" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">40B / 180B</text>
+    <text x="655" y="315" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Multi-query attention</text>
+    <!-- OLMo / Command R -->
+    <rect x="790" y="220" width="170" height="130" rx="10" fill="#10101a" stroke="#2a2a3a" stroke-width="1.5"/>
+    <text x="875" y="252" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="16" font-weight="700">OLMo</text>
+    <text x="875" y="272" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="11">AI2 (truly open-source)</text>
+    <text x="875" y="295" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">7B / 13B</text>
+    <text x="875" y="315" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Full training artifacts</text>
+  </svg>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 5: Llama Deep Dive -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Llama (Meta)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li><span class="a">Llama 3.1</span> &mdash; 8B, 70B, 405B with <span class="p">128K context</span> and 8-language multilingual support</li>
+        <li><span class="a">Llama 3.2</span> &mdash; Edge models (1B, 3B) plus multimodal vision-language (11B, 90B)</li>
+        <li><span class="a">Llama 4</span> &mdash; Mixture-of-experts architecture</li>
+        <li>Core arch: <span class="g">GQA</span> + <span class="g">RoPE</span> + <span class="g">SwiGLU</span></li>
+        <li>These choices have become the de facto standard across the ecosystem</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>License</h3>
+      <p>Meta Community License: commercial use permitted below <span class="a">700M MAU</span> threshold</p>
+      <h3 style="margin-top:.5em">Impact</h3>
+      <p>Arguably the most influential open-weights release &mdash; spawned the modern ecosystem</p>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 6: Mistral / Mixtral -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Mistral &amp; Mixtral</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Mistral 7B</h3>
+      <ul>
+        <li><span class="g">Sliding window attention</span> for efficiency</li>
+        <li>Matched or exceeded Llama 2 13B</li>
+        <li>Excellent for single-GPU deployment</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Mixtral 8x7B</h3>
+      <ul>
+        <li>Sparse <span class="p">MoE</span>: 47B total, only <span class="g">13B active</span> per forward pass</li>
+        <li>Near-70B quality at a fraction of compute</li>
+        <li>Landmark efficiency demonstration</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:.6em">
+    <p>Also released: <span class="b">Mistral Large</span>, <span class="b">Codestral</span> (code-focused), <span class="b">Mistral Small</span> under various licenses.</p>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 7: Qwen -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Qwen (Alibaba Cloud)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li><span class="p">Qwen 2.5</span> spans <span class="a">0.5B to 72B</span> parameters, with a popular 32B "sweet spot" variant</li>
+        <li>Specialized variants: <span class="g">Qwen-Coder</span> (code) and <span class="g">Qwen-Math</span> (mathematics)</li>
+        <li>Strong performance on both <span class="b">English</span> and <span class="b">Chinese</span> benchmarks</li>
+        <li>Released under <span class="g">Apache 2.0</span> &mdash; fully permissive</li>
+        <li>Smaller models (0.5B-7B) are excellent <span class="a">draft models</span> for speculative decoding</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Key Strength</h3>
+      <p>One of the strongest multilingual model lines available. The 32B variant hits a sweet spot between quality and resource requirements.</p>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 8: Gemma & DeepSeek -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Gemma &amp; DeepSeek</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Gemma (Google DeepMind)</h3>
+      <ul>
+        <li>Gemma 2: 2B, 9B, 27B variants</li>
+        <li>27B uses <span class="b">interleaved local-global attention</span> to reduce KV-cache</li>
+        <li>Gemma 3: 1B model + multimodal</li>
+        <li>2B and 9B excellent for single small GPUs</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>DeepSeek</h3>
+      <ul>
+        <li><span class="r">Multi-head Latent Attention (MLA)</span> compresses KV-cache via learned projections</li>
+        <li>V3 and R1: MoE + RL-based reasoning</li>
+        <li>MLA is a breakthrough for memory-constrained inference</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 9: VRAM Budget Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>VRAM Budget by Model Size</h2></div>
+  <table>
+    <tr><th>Model Size</th><th>FP16</th><th>INT8</th><th>INT4</th><th>Min GPU (INT4)</th><th>Quality Tier</th></tr>
+    <tr><td><span class="g">1-3B</span></td><td>2-6 GB</td><td>1-3 GB</td><td>0.5-1.5 GB</td><td>1x 4 GB</td><td>Basic tasks</td></tr>
+    <tr><td><span class="b">7-9B</span></td><td>14-18 GB</td><td>7-9 GB</td><td>4-5 GB</td><td>1x 8 GB</td><td>Good general use</td></tr>
+    <tr><td><span class="p">27-35B</span></td><td>54-70 GB</td><td>27-35 GB</td><td>14-18 GB</td><td>2x 12 GB</td><td>Strong</td></tr>
+    <tr><td><span class="a">70B</span></td><td>140 GB</td><td>70 GB</td><td>35 GB</td><td>2x 24 GB</td><td>Near frontier</td></tr>
+  </table>
+  <p style="margin-top:.5em;font-size:.72em;color:var(--muted)">Quantization makes the difference between needing a cluster and running on consumer hardware.</p>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 10: Attention Mechanisms -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Attention Mechanisms That Matter</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Grouped-Query Attention (GQA)</h3>
+      <p>Shares KV heads across query heads, reducing KV-cache size. Used by Llama 3, Mistral, Qwen 2.5, Gemma 2.</p>
+    </div>
+    <div class="card red">
+      <h3>Multi-head Latent Attention (MLA)</h3>
+      <p>DeepSeek's innovation: projects keys and values into a lower-dimensional latent space. Maximum KV-cache compression.</p>
+    </div>
+    <div class="card green">
+      <h3>Sliding Window Attention</h3>
+      <p>Limits attention to a local window, reducing memory for long sequences. Trades long-range capability for efficiency. Mistral's approach.</p>
+    </div>
+    <div class="card blue">
+      <h3>Local-Global Interleaved</h3>
+      <p>Gemma 2 27B alternates between local and global attention layers, reducing KV-cache while preserving long-range ability.</p>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 11: MoE Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Mixture of Experts (MoE)</h2></div>
+  <svg class="diagram" viewBox="0 0 900 320" width="900" height="320">
+    <!-- Input -->
+    <rect x="50" y="130" width="120" height="50" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="110" y="160" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="14" font-weight="600">Input Token</text>
+    <!-- Arrow to Router -->
+    <line x1="170" y1="155" x2="230" y2="155" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <!-- Router -->
+    <rect x="230" y="120" width="120" height="70" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="290" y="152" text-anchor="middle" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="14" font-weight="600">Router</text>
+    <text x="290" y="172" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10">top-k selection</text>
+    <!-- Experts -->
+    <line x1="350" y1="135" x2="440" y2="45" stroke="#4ecb8d" stroke-width="1.5"/>
+    <line x1="350" y1="145" x2="440" y2="105" stroke="#4ecb8d" stroke-width="1.5"/>
+    <line x1="350" y1="160" x2="440" y2="165" stroke="#8888a8" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="350" y1="170" x2="440" y2="225" stroke="#8888a8" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="350" y1="180" x2="440" y2="285" stroke="#8888a8" stroke-width="1" stroke-dasharray="4"/>
+    <rect x="440" y="20" width="140" height="45" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="510" y="47" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13">Expert 1 (active)</text>
+    <rect x="440" y="80" width="140" height="45" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="510" y="107" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13">Expert 2 (active)</text>
+    <rect x="440" y="140" width="140" height="45" rx="6" fill="#10101a" stroke="#2a2a3a" stroke-width="1.5"/>
+    <text x="510" y="167" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="13">Expert 3 (idle)</text>
+    <rect x="440" y="200" width="140" height="45" rx="6" fill="#10101a" stroke="#2a2a3a" stroke-width="1.5"/>
+    <text x="510" y="227" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="13">Expert 4 (idle)</text>
+    <rect x="440" y="260" width="140" height="45" rx="6" fill="#10101a" stroke="#2a2a3a" stroke-width="1.5"/>
+    <text x="510" y="287" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="13">Expert N (idle)</text>
+    <!-- Combine -->
+    <line x1="580" y1="42" x2="660" y2="100" stroke="#4ecb8d" stroke-width="1.5"/>
+    <line x1="580" y1="102" x2="660" y2="100" stroke="#4ecb8d" stroke-width="1.5"/>
+    <rect x="660" y="75" width="140" height="50" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="730" y="105" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="14" font-weight="600">Weighted Sum</text>
+    <defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8888a8"/></marker></defs>
+  </svg>
+  <p style="text-align:center;font-size:.76em;margin-top:.3em">Mixtral 8x7B: <span class="a">47B total</span> params, only <span class="g">13B active</span> per token. Larger capacity, less compute per inference step.</p>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 12: Practical Selection Criteria -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Practical Selection Criteria</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Quantization Compatibility</h3>
+      <p>Some models quantize more gracefully. <span class="g">Quantization-aware trained</span> models perform best at INT4.</p>
+    </div>
+    <div class="card purple">
+      <h3>Community Tooling</h3>
+      <p>Check for GGUF, GPTQ, AWQ, EXL2 on <span class="p">Hugging Face</span>. Broader format support = easier deployment.</p>
+    </div>
+    <div class="card amber">
+      <h3>Context vs. KV Budget</h3>
+      <p>Long context requirements compete directly with KV-cache memory. Match model context to your actual needs.</p>
+    </div>
+    <div class="card blue">
+      <h3>Fine-tuned Variants</h3>
+      <p>A <span class="b">domain-tuned small model</span> often outperforms a larger general-purpose one for your specific task.</p>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 13: Quantization Formats -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Quantization Formats</h2></div>
+  <table>
+    <tr><th>Format</th><th>Target</th><th>Technique</th><th>Best For</th></tr>
+    <tr><td><span class="a">GGUF</span></td><td>CPU + GPU hybrid</td><td>Per-block scaling, 2-8 bit</td><td>Consumer hardware, llama.cpp</td></tr>
+    <tr><td><span class="g">GPTQ</span></td><td>Pure GPU</td><td>Per-group with calibration</td><td>vLLM, TGI, AutoGPTQ serving</td></tr>
+    <tr><td><span class="p">AWQ</span></td><td>GPU</td><td>Activation-aware, preserves salient weights</td><td>Better quality at same bit width</td></tr>
+    <tr><td><span class="b">EXL2</span></td><td>GPU</td><td>Mixed bit widths within a model</td><td>Fine-grained quality-size control</td></tr>
+  </table>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 14: Serving Frameworks -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Serving Frameworks</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>vLLM</h3>
+      <ul>
+        <li>De facto standard for production serving</li>
+        <li><span class="a">PagedAttention</span> + continuous batching</li>
+        <li>Tensor &amp; pipeline parallelism</li>
+        <li>Supports most major architectures</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>llama.cpp</h3>
+      <ul>
+        <li>Ideal for <span class="g">consumer hardware</span></li>
+        <li>CPU/GPU splitting for partial offload</li>
+        <li>RPC backend for network-distributed inference</li>
+        <li>GGUF format ecosystem</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>TensorRT-LLM</h3>
+      <ul>
+        <li>Lowest latency on NVIDIA hardware</li>
+        <li>Requires model-specific compilation</li>
+        <li>Best for dedicated production deployments</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>exo</h3>
+      <ul>
+        <li>Peer-to-peer distributed inference</li>
+        <li>Runs across <span class="b">heterogeneous consumer devices</span></li>
+        <li>Pool together mismatched hardware</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 15: Recommended Models by Tier -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Recommended Models by Hardware Tier</h2></div>
+  <div class="cols cols-3">
+    <div class="card green">
+      <h3>Single Small GPU (8-12 GB)</h3>
+      <ul>
+        <li>Llama 3.1 <span class="g">8B</span></li>
+        <li>Qwen 2.5 <span class="g">7B</span></li>
+        <li>Gemma 2 <span class="g">9B</span></li>
+        <li>Mistral <span class="g">7B</span></li>
+        <li>Phi-4 (up to <span class="g">14B</span>)</li>
+      </ul>
+      <p style="margin-top:.4em">Best quality-to-resource ratio at INT4/INT8</p>
+    </div>
+    <div class="card purple">
+      <h3>Dual Consumer GPUs (2x 12-24 GB)</h3>
+      <ul>
+        <li>Gemma 2 <span class="p">27B</span></li>
+        <li>Qwen 2.5 <span class="p">32B</span></li>
+        <li>Yi <span class="p">34B</span></li>
+        <li>Command R <span class="p">35B</span></li>
+      </ul>
+      <p style="margin-top:.4em">Strong quality, accessible on consumer setups</p>
+    </div>
+    <div class="card amber">
+      <h3>Multi-GPU Cluster (4-8x GPUs)</h3>
+      <ul>
+        <li>Llama 3.1 <span class="a">70B</span></li>
+        <li>Qwen 2.5 <span class="a">72B</span></li>
+        <li>Mixtral 8x7B</li>
+      </ul>
+      <p style="margin-top:.4em">Near-frontier quality with 4-bit quantization</p>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 16: KV-Cache Optimization Pipeline -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>KV-Cache Optimization Pipeline</h2></div>
+  <svg class="diagram" viewBox="0 0 1050 200" width="1050" height="200">
+    <!-- Step 1 -->
+    <rect x="10" y="50" width="180" height="100" rx="8" fill="#10101a" stroke="#f87171" stroke-width="2"/>
+    <text x="100" y="85" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="14" font-weight="600">Standard MHA</text>
+    <text x="100" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Full KV per head</text>
+    <text x="100" y="128" text-anchor="middle" fill="#ccc" font-family="JetBrains Mono,monospace" font-size="11">Memory: 100%</text>
+    <!-- Arrow -->
+    <line x1="190" y1="100" x2="240" y2="100" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <!-- Step 2 -->
+    <rect x="240" y="50" width="180" height="100" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="330" y="85" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="14" font-weight="600">GQA</text>
+    <text x="330" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Shared KV groups</text>
+    <text x="330" y="128" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Memory: ~25-50%</text>
+    <!-- Arrow -->
+    <line x1="420" y1="100" x2="470" y2="100" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <!-- Step 3 -->
+    <rect x="470" y="50" width="180" height="100" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="560" y="85" text-anchor="middle" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="14" font-weight="600">MLA</text>
+    <text x="560" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Latent projection</text>
+    <text x="560" y="128" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Memory: ~5-15%</text>
+    <!-- Arrow -->
+    <line x1="650" y1="100" x2="700" y2="100" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <!-- Step 4 -->
+    <rect x="700" y="50" width="180" height="100" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="790" y="80" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="14" font-weight="600">+ Quantized</text>
+    <text x="790" y="100" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="14" font-weight="600">KV-Cache</text>
+    <text x="790" y="123" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">INT4/INT8 cache</text>
+    <text x="790" y="143" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Memory: ~2-8%</text>
+    <!-- Label -->
+    <text x="525" y="190" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="13">Progressive KV-cache memory reduction techniques</text>
+  </svg>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 17: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <ul>
+        <li>The <span class="a">7-9B class</span> (Llama 3.1 8B, Qwen 2.5 7B, Gemma 2 9B, Mistral 7B) provides the best <span class="g">quality-to-resource ratio</span> at INT4/INT8</li>
+        <li>The <span class="p">27-35B class</span> is accessible on two consumer GPUs for higher quality needs</li>
+        <li>The <span class="a">70B class</span> remains the sweet spot for near-frontier quality on 4-8 small GPUs with 4-bit quantization</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><span class="g">GQA</span> and <span class="r">MLA</span> are critical innovations for fitting models into limited VRAM</li>
+        <li><span class="p">MoE</span> architectures unlock larger effective models with less active compute</li>
+        <li>Each new release pushes the <span class="b">quality-per-parameter</span> frontier forward</li>
+        <li>Check licenses before production deployment</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+<!-- SLIDE 18: Closing -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>The Open-Weights LLM Landscape</h1>
+  <p class="subtitle">The ecosystem continues to improve rapidly, with each new release pushing the quality-per-parameter frontier forward.</p>
+  <div style="margin-top:1.2em">
+    <span class="pill amber">Llama</span>
+    <span class="pill green">Mistral</span>
+    <span class="pill purple">Qwen</span>
+    <span class="pill blue">Gemma</span>
+    <span class="pill amber">DeepSeek</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">February 2026</p>
+  <div class="slide-footer">open-weights-llm-landscape</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body>
+</html>

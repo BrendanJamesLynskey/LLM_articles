@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ollama Non-Determinism | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Non-Deterministic Output in Ollama</h1>
+  <p class="subtitle">Why temperature=0 Doesn't Guarantee Reproducibility &mdash; And What You Can Do About It</p>
+  <div style="margin-top:1.5em">
+    <span class="pill amber">llama.cpp</span>
+    <span class="pill green">GPU inference</span>
+    <span class="pill purple">floating-point</span>
+    <span class="pill blue">reproducibility</span>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism</div>
+</section>
+
+<!-- SLIDE 2: The Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>The Reproducibility Expectation Gap</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p><span class="a">Common assumption:</span> setting <code>temperature=0</code> yields perfectly deterministic, repeatable output from Ollama.</p>
+      <p><span class="r">Reality:</span> different hosting instances &mdash; or even successive runs on the <em>same</em> instance &mdash; produce subtly different results despite identical prompts and parameters.</p>
+      <p style="margin-top:.6em">This report traces the root causes through the <span class="p">software</span> and <span class="b">hardware</span> stack and provides actionable mitigations.</p>
+    </div>
+    <div class="card red">
+      <h3>Observed Symptoms</h3>
+      <ul>
+        <li>Same prompt, different outputs across machines</li>
+        <li>First run differs from subsequent runs</li>
+        <li>Parallel slots produce 5&ndash;8 unique completions</li>
+        <li>Output "slightly random" even with fixed seed</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 01</div>
+</section>
+
+<!-- SLIDE 3: Ollama Pipeline -->
+<section>
+  <div class="slide-hdr"><span class="tag">BACKGROUND</span><h2>How Ollama Generates Text</h2></div>
+  <p style="margin-bottom:.5em">Ollama wraps <span class="a">llama.cpp</span>, the open-source C++ inference engine. The pipeline has four stages:</p>
+  <svg class="diagram" viewBox="0 0 1100 120" width="1050" height="115">
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#f5a623"/></marker>
+    </defs>
+    <rect x="10" y="25" width="210" height="70" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="115" y="55" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="14" font-weight="600">Tokenisation</text>
+    <text x="115" y="78" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">text &rarr; token IDs</text>
+    <line x1="225" y1="60" x2="280" y2="60" stroke="#f5a623" marker-end="url(#arrow)"/>
+
+    <rect x="285" y="25" width="210" height="70" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="390" y="55" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="14" font-weight="600">Prefill (Batched)</text>
+    <text x="390" y="78" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">populate KV cache</text>
+    <line x1="500" y1="60" x2="555" y2="60" stroke="#f5a623" marker-end="url(#arrow)"/>
+
+    <rect x="560" y="25" width="210" height="70" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="665" y="55" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="14" font-weight="600">Autoregressive Gen</text>
+    <text x="665" y="78" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">logit vector per step</text>
+    <line x1="775" y1="60" x2="830" y2="60" stroke="#f5a623" marker-end="url(#arrow)"/>
+
+    <rect x="835" y="25" width="210" height="70" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="940" y="55" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="14" font-weight="600">Sampling</text>
+    <text x="940" y="78" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">temp=0 &rarr; argmax</text>
+  </svg>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Key Insight</h3>
+    <p><strong>Temperature only controls the sampling stage.</strong> If the logits themselves differ between runs, greedy decoding will faithfully amplify that difference. Everything upstream of sampling is where non-determinism originates.</p>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 02</div>
+</section>
+
+<!-- SLIDE 4: Root Cause 1 - FP Non-Associativity -->
+<section>
+  <div class="slide-hdr"><span class="tag">CAUSE 1</span><h2>Floating-Point Non-Associativity</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The <span class="r">most fundamental cause</span>: IEEE 754 floating-point arithmetic is <strong>not associative</strong>.</p>
+      <pre><code>(a + b) + c  &ne;  a + (b + c)</code></pre>
+      <p>Rounding at each intermediate step means any change in operation order shifts logits by <span class="a">~1e-4 to 1e-6</span>.</p>
+      <p>LLM inference performs <span class="p">billions</span> of multiply-accumulate operations. When competing tokens have nearly equal logits, a tiny perturbation flips the argmax.</p>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.8em">
+        <h3>Cascade Effect</h3>
+        <p>Because generation is autoregressive, a single flipped token early on cascades into a <strong>completely different continuation</strong>.</p>
+      </div>
+      <div class="card purple">
+        <h3>Typical Divergence</h3>
+        <ul>
+          <li>Logit shift: ~1e-4 to 1e-6</li>
+          <li>Close-call tokens: frequent in natural language</li>
+          <li>One flip &rarr; entirely new path</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 03</div>
+</section>
+
+<!-- SLIDE 5: Root Cause 2 - GPU Kernel Non-Determinism -->
+<section>
+  <div class="slide-hdr"><span class="tag">CAUSE 2</span><h2>GPU Kernel Non-Determinism</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>cuBLAS GEMM Kernels</h3>
+      <ul>
+        <li>Optimised for <strong>throughput</strong>, not reproducibility</li>
+        <li>Use Tensor Cores with dynamic algorithm selection</li>
+        <li>Internal parallelism does not fix reduction order</li>
+        <li>Same GPU can yield different results across runs</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Cross-Architecture Divergence</h3>
+      <ul>
+        <li>Different GPU architectures (Ampere, Ada Lovelace, Hopper) use different Tensor Core generations</li>
+        <li>Different PTX instruction sequences</li>
+        <li>Ingonyama: cuBLAS GEMM differed by <span class="a">~1e-4</span> across RTX 3090, RTX 4080, and L4</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 900 100" width="860" height="95" style="margin-top:.6em">
+    <rect x="10" y="15" width="200" height="65" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="110" y="42" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12" font-weight="500">RTX 3090</text>
+    <text x="110" y="62" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Ampere &bull; GA102</text>
+
+    <rect x="250" y="15" width="200" height="65" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="350" y="42" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12" font-weight="500">RTX 4080</text>
+    <text x="350" y="62" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Ada Lovelace &bull; AD103</text>
+
+    <rect x="490" y="15" width="200" height="65" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="590" y="42" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12" font-weight="500">NVIDIA L4</text>
+    <text x="590" y="62" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Ada Lovelace &bull; AD104</text>
+
+    <text x="730" y="40" fill="#f87171" font-family="JetBrains Mono" font-size="13" font-weight="500">&Delta; ~1e-4</text>
+    <text x="730" y="62" fill="#8888a8" font-family="DM Sans" font-size="11">per GEMM op</text>
+  </svg>
+  <div class="slide-footer">ollama-nondeterminism &bull; 04</div>
+</section>
+
+<!-- SLIDE 6: Root Cause 3 - Batch Size -->
+<section>
+  <div class="slide-hdr"><span class="tag">CAUSE 3</span><h2>Batch Size &amp; Continuous Batching</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 300 260" width="280" height="250">
+        <rect x="10" y="10" width="280" height="240" rx="10" fill="#10101a" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="150" y="38" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="13" font-weight="600">llama.cpp Server</text>
+        <rect x="30" y="55" width="100" height="35" rx="5" fill="#181824" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="80" y="77" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Slot 1</text>
+        <rect x="170" y="55" width="100" height="35" rx="5" fill="#181824" stroke="#a78bfa" stroke-width="1"/>
+        <text x="220" y="77" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Slot 2</text>
+        <rect x="30" y="100" width="100" height="35" rx="5" fill="#181824" stroke="#60a5fa" stroke-width="1"/>
+        <text x="80" y="122" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">Slot 3</text>
+        <rect x="170" y="100" width="100" height="35" rx="5" fill="#181824" stroke="#f87171" stroke-width="1"/>
+        <text x="220" y="122" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Slot N</text>
+        <line x1="30" y1="155" x2="270" y2="155" stroke="#2a2a3a"/>
+        <rect x="50" y="170" width="200" height="40" rx="5" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="150" y="195" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="12" font-weight="600">Combined GPU Batch</text>
+        <text x="150" y="230" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11">Different dims &rarr; different FP path</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.8em">
+        <h3>Multi-Slot Experiment (H100)</h3>
+        <p>Same prompt sent to <strong>8 parallel slots</strong> with <code>temperature=0</code> and all other samplers disabled produced <span class="r">5 to 8 unique completions</span>.</p>
+      </div>
+      <div class="card amber">
+        <h3>Prefill vs. Generation Mismatch</h3>
+        <p>Even without concurrency, the batch size during <strong>prefill</strong> (all input tokens at once) differs from the single-token batch during <strong>generation</strong>. The first few generated tokens may already diverge from a fully sequential implementation.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 05</div>
+</section>
+
+<!-- SLIDE 7: Root Cause 4 - Context Window -->
+<section>
+  <div class="slide-hdr"><span class="tag">CAUSE 4</span><h2>Context Window Size (num_ctx)</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Ollama <span class="r">dynamically adjusts</span> the context window size if <code>num_ctx</code> is not explicitly set.</p>
+      <p>Different context sizes change:</p>
+      <ul>
+        <li>Dimensions of the <span class="b">attention computation</span></li>
+        <li>Layout of the <span class="p">KV cache</span></li>
+        <li>Numerical path through the model</li>
+      </ul>
+      <p style="margin-top:.6em">Community reports confirm that explicitly fixing <code>num_ctx</code> is <span class="a">essential</span> for any level of reproducibility.</p>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.8em">
+        <h3>Fix: Pin num_ctx</h3>
+        <pre><code>"options": {
+  "num_ctx": 4096
+}</code></pre>
+        <p style="margin-top:.4em">Choose a fixed value and use it consistently across all requests and instances.</p>
+      </div>
+      <div class="card red">
+        <h3>Without Pinning</h3>
+        <p>Output described as <em>"slightly random"</em> even with a fixed seed and <code>temperature=0</code>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 06</div>
+</section>
+
+<!-- SLIDE 8: Root Causes 5 & 6 -->
+<section>
+  <div class="slide-hdr"><span class="tag">CAUSES 5&ndash;6</span><h2>Quantisation &amp; CPU/GPU Offloading</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Quantisation Artefacts</h3>
+      <ul>
+        <li>Most models are <strong>4-bit or 8-bit GGUF</strong></li>
+        <li>Weights stored as integers but <span class="r">dequantised to FP at runtime</span></li>
+        <li>Normalisation layers (RMSNorm, LayerNorm) remain in full FP precision</li>
+        <li>FP non-associativity is <strong>not eliminated</strong> by quantisation</li>
+        <li>Different quant levels (Q4_K_M vs Q8_0) produce entirely different logit distributions</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>CPU / GPU Mixed Offloading</h3>
+      <ul>
+        <li>If model exceeds GPU VRAM, layers are <strong>offloaded to CPU</strong></li>
+        <li>Offload count depends on available VRAM &mdash; varies between machines</li>
+        <li>CPU uses <span class="g">AVX-512</span>, GPU uses <span class="p">CUDA</span> &mdash; different instruction sets</li>
+        <li>Different precision modes and reduction orders</li>
+        <li>Same logical computation &rarr; different numerical results</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Takeaway</h3>
+    <p>Two instances must run the <strong>exact same GGUF file</strong> (same quant type, same file hash) with <strong>full GPU offloading</strong> (<code>num_gpu: 999</code>) to avoid these divergence sources.</p>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 07</div>
+</section>
+
+<!-- SLIDE 9: Root Causes 7 & 8 -->
+<section>
+  <div class="slide-hdr"><span class="tag">CAUSES 7&ndash;8</span><h2>Software Versions &amp; First-Run Effect</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Software Version Differences</h3>
+      <ul>
+        <li>Different Ollama versions ship different <span class="a">llama.cpp commits</span></li>
+        <li>Changes to kernel implementations, memory layouts, default parameters</li>
+        <li>Even minor updates can shift logits enough to change output</li>
+        <li>Tokeniser behaviour may differ between versions</li>
+      </ul>
+      <p style="margin-top:.4em;color:var(--green)"><strong>Mitigation:</strong> Pin exact Ollama version across all machines.</p>
+    </div>
+    <div class="card amber">
+      <h3>First-Run Divergence</h3>
+      <ul>
+        <li>First invocation after model load differs from all subsequent runs</li>
+        <li>Subsequent runs are consistent with each other</li>
+        <li>Caused by differences in <span class="b">memory allocation</span> and <span class="p">cache state</span> during initial load</li>
+        <li>First prefill may use a different code path or memory layout</li>
+      </ul>
+      <p style="margin-top:.4em;color:var(--amber)"><strong>Mitigation:</strong> Discard the first response after model load.</p>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 08</div>
+</section>
+
+<!-- SLIDE 10: Summary Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Non-Determinism Sources at a Glance</h2></div>
+  <table>
+    <thead>
+      <tr><th>Source</th><th>Mechanism</th><th>Cross-Machine Impact</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">FP Non-Associativity</span></td><td>Reduction order changes logits by ~1e-4</td><td><span class="r">High</span> &mdash; any hardware</td></tr>
+      <tr><td><span class="a">GPU Kernels (cuBLAS)</span></td><td>Tensor Cores, dynamic algorithm selection</td><td><span class="r">High</span> &mdash; architecture-dependent</td></tr>
+      <tr><td><span class="b">Batch Size / Batching</span></td><td>Different batch dims change FP path</td><td><span class="a">Medium</span> &mdash; server config</td></tr>
+      <tr><td><span class="b">Context Window</span></td><td>Dynamic sizing changes attention dims</td><td><span class="g">Medium</span> &mdash; preventable</td></tr>
+      <tr><td><span class="p">Quantisation</span></td><td>Dequant at runtime; norm layers in FP</td><td><span class="r">High</span> &mdash; quant must match</td></tr>
+      <tr><td><span class="p">CPU/GPU Offload</span></td><td>Different instruction sets &amp; precision</td><td><span class="r">High</span> &mdash; VRAM-dependent</td></tr>
+      <tr><td><span class="g">Software Versions</span></td><td>Kernel and layout changes</td><td><span class="a">Medium</span> &mdash; pin versions</td></tr>
+      <tr><td><span class="g">First-Run Effect</span></td><td>Cold cache / memory allocation</td><td><span class="b">Low</span> &mdash; same-machine only</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">ollama-nondeterminism &bull; 09</div>
+</section>
+
+<!-- SLIDE 11: Non-determinism flow diagram -->
+<section>
+  <div class="slide-hdr"><span class="tag">DIAGRAM</span><h2>Where Non-Determinism Enters</h2></div>
+  <svg class="diagram" viewBox="0 0 1050 320" width="1020" height="310">
+    <defs>
+      <marker id="arr2" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#f5a623"/></marker>
+    </defs>
+    <!-- Prompt -->
+    <rect x="20" y="130" width="130" height="50" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="85" y="160" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Prompt</text>
+    <line x1="155" y1="155" x2="195" y2="155" stroke="#f5a623" marker-end="url(#arr2)"/>
+
+    <!-- Matrix Ops -->
+    <rect x="200" y="100" width="180" height="110" rx="8" fill="#10101a" stroke="#f87171" stroke-width="2"/>
+    <text x="290" y="130" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="13" font-weight="600">Matrix Operations</text>
+    <text x="290" y="152" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">GEMM, Attention, Norms</text>
+    <text x="290" y="172" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">NON-DETERMINISTIC</text>
+    <text x="290" y="195" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">FP rounding, GPU kernels,</text>
+    <text x="290" y="207" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">batch dims, offload split</text>
+    <line x1="385" y1="155" x2="425" y2="155" stroke="#f5a623" marker-end="url(#arr2)"/>
+
+    <!-- Logits -->
+    <rect x="430" y="120" width="150" height="70" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="505" y="150" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="13" font-weight="600">Logit Vector</text>
+    <text x="505" y="172" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">~128k values</text>
+    <line x1="585" y1="155" x2="625" y2="155" stroke="#f5a623" marker-end="url(#arr2)"/>
+
+    <!-- Sampling -->
+    <rect x="630" y="120" width="150" height="70" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="705" y="148" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Sampling</text>
+    <text x="705" y="168" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">temp=0: argmax</text>
+    <line x1="785" y1="155" x2="825" y2="155" stroke="#f5a623" marker-end="url(#arr2)"/>
+
+    <!-- Output -->
+    <rect x="830" y="130" width="130" height="50" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="895" y="160" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="13" font-weight="600">Token Output</text>
+
+    <!-- Labels -->
+    <rect x="200" y="25" width="180" height="50" rx="6" fill="#1a0a0a" stroke="#f87171" stroke-width="1" stroke-dasharray="4"/>
+    <text x="290" y="46" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11" font-weight="600">Non-determinism zone</text>
+    <text x="290" y="63" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">temp=0 cannot fix this</text>
+    <line x1="290" y1="75" x2="290" y2="96" stroke="#f87171" stroke-dasharray="3"/>
+
+    <!-- Autoregressive feedback loop -->
+    <path d="M895,185 L895,270 L85,270 L85,185" fill="none" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="6" marker-end="url(#arr2)"/>
+    <text x="490" y="290" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="11">Autoregressive feedback &mdash; one flipped token cascades</text>
+  </svg>
+  <div class="slide-footer">ollama-nondeterminism &bull; 10</div>
+</section>
+
+<!-- SLIDE 12: Same-Machine Mitigation -->
+<section>
+  <div class="slide-hdr"><span class="tag">MITIGATION</span><h2>Same-Machine Reproducibility</h2></div>
+  <div class="cols cols-3">
+    <div class="card green">
+      <h3>1. Greedy Decoding</h3>
+      <p>Set <code>temperature: 0</code> to eliminate sampling randomness.</p>
+    </div>
+    <div class="card green">
+      <h3>2. Fixed Seed</h3>
+      <p>Set <code>seed: 42</code> &mdash; necessary but not sufficient on its own.</p>
+    </div>
+    <div class="card green">
+      <h3>3. Pin num_ctx</h3>
+      <p>Set <code>num_ctx: 4096</code> to prevent dynamic context resizing.</p>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card amber">
+      <h3>4. Single-Slot Mode</h3>
+      <p>Run one request at a time to prevent continuous batching from altering the computational path.</p>
+    </div>
+    <div class="card amber">
+      <h3>5. Discard First Response</h3>
+      <p>Issue a throwaway prompt after model load, then use subsequent responses which tend to be self-consistent.</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em"><span class="g">With all measures applied</span>, same-machine reproducibility is generally achievable for the same Ollama + llama.cpp version on the same hardware.</p>
+  <div class="slide-footer">ollama-nondeterminism &bull; 11</div>
+</section>
+
+<!-- SLIDE 13: Cross-Machine Mitigation -->
+<section>
+  <div class="slide-hdr"><span class="tag">MITIGATION</span><h2>Cross-Machine Reproducibility</h2></div>
+  <p style="margin-bottom:.5em"><span class="r">Substantially harder</span> and not fully possible with standard Ollama builds. These measures narrow the gap:</p>
+  <div class="cols cols-2">
+    <div>
+      <div class="card blue">
+        <h3>Environment Matching</h3>
+        <ul>
+          <li><span class="a">Identical GPU model</span> and CPU architecture</li>
+          <li>Pin exact Ollama version (same llama.cpp commit)</li>
+          <li>Same GGUF model file (same quant, same hash)</li>
+          <li>Match OS, CUDA toolkit, GPU driver version</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Full GPU Offloading</h3>
+        <ul>
+          <li>Set <code>num_gpu: 999</code> &mdash; no CPU fallback</li>
+          <li>All machines need sufficient VRAM</li>
+          <li>Eliminates CPU/GPU instruction set divergence</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card red" style="margin-top:.6em">
+    <h3>Remaining Gap</h3>
+    <p>Even with all the above, <strong>cuBLAS kernel-level non-determinism</strong> may still introduce occasional token differences. Ingonyama found that true cross-architecture determinism required rewriting GEMM CUDA kernels to avoid Tensor Cores and enforce a deterministic reduction order.</p>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 12</div>
+</section>
+
+<!-- SLIDE 14: Strict Determinism Approaches -->
+<section>
+  <div class="slide-hdr"><span class="tag">ADVANCED</span><h2>Strict Determinism Approaches</h2></div>
+  <p style="margin-bottom:.5em">For use cases requiring <span class="a">bit-exact reproducibility</span> (auditing, benchmarking, ZK proofs):</p>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>CPU-Only Inference</h3>
+      <ul>
+        <li>Deterministic BLAS libraries + fixed thread count</li>
+        <li>Eliminates GPU kernel non-determinism entirely</li>
+        <li><span class="r">Significant performance cost</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Custom Deterministic Kernels</h3>
+      <ul>
+        <li>Ingonyama: rewrote GEMM to use only CUDA cores</li>
+        <li>No Tensor Cores, fixed reduction order</li>
+        <li>Modest prefill penalty, negligible generation impact</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Containerised Inference</h3>
+      <ul>
+        <li>Package full stack: OS, drivers, Ollama, model</li>
+        <li>Run on identical hardware</li>
+        <li>Maximises environmental consistency</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Semantic Equivalence Testing</h3>
+      <ul>
+        <li>Tolerate paraphrased-but-equivalent responses</li>
+        <li>Use embedding similarity or structured output validation</li>
+        <li>Design for <span class="g">functional equivalence</span>, not bit-exactness</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 13</div>
+</section>
+
+<!-- SLIDE 15: API Configuration -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONFIG</span><h2>Recommended API Configuration</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code>{
+  "model": "llama3:8b-q8_0",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Your prompt"
+    }
+  ],
+  "options": {
+    "seed": 42,
+    "temperature": 0,
+    "num_ctx": 4096,
+    "num_gpu": 999,
+    "num_thread": 8
+  }
+}</code></pre>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Parameter Breakdown</h3>
+        <ul>
+          <li><code class="g">temperature: 0</code> &mdash; greedy decoding</li>
+          <li><code class="g">seed: 42</code> &mdash; fix the RNG</li>
+          <li><code class="g">num_ctx: 4096</code> &mdash; prevent dynamic resizing</li>
+          <li><code class="g">num_gpu: 999</code> &mdash; force full GPU offload</li>
+          <li><code class="g">num_thread: 8</code> &mdash; fix CPU thread count</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <h3>Remember</h3>
+        <p>These settings are <strong>necessary but not sufficient</strong> for cross-machine determinism. Hardware and software environment must also match.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 14</div>
+</section>
+
+<!-- SLIDE 16: Decision Matrix -->
+<section>
+  <div class="slide-hdr"><span class="tag">GUIDE</span><h2>Reproducibility Strategy Decision Matrix</h2></div>
+  <table>
+    <thead>
+      <tr><th>Scenario</th><th>Required Actions</th><th>Expected Outcome</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="g">Same machine, same version</span></td>
+        <td>temp=0, seed, num_ctx, single-slot, discard first run</td>
+        <td><span class="g">Reproducible</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">Cross-machine, same GPU</span></td>
+        <td>All above + pin Ollama version, same GGUF, full GPU offload</td>
+        <td><span class="a">Mostly reproducible</span></td>
+      </tr>
+      <tr>
+        <td><span class="r">Cross-machine, different GPUs</span></td>
+        <td>All above + custom deterministic kernels or CPU-only</td>
+        <td><span class="r">Requires kernel mods</span></td>
+      </tr>
+      <tr>
+        <td><span class="p">Bit-exact across architectures</span></td>
+        <td>Custom GEMM kernels (no Tensor Cores) or CPU-only inference</td>
+        <td><span class="p">Possible with trade-offs</span></td>
+      </tr>
+      <tr>
+        <td><span class="b">Production at scale</span></td>
+        <td>Semantic equivalence testing + structured output validation</td>
+        <td><span class="b">Pragmatic approach</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">ollama-nondeterminism &bull; 15</div>
+</section>
+
+<!-- SLIDE 17: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>It's Not a Bug</h3>
+        <p>Non-determinism at <code>temperature=0</code> is an <strong>inherent consequence</strong> of how modern GPU hardware executes floating-point arithmetic. Temperature only controls sampling, not the millions of matrix operations that produce logits.</p>
+      </div>
+      <div class="card green">
+        <h3>Same-Machine: Achievable</h3>
+        <p>Fixed seed + fixed <code>num_ctx</code> + <code>temperature=0</code> + single-slot operation is usually sufficient for same-machine reproducibility.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.6em">
+        <h3>Cross-Machine: Hard</h3>
+        <p>Hardware and software environments must match precisely. cuBLAS kernel-level non-determinism may still produce occasional token differences.</p>
+      </div>
+      <div class="card red">
+        <h3>Bit-Exact: Possible But Costly</h3>
+        <p>Requires rewriting inference kernels to avoid Tensor Cores and enforce deterministic reduction order &mdash; far beyond standard Ollama usage.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 16</div>
+</section>
+
+<!-- SLIDE 18: References -->
+<section>
+  <div class="slide-hdr"><span class="tag">REFERENCES</span><h2>Sources &amp; Further Reading</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>GitHub Issues</h3>
+      <ul>
+        <li>Ollama #586: Fixed seed + temp=0 non-determinism</li>
+        <li>Ollama #5321: Llama3 inconsistent outputs</li>
+        <li>llama.cpp #7052: Multi-slot non-determinism</li>
+        <li>LLMs-from-scratch #249: Ollama reproducibility</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Research &amp; Documentation</h3>
+      <ul>
+        <li>Ingonyama: "Solving Reproducibility Challenges in Deep Learning and LLMs" (Sep 2024)</li>
+        <li>NVIDIA: "Determinism in Deep Learning" (GTC 2019, S9911)</li>
+        <li>PyTorch: Reproducibility docs</li>
+        <li>Keywords AI: "Consistent LLM Outputs in 2025"</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">ollama-nondeterminism &bull; 17</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

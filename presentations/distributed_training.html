@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distributed Training | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root {
+    --amber:  #f5a623; --green:  #4ecb8d; --purple: #a78bfa; --blue:   #60a5fa; --red:    #f87171;
+    --bg:     #0a0a0f; --bg2:    #10101a; --bg3:    #181824; --border: #2a2a3a; --text:   #e8e8f0; --muted:  #8888a8;
+  }
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { background: transparent; }
+  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal h1 { font-size: 2.4em; color: var(--amber); line-height: 1.15; }
+  .reveal h2 { font-size: 1.7em; color: var(--amber); margin-bottom: .4em; }
+  .reveal h3 { font-size: 1.1em; color: var(--green); margin-bottom: .3em; }
+  .reveal p  { font-size: .82em; line-height: 1.65; color: var(--text); }
+  .reveal li { font-size: .80em; line-height: 1.65; margin-bottom: .2em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .78em; }
+  .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: .6em .9em; margin: .5em 0; }
+  .reveal pre code { font-size: .72em; line-height: 1.5; background: transparent; color: #cdd6f4; }
+  .slide-hdr { display: flex; align-items: center; gap: .6em; border-bottom: 1px solid var(--border); padding-bottom: .35em; margin-bottom: .6em; }
+  .slide-hdr .tag { font-family: 'JetBrains Mono', monospace; font-size: .55em; font-weight: 500; color: var(--bg); background: var(--amber); padding: .15em .5em; border-radius: 3px; letter-spacing: .04em; }
+  .slide-hdr h2 { margin: 0; font-size: 1.3em; }
+  .cols { display: grid; gap: 1.2em; } .cols-2 { grid-template-columns: 1fr 1fr; } .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-6040 { grid-template-columns: 6fr 4fr; } .cols-4060 { grid-template-columns: 4fr 6fr; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: .8em 1em; }
+  .card.amber { border-left: 3px solid var(--amber); } .card.green { border-left: 3px solid var(--green); }
+  .card.purple{ border-left: 3px solid var(--purple); } .card.blue { border-left: 3px solid var(--blue); } .card.red { border-left: 3px solid var(--red); }
+  .card h3 { font-size: .9em; margin: 0 0 .3em; } .card p { font-size: .76em; margin: 0; color: #b8b8d0; }
+  .card ul { margin: 0; padding-left: 1.2em; } .card li { font-size: .76em; color: #b8b8d0; margin-bottom: .1em; }
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .74em; }
+  .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600; padding: .45em .7em; border: 1px solid var(--border); text-align: left; }
+  .reveal table td { padding: .4em .7em; border: 1px solid var(--border); color: #ccc; }
+  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+  .a { color: var(--amber); font-weight: 600; } .g { color: var(--green); font-weight: 600; }
+  .p { color: var(--purple); font-weight: 600; } .b { color: var(--blue); font-weight: 600; } .r { color: var(--red); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  svg.diagram { display: block; margin: 0 auto; overflow: visible; }
+  .pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: .6em; padding: .1em .5em; border-radius: 99px; border: 1px solid; margin: 0 .1em; }
+  .pill.amber { color: var(--amber); border-color: var(--amber); } .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.purple{ color: var(--purple); border-color: var(--purple); } .pill.blue { color: var(--blue); border-color: var(--blue); }
+  .reveal .slide-footer { position: absolute; bottom: .6em; right: 1.2em; font-family: 'JetBrains Mono', monospace; font-size: .45em; color: var(--muted); letter-spacing: .05em; }
+  .title-slide h1 { font-size: 2.6em; }
+  .title-slide .subtitle { font-size: .95em; color: var(--green); font-family: 'DM Sans', sans-serif; font-weight: 300; letter-spacing: .04em; margin: .5em 0 1.2em; }
+  .title-slide .meta { font-size: .68em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .reveal ul, .reveal ol { margin: .25em 0 .25em 1.2em; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ============ SLIDE 1 : TITLE ============ -->
+<section class="title-slide">
+  <p style="font-family:'JetBrains Mono',monospace;font-size:.55em;color:var(--muted);letter-spacing:.12em;margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <h1>Distributed Training</h1>
+  <div class="subtitle">Parallelism Strategies for Training Large Language Models</div>
+  <div style="width:3em;height:2px;background:var(--amber);margin:0 auto 1em;"></div>
+  <div>
+    <span class="pill amber">Data Parallel</span>
+    <span class="pill green">Tensor Parallel</span>
+    <span class="pill purple">Pipeline Parallel</span>
+    <span class="pill blue">ZeRO / FSDP</span>
+  </div>
+  <p style="max-width:34em;margin:1em auto .8em;font-size:.78em;color:#b8b8d0;text-align:center;">
+    How modern training systems combine multiple parallelism strategies across thousands of accelerators to train models with hundreds of billions of parameters.
+  </p>
+  <div class="meta">February 2026</div>
+</section>
+
+<!-- ============ SLIDE 2 : THE SCALE PROBLEM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>The Scale Problem</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Training large language models requires computational resources that vastly exceed any single accelerator.</p>
+      <ul>
+        <li>Hundreds of billions of parameters</li>
+        <li><span class="a">Tens of terabytes</span> of memory for weights, gradients, optimizer states, and activations</li>
+        <li><span class="g">Millions of GPU-hours</span> of computation</li>
+        <li>Workload must be split across <span class="b">hundreds to thousands</span> of accelerators</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 280" width="320" height="280">
+        <rect x="60" y="10" width="200" height="50" rx="6" fill="none" stroke="var(--amber)" stroke-width="1.5"/>
+        <text x="160" y="40" text-anchor="middle" fill="var(--amber)" font-family="DM Sans" font-size="14" font-weight="600">Giant Model</text>
+        <line x1="160" y1="60" x2="160" y2="90" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="160" y="85" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="10">split across</text>
+        <rect x="10" y="110" width="85" height="45" rx="5" fill="var(--bg3)" stroke="var(--green)" stroke-width="1"/>
+        <text x="52" y="137" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="11">GPU 0</text>
+        <rect x="117" y="110" width="85" height="45" rx="5" fill="var(--bg3)" stroke="var(--green)" stroke-width="1"/>
+        <text x="160" y="137" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="11">GPU 1</text>
+        <rect x="225" y="110" width="85" height="45" rx="5" fill="var(--bg3)" stroke="var(--green)" stroke-width="1"/>
+        <text x="267" y="137" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="11">GPU 2</text>
+        <text x="160" y="185" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">. . .</text>
+        <rect x="100" y="205" width="120" height="45" rx="5" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1"/>
+        <text x="160" y="228" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="11">GPU N-1</text>
+        <text x="160" y="272" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="11">1000s of accelerators</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 3 : PARALLELISM OVERVIEW ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Four Pillars of Parallelism</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Data Parallelism</h3>
+      <p>Replicate model, split data across devices. Synchronize gradients via all-reduce.</p>
+    </div>
+    <div class="card green">
+      <h3>Tensor Parallelism</h3>
+      <p>Split individual layers across devices. Each GPU computes part of every layer.</p>
+    </div>
+    <div class="card purple">
+      <h3>Pipeline Parallelism</h3>
+      <p>Assign groups of consecutive layers to different devices. Micro-batches flow through stages.</p>
+    </div>
+    <div class="card blue">
+      <h3>Expert Parallelism</h3>
+      <p>Distribute MoE experts across devices. All-to-all communication routes tokens to experts.</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.7em;font-size:.75em;color:var(--muted);">Combined as <span class="a">3D parallelism</span> (or 4D with expert parallelism) for large-scale training</p>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 4 : DATA PARALLELISM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Data Parallelism</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>How It Works</h3>
+      <ul>
+        <li>Each accelerator holds a <span class="a">complete copy</span> of the model</li>
+        <li>Each processes a different <span class="g">micro-batch</span> of training data</li>
+        <li>Gradients aggregated via <span class="b">all-reduce</span> after each step</li>
+        <li>All replicas remain perfectly synchronized</li>
+      </ul>
+      <h3 style="margin-top:.6em;">Properties</h3>
+      <ul>
+        <li>Effective batch size scales <span class="a">linearly</span> with device count</li>
+        <li>Per-step throughput scales <span class="g">near-linearly</span> for compute-bound workloads</li>
+        <li>Simplest and most widely used form</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 300" width="300" height="300">
+        <!-- GPU boxes -->
+        <rect x="20" y="20" width="120" height="65" rx="5" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.2"/>
+        <text x="80" y="42" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="10">GPU 0</text>
+        <text x="80" y="60" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Full Model + Batch 0</text>
+        <rect x="160" y="20" width="120" height="65" rx="5" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.2"/>
+        <text x="220" y="42" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="10">GPU 1</text>
+        <text x="220" y="60" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Full Model + Batch 1</text>
+        <rect x="20" y="110" width="120" height="65" rx="5" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.2"/>
+        <text x="80" y="132" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="10">GPU 2</text>
+        <text x="80" y="150" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Full Model + Batch 2</text>
+        <rect x="160" y="110" width="120" height="65" rx="5" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.2"/>
+        <text x="220" y="132" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="10">GPU 3</text>
+        <text x="220" y="150" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Full Model + Batch 3</text>
+        <!-- All-reduce circle -->
+        <ellipse cx="150" cy="230" rx="80" ry="30" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="150" y="234" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="11">All-Reduce Grads</text>
+        <!-- arrows -->
+        <line x1="80" y1="175" x2="120" y2="205" stroke="var(--border)" stroke-width="1"/>
+        <line x1="220" y1="175" x2="180" y2="205" stroke="var(--border)" stroke-width="1"/>
+        <line x1="80" y1="85" x2="120" y2="205" stroke="var(--border)" stroke-width="1"/>
+        <line x1="220" y1="85" x2="180" y2="205" stroke="var(--border)" stroke-width="1"/>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 5 : DATA PARALLELISM LIMITS ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Limitations of Data Parallelism</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Memory Redundancy</h3>
+      <p>Each GPU stores a full copy of weights, gradients, and optimizer states.</p>
+      <ul>
+        <li>70B param model with Adam in mixed precision</li>
+        <li><span class="r">~840 GB per replica</span></li>
+        <li>Far exceeds any single GPU memory (80 GB H100)</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Communication Bottleneck</h3>
+      <p>Gradient all-reduce becomes a bottleneck at scale.</p>
+      <ul>
+        <li>Communication volume grows with model size</li>
+        <li>Network bandwidth doesn't scale with compute</li>
+        <li>Synchronization overhead increases with device count</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.8em;">These limitations motivated <span class="b">ZeRO</span> and complementary parallelism strategies.</p>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 6 : ZeRO STAGES ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>ZeRO: Zero Redundancy Optimizer</h2></div>
+  <p style="margin-bottom:.5em;">Developed by Microsoft DeepSpeed. Eliminates memory redundancy by <span class="b">partitioning</span> instead of replicating model states.</p>
+  <div class="cols cols-3">
+    <div class="card blue">
+      <h3>Stage 1</h3>
+      <p>Partition <span class="a">optimizer states</span> (Adam momentum &amp; variance)</p>
+      <p style="margin-top:.4em;color:var(--green);font-weight:600;">~4x memory reduction</p>
+    </div>
+    <div class="card blue">
+      <h3>Stage 2</h3>
+      <p>Additionally partition <span class="a">gradients</span></p>
+      <p style="margin-top:.4em;color:var(--green);font-weight:600;">~8x memory reduction</p>
+    </div>
+    <div class="card blue">
+      <h3>Stage 3</h3>
+      <p>Also partition <span class="a">model weights</span> themselves</p>
+      <p style="margin-top:.4em;color:var(--green);font-weight:600;">Full sharding &mdash; no per-GPU limit</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em;font-size:.75em;color:var(--muted);">With ZeRO-3, each GPU stores only a <span class="g">fraction</span> of the total model; aggregate memory holds everything.</p>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 7 : ZeRO MEMORY DIAGRAM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>ZeRO Memory Savings</h2></div>
+  <svg class="diagram" viewBox="0 0 800 320" width="800" height="320">
+    <!-- Standard DP bar -->
+    <text x="100" y="30" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="13">Standard DP</text>
+    <rect x="10" y="40" width="180" height="35" rx="3" fill="var(--amber)" opacity=".8"/>
+    <text x="100" y="62" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="10">Weights (2x)</text>
+    <rect x="10" y="80" width="180" height="35" rx="3" fill="var(--green)" opacity=".8"/>
+    <text x="100" y="102" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="10">Gradients (2x)</text>
+    <rect x="10" y="120" width="360" height="35" rx="3" fill="var(--purple)" opacity=".8"/>
+    <text x="190" y="142" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="10">Optimizer States (8x)</text>
+    <text x="560" y="142" fill="var(--red)" font-family="JetBrains Mono" font-size="12" font-weight="600">12x params per GPU</text>
+
+    <!-- ZeRO-1 -->
+    <text x="100" y="190" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="13">ZeRO Stage 1</text>
+    <rect x="10" y="200" width="180" height="25" rx="3" fill="var(--amber)" opacity=".7"/>
+    <rect x="10" y="228" width="180" height="25" rx="3" fill="var(--green)" opacity=".7"/>
+    <rect x="10" y="256" width="90" height="25" rx="3" fill="var(--purple)" opacity=".7"/>
+    <text x="560" y="240" fill="var(--green)" font-family="JetBrains Mono" font-size="12" font-weight="600">~4x reduction (optimizer sharded)</text>
+
+    <!-- ZeRO-3 -->
+    <text x="100" y="305" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="13">ZeRO Stage 3</text>
+    <rect x="10" y="310" width="45" height="8" rx="2" fill="var(--amber)" opacity=".7"/>
+    <rect x="60" y="310" width="45" height="8" rx="2" fill="var(--green)" opacity=".7"/>
+    <rect x="110" y="310" width="23" height="8" rx="2" fill="var(--purple)" opacity=".7"/>
+    <text x="560" y="318" fill="var(--green)" font-family="JetBrains Mono" font-size="12" font-weight="600">Everything sharded across N GPUs</text>
+  </svg>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 8 : FSDP ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>FSDP: Fully Sharded Data Parallelism</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>PyTorch's native implementation of <span class="b">ZeRO-3</span>-style sharding.</p>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Key Features</h3>
+        <ul>
+          <li>Shards parameters, gradients, and optimizer states across workers</li>
+          <li><span class="a">Gathers parameters on demand</span> for computation</li>
+          <li>Releases after use to free memory</li>
+          <li>Mixed precision training support</li>
+          <li>Activation checkpointing integration</li>
+          <li>Flexible sharding granularity control</li>
+        </ul>
+      </div>
+      <p style="margin-top:.5em;font-size:.75em;color:var(--muted);">Now the standard approach for memory-efficient data-parallel training in PyTorch.</p>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 280" width="280" height="280">
+        <text x="140" y="20" text-anchor="middle" fill="var(--amber)" font-family="DM Sans" font-size="13" font-weight="600">FSDP Lifecycle</text>
+        <!-- Steps -->
+        <rect x="60" y="40" width="160" height="36" rx="5" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.2"/>
+        <text x="140" y="63" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="10">all-gather params</text>
+        <line x1="140" y1="76" x2="140" y2="96" stroke="var(--border)" stroke-width="1" marker-end="url(#arr)"/>
+        <rect x="60" y="96" width="160" height="36" rx="5" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.2"/>
+        <text x="140" y="119" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="10">forward / backward</text>
+        <line x1="140" y1="132" x2="140" y2="152" stroke="var(--border)" stroke-width="1"/>
+        <rect x="60" y="152" width="160" height="36" rx="5" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.2"/>
+        <text x="140" y="175" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="10">reduce-scatter grads</text>
+        <line x1="140" y1="188" x2="140" y2="208" stroke="var(--border)" stroke-width="1"/>
+        <rect x="60" y="208" width="160" height="36" rx="5" fill="var(--bg3)" stroke="var(--blue)" stroke-width="1.2"/>
+        <text x="140" y="231" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="10">update local shard</text>
+        <line x1="60" y1="244" x2="40" y2="260" stroke="var(--border)" stroke-width="1"/>
+        <line x1="40" y1="260" x2="40" y2="50" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="40" y1="50" x2="60" y2="55" stroke="var(--border)" stroke-width="1"/>
+        <text x="25" y="160" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="9" transform="rotate(-90,25,160)">repeat</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 9 : TENSOR PARALLELISM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Tensor Parallelism</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Splits <span class="g">individual layers</span> across multiple GPUs, each computing a portion of the layer output.</p>
+      <div class="card green" style="margin-top:.4em;">
+        <h3>Transformer Splitting Strategy</h3>
+        <ul>
+          <li>Q, K, V projections partitioned <span class="a">column-wise</span></li>
+          <li>Output projection partitioned <span class="b">row-wise</span></li>
+          <li>Only <span class="p">one all-reduce per layer</span></li>
+          <li>Feed-forward layers similarly split</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.5em;">
+        <h3>Best Within a Node</h3>
+        <ul>
+          <li>Requires <span class="g">NVLink / NVSwitch</span> (400-900 GB/s)</li>
+          <li>Frequent all-reduce makes it sensitive to latency</li>
+          <li>Typical TP degree: <span class="a">2 to 8</span> GPUs</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 300" width="280" height="300">
+        <text x="140" y="20" text-anchor="middle" fill="var(--amber)" font-family="DM Sans" font-size="12" font-weight="600">Tensor Parallel: Attention Layer</text>
+        <!-- Input -->
+        <rect x="80" y="35" width="120" height="30" rx="4" fill="var(--bg3)" stroke="var(--text)" stroke-width="1"/>
+        <text x="140" y="55" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="10">Input X</text>
+        <!-- Split arrow -->
+        <line x1="110" y1="65" x2="55" y2="90" stroke="var(--border)" stroke-width="1"/>
+        <line x1="170" y1="65" x2="225" y2="90" stroke="var(--border)" stroke-width="1"/>
+        <!-- GPU partitions -->
+        <rect x="10" y="90" width="90" height="60" rx="4" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.2"/>
+        <text x="55" y="110" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">GPU 0</text>
+        <text x="55" y="126" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="8">QKV cols [0:d/2]</text>
+        <text x="55" y="140" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="8">Out rows [0:d/2]</text>
+        <rect x="180" y="90" width="90" height="60" rx="4" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.2"/>
+        <text x="225" y="110" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">GPU 1</text>
+        <text x="225" y="126" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="8">QKV cols [d/2:d]</text>
+        <text x="225" y="140" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="8">Out rows [d/2:d]</text>
+        <!-- All-reduce -->
+        <line x1="55" y1="150" x2="100" y2="180" stroke="var(--amber)" stroke-width="1.2"/>
+        <line x1="225" y1="150" x2="180" y2="180" stroke="var(--amber)" stroke-width="1.2"/>
+        <ellipse cx="140" cy="192" rx="70" ry="20" fill="none" stroke="var(--amber)" stroke-width="1.2" stroke-dasharray="4,3"/>
+        <text x="140" y="196" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">all-reduce</text>
+        <!-- Output -->
+        <rect x="80" y="225" width="120" height="30" rx="4" fill="var(--bg3)" stroke="var(--text)" stroke-width="1"/>
+        <text x="140" y="244" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="10">Output Y</text>
+        <line x1="140" y1="212" x2="140" y2="225" stroke="var(--border)" stroke-width="1"/>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 10 : PIPELINE PARALLELISM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Pipeline Parallelism</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Assigns <span class="p">consecutive groups of layers</span> to different accelerators.</p>
+      <ul>
+        <li>Device 0: layers 1..N</li>
+        <li>Device 1: layers N+1..2N</li>
+        <li>Only <span class="g">inter-stage activations</span> communicated (point-to-point)</li>
+        <li>Suitable for <span class="b">cross-node</span> distribution (lower bandwidth OK)</li>
+      </ul>
+      <div class="card purple" style="margin-top:.6em;">
+        <h3>Pipeline Bubble Problem</h3>
+        <p>Bubble fraction &asymp; <span class="mono r">(P-1)/M</span> where P = stages, M = micro-batches.</p>
+        <ul>
+          <li><span class="a">GPipe</span>: many micro-batches reduce bubbles</li>
+          <li><span class="a">PipeDream / 1F1B</span>: start backward before all forwards complete</li>
+          <li>State-of-the-art: bubble overhead down to <span class="g">a few percent</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 300" width="280" height="300">
+        <text x="140" y="16" text-anchor="middle" fill="var(--amber)" font-family="DM Sans" font-size="11" font-weight="600">Pipeline: 4 Stages, 4 Micro-batches</text>
+        <!-- Time axis -->
+        <text x="40" y="40" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">Time &rarr;</text>
+        <!-- Stage labels -->
+        <text x="14" y="70" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="8">S0</text>
+        <text x="14" y="100" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="8">S1</text>
+        <text x="14" y="130" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="8">S2</text>
+        <text x="14" y="160" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="8">S3</text>
+        <!-- Forward micro-batches (colored blocks) -->
+        <rect x="30" y="55" width="28" height="20" rx="2" fill="var(--amber)" opacity=".8"/><text x="44" y="69" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F0</text>
+        <rect x="60" y="55" width="28" height="20" rx="2" fill="var(--green)" opacity=".8"/><text x="74" y="69" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F1</text>
+        <rect x="90" y="55" width="28" height="20" rx="2" fill="var(--purple)" opacity=".7"/><text x="104" y="69" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F2</text>
+        <rect x="120" y="55" width="28" height="20" rx="2" fill="var(--blue)" opacity=".7"/><text x="134" y="69" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F3</text>
+        <!-- Stage 1 -->
+        <rect x="60" y="85" width="28" height="20" rx="2" fill="var(--amber)" opacity=".8"/><text x="74" y="99" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F0</text>
+        <rect x="90" y="85" width="28" height="20" rx="2" fill="var(--green)" opacity=".8"/><text x="104" y="99" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F1</text>
+        <rect x="120" y="85" width="28" height="20" rx="2" fill="var(--purple)" opacity=".7"/><text x="134" y="99" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F2</text>
+        <rect x="150" y="85" width="28" height="20" rx="2" fill="var(--blue)" opacity=".7"/><text x="164" y="99" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F3</text>
+        <!-- Stage 2 -->
+        <rect x="90" y="115" width="28" height="20" rx="2" fill="var(--amber)" opacity=".8"/><text x="104" y="129" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F0</text>
+        <rect x="120" y="115" width="28" height="20" rx="2" fill="var(--green)" opacity=".8"/><text x="134" y="129" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F1</text>
+        <rect x="150" y="115" width="28" height="20" rx="2" fill="var(--purple)" opacity=".7"/><text x="164" y="129" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F2</text>
+        <rect x="180" y="115" width="28" height="20" rx="2" fill="var(--blue)" opacity=".7"/><text x="194" y="129" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F3</text>
+        <!-- Stage 3 -->
+        <rect x="120" y="145" width="28" height="20" rx="2" fill="var(--amber)" opacity=".8"/><text x="134" y="159" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F0</text>
+        <rect x="150" y="145" width="28" height="20" rx="2" fill="var(--green)" opacity=".8"/><text x="164" y="159" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F1</text>
+        <rect x="180" y="145" width="28" height="20" rx="2" fill="var(--purple)" opacity=".7"/><text x="194" y="159" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F2</text>
+        <rect x="210" y="145" width="28" height="20" rx="2" fill="var(--blue)" opacity=".7"/><text x="224" y="159" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">F3</text>
+        <!-- Bubble regions -->
+        <rect x="30" y="85" width="28" height="20" rx="2" fill="var(--red)" opacity=".15" stroke="var(--red)" stroke-width=".5" stroke-dasharray="2,2"/>
+        <rect x="30" y="115" width="58" height="20" rx="2" fill="var(--red)" opacity=".15" stroke="var(--red)" stroke-width=".5" stroke-dasharray="2,2"/>
+        <rect x="30" y="145" width="88" height="20" rx="2" fill="var(--red)" opacity=".15" stroke="var(--red)" stroke-width=".5" stroke-dasharray="2,2"/>
+        <!-- Legend -->
+        <text x="140" y="195" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Forward pass shown; backward mirrors in reverse.</text>
+        <rect x="50" y="210" width="14" height="10" rx="2" fill="var(--red)" opacity=".2" stroke="var(--red)" stroke-width=".5"/>
+        <text x="72" y="219" fill="var(--red)" font-family="JetBrains Mono" font-size="8">= bubble (idle time)</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 11 : 3D PARALLELISM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>3D Parallelism: Combining Strategies</h2></div>
+  <svg class="diagram" viewBox="0 0 800 340" width="800" height="340">
+    <text x="400" y="25" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display" font-size="16" font-weight="700">Hybrid Parallelism Layout</text>
+    <!-- Node box 1 -->
+    <rect x="30" y="60" width="350" height="130" rx="8" fill="none" stroke="var(--green)" stroke-width="1.5"/>
+    <text x="205" y="53" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="11">Node 0 &mdash; Tensor Parallel (NVLink)</text>
+    <rect x="50" y="80" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="85" y="104" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 0</text>
+    <rect x="140" y="80" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="175" y="104" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 1</text>
+    <rect x="230" y="80" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="265" y="104" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 2</text>
+    <rect x="50" y="140" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="85" y="164" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 3</text>
+    <rect x="140" y="140" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="175" y="164" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 4</text>
+    <rect x="230" y="140" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="265" y="164" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 5</text>
+    <text x="330" y="170" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">...</text>
+    <!-- Node box 2 -->
+    <rect x="420" y="60" width="350" height="130" rx="8" fill="none" stroke="var(--green)" stroke-width="1.5"/>
+    <text x="595" y="53" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="11">Node 1 &mdash; Tensor Parallel (NVLink)</text>
+    <rect x="440" y="80" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="475" y="104" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 0</text>
+    <rect x="530" y="80" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="565" y="104" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 1</text>
+    <rect x="620" y="80" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="655" y="104" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 2</text>
+    <rect x="440" y="140" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="475" y="164" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 3</text>
+    <rect x="530" y="140" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="565" y="164" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 4</text>
+    <rect x="620" y="140" width="70" height="40" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/><text x="655" y="164" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">GPU 5</text>
+    <text x="720" y="170" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">...</text>
+    <!-- Pipeline arrow between nodes -->
+    <line x1="380" y1="125" x2="420" y2="125" stroke="var(--purple)" stroke-width="2" marker-end="url(#arrowP)"/>
+    <defs><marker id="arrowP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--purple)"/></marker></defs>
+    <text x="400" y="115" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="9">Pipeline</text>
+    <!-- Data parallel label at bottom -->
+    <rect x="100" y="220" width="600" height="40" rx="6" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="6,3"/>
+    <text x="400" y="245" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="12">Data Parallelism &mdash; replicate entire pipeline across groups</text>
+    <!-- Legend -->
+    <text x="400" y="300" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="11">Each strategy operates at the communication scale where it is most efficient</text>
+    <text x="400" y="320" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10"><tspan fill="var(--green)">TP: intra-node (NVLink)</tspan> &nbsp; <tspan fill="var(--purple)">PP: inter-node</tspan> &nbsp; <tspan fill="var(--blue)">DP: across replica groups</tspan></text>
+  </svg>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 12 : EXPERT PARALLELISM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Expert Parallelism (MoE)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>For Mixture-of-Experts models, a <span class="p">fourth dimension</span> of parallelism distributes experts across devices.</p>
+      <div class="card purple" style="margin-top:.5em;">
+        <h3>How It Works</h3>
+        <ul>
+          <li>Different <span class="a">experts</span> placed on different devices</li>
+          <li><span class="b">All-to-all</span> communication routes tokens to the correct expert</li>
+          <li>Each token dispatched to its assigned expert(s)</li>
+          <li>Results gathered back after expert computation</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.5em;">
+        <h3>Challenge</h3>
+        <p>Combining expert parallelism with TP + PP + DP creates complex communication patterns requiring careful orchestration for high efficiency.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 270" width="280" height="270">
+        <text x="140" y="18" text-anchor="middle" fill="var(--amber)" font-family="DM Sans" font-size="11" font-weight="600">Token Routing in MoE</text>
+        <!-- Tokens -->
+        <rect x="80" y="30" width="120" height="30" rx="4" fill="var(--bg3)" stroke="var(--text)" stroke-width="1"/>
+        <text x="140" y="50" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="9">Token batch</text>
+        <!-- Router -->
+        <rect x="90" y="75" width="100" height="25" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.2"/>
+        <text x="140" y="92" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">Router</text>
+        <line x1="140" y1="60" x2="140" y2="75" stroke="var(--border)" stroke-width="1"/>
+        <!-- All-to-all -->
+        <text x="140" y="118" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="9">all-to-all dispatch</text>
+        <!-- Experts -->
+        <rect x="10" y="135" width="55" height="40" rx="4" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.2"/>
+        <text x="37" y="160" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="8">Expert 0</text>
+        <rect x="78" y="135" width="55" height="40" rx="4" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.2"/>
+        <text x="105" y="160" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="8">Expert 1</text>
+        <rect x="146" y="135" width="55" height="40" rx="4" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.2"/>
+        <text x="173" y="160" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="8">Expert 2</text>
+        <rect x="214" y="135" width="55" height="40" rx="4" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.2"/>
+        <text x="241" y="160" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="8">Expert 3</text>
+        <!-- GPU labels -->
+        <text x="37" y="190" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">GPU 0</text>
+        <text x="105" y="190" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">GPU 1</text>
+        <text x="173" y="190" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">GPU 2</text>
+        <text x="241" y="190" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">GPU 3</text>
+        <!-- All-to-all gather -->
+        <text x="140" y="215" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="9">all-to-all gather</text>
+        <!-- Output -->
+        <rect x="80" y="230" width="120" height="30" rx="4" fill="var(--bg3)" stroke="var(--text)" stroke-width="1"/>
+        <text x="140" y="250" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="9">Combined output</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 13 : COMPARISON TABLE ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Strategy Comparison</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Strategy</th>
+        <th>What is Distributed</th>
+        <th>Communication Pattern</th>
+        <th>Best Suited For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Data Parallel</span></td>
+        <td>Data (batches)</td>
+        <td>All-reduce (gradients)</td>
+        <td>Scaling batch size</td>
+      </tr>
+      <tr>
+        <td><span class="b">ZeRO / FSDP</span></td>
+        <td>Model state + data</td>
+        <td>All-gather + reduce-scatter</td>
+        <td>Memory-limited training</td>
+      </tr>
+      <tr>
+        <td><span class="g">Tensor Parallel</span></td>
+        <td>Individual layers</td>
+        <td>All-reduce per layer</td>
+        <td>Intra-node (high BW)</td>
+      </tr>
+      <tr>
+        <td><span class="p">Pipeline Parallel</span></td>
+        <td>Groups of layers</td>
+        <td>Point-to-point activations</td>
+        <td>Inter-node (lower BW)</td>
+      </tr>
+      <tr>
+        <td><span class="r">Expert Parallel</span></td>
+        <td>MoE experts</td>
+        <td>All-to-all (token dispatch)</td>
+        <td>MoE architectures</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="text-align:center;margin-top:.8em;font-size:.75em;color:var(--muted);">In practice, large-scale systems combine <span class="a">all applicable strategies</span> simultaneously.</p>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 14 : COMMUNICATION OPTIMIZATION ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Communication Optimization</h2></div>
+  <p style="margin-bottom:.5em;">At scale, <span class="a">communication efficiency</span> is as important as compute efficiency.</p>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Overlap Compute &amp; Comms</h3>
+      <p>Pipeline gradient all-reduce with backward pass computation so they run concurrently.</p>
+    </div>
+    <div class="card green">
+      <h3>Gradient Compression</h3>
+      <p>Reduce communication volume by compressing gradients before transmission.</p>
+    </div>
+    <div class="card purple">
+      <h3>Hierarchical All-Reduce</h3>
+      <p>Exploit network topology: intra-node reduction before inter-node, matching hardware hierarchy.</p>
+    </div>
+    <div class="card blue">
+      <h3>Avoid Serialization</h3>
+      <p>Careful placement of communication primitives to prevent bottlenecks from blocking the pipeline.</p>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 15 : FAULT TOLERANCE ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Fault Tolerance &amp; Checkpointing</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>At thousands of GPUs running for weeks, hardware failures are <span class="r">not exceptional but routine</span>.</p>
+      <div class="card red" style="margin-top:.5em;">
+        <h3>The Reality</h3>
+        <p>Mean time between failures at the largest scales can be measured in <span class="a">hours</span>. Fast recovery is essential.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Solutions</h3>
+        <ul>
+          <li><span class="a">Periodic checkpointing</span> saves model state</li>
+          <li><span class="b">Asynchronous checkpointing</span> avoids blocking training</li>
+          <li><span class="g">Elastic training</span> adapts to changing GPU availability</li>
+          <li>Seamless resume after failures</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 270" width="280" height="270">
+        <text x="140" y="18" text-anchor="middle" fill="var(--amber)" font-family="DM Sans" font-size="11" font-weight="600">Checkpoint &amp; Recovery</text>
+        <!-- Timeline -->
+        <line x1="30" y1="50" x2="260" y2="50" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="145" y="44" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="8">training timeline</text>
+        <!-- Training blocks -->
+        <rect x="30" y="60" width="60" height="20" rx="3" fill="var(--green)" opacity=".6"/>
+        <text x="60" y="74" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">train</text>
+        <!-- Checkpoint -->
+        <rect x="90" y="55" width="8" height="30" rx="2" fill="var(--amber)"/>
+        <text x="94" y="100" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">ckpt</text>
+        <rect x="98" y="60" width="60" height="20" rx="3" fill="var(--green)" opacity=".6"/>
+        <text x="128" y="74" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">train</text>
+        <!-- Failure -->
+        <line x1="168" y1="55" x2="168" y2="85" stroke="var(--red)" stroke-width="2"/>
+        <text x="168" y="100" text-anchor="middle" fill="var(--red)" font-family="JetBrains Mono" font-size="7">FAIL</text>
+        <!-- Recovery -->
+        <rect x="178" y="120" width="8" height="25" rx="2" fill="var(--blue)"/>
+        <text x="182" y="158" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="7">restore</text>
+        <line x1="94" y1="85" x2="182" y2="120" stroke="var(--amber)" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="138" y="110" text-anchor="middle" fill="var(--amber)" font-family="DM Sans" font-size="8">reload from checkpoint</text>
+        <!-- Resume -->
+        <rect x="186" y="127" width="70" height="20" rx="3" fill="var(--green)" opacity=".6"/>
+        <text x="221" y="141" text-anchor="middle" fill="var(--bg)" font-family="JetBrains Mono" font-size="7">resume training</text>
+        <!-- Async note -->
+        <rect x="30" y="190" width="230" height="55" rx="6" fill="var(--bg3)" stroke="var(--border)" stroke-width="1"/>
+        <text x="145" y="210" text-anchor="middle" fill="var(--green)" font-family="DM Sans" font-size="10" font-weight="600">Async Checkpointing</text>
+        <text x="145" y="228" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Writes checkpoint in background</text>
+        <text x="145" y="240" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">without blocking training steps</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 16 : DETERMINISM ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Determinism &amp; Reproducibility</h2></div>
+  <p>Achieving deterministic results across distributed configurations is <span class="r">difficult</span>.</p>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Floating-Point Non-Associativity</h3>
+      <p>Collective operations (e.g., all-reduce) yield different results depending on reduction order due to float math.</p>
+    </div>
+    <div class="card red">
+      <h3>Non-Deterministic Kernels</h3>
+      <p>GPU kernel execution can vary between runs, producing slightly different numerical results.</p>
+    </div>
+    <div class="card red">
+      <h3>Communication Ordering</h3>
+      <p>Variations in timing and ordering of network operations introduce subtle non-determinism.</p>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.8em;">
+    <h3>Practical Approach</h3>
+    <p>Perfect bit-level reproducibility is often impractical. Instead, aim for <span class="a">approximate reproducibility</span> via controlled random seeds, fixed communication ordering, and numerical precision management. Essential for debugging and scientific rigor.</p>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 17 : FUTURE DIRECTIONS ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Future Directions</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Sequence &amp; Context Parallelism</h3>
+      <ul>
+        <li><span class="g">Sequence parallelism</span> distributes the sequence dimension for long-context training</li>
+        <li><span class="b">Context parallelism</span> distributes attention computation across devices for very long sequences</li>
+        <li>Essential as context windows grow beyond single-device capacity</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Improved Interconnects</h3>
+      <ul>
+        <li><span class="a">NVLink 5.0</span> &mdash; higher bandwidth intra-node</li>
+        <li><span class="a">CXL</span> &mdash; memory-coherent interconnect</li>
+        <li>Custom network topologies for large clusters</li>
+        <li>Reducing communication as the core bottleneck</li>
+      </ul>
+    </div>
+    <div class="card blue" style="grid-column: 1 / -1;">
+      <h3>Automatic Parallelism</h3>
+      <p>Compiler-driven tools like <span class="a">XLA GSPMD</span> and <span class="a">Alpa</span> aim to discover optimal parallelism strategies automatically, given a model and hardware configuration &mdash; reducing the need for manual parallel configuration.</p>
+    </div>
+  </div>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+<!-- ============ SLIDE 18 : CONCLUSION ============ -->
+<section>
+  <div class="slide-hdr"><span class="tag">17</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Distributed training is the engineering backbone of LLMs</h3>
+        <p>Without it, models beyond a few billion parameters would be physically impossible to train.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Hybrid parallelism is the standard</h3>
+        <p>TP within nodes, PP across nodes, DP across replica groups &mdash; each strategy at its optimal communication scale.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Memory optimizations are essential</h3>
+        <p>ZeRO / FSDP make it possible to train models whose state far exceeds any single device.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em;">
+        <h3>Systems challenges grow with scale</h3>
+        <p>Communication efficiency, fault tolerance, and automated parallelism configuration are active and consequential areas of research.</p>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:1em;">
+    <span class="pill amber">Data Parallel</span>
+    <span class="pill green">Tensor Parallel</span>
+    <span class="pill purple">Pipeline Parallel</span>
+    <span class="pill blue">ZeRO / FSDP</span>
+    <span class="pill amber">Expert Parallel</span>
+  </div>
+  <p style="text-align:center;margin-top:.8em;font-size:.72em;color:var(--muted);">One of the most consequential areas of systems research in modern AI.</p>
+  <div class="slide-footer">distributed training</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({ hash: true, center: true, transition: 'fade', transitionSpeed: 'fast', margin: 0.04, width: 1280, height: 720 });</script>
+</body></html>

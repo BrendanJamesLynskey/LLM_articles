@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Engineering | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="mono" style="font-size:.55em;color:var(--muted);margin-bottom:.3em;">TECHNICAL REPORT</p>
+  <h1>Prompt Engineering</h1>
+  <p class="subtitle">Techniques for Effective Communication with Large Language Models</p>
+  <div>
+    <span class="pill amber">few-shot</span>
+    <span class="pill green">chain-of-thought</span>
+    <span class="pill purple">RAG</span>
+    <span class="pill blue">tool-use</span>
+  </div>
+  <p class="meta" style="margin-top:1.4em;">February 2026</p>
+  <div class="slide-footer">prompt_engineering // 1</div>
+</section>
+
+<!-- SLIDE 2: Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>What Is Prompt Engineering?</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The practice of designing and refining input text to elicit desired behaviors and outputs from large language models.</p>
+      <ul>
+        <li>LLMs are steered through <span class="a">natural language</span>, not code</li>
+        <li>Prompt quality is one of the most significant determinants of <span class="g">output quality</span></li>
+        <li>Encompasses instructions, examples, and structural cues</li>
+        <li>Evolving from manual craft toward <span class="p">systematic discipline</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Key Insight</h3>
+      <p>Unlike traditional software where behavior is specified through code, LLMs are steered through natural language instructions &mdash; making prompt design the primary interface for practitioners.</p>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 2</div>
+</section>
+
+<!-- SLIDE 3: Technique Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Technique Landscape</h2></div>
+  <svg class="diagram" viewBox="0 0 900 340" width="860" height="320">
+    <!-- Foundation layer -->
+    <rect x="30" y="230" width="840" height="80" rx="10" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="450" y="260" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700">Foundational Techniques</text>
+    <text x="180" y="290" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="13">Zero-Shot</text>
+    <text x="450" y="290" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="13">Few-Shot</text>
+    <text x="720" y="290" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="13">Chain-of-Thought</text>
+    <!-- Advanced layer -->
+    <rect x="80" y="120" width="370" height="80" rx="10" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="265" y="150" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="16" font-weight="700">Advanced Reasoning</text>
+    <text x="155" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Self-Consistency</text>
+    <text x="310" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Tree/Graph-of-Thought</text>
+    <!-- Structured layer -->
+    <rect x="480" y="120" width="370" height="80" rx="10" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="665" y="150" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display,serif" font-size="16" font-weight="700">Structured Output &amp; Control</text>
+    <text x="565" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Format Spec</text>
+    <text x="700" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">System Prompts</text>
+    <text x="800" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Tools</text>
+    <!-- Top layer -->
+    <rect x="200" y="20" width="500" height="70" rx="10" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="450" y="50" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="16" font-weight="700">Optimization &amp; Automation</text>
+    <text x="320" y="72" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Iterative Refinement</text>
+    <text x="450" y="72" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Decomposition</text>
+    <text x="580" y="72" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">DSPy / OPRO</text>
+    <!-- Arrows -->
+    <line x1="265" y1="200" x2="350" y2="230" stroke="#2a2a3a" stroke-width="1.5"/>
+    <line x1="665" y1="200" x2="550" y2="230" stroke="#2a2a3a" stroke-width="1.5"/>
+    <line x1="350" y1="90" x2="265" y2="120" stroke="#2a2a3a" stroke-width="1.5"/>
+    <line x1="550" y1="90" x2="665" y2="120" stroke="#2a2a3a" stroke-width="1.5"/>
+  </svg>
+  <div class="slide-footer">prompt_engineering // 3</div>
+</section>
+
+<!-- SLIDE 4: Zero-Shot Prompting -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Zero-Shot Prompting</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Provide a task description and input with <span class="a">no examples</span> of desired output.</p>
+      <ul>
+        <li>Works well for straightforward tasks: summarization, translation, Q&A</li>
+        <li>Effectiveness depends on <span class="g">clarity and specificity</span></li>
+        <li>Modern instruction-tuned models excel at zero-shot settings</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.8em;">
+        <h3>Vague</h3>
+        <pre><code>"Analyze this text."</code></pre>
+      </div>
+      <div class="card green">
+        <h3>Specific</h3>
+        <pre><code>"Identify the three main arguments
+in this text and evaluate the
+evidence supporting each one."</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 4</div>
+</section>
+
+<!-- SLIDE 5: Few-Shot Prompting -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Few-Shot Prompting</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Include one or more <span class="a">input-output pairs</span> before the actual query to demonstrate format, style, and reasoning.</p>
+      <ul>
+        <li>Particularly valuable for tasks with specific output formats</li>
+        <li>Example <span class="g">selection</span>, <span class="p">ordering</span>, and <span class="b">diversity</span> all affect performance</li>
+        <li>Examples drawn from a similar distribution yield the best results</li>
+        <li>Addresses domain-specific conventions that are hard to express in instructions alone</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 260" width="300" height="250">
+        <rect x="10" y="10" width="300" height="55" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="25" y="32" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Example 1</text>
+        <text x="25" y="52" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
+        <rect x="10" y="80" width="300" height="55" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="25" y="102" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">Example 2</text>
+        <text x="25" y="122" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
+        <rect x="10" y="150" width="300" height="55" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="25" y="172" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">Example 3</text>
+        <text x="25" y="192" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
+        <rect x="10" y="220" width="300" height="35" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="25" y="243" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="12">Actual Query &rarr; ?</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 5</div>
+</section>
+
+<!-- SLIDE 6: Chain-of-Thought -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Chain-of-Thought Prompting</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Instruct the model to show its <span class="a">reasoning process step by step</span> before producing a final answer.</p>
+      <ul>
+        <li>Dramatically improves performance on <span class="g">multi-step reasoning</span></li>
+        <li>Mathematical problem solving, logical deduction, complex analysis</li>
+        <li>Forces decomposition of complex problems into manageable sub-steps</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.6em;">
+        <h3>Zero-Shot CoT</h3>
+        <p>Add <code>"Think step by step"</code> to any prompt &mdash; simple and broadly effective.</p>
+      </div>
+      <div class="card purple">
+        <h3>Few-Shot CoT</h3>
+        <p>Provide examples with explicit reasoning traces to demonstrate the desired reasoning pattern.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 6</div>
+</section>
+
+<!-- SLIDE 7: Self-Consistency -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Self-Consistency</h2></div>
+  <svg class="diagram" viewBox="0 0 900 280" width="860" height="260">
+    <!-- Prompt -->
+    <rect x="20" y="100" width="140" height="60" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="90" y="126" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12">Prompt</text>
+    <text x="90" y="146" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">+ CoT</text>
+    <!-- Paths -->
+    <line x1="160" y1="115" x2="260" y2="50" stroke="#a78bfa" stroke-width="1.5"/>
+    <line x1="160" y1="130" x2="260" y2="130" stroke="#60a5fa" stroke-width="1.5"/>
+    <line x1="160" y1="145" x2="260" y2="210" stroke="#4ecb8d" stroke-width="1.5"/>
+    <!-- Path boxes -->
+    <rect x="260" y="20" width="260" height="55" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="280" y="42" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">Path 1</text>
+    <text x="280" y="62" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Step A &rarr; Step B &rarr; Answer: 42</text>
+    <rect x="260" y="100" width="260" height="55" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="280" y="122" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">Path 2</text>
+    <text x="280" y="142" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Step C &rarr; Step D &rarr; Answer: 42</text>
+    <rect x="260" y="180" width="260" height="55" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="280" y="202" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Path 3</text>
+    <text x="280" y="222" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Step E &rarr; Step F &rarr; Answer: 37</text>
+    <!-- Arrows to voting -->
+    <line x1="520" y1="50" x2="620" y2="120" stroke="#2a2a3a" stroke-width="1.5"/>
+    <line x1="520" y1="130" x2="620" y2="130" stroke="#2a2a3a" stroke-width="1.5"/>
+    <line x1="520" y1="210" x2="620" y2="140" stroke="#2a2a3a" stroke-width="1.5"/>
+    <!-- Majority vote -->
+    <rect x="620" y="95" width="160" height="60" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="700" y="121" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12">Majority Vote</text>
+    <text x="700" y="143" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Answer: 42</text>
+  </svg>
+  <p style="text-align:center;margin-top:.3em;">Correct reasoning paths <span class="g">converge</span> on the same answer; incorrect paths <span class="r">diverge</span>.</p>
+  <div class="slide-footer">prompt_engineering // 7</div>
+</section>
+
+<!-- SLIDE 8: Tree-of-Thought & Graph-of-Thought -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Tree &amp; Graph of Thought</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Tree-of-Thought</h3>
+      <ul>
+        <li>Structures reasoning as an explicit <span class="p">search tree</span></li>
+        <li>Generate multiple candidate next steps at each stage</li>
+        <li>Evaluate which branches are most promising</li>
+        <li>Allows <span class="a">backtracking</span> from dead ends</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Graph-of-Thought</h3>
+      <ul>
+        <li>Extends tree structure &mdash; nodes can <span class="b">merge and reference</span> each other</li>
+        <li>Supports complex reasoning topologies</li>
+        <li>Best for planning, strategy, and open-ended problem solving</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 900 150" width="860" height="140" style="margin-top:.6em;">
+    <!-- Tree side -->
+    <circle cx="100" cy="30" r="14" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="100" y="34" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">S</text>
+    <line x1="90" y1="44" x2="55" y2="70" stroke="#a78bfa" stroke-width="1"/>
+    <line x1="110" y1="44" x2="145" y2="70" stroke="#a78bfa" stroke-width="1"/>
+    <circle cx="55" cy="82" r="12" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
+    <circle cx="145" cy="82" r="12" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
+    <line x1="45" y1="94" x2="25" y2="115" stroke="#a78bfa" stroke-width="1"/>
+    <line x1="65" y1="94" x2="85" y2="115" stroke="#a78bfa" stroke-width="1"/>
+    <line x1="135" y1="94" x2="115" y2="115" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="155" y1="94" x2="175" y2="115" stroke="#a78bfa" stroke-width="1"/>
+    <circle cx="25" cy="127" r="10" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <circle cx="85" cy="127" r="10" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
+    <circle cx="115" cy="127" r="10" fill="#10101a" stroke="#f87171" stroke-width="1" stroke-dasharray="3"/>
+    <circle cx="175" cy="127" r="10" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
+    <text x="100" y="148" text-anchor="middle" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="11">Tree-of-Thought</text>
+    <!-- Graph side -->
+    <circle cx="500" cy="30" r="14" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="500" y="34" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">S</text>
+    <line x1="490" y1="44" x2="450" y2="70" stroke="#60a5fa" stroke-width="1"/>
+    <line x1="510" y1="44" x2="550" y2="70" stroke="#60a5fa" stroke-width="1"/>
+    <circle cx="450" cy="82" r="12" fill="#10101a" stroke="#60a5fa" stroke-width="1"/>
+    <circle cx="550" cy="82" r="12" fill="#10101a" stroke="#60a5fa" stroke-width="1"/>
+    <line x1="462" y1="88" x2="538" y2="88" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="450" y1="94" x2="480" y2="120" stroke="#60a5fa" stroke-width="1"/>
+    <line x1="550" y1="94" x2="520" y2="120" stroke="#60a5fa" stroke-width="1"/>
+    <circle cx="500" cy="127" r="12" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="500" y="131" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">M</text>
+    <text x="500" y="148" text-anchor="middle" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="11">Graph-of-Thought (merge)</text>
+  </svg>
+  <div class="slide-footer">prompt_engineering // 8</div>
+</section>
+
+<!-- SLIDE 9: RAG -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Retrieval-Augmented Generation</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 280 280" width="260" height="270">
+        <rect x="80" y="5" width="120" height="40" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="140" y="30" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">User Query</text>
+        <line x1="140" y1="45" x2="140" y2="70" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="50" y="70" width="180" height="40" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="140" y="95" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">Embedding Search</text>
+        <line x1="140" y1="110" x2="140" y2="135" stroke="#2a2a3a" stroke-width="1.5"/>
+        <rect x="30" y="135" width="220" height="40" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="160" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Retrieved Context</text>
+        <line x1="140" y1="175" x2="140" y2="200" stroke="#2a2a3a" stroke-width="1.5"/>
+        <rect x="60" y="200" width="160" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="140" y="225" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">LLM Response</text>
+      </svg>
+    </div>
+    <div>
+      <h3>Benefits</h3>
+      <ul>
+        <li><span class="g">Reduces hallucination</span> by grounding responses in specific sources</li>
+        <li>Enables access to information <span class="b">beyond training data</span></li>
+        <li>Provides natural <span class="a">citation support</span></li>
+      </ul>
+      <h3 style="margin-top:.6em;">Design Considerations</h3>
+      <ul>
+        <li>Chunk size and overlap strategy</li>
+        <li>Retrieval quality and relevance ranking</li>
+        <li>Context window management</li>
+        <li>Instructions directing the model to use provided context</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 9</div>
+</section>
+
+<!-- SLIDE 10: Output Format Specification -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Structured Output Control</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Three Pillars of Format Specification</h3>
+      <div class="card amber" style="margin:.4em 0;">
+        <h3>1. Explicit Instructions</h3>
+        <p>"Respond in valid JSON matching this schema..."</p>
+      </div>
+      <div class="card green" style="margin:.4em 0;">
+        <h3>2. Few-Shot Examples</h3>
+        <p>Show the exact format expected in 2&ndash;3 demonstrations</p>
+      </div>
+      <div class="card purple" style="margin:.4em 0;">
+        <h3>3. Structural Priming</h3>
+        <p>Opening brackets or tags that prime continuation</p>
+      </div>
+    </div>
+    <div>
+      <h3>Constrained Decoding</h3>
+      <p>Modern serving frameworks support <span class="b">token-level masking</span> during generation to guarantee syntactically valid output.</p>
+      <pre><code>// Supported formats:
+- JSON / JSON Schema
+- XML / HTML
+- CSV / TSV
+- Custom grammars (GBNF)</code></pre>
+      <p style="margin-top:.4em;"><span class="g">Eliminates parsing failures entirely</span> by masking invalid tokens at each generation step.</p>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 10</div>
+</section>
+
+<!-- SLIDE 11: System Prompts -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>System Prompts</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Establish the model's <span class="a">role, personality, constraints, and guidelines</span> for an entire conversation.</p>
+      <div class="card blue" style="margin-top:.5em;">
+        <h3>Computational Efficiency</h3>
+        <p>Processed once during prefill; KV cache is reused across conversation turns &mdash; making them efficient for multi-turn interactions.</p>
+      </div>
+    </div>
+    <div>
+      <h3>Effective System Prompts Define:</h3>
+      <ul>
+        <li><span class="a">Expertise &amp; scope</span> of the assistant</li>
+        <li><span class="g">Response style</span> and format preferences</li>
+        <li><span class="r">Safety boundaries</span> and refusal criteria</li>
+        <li><span class="p">Domain context</span> and specialized knowledge</li>
+      </ul>
+      <p style="margin-top:.5em;">Well-designed system prompts can <span class="g">dramatically shape model behavior</span> without requiring fine-tuning.</p>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 11</div>
+</section>
+
+<!-- SLIDE 12: Tool Use -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Tool Use &amp; Function Calling</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Recognize</h3>
+      <p>Identify when external tools are needed to fulfill the request</p>
+    </div>
+    <div class="card green">
+      <h3>Generate</h3>
+      <p>Produce structured tool calls with appropriate parameters</p>
+    </div>
+    <div class="card blue">
+      <h3>Incorporate</h3>
+      <p>Interpret tool results and weave them into the response</p>
+    </div>
+  </div>
+  <h3 style="margin-top:.7em;">Capabilities Unlocked</h3>
+  <div class="cols cols-2" style="margin-top:.3em;">
+    <ul>
+      <li>Real-time data access</li>
+      <li>Mathematical computation</li>
+      <li>Code execution</li>
+    </ul>
+    <ul>
+      <li>API integration</li>
+      <li>External system interaction</li>
+      <li>Multi-step tool chains for complex workflows</li>
+    </ul>
+  </div>
+  <div class="slide-footer">prompt_engineering // 12</div>
+</section>
+
+<!-- SLIDE 13: Prompt Optimization Strategies -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Prompt Optimization Strategies</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Iterative Refinement</h3>
+      <ul>
+        <li>Start simple, examine failure modes</li>
+        <li>Add edge case instructions</li>
+        <li>Provide negative examples</li>
+        <li>Clarify ambiguous terms</li>
+        <li>Maintain diverse test set</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Decomposition</h3>
+      <ul>
+        <li>Break complex tasks into pipelines of simpler prompts</li>
+        <li>Optimize each stage independently</li>
+        <li>Easier debugging</li>
+        <li>Often outperforms monolithic prompts</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Automated (DSPy / OPRO)</h3>
+      <ul>
+        <li>LLMs improve prompts programmatically</li>
+        <li>Optimize demonstrations and instructions</li>
+        <li>Gradient-based soft prompt tuning</li>
+        <li>Discover non-obvious formulations</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 13</div>
+</section>
+
+<!-- SLIDE 14: Common Pitfalls -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Common Pitfalls &amp; Best Practices</h2></div>
+  <table>
+    <thead>
+      <tr><th>Pitfall</th><th>Impact</th><th>Best Practice</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="r">Vague instructions</span></td><td>Inconsistent, low-quality output</td><td>Be specific about format, length, and criteria</td></tr>
+      <tr><td><span class="r">No examples for complex formats</span></td><td>Format errors, parsing failures</td><td>Include 2&ndash;3 diverse few-shot examples</td></tr>
+      <tr><td><span class="r">Ignoring reasoning</span></td><td>Errors on multi-step tasks</td><td>Request step-by-step reasoning (CoT)</td></tr>
+      <tr><td><span class="r">Prompt too long</span></td><td>Key info lost in middle</td><td>Front-load critical instructions; trim context</td></tr>
+      <tr><td><span class="r">No negative examples</span></td><td>Unwanted behaviors persist</td><td>Show what to avoid, not just what to do</td></tr>
+      <tr><td><span class="r">Static prompts for dynamic tasks</span></td><td>Brittle, fails on edge cases</td><td>Use RAG, tool use, or adaptive prompting</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">prompt_engineering // 14</div>
+</section>
+
+<!-- SLIDE 15: Model-Specific Considerations -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Model-Specific Considerations</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Different model families respond differently due to variations in:</p>
+      <ul>
+        <li><span class="a">Training data</span> composition and scale</li>
+        <li><span class="g">Instruction tuning</span> methodology</li>
+        <li><span class="p">Architecture</span> and context handling</li>
+      </ul>
+      <div class="card blue" style="margin-top:.6em;">
+        <h3>Practical Guidance</h3>
+        <ul>
+          <li>Always test prompts against the specific deployment model</li>
+          <li>Do not assume prompts transfer perfectly across model families</li>
+          <li>System prompt formats, special tokens, and tool protocols vary</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Convergence Trend</h3>
+        <p>Standardized chat templates and tool-calling APIs are gradually reducing compatibility concerns across providers.</p>
+      </div>
+      <div class="card amber" style="margin-top:.6em;">
+        <h3>Key Variables</h3>
+        <ul>
+          <li>Chat template format</li>
+          <li>Special token syntax</li>
+          <li>Tool-calling protocol</li>
+          <li>System prompt handling</li>
+          <li>Context window size</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 15</div>
+</section>
+
+<!-- SLIDE 16: Future Directions -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Future Directions</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.6em;">
+        <h3>From Craft to Discipline</h3>
+        <p>Prompt programming frameworks (DSPy) signal a shift toward treating prompts as <span class="g">optimizable components</span> in larger systems.</p>
+      </div>
+      <div class="card purple">
+        <h3>Multi-Modal Prompting</h3>
+        <p>Incorporating images, audio, and video alongside text introduces new design challenges and opportunities.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.6em;">
+        <h3>Shifting Emphasis</h3>
+        <p>Moving from clever prompt <span class="r">tricks</span> toward clear, well-structured communication of <span class="b">intent</span> &mdash; like writing specifications for a capable human collaborator.</p>
+      </div>
+      <div class="card amber">
+        <h3>Automated Optimization</h3>
+        <p>LLM-driven prompt improvement loops, gradient-based tuning, and metric-optimized pipelines are making prompt design increasingly systematic.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 16</div>
+</section>
+
+<!-- SLIDE 17: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.5em;">
+        <h3>1. Clarity Is King</h3>
+        <p>Specific, well-structured prompts consistently outperform vague instructions.</p>
+      </div>
+      <div class="card green" style="margin-bottom:.5em;">
+        <h3>2. Show, Don't Just Tell</h3>
+        <p>Few-shot examples and negative examples address what instructions alone cannot.</p>
+      </div>
+      <div class="card purple">
+        <h3>3. Reasoning Matters</h3>
+        <p>Chain-of-thought and its extensions unlock multi-step problem solving.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.5em;">
+        <h3>4. Ground in Reality</h3>
+        <p>RAG and tool use extend LLMs beyond their training data into real-time systems.</p>
+      </div>
+      <div class="card red" style="margin-bottom:.5em;">
+        <h3>5. Test and Iterate</h3>
+        <p>Prompt development is empirical &mdash; maintain test sets and refine continuously.</p>
+      </div>
+      <div class="card amber">
+        <h3>6. Automate Where Possible</h3>
+        <p>Frameworks like DSPy and OPRO can discover prompts that outperform human-designed ones.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">prompt_engineering // 17</div>
+</section>
+
+<!-- SLIDE 18: Closing -->
+<section class="title-slide">
+  <p class="mono" style="font-size:.55em;color:var(--muted);margin-bottom:.3em;">TECHNICAL REPORT</p>
+  <h1>Prompt Engineering</h1>
+  <p class="subtitle">The primary interface through which practitioners unlock the capabilities of LLMs</p>
+  <div>
+    <span class="pill amber">zero-shot</span>
+    <span class="pill green">few-shot</span>
+    <span class="pill purple">CoT</span>
+    <span class="pill blue">RAG</span>
+    <span class="pill amber">system-prompts</span>
+    <span class="pill green">tool-use</span>
+    <span class="pill purple">DSPy</span>
+  </div>
+  <p class="meta" style="margin-top:1.4em;">February 2026</p>
+  <div class="slide-footer">prompt_engineering // 18</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body></html>

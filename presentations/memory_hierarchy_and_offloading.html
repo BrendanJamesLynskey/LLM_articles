@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Hierarchy &amp; Offloading for LLM Inference | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ========== SLIDE 1: TITLE ========== -->
+<section class="title-slide">
+  <p class="mono" style="font-size:.55em;color:var(--muted);margin-bottom:.2em">TECHNICAL REPORT</p>
+  <h1>Memory Hierarchy &amp;<br>Offloading for LLM Inference</h1>
+  <p class="subtitle">Leveraging GPU, CPU, and NVMe tiers to run models that exceed GPU memory</p>
+  <div style="width:60px;height:3px;background:var(--amber);margin:0 auto 1em"></div>
+  <div style="margin-bottom:1em">
+    <span class="pill amber">HBM</span>
+    <span class="pill green">DRAM</span>
+    <span class="pill purple">NVMe</span>
+    <span class="pill blue">Offloading</span>
+  </div>
+  <p style="font-size:.72em;color:#b8b8d0;max-width:680px;margin:0 auto .8em">Strategies for placing weights, KV-cache, and activations across the memory hierarchy to enable large-model inference on constrained hardware.</p>
+  <p class="meta">February 2026</p>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 2: THE PROBLEM ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>The Core Challenge</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>When <span class="a">model weights</span>, <span class="g">KV-cache</span>, and <span class="p">activations</span> collectively exceed GPU memory &mdash; even after quantization and multi-GPU distribution &mdash; the system must leverage a <span class="b">deeper memory hierarchy</span>.</p>
+      <ul>
+        <li>Modern servers offer a cascade of storage tiers</li>
+        <li>Each tier trades <span class="r">bandwidth for capacity</span></li>
+        <li>Strategic data placement enables inference of otherwise impossible models</li>
+        <li>Cost: increased latency unless carefully managed</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Three Data Categories</h3>
+        <ul>
+          <li><span class="a">Weights</span> &mdash; static, read-only per pass</li>
+          <li><span class="g">KV-Cache</span> &mdash; grows with context length</li>
+          <li><span class="p">Activations</span> &mdash; transient, per-layer</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.8em">
+        <h3>Three Memory Tiers</h3>
+        <ul>
+          <li><span class="a">GPU HBM/GDDR</span> &mdash; 1&ndash;3 TB/s</li>
+          <li><span class="g">CPU DRAM</span> &mdash; 50&ndash;200 GB/s</li>
+          <li><span class="p">NVMe SSD</span> &mdash; 3&ndash;7 GB/s</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 3: GPU MEMORY ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>GPU Memory (HBM / GDDR)</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Consumer GPUs</h3>
+      <ul>
+        <li><span class="a">8&ndash;24 GB</span> GDDR6/GDDR6X</li>
+        <li>Bandwidth: <span class="b">500&ndash;900 GB/s</span></li>
+        <li>Cost-effective but memory-limited</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Data Center GPUs</h3>
+      <ul>
+        <li><span class="a">24&ndash;80 GB</span> HBM2e/HBM3</li>
+        <li>Bandwidth: <span class="b">1.5&ndash;3.3 TB/s</span></li>
+        <li>Highest performance tier</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:.8em">
+    <p>The <span class="a">decode phase</span> of LLM inference is <span class="r">memory-bandwidth-bound</span>. GPU memory bandwidth directly determines token generation speed. The goal: keep the <span class="g">current layer's weights</span> and <span class="b">active KV-cache</span> resident in GPU memory.</p>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 4: CPU DRAM ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>CPU Main Memory (DRAM)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>Capacity: <span class="a">128 GB &ndash; 2 TB</span> DDR4/DDR5</li>
+        <li>Bandwidth: <span class="g">50&ndash;200 GB/s</span> (depends on channel count)</li>
+        <li>Roughly <span class="r">10&ndash;30x slower</span> than GPU HBM</li>
+        <li>But <span class="b">5&ndash;80x larger</span> capacity</li>
+        <li>Primary <span class="p">overflow tier</span> for weights</li>
+      </ul>
+      <div class="card red" style="margin-top:.6em">
+        <h3>PCIe Bottleneck</h3>
+        <p>CPU-GPU transfer is limited by PCIe:</p>
+        <ul>
+          <li>PCIe 4.0 x16: <span class="a">25&ndash;32 GB/s</span></li>
+          <li>PCIe 5.0 x16: <span class="a">50&ndash;64 GB/s</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 280" width="320">
+        <rect x="60" y="10" width="200" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="160" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13">GPU HBM</text>
+        <line x1="160" y1="60" x2="160" y2="100" stroke="#2a2a3a" stroke-width="2" stroke-dasharray="4,4"/>
+        <text x="230" y="85" fill="#f87171" font-family="JetBrains Mono" font-size="10">PCIe Link</text>
+        <rect x="60" y="100" width="200" height="50" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="160" y="130" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13">CPU DRAM</text>
+        <line x1="160" y1="150" x2="160" y2="190" stroke="#2a2a3a" stroke-width="2" stroke-dasharray="4,4"/>
+        <text x="230" y="175" fill="#8888a8" font-family="JetBrains Mono" font-size="10">NVMe Link</text>
+        <rect x="60" y="190" width="200" height="50" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+        <text x="160" y="220" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">NVMe SSD</text>
+        <text x="30" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">Fast</text>
+        <text x="30" y="220" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">Slow</text>
+        <line x1="30" y1="55" x2="30" y2="200" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#2a2a3a"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 5: NVMe STORAGE ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>NVMe Storage</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <ul>
+        <li>Capacity: <span class="a">terabytes</span></li>
+        <li>Sequential read: <span class="g">3&ndash;7 GB/s</span> (consumer), up to <span class="b">14 GB/s</span> (enterprise)</li>
+        <li><span class="r">Far too slow</span> for real-time token generation</li>
+      </ul>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Best Use Cases</h3>
+        <ul>
+          <li>Weight <span class="b">prefetching</span> with overlap</li>
+          <li><span class="g">KV-cache persistence</span> for session resumption</li>
+          <li>Batch/offline workloads</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Key Insight</h3>
+        <p>NVMe reads can be <span class="g">overlapped with GPU computation</span> on other layers, partially hiding the latency. Careful scheduling is critical.</p>
+      </div>
+      <div class="card red" style="margin-top:.8em">
+        <h3>Warning</h3>
+        <p>The bandwidth cliff from DRAM to SSD is too steep for interactive inference. Reserve NVMe for <span class="a">offline processing</span> only.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 6: BANDWIDTH CLIFF TABLE ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>The Bandwidth Cliff</h2></div>
+  <table>
+    <thead>
+      <tr><th>Memory Tier</th><th>Typical Capacity</th><th>Bandwidth</th><th>Relative Speed</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">GPU HBM3</span></td><td>24&ndash;80 GB</td><td>2,000&ndash;3,300 GB/s</td><td><span class="a">1x (baseline)</span></td></tr>
+      <tr><td><span class="b">GPU GDDR6X</span></td><td>8&ndash;24 GB</td><td>500&ndash;900 GB/s</td><td><span class="b">0.2&ndash;0.4x</span></td></tr>
+      <tr><td><span class="g">CPU DDR5</span></td><td>128 GB&ndash;2 TB</td><td>50&ndash;200 GB/s</td><td><span class="g">0.02&ndash;0.08x</span></td></tr>
+      <tr><td><span class="r">PCIe 4.0 x16</span></td><td>(transfer link)</td><td>25&ndash;32 GB/s</td><td><span class="r">0.01&ndash;0.013x</span></td></tr>
+      <tr><td><span class="p">NVMe SSD</span></td><td>1&ndash;8 TB</td><td>3&ndash;7 GB/s</td><td><span class="p">0.001&ndash;0.003x</span></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.8em">Moving even a <span class="r">fraction</span> of the critical-path data off-GPU can <span class="r">dramatically impact</span> per-token latency. The drop from HBM to PCIe alone is <span class="a">~100x</span>.</p>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 7: WEIGHT OFFLOADING ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Weight Offloading</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Keep some transformer layers' weights in <span class="g">CPU RAM</span> and transfer them to GPU <span class="a">just before needed</span>.</p>
+      <ul>
+        <li>Transformers process layers <span class="b">sequentially</span></li>
+        <li>Prefetch layer <span class="a">N+1</span> weights from CPU while computing layer <span class="g">N</span> on GPU</li>
+        <li>If transfer time &le; compute time, offloading is <span class="g">essentially free</span></li>
+      </ul>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Key Parameters</h3>
+        <ul>
+          <li>Weight size per layer (bytes)</li>
+          <li>PCIe bandwidth (actual, not theoretical)</li>
+          <li>Per-layer compute time</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 340 260" width="340">
+        <rect x="20" y="10" width="140" height="40" rx="5" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="90" y="35" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">GPU: Compute N</text>
+        <rect x="180" y="10" width="140" height="40" rx="5" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="250" y="35" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">PCIe: Fetch N+1</text>
+        <rect x="20" y="70" width="140" height="40" rx="5" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="90" y="95" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">GPU: Compute N+1</text>
+        <rect x="180" y="70" width="140" height="40" rx="5" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="250" y="95" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">PCIe: Fetch N+2</text>
+        <rect x="20" y="130" width="140" height="40" rx="5" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="90" y="155" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">GPU: Compute N+2</text>
+        <rect x="180" y="130" width="140" height="40" rx="5" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="250" y="155" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">PCIe: Fetch N+3</text>
+        <text x="170" y="210" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">Overlap hides transfer latency</text>
+        <text x="10" y="35" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="9">t0</text>
+        <text x="10" y="95" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="9">t1</text>
+        <text x="10" y="155" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="9">t2</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 8: DOUBLE BUFFERING ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Double Buffering</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 260 250" width="260">
+        <rect x="20" y="20" width="220" height="90" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="130" y="45" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">GPU Memory</text>
+        <rect x="35" y="55" width="90" height="40" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="80" y="80" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Buffer A</text>
+        <rect x="135" y="55" width="90" height="40" rx="4" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="180" y="80" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Buffer B</text>
+        <rect x="20" y="140" width="220" height="50" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+        <text x="130" y="170" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">CPU DRAM (Weights)</text>
+        <path d="M80,110 L80,140" stroke="#4ecb8d" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowG)"/>
+        <path d="M180,140 L180,110" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowP)"/>
+        <text x="130" y="225" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Alternate: compute A, fill B</text>
+        <defs>
+          <marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
+          <marker id="arrowP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#a78bfa"/></marker>
+        </defs>
+      </svg>
+    </div>
+    <div>
+      <p>When per-layer <span class="r">transfer time exceeds compute time</span>, double-buffering prevents GPU stalls.</p>
+      <ul>
+        <li>Maintain <span class="g">two weight buffers</span> on GPU</li>
+        <li>Alternate: <span class="a">compute</span> from buffer A while <span class="b">filling</span> buffer B</li>
+        <li>GPU is <span class="g">never idle</span> waiting for transfers</li>
+      </ul>
+      <div class="card red" style="margin-top:.6em">
+        <h3>Trade-off</h3>
+        <p>Double-buffering reduces effective GPU memory available for <span class="a">KV-cache</span>, since two weight-layer slots are reserved.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 9: KV-CACHE OFFLOADING ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>KV-Cache Offloading</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>For <span class="a">long-context</span> or <span class="b">high-batch</span> serving, KV-cache can exceed GPU memory even when all weights fit.</p>
+      <div class="card green" style="margin-top:.6em">
+        <h3>PagedAttention Integration</h3>
+        <p>KV-cache offloading is naturally compatible with <span class="a">PagedAttention</span>'s block-based memory management. Individual pages can be migrated between GPU and CPU without disrupting the overall cache structure.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Async Offloading Strategy</h3>
+        <ul>
+          <li>Offload KV-cache to CPU <span class="g">asynchronously</span> during generation</li>
+          <li><span class="a">Prefetch</span> when a sequence is scheduled for next decode</li>
+          <li>Requires scheduler to have <span class="p">advance knowledge</span> of active sequences</li>
+          <li>Continuous batching systems (e.g., <span class="b">vLLM</span>) provide this naturally</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 10: HYBRID CPU-GPU INFERENCE ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Hybrid CPU-GPU Inference</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Instead of offloading data for GPU processing, assign some layers to <span class="g">execute directly on CPU</span>.</p>
+      <ul>
+        <li><span class="a">Eliminates transfer overhead</span> for those layers</li>
+        <li>Cost: <span class="r">slower CPU compute</span></li>
+        <li>Works best with GPU handling the <span class="b">majority</span> of layers</li>
+        <li>CPU handles a <span class="p">small number</span> of overflow layers</li>
+      </ul>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>llama.cpp GPU Layer Splitting</h3>
+        <p>Most widely used implementation. User specifies layers per GPU; remaining layers run on CPU. Handles double-buffering and scheduling automatically.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 280" width="280">
+        <text x="140" y="15" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Layer Assignment</text>
+        <rect x="40" y="30" width="200" height="30" rx="4" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="50" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Layer 0 - GPU</text>
+        <rect x="40" y="65" width="200" height="30" rx="4" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="85" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Layer 1 - GPU</text>
+        <rect x="40" y="100" width="200" height="30" rx="4" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="120" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">...</text>
+        <rect x="40" y="135" width="200" height="30" rx="4" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="155" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Layer N-3 - GPU</text>
+        <rect x="40" y="175" width="200" height="30" rx="4" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="140" y="195" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Layer N-2 - CPU</text>
+        <rect x="40" y="210" width="200" height="30" rx="4" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="140" y="230" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Layer N-1 - CPU</text>
+        <rect x="40" y="245" width="200" height="30" rx="4" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="140" y="265" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Layer N - CPU</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 11: FLEXGEN ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>FlexGen: Throughput-Oriented Offloading</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card purple">
+        <h3>Key Insight</h3>
+        <p>Process a <span class="a">large batch</span> of sequences through <span class="g">one layer at a time</span>, maximizing the compute-to-transfer ratio across the GPU-CPU-SSD hierarchy.</p>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>LP-Based Scheduler</h3>
+        <p>FlexGen uses <span class="a">linear programming</span> to automatically determine optimal data placement and batch ordering given specific hardware bandwidth and capacity constraints.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Strengths</h3>
+        <ul>
+          <li>High throughput for <span class="a">offline</span> workloads</li>
+          <li>Handles models <span class="b">much larger</span> than GPU memory</li>
+          <li>Leverages full <span class="p">GPU-CPU-SSD</span> hierarchy</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.6em">
+        <h3>Limitations</h3>
+        <ul>
+          <li>Latency: <span class="r">seconds to minutes</span> per token</li>
+          <li>Unsuitable for <span class="r">interactive chat</span></li>
+          <li>Best for: evaluation, data processing, offline generation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 12: COMPRESSION DURING TRANSFER ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Compression During Transfer</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Compress data <span class="a">before PCIe transfer</span> to effectively increase link throughput.</p>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>Weight Compression</h3>
+        <p>Quantize from <span class="b">FP16 to INT4</span> for transfer, then dequantize on GPU after arrival. GPU compute decompresses faster than extra data could be transferred.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>KV-Cache Compression</h3>
+        <p>Compress KV blocks before offloading to CPU, decompress on retrieval. Overhead is <span class="a">small</span> relative to transfer time savings.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 240" width="300">
+        <rect x="20" y="20" width="120" height="45" rx="5" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+        <text x="80" y="38" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">FP16 Weights</text>
+        <text x="80" y="53" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(large)</text>
+        <path d="M140,42 L170,42" stroke="#f5a623" stroke-width="2" marker-end="url(#arrowA)"/>
+        <rect x="170" y="20" width="110" height="45" rx="5" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="225" y="38" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Quantize</text>
+        <text x="225" y="53" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">CPU-side</text>
+        <path d="M225,65 L225,90" stroke="#4ecb8d" stroke-width="2" marker-end="url(#arrowA)"/>
+        <rect x="155" y="90" width="140" height="45" rx="5" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="225" y="108" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">INT4 Transfer</text>
+        <text x="225" y="123" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">4x smaller!</text>
+        <path d="M225,135 L225,160" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrowA)"/>
+        <rect x="155" y="160" width="140" height="45" rx="5" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+        <text x="225" y="178" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Dequantize</text>
+        <text x="225" y="193" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">GPU-side</text>
+        <defs><marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f5a623"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 13: PREFETCHING AND SCHEDULING ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Prefetching &amp; Scheduling</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Offloading effectiveness depends <span class="r">almost entirely</span> on whether transfers can be <span class="g">overlapped with computation</span>.</p>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>Requirements</h3>
+        <ul>
+          <li>Asynchronous <span class="b">DMA transfers</span> on dedicated CUDA copy engines</li>
+          <li>Separate <span class="p">CUDA streams</span> for compute and copy</li>
+          <li><span class="g">Lookahead</span> of at least one layer (weights) or one scheduling round (KV-cache)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Weight Prefetching</h3>
+        <p>Lookahead of <span class="a">1 layer</span>: while computing layer N, schedule DMA for layer N+1 weights.</p>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>KV-Cache Prefetching</h3>
+        <p>Lookahead of <span class="a">1 scheduling round</span>: know which sequences are active next and prefetch their KV blocks from CPU to GPU.</p>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Critical Rule</h3>
+        <p>Data must arrive in GPU memory <span class="r">before</span> the compute kernel needs it. Scheduling must guarantee this timing.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 14: UNIFIED MEMORY ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Unified Memory (UM)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>CUDA's Unified Memory provides a <span class="b">single virtual address space</span> spanning GPU and CPU memory with automatic page migration.</p>
+      <div class="card red" style="margin-top:.5em">
+        <h3>Why UM Underperforms for LLMs</h3>
+        <ul>
+          <li>Page fault and migration overhead is <span class="r">unpredictable</span></li>
+          <li>Not aligned with model's <span class="a">access patterns</span></li>
+          <li>Explicit offloading with manual scheduling <span class="g">almost always wins</span></li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>When UM Is Useful</h3>
+        <ul>
+          <li><span class="b">Prototyping</span> offloading strategies</li>
+          <li>Rare edge cases (e.g., exceptionally long sequences that occasionally overflow GPU KV-cache)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 220" width="280">
+        <rect x="20" y="10" width="240" height="80" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+        <text x="140" y="35" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">Unified Virtual Address Space</text>
+        <rect x="35" y="45" width="100" height="35" rx="4" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="85" y="67" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">GPU Pages</text>
+        <rect x="145" y="45" width="100" height="35" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="195" y="67" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">CPU Pages</text>
+        <text x="140" y="115" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Page Faults</text>
+        <text x="140" y="130" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">= Unpredictable Stalls</text>
+        <path d="M85,80 C85,105 195,105 195,80" stroke="#f87171" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+        <text x="140" y="170" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">Explicit scheduling is better</text>
+        <text x="140" y="185" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">for production workloads</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 15: PRACTICAL RECOMMENDATIONS ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Practical Recommendations</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>1. Quantize First, Offload Second</h3>
+        <p>Apply INT4/INT8 quantization before resorting to offloading. A 70B model at INT4 (<span class="a">~35 GB</span>) may fit across two 24 GB GPUs with <span class="g">no offloading</span>.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>2. Profile Bandwidth Budget</h3>
+        <p>Measure <span class="r">actual</span> PCIe throughput (not theoretical) using <code>bandwidthTest</code>. Real throughput is often <span class="r">20&ndash;30% below spec</span>.</p>
+      </div>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>3. Use llama.cpp</h3>
+        <p>Battle-tested GPU layer splitting. Easy to configure, handles double-buffering and scheduling <span class="a">automatically</span>.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>4. Prioritize KV-Cache on GPU</h3>
+        <p>KV-cache is accessed <span class="a">repeatedly per token</span>; weight layers only <span class="g">once per forward pass</span>. Keep KV-cache on GPU over weights.</p>
+      </div>
+      <div class="card red" style="margin-top:.5em">
+        <h3>5. NVMe: Batch Only</h3>
+        <p>DRAM-to-SSD bandwidth cliff is too steep for interactive inference. Use NVMe for <span class="b">offline processing</span> or KV-cache persistence.</p>
+      </div>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>6. Monitor PCIe Contention</h3>
+        <p>Multi-GPU systems may share PCIe lanes. Check topology with <code>nvidia-smi topo -m</code> and account for shared bandwidth.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 16: DECISION FLOWCHART ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Offloading Decision Flow</h2></div>
+  <svg class="diagram" viewBox="0 0 900 420" width="900">
+    <!-- Start -->
+    <rect x="340" y="10" width="220" height="40" rx="20" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="450" y="35" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">Model fits in GPU RAM?</text>
+    <!-- Yes path -->
+    <path d="M560,30 L680,30" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#aG)"/>
+    <text x="620" y="24" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Yes</text>
+    <rect x="680" y="10" width="180" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="770" y="35" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Run fully on GPU</text>
+    <!-- No path -->
+    <path d="M450,50 L450,80" stroke="#f87171" stroke-width="1.5" marker-end="url(#aR)"/>
+    <text x="462" y="70" fill="#f87171" font-family="JetBrains Mono" font-size="10">No</text>
+    <rect x="340" y="80" width="220" height="40" rx="20" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="450" y="105" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">Quantized model fits?</text>
+    <!-- Yes -->
+    <path d="M560,100 L680,100" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#aG)"/>
+    <text x="620" y="94" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Yes</text>
+    <rect x="680" y="80" width="180" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="770" y="105" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Quantize &amp; run on GPU</text>
+    <!-- No -->
+    <path d="M450,120 L450,155" stroke="#f87171" stroke-width="1.5" marker-end="url(#aR)"/>
+    <text x="462" y="142" fill="#f87171" font-family="JetBrains Mono" font-size="10">No</text>
+    <rect x="320" y="155" width="260" height="40" rx="20" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="450" y="180" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">Interactive or batch workload?</text>
+    <!-- Interactive path -->
+    <path d="M320,175 L160,175" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#aB)"/>
+    <text x="240" y="168" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">Interactive</text>
+    <rect x="20" y="155" width="140" height="40" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="90" y="175" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">CPU offload</text>
+    <text x="90" y="188" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">(few layers)</text>
+    <path d="M90,195 L90,225" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#aB)"/>
+    <rect x="10" y="225" width="160" height="50" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="90" y="245" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">llama.cpp layer split</text>
+    <text x="90" y="262" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">+ double buffering</text>
+    <!-- Batch path -->
+    <path d="M580,175 L680,175" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#aP)"/>
+    <text x="630" y="168" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Batch</text>
+    <rect x="680" y="155" width="180" height="40" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="770" y="175" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Aggressive offload</text>
+    <text x="770" y="188" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">(GPU+CPU+SSD)</text>
+    <path d="M770,195 L770,225" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#aP)"/>
+    <rect x="690" y="225" width="160" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="770" y="245" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">FlexGen-style</text>
+    <text x="770" y="262" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">LP scheduler</text>
+    <defs>
+      <marker id="aG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
+      <marker id="aR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f87171"/></marker>
+      <marker id="aB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#60a5fa"/></marker>
+      <marker id="aP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#a78bfa"/></marker>
+    </defs>
+  </svg>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 17: KEY TRADE-OFFS ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Trade-offs Summary</h2></div>
+  <table>
+    <thead>
+      <tr><th>Strategy</th><th>Latency Impact</th><th>Complexity</th><th>Best For</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Weight Offloading</span></td><td><span class="g">Low</span> (if overlapped)</td><td>Medium</td><td>Moderate overflow</td></tr>
+      <tr><td><span class="g">KV-Cache Offloading</span></td><td><span class="a">Medium</span></td><td>High</td><td>Long context / high batch</td></tr>
+      <tr><td><span class="b">Hybrid CPU-GPU</span></td><td><span class="a">Medium</span></td><td>Low</td><td>Simple setups, few extra layers</td></tr>
+      <tr><td><span class="p">FlexGen (full offload)</span></td><td><span class="r">High</span></td><td>High</td><td>Batch / offline workloads</td></tr>
+      <tr><td><span class="r">Compression + Transfer</span></td><td><span class="g">Low</span></td><td>Medium</td><td>Improving any offload strategy</td></tr>
+      <tr><td><span class="b">Unified Memory</span></td><td><span class="r">Unpredictable</span></td><td>Low</td><td>Prototyping only</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+<!-- ========== SLIDE 18: CONCLUSION ========== -->
+<section>
+  <div class="slide-hdr"><span class="tag">17</span><h2>Conclusion</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Interactive Workloads</h3>
+      <ul>
+        <li><span class="a">Quantize</span> to minimize memory footprint</li>
+        <li>Modest CPU offloading (few layers)</li>
+        <li><span class="g">Double-buffered prefetching</span></li>
+        <li>Keep KV-cache on GPU</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Batch Workloads</h3>
+      <ul>
+        <li>Aggressive offloading across <span class="a">GPU + CPU + SSD</span></li>
+        <li>Large batch sizes for throughput</li>
+        <li><span class="p">LP-based scheduling</span> (FlexGen)</li>
+        <li>Prioritize throughput over latency</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Key Principle</h3>
+      <ul>
+        <li><span class="a">Measure</span> actual bandwidth at each tier</li>
+        <li><span class="g">Schedule</span> transfers to hide behind computation</li>
+        <li>Profile <span class="r">real PCIe throughput</span></li>
+        <li>Monitor contention in multi-GPU setups</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:1em;font-size:.85em;color:var(--muted)">Memory offloading extends effective memory capacity of small-GPU systems, enabling inference of models that would otherwise be inaccessible.</p>
+  <div class="slide-footer">Memory Hierarchy &amp; Offloading</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:true,transition:'fade',transitionSpeed:'fast',margin:0.04,width:1280,height:720});</script>
+</body>
+</html>

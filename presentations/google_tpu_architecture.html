@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google TPU Architecture | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 1: Title -->
+<section class="title-slide">
+  <h1>Google TPU Architecture</h1>
+  <div class="subtitle">Custom Silicon for Transformer Workloads</div>
+  <div class="meta">March 2026 &mdash; Technical Deep Dive</div>
+  <div style="margin-top:1.5em;">
+    <span class="pill amber">TPU v4</span>
+    <span class="pill green">TPU v5p</span>
+    <span class="pill purple">Trillium</span>
+    <span class="pill blue">JAX/XLA</span>
+  </div>
+  <div class="slide-footer">google-tpu / 01</div>
+</section>
+
+<!-- Slide 2: TPU Timeline -->
+<section>
+  <div class="slide-hdr"><span class="tag">HISTORY</span><h2>TPU Generation Timeline</h2></div>
+  <svg class="diagram" viewBox="0 0 1100 280" width="1100" height="280">
+    <!-- Timeline line -->
+    <line x1="60" y1="140" x2="1060" y2="140" stroke="#2a2a3a" stroke-width="2"/>
+    <!-- v1 -->
+    <circle cx="100" cy="140" r="8" fill="#f5a623"/>
+    <text x="100" y="115" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">v1</text>
+    <text x="100" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">2016</text>
+    <text x="100" y="188" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">Inference only</text>
+    <text x="100" y="203" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">92 TOPS INT8</text>
+    <!-- v2 -->
+    <circle cx="260" cy="140" r="8" fill="#f5a623"/>
+    <text x="260" y="115" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">v2</text>
+    <text x="260" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">2017</text>
+    <text x="260" y="188" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">Training support</text>
+    <text x="260" y="203" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">HBM + 45 TFLOPS</text>
+    <!-- v3 -->
+    <circle cx="420" cy="140" r="8" fill="#f5a623"/>
+    <text x="420" y="115" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">v3</text>
+    <text x="420" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">2018</text>
+    <text x="420" y="188" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">Liquid cooled</text>
+    <text x="420" y="203" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">1024-chip pods</text>
+    <!-- v4 -->
+    <circle cx="580" cy="140" r="10" fill="#4ecb8d"/>
+    <text x="580" y="112" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="14" font-weight="600">v4</text>
+    <text x="580" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">2022</text>
+    <text x="580" y="188" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">275 TFLOPS BF16</text>
+    <text x="580" y="203" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">4096-chip pods</text>
+    <!-- v5p -->
+    <circle cx="770" cy="140" r="10" fill="#a78bfa"/>
+    <text x="770" y="112" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="14" font-weight="600">v5p</text>
+    <text x="770" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">2023</text>
+    <text x="770" y="188" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">459 TFLOPS BF16</text>
+    <text x="770" y="203" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">SparseCore</text>
+    <!-- Trillium -->
+    <circle cx="940" cy="140" r="12" fill="#60a5fa"/>
+    <text x="940" y="108" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="14" font-weight="600">Trillium</text>
+    <text x="940" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">2024</text>
+    <text x="940" y="188" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">4.7x over v5e</text>
+    <text x="940" y="203" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans" font-size="10">Enhanced ICI</text>
+  </svg>
+  <div class="slide-footer">google-tpu / 02</div>
+</section>
+
+<!-- Slide 3: Systolic Array / MXU -->
+<section>
+  <div class="slide-hdr"><span class="tag">CORE ARCH</span><h2>Systolic Array &amp; Matrix Multiply Unit</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 420 340" width="420" height="340">
+        <!-- Grid of processing elements -->
+        <text x="210" y="20" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">128 x 128 MXU Systolic Array</text>
+        <!-- Row labels -->
+        <text x="15" y="72" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Weight</text>
+        <text x="15" y="84" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Flow &#8594;</text>
+        <!-- Column labels -->
+        <text x="75" y="38" fill="#a78bfa" font-family="JetBrains Mono" font-size="10" text-anchor="middle">Activation</text>
+        <text x="75" y="48" fill="#a78bfa" font-family="JetBrains Mono" font-size="10" text-anchor="middle">Flow &#8595;</text>
+        <!-- Grid 6x6 representation -->
+        <g transform="translate(50, 55)">
+          <rect x="0" y="0" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.8"/>
+          <text x="20" y="24" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="50" y="0" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.7"/>
+          <text x="70" y="24" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="100" y="0" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.6"/>
+          <text x="120" y="24" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="150" y="0" width="40" height="40" rx="4" fill="none" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4"/>
+          <rect x="200" y="0" width="40" height="40" rx="4" fill="none" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4"/>
+          <rect x="250" y="0" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.5"/>
+          <text x="270" y="24" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+
+          <rect x="0" y="50" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.7"/>
+          <text x="20" y="74" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="50" y="50" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.6"/>
+          <text x="70" y="74" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="100" y="50" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.5"/>
+          <text x="120" y="74" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="150" y="50" width="40" height="40" rx="4" fill="none" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4"/>
+          <rect x="200" y="50" width="40" height="40" rx="4" fill="none" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4"/>
+          <rect x="250" y="50" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.4"/>
+          <text x="270" y="74" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+
+          <rect x="0" y="100" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.6"/>
+          <text x="20" y="124" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="50" y="100" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.5"/>
+          <text x="70" y="124" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="100" y="100" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.4"/>
+          <text x="120" y="124" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <rect x="150" y="100" width="40" height="40" rx="4" fill="none" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4"/>
+          <rect x="200" y="100" width="40" height="40" rx="4" fill="none" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4"/>
+          <rect x="250" y="100" width="40" height="40" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5" opacity="0.3"/>
+          <text x="270" y="124" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <!-- Dots indicating continuation -->
+          <text x="175" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="14">. . .</text>
+
+          <!-- Arrows showing data flow -->
+          <line x1="42" y1="20" x2="48" y2="20" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowA)"/>
+          <line x1="92" y1="20" x2="98" y2="20" stroke="#f5a623" stroke-width="1.5"/>
+          <line x1="20" y1="42" x2="20" y2="48" stroke="#a78bfa" stroke-width="1.5"/>
+          <line x1="70" y1="42" x2="70" y2="48" stroke="#a78bfa" stroke-width="1.5"/>
+        </g>
+        <text x="210" y="265" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Data flows through array &mdash; each PE does</text>
+        <text x="210" y="280" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">multiply-accumulate and passes result to neighbor</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.8em">
+        <h3>Why Systolic?</h3>
+        <ul>
+          <li>Data reuse minimizes HBM reads</li>
+          <li>Pipelined: high throughput at low power</li>
+          <li>128x128 = 16,384 MACs per cycle</li>
+          <li>BFloat16 native datatype</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>vs GPU SIMT Model</h3>
+        <ul>
+          <li>GPUs: flexible thread-level parallelism</li>
+          <li>TPUs: fixed dataflow, higher efficiency on matmuls</li>
+          <li>Trade-off: less flexibility for irregular ops</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 03</div>
+</section>
+
+<!-- Slide 4: TPU v4 Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">TPU v4</span><h2>TPU v4 Chip Architecture</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <svg class="diagram" viewBox="0 0 460 300" width="460" height="300">
+        <text x="230" y="20" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">TPU v4 Chip Block Diagram</text>
+        <!-- TensorCore 0 -->
+        <rect x="20" y="40" width="200" height="200" rx="8" fill="none" stroke="#f5a623" stroke-width="2"/>
+        <text x="120" y="60" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">TensorCore 0</text>
+        <rect x="35" y="72" width="80" height="35" rx="4" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="75" y="94" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">MXU 128x128</text>
+        <rect x="125" y="72" width="80" height="35" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="165" y="94" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Vector Unit</text>
+        <rect x="35" y="116" width="80" height="35" rx="4" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="75" y="138" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">Scalar Unit</text>
+        <rect x="125" y="116" width="80" height="35" rx="4" fill="#10101a" stroke="#8888a8" stroke-width="1.5"/>
+        <text x="165" y="138" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Transpose</text>
+        <!-- HBM -->
+        <rect x="35" y="165" width="170" height="30" rx="4" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+        <text x="120" y="185" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">HBM2e &mdash; 16 GB</text>
+        <!-- ICI links -->
+        <rect x="35" y="205" width="170" height="25" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="1"/>
+        <text x="120" y="222" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">3x ICI Links (X, Y, Z)</text>
+        <!-- TensorCore 1 -->
+        <rect x="240" y="40" width="200" height="200" rx="8" fill="none" stroke="#f5a623" stroke-width="2"/>
+        <text x="340" y="60" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">TensorCore 1</text>
+        <rect x="255" y="72" width="80" height="35" rx="4" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="295" y="94" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">MXU 128x128</text>
+        <rect x="345" y="72" width="80" height="35" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="385" y="94" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Vector Unit</text>
+        <rect x="255" y="116" width="80" height="35" rx="4" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="295" y="138" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">Scalar Unit</text>
+        <rect x="345" y="116" width="80" height="35" rx="4" fill="#10101a" stroke="#8888a8" stroke-width="1.5"/>
+        <text x="385" y="138" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Transpose</text>
+        <rect x="255" y="165" width="170" height="30" rx="4" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+        <text x="340" y="185" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">HBM2e &mdash; 16 GB</text>
+        <rect x="255" y="205" width="170" height="25" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="1"/>
+        <text x="340" y="222" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">3x ICI Links (X, Y, Z)</text>
+        <!-- Total -->
+        <text x="230" y="270" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans" font-size="12">Total: <tspan fill="#f5a623" font-weight="600">275 TFLOPS BF16</tspan> | <tspan fill="#f87171">32 GB HBM2e</tspan> | <tspan fill="#4ecb8d">~1.2 TB/s</tspan></text>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.7em">
+        <h3>Key v4 Specs</h3>
+        <ul>
+          <li><span class="a">275 TFLOPS</span> BFloat16 per chip</li>
+          <li><span class="r">32 GB</span> HBM2e memory</li>
+          <li><span class="g">~1.2 TB/s</span> memory bandwidth</li>
+          <li><span class="b">6 ICI links</span> per chip (3D torus)</li>
+          <li><span class="p">4096-chip</span> pod = 1.1+ exaFLOPS</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Pod-Level Scale</h3>
+        <p>A single TPU v4 pod delivers over <span class="a">1.1 exaFLOPS</span> of aggregate BF16 compute, connected via ICI with no host-network boundary between chips.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 04</div>
+</section>
+
+<!-- Slide 5: TPU v5p -->
+<section>
+  <div class="slide-hdr"><span class="tag">TPU v5p</span><h2>TPU v5p &amp; SparseCore</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card purple" style="margin-bottom:.8em">
+        <h3>Performance Leap</h3>
+        <ul>
+          <li><span class="p">459 TFLOPS</span> BF16 per chip (+67% vs v4)</li>
+          <li><span class="r">95 GB</span> HBM per chip (3x v4)</li>
+          <li>Enhanced memory bandwidth</li>
+          <li>Pods scale to <span class="a">8,960 chips</span></li>
+          <li>Improved ICI bandwidth per link</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>SparseCore</h3>
+        <p>Dedicated processing unit for <span class="b">embedding table lookups</span> and sparse feature interactions. Offloads sparse ops from MXU, enabling concurrent dense + sparse compute.</p>
+        <ul>
+          <li>Critical for recommendation models</li>
+          <li>Reduces embedding bottleneck</li>
+          <li>Frees MXU for dense matmuls</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 440 350" width="440" height="350">
+        <text x="220" y="20" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12" font-weight="600">v5p Chip: Dense + Sparse Compute</text>
+        <!-- MXU block -->
+        <rect x="40" y="45" width="160" height="100" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="120" y="75" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12" font-weight="600">MXU</text>
+        <text x="120" y="95" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Dense matmul</text>
+        <text x="120" y="110" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">459 TFLOPS BF16</text>
+        <!-- SparseCore block -->
+        <rect x="240" y="45" width="160" height="100" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+        <text x="320" y="75" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12" font-weight="600">SparseCore</text>
+        <text x="320" y="95" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Embedding lookups</text>
+        <text x="320" y="110" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Sparse features</text>
+        <!-- Concurrent arrow -->
+        <text x="220" y="170" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Concurrent execution</text>
+        <line x1="120" y1="150" x2="120" y2="178" stroke="#4ecb8d" stroke-width="1.5"/>
+        <line x1="320" y1="150" x2="320" y2="178" stroke="#60a5fa" stroke-width="1.5"/>
+        <!-- HBM -->
+        <rect x="40" y="185" width="360" height="45" rx="6" fill="#10101a" stroke="#f87171" stroke-width="2"/>
+        <text x="220" y="213" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="12">95 GB HBM</text>
+        <!-- ICI -->
+        <rect x="40" y="250" width="360" height="40" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="220" y="275" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">ICI Interconnect &mdash; 8,960-chip pods</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 05</div>
+</section>
+
+<!-- Slide 6: Trillium / v6 -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRILLIUM</span><h2>Trillium (TPU v6e)</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>4.7x Compute Gain</h3>
+      <p>Per-chip compute improvement of <span class="a">4.7x</span> over TPU v5e. The largest generational leap in TPU history.</p>
+    </div>
+    <div class="card green">
+      <h3>Energy Efficiency</h3>
+      <p>Higher <span class="g">FLOPS-per-watt</span> ratios reduce operational cost for sustained training runs at datacenter scale.</p>
+    </div>
+    <div class="card purple">
+      <h3>Enhanced ICI</h3>
+      <p>Improved <span class="p">bisection bandwidth</span> supports larger pod configurations and more efficient collective comms.</p>
+    </div>
+  </div>
+  <div style="margin-top:1em;">
+    <div class="cols cols-2">
+      <div class="card blue">
+        <h3>Memory Improvements</h3>
+        <ul>
+          <li>Increased HBM capacity and bandwidth</li>
+          <li>Addresses memory wall for 400B+ parameter models</li>
+          <li>Reduces need for aggressive model sharding</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <h3>Competitive Position</h3>
+        <ul>
+          <li>Narrows per-chip gap with H100 and B200</li>
+          <li>Systolic array excels on transformer workloads</li>
+          <li>Early benchmarks show strong training throughput</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 06</div>
+</section>
+
+<!-- Slide 7: ICI Interconnect -->
+<section>
+  <div class="slide-hdr"><span class="tag">INTERCONNECT</span><h2>ICI Mesh Topology</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 420 320" width="420" height="320">
+        <text x="210" y="18" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11" font-weight="600">3D Torus ICI Topology (2D slice shown)</text>
+        <!-- 4x4 grid of TPU chips -->
+        <g transform="translate(60, 35)">
+          <!-- Row 0 -->
+          <rect x="0" y="0" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="25" y="30" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="80" y="0" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="105" y="30" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="160" y="0" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="185" y="30" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="240" y="0" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="265" y="30" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <!-- Row 1 -->
+          <rect x="0" y="80" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="25" y="110" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="80" y="80" width="50" height="50" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+          <text x="105" y="110" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="160" y="80" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="185" y="110" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="240" y="80" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="265" y="110" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <!-- Row 2 -->
+          <rect x="0" y="160" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="25" y="190" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="80" y="160" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="105" y="190" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="160" y="160" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="185" y="190" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <rect x="240" y="160" width="50" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="265" y="190" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <!-- Horizontal links -->
+          <line x1="52" y1="25" x2="78" y2="25" stroke="#4ecb8d" stroke-width="1.5"/>
+          <line x1="132" y1="25" x2="158" y2="25" stroke="#4ecb8d" stroke-width="1.5"/>
+          <line x1="212" y1="25" x2="238" y2="25" stroke="#4ecb8d" stroke-width="1.5"/>
+          <line x1="52" y1="105" x2="78" y2="105" stroke="#4ecb8d" stroke-width="1.5"/>
+          <line x1="132" y1="105" x2="158" y2="105" stroke="#4ecb8d" stroke-width="1.5"/>
+          <line x1="212" y1="105" x2="238" y2="105" stroke="#4ecb8d" stroke-width="1.5"/>
+          <line x1="52" y1="185" x2="78" y2="185" stroke="#4ecb8d" stroke-width="1.5"/>
+          <line x1="132" y1="185" x2="158" y2="185" stroke="#4ecb8d" stroke-width="1.5"/>
+          <line x1="212" y1="185" x2="238" y2="185" stroke="#4ecb8d" stroke-width="1.5"/>
+          <!-- Vertical links -->
+          <line x1="25" y1="52" x2="25" y2="78" stroke="#a78bfa" stroke-width="1.5"/>
+          <line x1="105" y1="52" x2="105" y2="78" stroke="#a78bfa" stroke-width="1.5"/>
+          <line x1="185" y1="52" x2="185" y2="78" stroke="#a78bfa" stroke-width="1.5"/>
+          <line x1="265" y1="52" x2="265" y2="78" stroke="#a78bfa" stroke-width="1.5"/>
+          <line x1="25" y1="132" x2="25" y2="158" stroke="#a78bfa" stroke-width="1.5"/>
+          <line x1="105" y1="132" x2="105" y2="158" stroke="#a78bfa" stroke-width="1.5"/>
+          <line x1="185" y1="132" x2="185" y2="158" stroke="#a78bfa" stroke-width="1.5"/>
+          <line x1="265" y1="132" x2="265" y2="158" stroke="#a78bfa" stroke-width="1.5"/>
+          <!-- Wraparound torus links -->
+          <path d="M 25,-5 Q 25,-20 145,-20 Q 265,-20 265,-5" fill="none" stroke="#f87171" stroke-width="1" stroke-dasharray="4"/>
+          <path d="M -5,25 Q -20,25 -20,105 Q -20,185 -5,185" fill="none" stroke="#f87171" stroke-width="1" stroke-dasharray="4"/>
+          <path d="M 295,25 Q 310,25 310,105 Q 310,185 295,185" fill="none" stroke="#f87171" stroke-width="1" stroke-dasharray="4"/>
+        </g>
+        <text x="210" y="275" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">&#9472; X-axis ICI</text>
+        <text x="210" y="290" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">&#9474; Y-axis ICI</text>
+        <text x="210" y="305" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">--- Torus wraparound</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.7em">
+        <h3>ICI Advantages</h3>
+        <ul>
+          <li>Uniform fabric across <span class="a">thousands</span> of chips</li>
+          <li>No host-network boundary</li>
+          <li>6 links/chip in 3D torus</li>
+          <li>Topology-aware XLA collectives</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <h3>vs NVLink/NVSwitch</h3>
+        <ul>
+          <li>NVLink: 900 GB/s but <span class="r">intra-node only</span></li>
+          <li>Inter-node requires InfiniBand/RoCE</li>
+          <li>Bandwidth cliff at node boundary</li>
+          <li>TPU: uniform scaling, lower peak p2p</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 07</div>
+</section>
+
+<!-- Slide 8: Pods & Multislice -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCALE</span><h2>TPU Pods &amp; Multislice Training</h2></div>
+  <svg class="diagram" viewBox="0 0 900 230" width="900" height="230">
+    <!-- Slice 1 -->
+    <rect x="30" y="30" width="250" height="150" rx="10" fill="none" stroke="#f5a623" stroke-width="2"/>
+    <text x="155" y="55" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">Slice 0 (4096 chips)</text>
+    <text x="155" y="80" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">ICI-connected 3D torus</text>
+    <rect x="55" y="95" width="60" height="30" rx="4" fill="#10101a" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="85" y="115" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">Tensor TP</text>
+    <rect x="125" y="95" width="60" height="30" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
+    <text x="155" y="115" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="8">Data DP</text>
+    <rect x="195" y="95" width="60" height="30" rx="4" fill="#10101a" stroke="#60a5fa" stroke-width="1"/>
+    <text x="225" y="115" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="8">Pipeline PP</text>
+    <text x="155" y="160" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Low-latency ICI collectives</text>
+    <!-- DCN link -->
+    <line x1="285" y1="105" x2="345" y2="105" stroke="#f87171" stroke-width="2" stroke-dasharray="6"/>
+    <text x="315" y="95" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">DCN</text>
+    <!-- Slice 2 -->
+    <rect x="350" y="30" width="250" height="150" rx="10" fill="none" stroke="#f5a623" stroke-width="2"/>
+    <text x="475" y="55" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">Slice 1 (4096 chips)</text>
+    <text x="475" y="80" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">ICI-connected 3D torus</text>
+    <rect x="375" y="95" width="60" height="30" rx="4" fill="#10101a" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="405" y="115" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">Tensor TP</text>
+    <rect x="445" y="95" width="60" height="30" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
+    <text x="475" y="115" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="8">Data DP</text>
+    <rect x="515" y="95" width="60" height="30" rx="4" fill="#10101a" stroke="#60a5fa" stroke-width="1"/>
+    <text x="545" y="115" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="8">Pipeline PP</text>
+    <text x="475" y="160" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Low-latency ICI collectives</text>
+    <!-- DCN link 2 -->
+    <line x1="605" y1="105" x2="665" y2="105" stroke="#f87171" stroke-width="2" stroke-dasharray="6"/>
+    <text x="635" y="95" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">DCN</text>
+    <!-- Slice 3 -->
+    <rect x="670" y="30" width="200" height="150" rx="10" fill="none" stroke="#f5a623" stroke-width="2" stroke-dasharray="4"/>
+    <text x="770" y="85" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Slice N ...</text>
+    <text x="770" y="115" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Scale to 10,000s</text>
+    <text x="770" y="130" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">of chips</text>
+  </svg>
+  <div class="cols cols-2" style="margin-top:.3em">
+    <div class="card amber">
+      <h3>Intra-Slice: ICI</h3>
+      <p>Tensor parallelism stays within a slice where ICI provides high bandwidth, low latency. All-reduce completes in microseconds.</p>
+    </div>
+    <div class="card red">
+      <h3>Inter-Slice: DCN</h3>
+      <p>Data and pipeline parallelism span slices via datacenter network. Higher latency requires careful partitioning via GSPMD.</p>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 08</div>
+</section>
+
+<!-- Slide 9: Software Stack -->
+<section>
+  <div class="slide-hdr"><span class="tag">SOFTWARE</span><h2>JAX / XLA / GSPMD Stack</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 420 340" width="420" height="340">
+        <text x="210" y="20" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11" font-weight="600">TPU Software Compilation Pipeline</text>
+        <!-- JAX layer -->
+        <rect x="80" y="40" width="260" height="45" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+        <text x="210" y="60" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12" font-weight="600">JAX (Python API)</text>
+        <text x="210" y="76" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">NumPy API + jit + grad + vmap</text>
+        <line x1="210" y1="87" x2="210" y2="105" stroke="#8888a8" stroke-width="1.5"/>
+        <!-- XLA HLO -->
+        <rect x="80" y="105" width="260" height="45" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="210" y="125" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12" font-weight="600">XLA (HLO Graph)</text>
+        <text x="210" y="141" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Optimization passes + fusion</text>
+        <line x1="210" y1="152" x2="210" y2="170" stroke="#8888a8" stroke-width="1.5"/>
+        <!-- GSPMD -->
+        <rect x="80" y="170" width="260" height="45" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+        <text x="210" y="190" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12" font-weight="600">GSPMD Partitioner</text>
+        <text x="210" y="206" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Sharding propagation + collectives</text>
+        <line x1="210" y1="217" x2="210" y2="235" stroke="#8888a8" stroke-width="1.5"/>
+        <!-- TPU code -->
+        <rect x="80" y="235" width="260" height="45" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="210" y="255" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">TPU Machine Code</text>
+        <text x="210" y="271" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">MXU + Vector + Scalar instructions</text>
+        <!-- Arrow labels -->
+        <text x="355" y="100" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">jit()</text>
+        <text x="355" y="165" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">lower()</text>
+        <text x="355" y="230" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">compile()</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.7em">
+        <h3>GSPMD Partitioning</h3>
+        <ul>
+          <li>Declarative sharding annotations</li>
+          <li>Automatic collective insertion</li>
+          <li>Logical mesh abstraction</li>
+          <li>Supports DP, TP, PP, and expert parallelism</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-bottom:.7em">
+        <h3>Key Frameworks</h3>
+        <ul>
+          <li><span class="b">Pax</span> &mdash; reference transformer training</li>
+          <li><span class="b">MaxText</span> &mdash; high-performance LLM impl</li>
+          <li><span class="b">Pallas</span> &mdash; custom TPU kernel language</li>
+        </ul>
+      </div>
+      <pre><code># JAX sharding example
+mesh = jax.sharding.Mesh(
+  devices, axis_names=('data', 'model'))
+@jax.jit
+def train_step(params, batch):
+  loss, grads = jax.value_and_grad(
+    loss_fn)(params, batch)
+  return update(params, grads)</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 09</div>
+</section>
+
+<!-- Slide 10: Inference -->
+<section>
+  <div class="slide-hdr"><span class="tag">INFERENCE</span><h2>TPU Inference &amp; Serving</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Cloud TPU Inference</h3>
+      <ul>
+        <li>Vertex AI autoscaling endpoints</li>
+        <li>GKE-based TPU node pools</li>
+        <li>Continuous &amp; dynamic batching</li>
+        <li>TPU v5e optimized for cost</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Optimizations</h3>
+      <ul>
+        <li>INT8 quantization support</li>
+        <li>KV-cache tuned to HBM</li>
+        <li>Speculative decoding</li>
+        <li>Same XLA pipeline as training</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>SAX Framework</h3>
+      <ul>
+        <li>Serving on Accelerators with XLA</li>
+        <li>Model sharding across TPUs</li>
+        <li>Request batching &amp; load balancing</li>
+        <li>Competitive with TensorRT-LLM</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:.8em">
+    <svg class="diagram" viewBox="0 0 900 120" width="900" height="120">
+      <text x="450" y="18" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11" font-weight="600">Inference Serving Pipeline</text>
+      <!-- Client -->
+      <rect x="20" y="40" width="120" height="55" rx="6" fill="#10101a" stroke="#8888a8" stroke-width="1.5"/>
+      <text x="80" y="65" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans" font-size="11">Client</text>
+      <text x="80" y="82" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">gRPC / REST</text>
+      <line x1="142" y1="67" x2="188" y2="67" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <!-- Load Balancer -->
+      <rect x="190" y="40" width="130" height="55" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+      <text x="255" y="65" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="11">Load Balancer</text>
+      <text x="255" y="82" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">SAX Router</text>
+      <line x1="322" y1="67" x2="368" y2="67" stroke="#8888a8" stroke-width="1.5"/>
+      <!-- Batcher -->
+      <rect x="370" y="40" width="130" height="55" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+      <text x="435" y="65" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">Batcher</text>
+      <text x="435" y="82" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">Continuous batching</text>
+      <line x1="502" y1="67" x2="548" y2="67" stroke="#8888a8" stroke-width="1.5"/>
+      <!-- TPU Workers -->
+      <rect x="550" y="40" width="160" height="55" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+      <text x="630" y="60" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">TPU Workers</text>
+      <text x="630" y="78" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">Sharded model on v5e</text>
+      <text x="630" y="90" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">XLA-compiled graph</text>
+      <line x1="712" y1="67" x2="758" y2="67" stroke="#8888a8" stroke-width="1.5"/>
+      <!-- Response -->
+      <rect x="760" y="40" width="120" height="55" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="820" y="65" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="11">Response</text>
+      <text x="820" y="82" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="9">Tokens streamed</text>
+    </svg>
+  </div>
+  <div class="slide-footer">google-tpu / 10</div>
+</section>
+
+<!-- Slide 11: Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARE</span><h2>TPU vs NVIDIA GPU Comparison</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Specification</th>
+        <th>TPU v4</th>
+        <th>TPU v5p</th>
+        <th>NVIDIA H100 SXM</th>
+        <th>NVIDIA B200</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">BF16 TFLOPS</span></td>
+        <td>275</td>
+        <td>459</td>
+        <td>989 (sparse) / 495 (dense)</td>
+        <td>~2,250 (sparse)</td>
+      </tr>
+      <tr>
+        <td><span class="r">HBM Capacity</span></td>
+        <td>32 GB HBM2e</td>
+        <td>95 GB HBM</td>
+        <td>80 GB HBM3</td>
+        <td>192 GB HBM3e</td>
+      </tr>
+      <tr>
+        <td><span class="g">Memory BW</span></td>
+        <td>~1.2 TB/s</td>
+        <td>~2.4 TB/s</td>
+        <td>3.35 TB/s</td>
+        <td>8 TB/s</td>
+      </tr>
+      <tr>
+        <td><span class="b">Interconnect</span></td>
+        <td>ICI 3D torus</td>
+        <td>ICI 3D torus</td>
+        <td>NVLink 900 GB/s</td>
+        <td>NVLink 1,800 GB/s</td>
+      </tr>
+      <tr>
+        <td><span class="p">Max Cluster</span></td>
+        <td>4,096 chips (ICI)</td>
+        <td>8,960 chips (ICI)</td>
+        <td>8 GPUs (NVLink) + IB</td>
+        <td>72 GPUs (NVSwitch) + IB</td>
+      </tr>
+      <tr>
+        <td>Compute Model</td>
+        <td colspan="2">Systolic array (MXU)</td>
+        <td colspan="2">SIMT (Tensor Cores)</td>
+      </tr>
+      <tr>
+        <td>Primary Framework</td>
+        <td colspan="2">JAX / TensorFlow</td>
+        <td colspan="2">PyTorch / CUDA ecosystem</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.6em;color:var(--muted);font-size:.72em;">Note: NVIDIA sparse FLOPS use structured sparsity (2:4). TPU figures are dense. Direct FLOPS comparisons require workload-specific benchmarking.</p>
+  <div class="slide-footer">google-tpu / 11</div>
+</section>
+
+<!-- Slide 12: Cost Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">COST</span><h2>Cost &amp; Availability</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.7em">
+        <h3>Pricing Models</h3>
+        <ul>
+          <li><span class="a">On-demand</span> &mdash; pay per chip-hour</li>
+          <li><span class="g">Reserved</span> &mdash; 1-3 year commitments, ~60% discount</li>
+          <li><span class="b">Queued Resources</span> &mdash; batch-style, lower priority</li>
+          <li><span class="p">AI Hypercomputer</span> &mdash; bundled managed platform</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Cost Advantages</h3>
+        <ul>
+          <li>TPU v5e priced aggressively vs A100/H100</li>
+          <li>Lower $/TFLOP for sustained training</li>
+          <li>No InfiniBand licensing costs</li>
+          <li>Integrated with GCP storage &amp; networking</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.7em">
+        <h3>Availability Constraints</h3>
+        <ul>
+          <li><span class="r">Google Cloud only</span> &mdash; no AWS, Azure, on-prem</li>
+          <li>GKE-only deployment model</li>
+          <li>Capacity allocation via quotas</li>
+          <li>Large pods require pre-arrangement</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <h3>Access Methods</h3>
+        <ul>
+          <li>TPU VMs &mdash; direct SSH access</li>
+          <li>GKE Node Pools &mdash; Kubernetes orchestration</li>
+          <li>Vertex AI &mdash; managed training/serving</li>
+          <li>Colab / Kaggle &mdash; free-tier v2 access</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 12</div>
+</section>
+
+<!-- Slide 13: Limitations -->
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITS</span><h2>Limitations &amp; Trade-offs</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card red" style="margin-bottom:.7em">
+        <h3>Ecosystem Lock-in</h3>
+        <ul>
+          <li>JAX and TensorFlow are first-class citizens</li>
+          <li><span class="r">PyTorch/XLA</span> lags behind native CUDA PyTorch</li>
+          <li>Operator coverage gaps in PyTorch/XLA</li>
+          <li>Community libraries often CUDA-only</li>
+          <li>Smaller practitioner community</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Custom Kernels</h3>
+        <ul>
+          <li>No CUDA kernel support</li>
+          <li>FlashAttention requires Pallas reimplementation</li>
+          <li>Many efficient attention variants unavailable</li>
+          <li>Pallas learning curve is steep</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.7em">
+        <h3>Deployment Constraints</h3>
+        <ul>
+          <li>GKE-only &mdash; no on-premises option</li>
+          <li>Single-cloud vendor dependency</li>
+          <li>Limited multi-cloud DR strategies</li>
+          <li>Negotiating leverage vs multi-cloud GPU</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>Debugging &amp; Profiling</h3>
+        <ul>
+          <li>XLA profiling tools less mature than Nsight</li>
+          <li>HLO graph debugging requires expertise</li>
+          <li>Sharding propagation can be opaque</li>
+          <li>Fewer public training recipes &amp; tutorials</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 13</div>
+</section>
+
+<!-- Slide 14: When to Choose TPUs -->
+<section>
+  <div class="slide-hdr"><span class="tag">GUIDANCE</span><h2>When to Choose TPUs</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>TPUs Excel When</h3>
+      <ul>
+        <li>Training large transformers (100B+ params)</li>
+        <li>Team already proficient in <span class="b">JAX</span></li>
+        <li>Workload is dense matmul-dominated</li>
+        <li>Need <span class="a">4000+ chip</span> synchronous training</li>
+        <li>Cost-sensitive sustained training runs</li>
+        <li>Google Cloud is primary cloud provider</li>
+        <li>Recommendation models (SparseCore advantage)</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>GPUs Excel When</h3>
+      <ul>
+        <li>PyTorch-native codebase with custom CUDA kernels</li>
+        <li>Multi-cloud or on-premises requirements</li>
+        <li>Diverse workloads beyond dense matmul</li>
+        <li>Need <span class="r">FlashAttention</span> and ecosystem libraries</li>
+        <li>Team expertise is CUDA-centric</li>
+        <li>Inference with TensorRT-LLM optimizations</li>
+        <li>Research requiring rapid prototyping flexibility</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.6em;font-size:.78em;color:var(--muted);">The decision is rarely about raw silicon performance. It hinges on software ecosystem, team skills, deployment constraints, and long-term platform strategy.</p>
+  <div class="slide-footer">google-tpu / 14</div>
+</section>
+
+<!-- Slide 15: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.7em">
+        <h3>Architecture</h3>
+        <ul>
+          <li>Systolic array (MXU) optimized for dense matmul</li>
+          <li>BFloat16 native with high MXU utilization</li>
+          <li>ICI provides uniform scaling to 8,960+ chips</li>
+          <li>SparseCore addresses embedding bottlenecks</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Performance Trajectory</h3>
+        <ul>
+          <li>v4: 275 TFLOPS, 4096-chip pods</li>
+          <li>v5p: 459 TFLOPS, SparseCore</li>
+          <li>Trillium: 4.7x over v5e</li>
+          <li>Each generation closes gap with NVIDIA</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.7em">
+        <h3>Software</h3>
+        <ul>
+          <li>JAX + XLA + GSPMD = powerful compilation stack</li>
+          <li>Declarative sharding is ergonomic for large models</li>
+          <li>PyTorch support improving but not yet parity</li>
+          <li>SAX enables competitive inference serving</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <h3>Strategic Considerations</h3>
+        <ul>
+          <li>Single-vendor, single-cloud commitment</li>
+          <li>Cost-effective for sustained large-scale training</li>
+          <li>Smaller community vs CUDA ecosystem</li>
+          <li>Best for JAX-native, GCP-committed teams</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">google-tpu / 15</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

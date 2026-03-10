@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoRA and Parameter-Efficient Fine-Tuning | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>LoRA &amp; Parameter-Efficient Fine-Tuning</h1>
+  <p class="subtitle">Adapting Large Language Models Without Full-Weight Updates</p>
+  <div>
+    <span class="pill amber">LoRA</span>
+    <span class="pill green">QLoRA</span>
+    <span class="pill purple">DoRA</span>
+    <span class="pill blue">IA3</span>
+    <span class="pill amber">Adapters</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">March 2026</p>
+  <div class="slide-footer">lora-peft / 01</div>
+</section>
+
+<!-- SLIDE 2: The Cost of Full Fine-Tuning -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>The Cost of Full Fine-Tuning</h2></div>
+  <p>Full fine-tuning updates every parameter, requiring memory for weights, gradients, and optimizer states.</p>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Memory Breakdown (N params, BF16 + Adam)</h3>
+      <ul>
+        <li><span class="a">2N</span> &mdash; BF16 model weights</li>
+        <li><span class="a">2N</span> &mdash; BF16 gradients</li>
+        <li><span class="p">4N</span> &mdash; FP32 master weights</li>
+        <li><span class="r">8N</span> &mdash; Adam first &amp; second moments</li>
+        <li><strong>Total: <span class="r">16N bytes</span></strong></li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Concrete Example: 70B Model</h3>
+      <ul>
+        <li>Weights alone: <span class="b">140 GB</span> (BF16)</li>
+        <li>Full training state: <span class="r">~1.12 TB</span></li>
+        <li>Exceeds 8&times; A100-80GB node</li>
+        <li>Requires ZeRO-3 or FSDP sharding</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.5em">Fine-tuning updates occupy a <span class="g">low-dimensional subspace</span> &mdash; PEFT methods exploit this intrinsic dimensionality to cut trainable params by <span class="a">90&ndash;99%</span>.</p>
+  <div class="slide-footer">lora-peft / 02</div>
+</section>
+
+<!-- SLIDE 3: LoRA Mechanism -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>LoRA: Low-Rank Decomposition</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Freeze all pre-trained weights <span class="a">W</span>. Inject trainable low-rank matrices <span class="g">A</span> (r &times; d_in) and <span class="p">B</span> (d_out &times; r):</p>
+      <pre><code>h = W&middot;x + (&alpha;/r) &middot; B&middot;A&middot;x
+
+A &larr; N(0, &sigma;&sup2;)   # random init
+B &larr; 0             # zero init &rarr; starts as identity</code></pre>
+      <p>Trainable params per layer: <span class="a">r &times; (d_in + d_out)</span> vs. <span class="r">d_in &times; d_out</span> for full.</p>
+      <p>For a 4096&times;4096 layer with r=16: <span class="g">131K</span> vs <span class="r">16.8M</span> params (<span class="g">0.78%</span>).</p>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 320" width="260">
+        <rect x="20" y="10" width="240" height="50" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="14" font-weight="600">Input x (d_in)</text>
+        <line x1="80" y1="60" x2="80" y2="100" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="200" y1="60" x2="200" y2="100" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="20" y="100" width="120" height="45" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="80" y="127" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">W (frozen)</text>
+        <rect x="155" y="100" width="100" height="45" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="205" y="127" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13" font-weight="600">A (r&times;d_in)</text>
+        <line x1="200" y1="145" x2="200" y2="185" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="155" y="185" width="100" height="45" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="205" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13" font-weight="600">B (d_out&times;r)</text>
+        <line x1="80" y1="145" x2="80" y2="265" stroke="#8888a8" stroke-width="1.5"/>
+        <line x1="200" y1="230" x2="200" y2="265" stroke="#a78bfa" stroke-width="1.5"/>
+        <circle cx="140" cy="270" r="14" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="140" y="275" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="16" font-weight="700">+</text>
+        <line x1="80" y1="265" x2="126" y2="270" stroke="#8888a8" stroke-width="1.5"/>
+        <line x1="200" y1="265" x2="154" y2="270" stroke="#a78bfa" stroke-width="1.5"/>
+        <line x1="140" y1="284" x2="140" y2="310" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="140" y="318" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">Output h</text>
+        <defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="currentColor" stroke-width="1"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 03</div>
+</section>
+
+<!-- SLIDE 4: Rank & Alpha -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Rank Selection &amp; Alpha Scaling</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Rank (r)</h3>
+      <ul>
+        <li>Primary capacity knob: typical range <span class="a">4&ndash;256</span></li>
+        <li>Popular defaults: <span class="g">r=16</span> or <span class="g">r=32</span></li>
+        <li>Lower rank = stronger regularization, good for small datasets</li>
+        <li>Higher rank = more capacity for domain shift</li>
+        <li>Diminishing returns: 4&rarr;8 helps more than 16&rarr;32</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Alpha (&alpha;)</h3>
+      <ul>
+        <li>Effective scaling: <span class="a">&alpha;/r</span></li>
+        <li>Common heuristic: <span class="p">&alpha; = 2&times;r</span></li>
+        <li>&alpha;=r &rArr; scaling factor of 1.0</li>
+        <li>Higher &alpha; amplifies adapter contribution</li>
+        <li>Interacts with learning rate &mdash; tune jointly</li>
+      </ul>
+    </div>
+  </div>
+  <table style="margin-top:.6em">
+    <tr><th>Rank</th><th>Params per layer (4096&times;4096)</th><th>% of full</th><th>Typical use case</th></tr>
+    <tr><td>4</td><td><span class="g">32K</span></td><td>0.19%</td><td>Narrow task, small data</td></tr>
+    <tr><td>16</td><td><span class="g">131K</span></td><td>0.78%</td><td>General instruction tuning</td></tr>
+    <tr><td>64</td><td><span class="a">524K</span></td><td>3.1%</td><td>Domain adaptation</td></tr>
+    <tr><td>256</td><td><span class="r">2.1M</span></td><td>12.5%</td><td>Large domain shift</td></tr>
+  </table>
+  <div class="slide-footer">lora-peft / 04</div>
+</section>
+
+<!-- SLIDE 5: Which Layers to Adapt -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Which Layers to Adapt</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>LoRA can target any linear layer. The choice affects both parameter count and final quality.</p>
+      <table>
+        <tr><th>Target</th><th>Layers</th><th>Impact</th></tr>
+        <tr><td><span class="g">Q, V only</span></td><td>Attention</td><td>Minimal params, strong baseline</td></tr>
+        <tr><td><span class="a">Q, K, V, O</span></td><td>Full attention</td><td>Better for complex tasks</td></tr>
+        <tr><td><span class="p">All linear</span></td><td>Attn + MLP</td><td>Maximum capacity, highest param count</td></tr>
+      </table>
+      <p style="margin-top:.4em">MLP layers contain the majority of model parameters. Including <span class="a">gate_proj</span>, <span class="a">up_proj</span>, <span class="a">down_proj</span> substantially increases adapter size but also representational capacity.</p>
+    </div>
+    <div class="card blue">
+      <h3>Recommendation</h3>
+      <p>For most tasks, start with <span class="g">all attention + MLP projections</span> at a moderate rank (16). This gives the adapter access to all representational pathways while keeping the total parameter count manageable.</p>
+      <h3 style="margin-top:.6em">HuggingFace PEFT config</h3>
+      <pre><code>target_modules = [
+  "q_proj", "k_proj",
+  "v_proj", "o_proj",
+  "gate_proj", "up_proj",
+  "down_proj"
+]</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 05</div>
+</section>
+
+<!-- SLIDE 6: QLoRA -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>QLoRA: Quantized Base + LoRA</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Key Innovations</h3>
+      <ul>
+        <li><span class="a">NF4 quantization</span> &mdash; 4-bit NormalFloat, optimal for normally distributed weights</li>
+        <li><span class="g">Double quantization</span> &mdash; quantization constants themselves quantized to 8-bit</li>
+        <li><span class="p">Paged optimizers</span> &mdash; offload optimizer state to CPU on GPU OOM</li>
+        <li>Base weights: <span class="b">4-bit</span>, LoRA adapters: <span class="g">BF16</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Memory Impact</h3>
+      <ul>
+        <li>65B model fine-tuning on a <span class="a">single 48 GB GPU</span></li>
+        <li>7B model: only <span class="g">6&ndash;8 GB</span> needed</li>
+        <li>Quality gap vs BF16 LoRA: <span class="g">&lt;1&ndash;2%</span> on benchmarks</li>
+        <li>Democratized LLM fine-tuning for consumer hardware</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 100" width="750" style="margin-top:.6em">
+    <rect x="0" y="20" width="180" height="55" rx="6" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+    <text x="90" y="43" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="11" font-weight="600">Base Weights (NF4)</text>
+    <text x="90" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Frozen, 4-bit</text>
+    <line x1="180" y1="47" x2="220" y2="47" stroke="#8888a8" stroke-width="1.2"/>
+    <rect x="220" y="20" width="140" height="55" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="290" y="43" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11" font-weight="600">Dequantize</text>
+    <text x="290" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">NF4 &rarr; BF16</text>
+    <line x1="360" y1="47" x2="400" y2="47" stroke="#8888a8" stroke-width="1.2"/>
+    <rect x="400" y="20" width="140" height="55" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="470" y="43" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11" font-weight="600">Forward Pass</text>
+    <text x="470" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">BF16 matmul</text>
+    <line x1="540" y1="47" x2="580" y2="47" stroke="#8888a8" stroke-width="1.2"/>
+    <rect x="580" y="5" width="200" height="35" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="680" y="27" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11" font-weight="600">LoRA (BF16, trainable)</text>
+    <rect x="580" y="50" width="200" height="35" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="680" y="72" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11" font-weight="600">Gradients &rarr; LoRA only</text>
+  </svg>
+  <div class="slide-footer">lora-peft / 06</div>
+</section>
+
+<!-- SLIDE 7: Other PEFT Methods -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Other PEFT Methods</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Prefix Tuning / Prompt Tuning</h3>
+      <p>Prepend learnable continuous vectors to key/value sequences (prefix) or input embeddings (prompt). Extremely parameter-efficient (<span class="g">&lt;0.1%</span> params) but underperforms LoRA on complex tasks.</p>
+    </div>
+    <div class="card purple">
+      <h3>Adapters</h3>
+      <p>Bottleneck layers (down &rarr; nonlinearity &rarr; up) inserted between transformer sublayers. Can match LoRA quality but add <span class="r">sequential latency</span> to inference, limiting adoption in production.</p>
+    </div>
+    <div class="card blue">
+      <h3>IA3</h3>
+      <p>Learns element-wise rescaling vectors for keys, values, and FF activations. <span class="b">10&ndash;100x fewer params</span> than LoRA with negligible overhead. Best for tasks close to base model capabilities.</p>
+    </div>
+    <div class="card amber">
+      <h3>DoRA</h3>
+      <p>Decomposes weights into <span class="a">magnitude</span> + <span class="a">direction</span>, applies LoRA to direction only. Outperforms LoRA by <span class="g">1&ndash;3%</span> on instruction-following at equivalent param count.</p>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 07</div>
+</section>
+
+<!-- SLIDE 8: DoRA Deep Dive -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>DoRA: Weight-Decomposed Low-Rank Adaptation</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Full fine-tuning tends to make <span class="a">large directional changes</span> with <span class="g">small magnitude adjustments</span>. Standard LoRA struggles to replicate this pattern.</p>
+      <pre><code># DoRA decomposition
+W = m &middot; (W_0 + BA) / ||W_0 + BA||
+
+where:
+  m     = learnable magnitude vector (d_out)
+  W_0   = frozen pre-trained weights
+  B, A  = standard LoRA matrices</code></pre>
+      <p>The magnitude vector <span class="a">m</span> is initialized to <code>||W_0||</code> column norms. LoRA handles direction; <span class="a">m</span> handles scale.</p>
+    </div>
+    <div class="card purple">
+      <h3>Benchmark Results</h3>
+      <ul>
+        <li>MT-Bench: <span class="g">+1.2 pts</span> over LoRA</li>
+        <li>AlpacaEval: <span class="g">+2.8%</span> win rate</li>
+        <li>Commonsense reasoning: <span class="g">+1.5%</span> avg</li>
+        <li>Extra overhead: <span class="b">~5%</span> training time</li>
+        <li>Merges cleanly into base weights</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 08</div>
+</section>
+
+<!-- SLIDE 9: Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>PEFT Methods Compared</h2></div>
+  <table>
+    <tr>
+      <th>Method</th>
+      <th>Trainable Params</th>
+      <th>Quality vs Full FT</th>
+      <th>Inference Overhead</th>
+      <th>Merge into Base?</th>
+      <th>Best For</th>
+    </tr>
+    <tr>
+      <td><span class="a">LoRA</span></td>
+      <td>0.1&ndash;5%</td>
+      <td><span class="g">95&ndash;100%</span></td>
+      <td>None (after merge)</td>
+      <td><span class="g">Yes</span></td>
+      <td>General purpose</td>
+    </tr>
+    <tr>
+      <td><span class="g">QLoRA</span></td>
+      <td>0.1&ndash;5%</td>
+      <td><span class="g">93&ndash;99%</span></td>
+      <td>None (after merge)</td>
+      <td><span class="g">Yes</span></td>
+      <td>Memory-constrained</td>
+    </tr>
+    <tr>
+      <td><span class="p">DoRA</span></td>
+      <td>0.1&ndash;5% + magnitude</td>
+      <td><span class="g">97&ndash;100%</span></td>
+      <td>None (after merge)</td>
+      <td><span class="g">Yes</span></td>
+      <td>Quality-critical tasks</td>
+    </tr>
+    <tr>
+      <td><span class="b">IA3</span></td>
+      <td>0.01&ndash;0.05%</td>
+      <td>85&ndash;95%</td>
+      <td>Negligible</td>
+      <td><span class="g">Yes</span></td>
+      <td>Thousands of adapters</td>
+    </tr>
+    <tr>
+      <td>Prefix Tuning</td>
+      <td>&lt;0.1%</td>
+      <td>80&ndash;92%</td>
+      <td>Slight (extra tokens)</td>
+      <td><span class="r">No</span></td>
+      <td>Lightweight steering</td>
+    </tr>
+    <tr>
+      <td>Adapters</td>
+      <td>0.5&ndash;5%</td>
+      <td><span class="g">95&ndash;100%</span></td>
+      <td><span class="r">Sequential latency</span></td>
+      <td>Partial</td>
+      <td>Research / modularity</td>
+    </tr>
+  </table>
+  <p style="margin-top:.5em"><span class="a">LoRA</span> offers the best balance of quality, efficiency, and ecosystem support. <span class="p">DoRA</span> is the quality-optimized alternative. <span class="b">IA3</span> wins when parameter count must be minimized.</p>
+  <div class="slide-footer">lora-peft / 09</div>
+</section>
+
+<!-- SLIDE 10: Multi-LoRA Serving -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Multi-LoRA Serving</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>In production, one base model serves <span class="a">many adapters</span> for different use cases. Naive per-adapter instances waste memory and prevent cross-user batching.</p>
+      <div class="card green" style="margin-top:.5em">
+        <h3>S-LoRA</h3>
+        <ul>
+          <li>Unified paging for adapter memory pool</li>
+          <li>Custom CUDA kernels: different LoRA per request <span class="a">within a single batch</span></li>
+          <li>On-demand adapter loading from host/disk</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>LoRAX (LoRA eXchange)</h3>
+        <ul>
+          <li>Production-ready multi-adapter serving</li>
+          <li>Dynamic loading + LRU cache eviction</li>
+          <li>HuggingFace ecosystem integration</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 340" width="260">
+        <rect x="60" y="5" width="160" height="40" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="30" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">Base Model (shared)</text>
+        <line x1="140" y1="45" x2="140" y2="75" stroke="#8888a8" stroke-width="1.2"/>
+        <rect x="30" y="75" width="220" height="30" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="140" y="95" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">Batched Request Router</text>
+        <line x1="70" y1="105" x2="70" y2="140" stroke="#4ecb8d" stroke-width="1.2"/>
+        <line x1="140" y1="105" x2="140" y2="140" stroke="#a78bfa" stroke-width="1.2"/>
+        <line x1="210" y1="105" x2="210" y2="140" stroke="#f87171" stroke-width="1.2"/>
+        <rect x="20" y="140" width="100" height="35" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="70" y="162" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-A (code)</text>
+        <rect x="90" y="185" width="100" height="35" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="140" y="207" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-B (math)</text>
+        <rect x="160" y="140" width="100" height="35" rx="6" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+        <text x="210" y="162" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-C (chat)</text>
+        <rect x="30" y="240" width="220" height="35" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.2"/>
+        <text x="140" y="260" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Adapter Memory Pool (paged)</text>
+        <text x="140" y="300" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">100s of adapters, near-zero overhead</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 10</div>
+</section>
+
+<!-- SLIDE 11: Merging Adapters -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Merging Adapters</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Single Adapter Merge</h3>
+        <pre><code>W_new = W + (&alpha;/r) &middot; B&middot;A</code></pre>
+        <p>Simple additive merge. Zero inference overhead. Irreversible but ideal for single-purpose deployment.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Multi-Adapter Merge</h3>
+        <pre><code>W_new = W + &Sigma;(&lambda;_i &middot; &Delta;W_i)</code></pre>
+        <p>Linear combination of task deltas. Tune <span class="a">&lambda;_i</span> on validation set for optimal mixing.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Advanced Merging Strategies</h3>
+        <ul>
+          <li><span class="a">TIES-Merging</span> &mdash; prune conflicting parameter updates, resolve sign conflicts, then merge</li>
+          <li><span class="g">DARE</span> &mdash; randomly drop delta elements before merging, reducing interference</li>
+          <li><span class="p">Task Arithmetic</span> &mdash; treat deltas as vectors: add to combine capabilities, negate to remove them</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>Example: Multi-Skill Merge</h3>
+        <ul>
+          <li><span class="a">&Delta;W_code</span> &mdash; coding adapter</li>
+          <li><span class="g">&Delta;W_math</span> &mdash; math reasoning</li>
+          <li><span class="p">&Delta;W_instruct</span> &mdash; instruction following</li>
+          <li>Merged model gains all three capabilities</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 11</div>
+</section>
+
+<!-- SLIDE 12: Practical Guidelines - Getting Started -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Practical Guidelines</h2></div>
+  <div class="cols cols-3">
+    <div class="card green">
+      <h3>Starting Config</h3>
+      <ul>
+        <li>Target: all attn + MLP projections</li>
+        <li>Rank: <span class="a">16</span></li>
+        <li>Alpha: <span class="a">32</span></li>
+        <li>LR: <span class="g">1e-4 to 3e-4</span></li>
+        <li>Framework: HF PEFT / Axolotl</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Memory-Constrained</h3>
+      <ul>
+        <li>Use <span class="a">QLoRA + NF4</span></li>
+        <li>Enable gradient checkpointing</li>
+        <li>Paged optimizers for overflow</li>
+        <li>7B model: <span class="g">6&ndash;8 GB</span> VRAM</li>
+        <li>Quality gap: &lt;2%</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>When to Scale Up</h3>
+      <ul>
+        <li>Val loss plateaus early &rarr; <span class="p">raise rank</span></li>
+        <li>Large domain shift &rarr; r=64 or 128</li>
+        <li>Watch: params vs tokens/1000</li>
+        <li>If adapter params &gt; tokens/1000 &rarr; <span class="r">overfitting risk</span></li>
+      </ul>
+    </div>
+  </div>
+  <pre><code># Minimal QLoRA training setup (HuggingFace PEFT)
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+model = prepare_model_for_kbit_training(model)  # freeze + prep quantized base
+config = LoraConfig(
+    r=16, lora_alpha=32, lora_dropout=0.05,
+    target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
+    task_type="CAUSAL_LM"
+)
+model = get_peft_model(model, config)
+model.print_trainable_parameters()  # ~0.5-2% of total</code></pre>
+  <div class="slide-footer">lora-peft / 12</div>
+</section>
+
+<!-- SLIDE 13: Training Tips -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Training Tips &amp; Common Pitfalls</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Do</h3>
+      <ul>
+        <li>Use <span class="g">BF16</span> for LoRA params (not FP16 &mdash; avoids loss scaling issues)</li>
+        <li>Apply LoRA dropout (<span class="a">0.05&ndash;0.1</span>) for regularization</li>
+        <li>Save adapter-only checkpoints (tiny vs full model)</li>
+        <li>Use cosine LR schedule with warmup</li>
+        <li>Evaluate on held-out set every N steps</li>
+        <li>Tune alpha and LR together on a small sweep</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Avoid</h3>
+      <ul>
+        <li><span class="r">Rank too high</span> for small datasets &rarr; overfitting</li>
+        <li><span class="r">Forgetting to freeze</span> base model &rarr; OOM + instability</li>
+        <li><span class="r">FP16 with QLoRA</span> &rarr; NaN gradients from loss scaling conflicts</li>
+        <li><span class="r">Ignoring chat template</span> &rarr; model learns wrong format</li>
+        <li><span class="r">Training too long</span> &rarr; 1&ndash;3 epochs usually sufficient</li>
+        <li><span class="r">Mixing adapter + base ckpts</span> from different commits</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 13</div>
+</section>
+
+<!-- SLIDE 14: LoRA vs Full Fine-Tuning Decision -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>When to Use LoRA vs Full Fine-Tuning</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <tr><th>Factor</th><th>LoRA</th><th>Full FT</th></tr>
+        <tr><td>GPU memory</td><td><span class="g">Low</span></td><td><span class="r">16N bytes</span></td></tr>
+        <tr><td>Training speed</td><td><span class="g">Faster</span></td><td>Slower</td></tr>
+        <tr><td>Max quality ceiling</td><td>Near-full</td><td><span class="g">Highest</span></td></tr>
+        <tr><td>Catastrophic forgetting</td><td><span class="g">Lower risk</span></td><td><span class="r">Higher risk</span></td></tr>
+        <tr><td>Multi-task serving</td><td><span class="g">Native</span></td><td><span class="r">Separate copies</span></td></tr>
+        <tr><td>Adapter composability</td><td><span class="g">Yes (merge)</span></td><td><span class="r">No</span></td></tr>
+      </table>
+    </div>
+    <div class="card blue">
+      <h3>Decision Framework</h3>
+      <ul>
+        <li><span class="g">LoRA</span>: instruction tuning, chat, domain adaptation, style transfer, most production use cases</li>
+        <li><span class="a">Full FT</span>: continued pre-training on large corpus, fundamental capability changes, when you have abundant compute and data</li>
+        <li><span class="p">QLoRA</span>: any LoRA use case where GPU memory is the binding constraint</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 14</div>
+</section>
+
+<!-- SLIDE 15: Ecosystem & Tools -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Ecosystem &amp; Tooling</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Training Frameworks</h3>
+      <ul>
+        <li><span class="a">HuggingFace PEFT</span> &mdash; canonical library</li>
+        <li><span class="a">Axolotl</span> &mdash; config-driven training</li>
+        <li><span class="a">LLaMA-Factory</span> &mdash; all-in-one fine-tuning</li>
+        <li><span class="a">Unsloth</span> &mdash; 2x faster LoRA kernels</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Serving</h3>
+      <ul>
+        <li><span class="g">vLLM</span> &mdash; multi-LoRA support</li>
+        <li><span class="g">LoRAX</span> &mdash; dedicated multi-adapter</li>
+        <li><span class="g">S-LoRA</span> &mdash; research framework</li>
+        <li><span class="g">TGI</span> &mdash; HF inference server</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Merging &amp; Analysis</h3>
+      <ul>
+        <li><span class="p">mergekit</span> &mdash; model merging toolkit</li>
+        <li><span class="p">PEFT .merge_and_unload()</span></li>
+        <li><span class="p">LM Eval Harness</span> &mdash; benchmarking</li>
+        <li><span class="p">Weights &amp; Biases</span> &mdash; experiment tracking</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 15</div>
+</section>
+
+<!-- SLIDE 16: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>1. LoRA is the Default</h3>
+        <p>Low-rank adaptation provides <span class="g">95&ndash;100%</span> of full fine-tuning quality at <span class="a">1&ndash;5%</span> of the parameter cost. It should be your starting point for any LLM adaptation task.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>2. QLoRA Democratizes Access</h3>
+        <p>4-bit quantized base + BF16 LoRA makes fine-tuning 7B&ndash;70B models feasible on <span class="g">consumer GPUs</span>, with minimal quality loss.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em">
+        <h3>3. Adapters are Composable</h3>
+        <p>LoRA adapters can be <span class="p">merged, combined, swapped, and served concurrently</span>, enabling flexible multi-tenant production deployments.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>4. The Ecosystem is Mature</h3>
+        <p>From training (PEFT, Axolotl) to serving (vLLM, LoRAX) to merging (mergekit), the toolchain for parameter-efficient fine-tuning is <span class="b">production-ready</span>.</p>
+      </div>
+      <div class="card red" style="margin-top:.5em">
+        <h3>5. Know When Full FT Wins</h3>
+        <p>For continued pre-training on large corpora or fundamental capability changes, full fine-tuning still provides the <span class="r">highest quality ceiling</span>. Use LoRA for everything else.</p>
+      </div>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>6. DoRA is the Next Step</h3>
+        <p>When you need that extra <span class="g">1&ndash;3%</span> quality improvement, DoRA's magnitude-direction decomposition offers a near-free upgrade over standard LoRA.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">lora-peft / 16</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

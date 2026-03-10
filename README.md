@@ -36,6 +36,19 @@ This repository holds a few LLM-related articles that interest me.
 | Positional Encodings | [MD](articles/positional_encodings.md) | [Slides](presentations/positional_encodings.html) |
 | Ring Attention and Sequence Parallelism | [MD](articles/ring_attention_and_sequence_parallelism.md) | [Slides](presentations/ring_attention_and_sequence_parallelism.html) |
 | Groq's LPU Architecture | [MD](articles/groq_architecture.md) | [Slides](presentations/groq_architecture.html) |
+| SambaNova's SN40L Architecture | [MD](articles/sambanova_architecture.md) | [Slides](presentations/sambanova_architecture.html) |
+| Retrieval-Augmented Generation | [MD](articles/retrieval_augmented_generation.md) | [Slides](presentations/retrieval_augmented_generation.html) |
+| LoRA and Parameter-Efficient Fine-Tuning | [MD](articles/lora_and_peft.md) | [Slides](presentations/lora_and_peft.html) |
+| Inference Serving Frameworks | [MD](articles/inference_serving_frameworks.md) | [Slides](presentations/inference_serving_frameworks.html) |
+| Structured Output and Constrained Decoding | [MD](articles/structured_output_and_constrained_decoding.md) | [Slides](presentations/structured_output_and_constrained_decoding.html) |
+| Embedding Models and Vector Search | [MD](articles/embedding_models_and_vector_search.md) | [Slides](presentations/embedding_models_and_vector_search.html) |
+| Cerebras Wafer-Scale Engine | [MD](articles/cerebras_architecture.md) | [Slides](presentations/cerebras_architecture.html) |
+| Google TPU Architecture | [MD](articles/google_tpu_architecture.md) | [Slides](presentations/google_tpu_architecture.html) |
+| AWS Trainium and Inferentia | [MD](articles/aws_trainium_inferentia.md) | [Slides](presentations/aws_trainium_inferentia.html) |
+| Intel Gaudi Architecture | [MD](articles/intel_gaudi_architecture.md) | [Slides](presentations/intel_gaudi_architecture.html) |
+| Tenstorrent Architecture | [MD](articles/tenstorrent_architecture.md) | [Slides](presentations/tenstorrent_architecture.html) |
+| Etched Sohu Architecture | [MD](articles/etched_sohu_architecture.md) | [Slides](presentations/etched_sohu_architecture.html) |
+| AMD Instinct MI300X | [MD](articles/amd_mi300x_architecture.md) | [Slides](presentations/amd_mi300x_architecture.html) |
 
 ## License
 

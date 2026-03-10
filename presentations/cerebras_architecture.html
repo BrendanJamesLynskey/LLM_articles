@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cerebras Wafer-Scale Engine | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 1: Title -->
+<section class="title-slide">
+  <h1>Cerebras Wafer-Scale Engine</h1>
+  <div class="subtitle">The Largest Chip Ever Built for AI Inference</div>
+  <p>A deep dive into wafer-scale integration, the WSE-3 architecture,<br>weight streaming execution, and what it means for LLM deployment.</p>
+  <div class="meta">March 2026 &nbsp;|&nbsp; Technical Report</div>
+  <div class="slide-footer">cerebras / 01</div>
+</section>
+
+<!-- Slide 2: Company Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Cerebras Systems</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Founded in <span class="a">2016</span> by Andrew Feldman and a team of semiconductor veterans, Cerebras challenged a core assumption: that wafers must be diced into small dies before use.</p>
+      <p>Their thesis: if the bottleneck in AI compute is <span class="g">data movement between chips</span>, eliminate chip boundaries entirely. Build a single processor from an entire 300mm silicon wafer.</p>
+      <p>The result is a purpose-built AI accelerator that trades commodity flexibility for raw, single-chip performance.</p>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.8em">
+        <h3>Key Milestones</h3>
+        <ul>
+          <li><span class="a">2016</span> &mdash; Company founded</li>
+          <li><span class="a">2019</span> &mdash; WSE-1 unveiled (1.2T transistors)</li>
+          <li><span class="a">2021</span> &mdash; WSE-2 on 7nm (2.6T transistors)</li>
+          <li><span class="a">2024</span> &mdash; WSE-3 on 5nm (4T transistors)</li>
+          <li><span class="a">2025</span> &mdash; Cerebras Inference cloud GA</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">cerebras / 02</div>
+</section>
+
+<!-- Slide 3: Wafer-Scale Concept -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONCEPT</span><h2>Wafer-Scale Integration</h2></div>
+  <svg class="diagram" viewBox="0 0 900 280" width="820" height="260">
+    <!-- Conventional approach -->
+    <text x="180" y="25" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">Conventional: Diced Dies</text>
+    <circle cx="180" cy="150" r="110" fill="none" stroke="#2a2a3a" stroke-width="2"/>
+    <rect x="115" y="90" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/><rect x="150" y="90" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/>
+    <rect x="185" y="90" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/><rect x="220" y="90" width="30" height="30" rx="2" fill="#f87171" opacity=".5"/>
+    <rect x="115" y="125" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/><rect x="150" y="125" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/>
+    <rect x="185" y="125" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/><rect x="220" y="125" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/>
+    <rect x="115" y="160" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/><rect x="150" y="160" width="30" height="30" rx="2" fill="#f87171" opacity=".5"/>
+    <rect x="185" y="160" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/><rect x="220" y="160" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/>
+    <rect x="115" y="195" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/><rect x="150" y="195" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/>
+    <rect x="185" y="195" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/><rect x="220" y="195" width="30" height="30" rx="2" fill="#4ecb8d" opacity=".7"/>
+    <text x="180" y="270" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">~100s of dies per wafer, individually packaged</text>
+    <!-- Arrow -->
+    <text x="390" y="155" fill="#f5a623" font-size="32">&#x2192;</text>
+    <!-- Cerebras approach -->
+    <text x="620" y="25" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">Cerebras: One Wafer = One Chip</text>
+    <circle cx="620" cy="150" r="110" fill="#4ecb8d" opacity=".15" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="620" y="140" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="22" font-weight="700" text-anchor="middle">WSE-3</text>
+    <text x="620" y="165" fill="#e8e8f0" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">46,225 mm&sup2; single chip</text>
+    <text x="620" y="270" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">Entire wafer is the processor &mdash; no dicing</text>
+  </svg>
+  <p style="text-align:center;margin-top:.4em">Defect tolerance via <span class="g">redundant cores</span> and <span class="b">dynamic routing</span> around faulty regions. Spare cores replace defective sites transparently.</p>
+  <div class="slide-footer">cerebras / 03</div>
+</section>
+
+<!-- Slide 4: WSE-3 Specs -->
+<section>
+  <div class="slide-hdr"><span class="tag">HARDWARE</span><h2>WSE-3 Specifications</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Compute</h3>
+      <ul>
+        <li><span class="a">4 trillion</span> transistors</li>
+        <li><span class="a">900,000</span> AI-optimized cores</li>
+        <li>TSMC <span class="a">5nm</span> process</li>
+        <li>46,225 mm&sup2; die area</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Memory</h3>
+      <ul>
+        <li><span class="g">44 GB</span> on-chip SRAM</li>
+        <li><span class="g">21 PB/s</span> memory bandwidth</li>
+        <li>Each core has local SRAM</li>
+        <li>No off-chip HBM dependency</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Interconnect</h3>
+      <ul>
+        <li>2D mesh <span class="p">on-chip fabric</span></li>
+        <li>Per-core dedicated router</li>
+        <li>Dynamic fault rerouting</li>
+        <li>Single-hop neighbor communication</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.7em;text-align:center">The WSE-3 is <span class="a">~56x larger</span> than the largest GPU die (~800 mm&sup2;) and provides <span class="g">~5,000x</span> more memory bandwidth than a single HBM3e-equipped GPU.</p>
+  <div class="slide-footer">cerebras / 04</div>
+</section>
+
+<!-- Slide 5: WSE-2 vs WSE-3 -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARISON</span><h2>WSE-2 vs WSE-3 Evolution</h2></div>
+  <table>
+    <tr><th>Specification</th><th>WSE-2 (2021)</th><th>WSE-3 (2024)</th><th>Improvement</th></tr>
+    <tr><td>Process Node</td><td>TSMC 7nm</td><td>TSMC 5nm</td><td>Generational shrink</td></tr>
+    <tr><td>Transistors</td><td>2.6 trillion</td><td><span class="a">4 trillion</span></td><td>+54%</td></tr>
+    <tr><td>AI Cores</td><td>850,000</td><td><span class="a">900,000</span></td><td>+6%</td></tr>
+    <tr><td>On-Chip SRAM</td><td>40 GB</td><td><span class="g">44 GB</span></td><td>+10%</td></tr>
+    <tr><td>Memory Bandwidth</td><td>20 PB/s</td><td><span class="g">21 PB/s</span></td><td>+5%</td></tr>
+    <tr><td>Per-Core Throughput</td><td>Baseline</td><td><span class="p">Higher (5nm gains)</span></td><td>Significant</td></tr>
+    <tr><td>System</td><td>CS-2</td><td><span class="b">CS-3</span></td><td>New packaging</td></tr>
+  </table>
+  <p style="margin-top:.5em">The core count increase is modest, but the 5nm process delivers substantially higher per-core compute throughput and improved power efficiency. Architectural routing and scheduling improvements further boost real-world utilization.</p>
+  <div class="slide-footer">cerebras / 05</div>
+</section>
+
+<!-- Slide 6: Memory Bandwidth Advantage -->
+<section>
+  <div class="slide-hdr"><span class="tag">MEMORY</span><h2>The Bandwidth Advantage</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 440 250" width="440" height="250">
+        <!-- GPU bar -->
+        <text x="10" y="55" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">GPU (HBM3e)</text>
+        <rect x="120" y="40" width="18" height="22" rx="3" fill="#a78bfa" opacity=".8"/>
+        <text x="145" y="56" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">~3.5 TB/s</text>
+        <!-- WSE bar -->
+        <text x="10" y="110" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">WSE-3 (SRAM)</text>
+        <rect x="120" y="93" width="310" height="22" rx="3" fill="#4ecb8d" opacity=".8"/>
+        <text x="270" y="109" fill="#0a0a0f" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600">21,000 TB/s (21 PB/s)</text>
+        <!-- Label -->
+        <text x="220" y="155" fill="#f5a623" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">~6,000x bandwidth gap</text>
+        <!-- Explanation -->
+        <text x="10" y="190" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">Transformer inference is memory-bandwidth bound.</text>
+        <text x="10" y="210" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">Each generated token requires streaming all model</text>
+        <text x="10" y="230" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">weights through compute. SRAM wins decisively.</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.8em">
+        <h3>Why This Matters</h3>
+        <p>LLM inference is <span class="g">memory-bound</span>, not compute-bound. The bottleneck is how fast you can feed weights to ALUs. On-chip SRAM eliminates the off-chip memory wall entirely.</p>
+      </div>
+      <div class="card blue">
+        <h3>SRAM vs HBM Trade-off</h3>
+        <p><span class="b">SRAM</span>: Massive bandwidth, limited capacity (44 GB). <span class="p">HBM</span>: Lower bandwidth, higher capacity (80-192 GB). Cerebras solves the capacity gap with MemoryX.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">cerebras / 06</div>
+</section>
+
+<!-- Slide 7: MemoryX & SwarmX -->
+<section>
+  <div class="slide-hdr"><span class="tag">SYSTEM</span><h2>MemoryX &amp; SwarmX</h2></div>
+  <svg class="diagram" viewBox="0 0 860 260" width="820" height="250">
+    <!-- MemoryX -->
+    <rect x="20" y="50" width="200" height="170" rx="10" fill="none" stroke="#a78bfa" stroke-width="2"/>
+    <text x="120" y="80" fill="#a78bfa" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">MemoryX</text>
+    <text x="120" y="105" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">External weight storage</text>
+    <rect x="45" y="120" width="150" height="25" rx="4" fill="#10101a" stroke="#2a2a3a"/><text x="120" y="137" fill="#ccc" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">DRAM Tiers</text>
+    <rect x="45" y="155" width="150" height="25" rx="4" fill="#10101a" stroke="#2a2a3a"/><text x="120" y="172" fill="#ccc" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Flash Storage</text>
+    <text x="120" y="207" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Scales to trillions of params</text>
+    <!-- SwarmX arrows -->
+    <rect x="280" y="90" width="160" height="80" rx="8" fill="none" stroke="#60a5fa" stroke-width="2" stroke-dasharray="6,3"/>
+    <text x="360" y="120" fill="#60a5fa" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">SwarmX</text>
+    <text x="360" y="145" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">High-BW streaming fabric</text>
+    <line x1="220" y1="130" x2="280" y2="130" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrowBlue)"/>
+    <line x1="440" y1="130" x2="510" y2="130" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrowBlue)"/>
+    <!-- WSE -->
+    <circle cx="620" cy="130" r="95" fill="#4ecb8d" opacity=".1" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="620" y="120" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="18" font-weight="700" text-anchor="middle">WSE-3</text>
+    <text x="620" y="145" fill="#e8e8f0" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">900K cores + 44GB SRAM</text>
+    <!-- Output -->
+    <line x1="715" y1="130" x2="790" y2="130" stroke="#f5a623" stroke-width="2" marker-end="url(#arrowAmber)"/>
+    <text x="830" y="125" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">Tokens</text>
+    <text x="830" y="142" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">Out</text>
+    <!-- Arrow markers -->
+    <defs>
+      <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#60a5fa"/></marker>
+      <marker id="arrowAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#f5a623"/></marker>
+    </defs>
+  </svg>
+  <p style="text-align:center"><span class="p">MemoryX</span> holds model weights in DRAM/flash. <span class="b">SwarmX</span> streams them to the WSE at sufficient bandwidth to saturate all 900K cores. Model size is <span class="a">decoupled</span> from on-chip memory capacity.</p>
+  <div class="slide-footer">cerebras / 07</div>
+</section>
+
+<!-- Slide 8: Weight Streaming Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Weight Streaming Execution</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>GPU: Weight-Stationary</h3>
+      <ul>
+        <li>Weights loaded into HBM, kept <span class="p">resident</span></li>
+        <li>Activations flow through the network</li>
+        <li>Model must fit in aggregate HBM</li>
+        <li>Multi-GPU sharding for large models</li>
+        <li>Inter-chip communication overhead</li>
+      </ul>
+      <svg class="diagram" viewBox="0 0 300 60" width="280" height="55" style="margin-top:.5em">
+        <rect x="5" y="10" width="80" height="40" rx="5" fill="#a78bfa" opacity=".3" stroke="#a78bfa"/>
+        <text x="45" y="35" fill="#a78bfa" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">HBM (weights)</text>
+        <text x="105" y="35" fill="#8888a8" font-size="16">&rarr;</text>
+        <rect x="120" y="10" width="60" height="40" rx="5" fill="#f5a623" opacity=".3" stroke="#f5a623"/>
+        <text x="150" y="35" fill="#f5a623" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">Compute</text>
+        <text x="198" y="35" fill="#8888a8" font-size="16">&rarr;</text>
+        <rect x="215" y="10" width="75" height="40" rx="5" fill="#4ecb8d" opacity=".3" stroke="#4ecb8d"/>
+        <text x="252" y="35" fill="#4ecb8d" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">Activations</text>
+      </svg>
+    </div>
+    <div class="card green">
+      <h3>Cerebras: Weight-Streaming</h3>
+      <ul>
+        <li>Activations stay <span class="g">stationary</span> on SRAM</li>
+        <li>Weights stream through from MemoryX</li>
+        <li>Model size decoupled from on-chip memory</li>
+        <li>No multi-chip sharding needed</li>
+        <li>Zero inter-chip communication</li>
+      </ul>
+      <svg class="diagram" viewBox="0 0 300 60" width="280" height="55" style="margin-top:.5em">
+        <rect x="5" y="10" width="80" height="40" rx="5" fill="#a78bfa" opacity=".3" stroke="#a78bfa"/>
+        <text x="45" y="35" fill="#a78bfa" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">MemoryX</text>
+        <text x="105" y="35" fill="#4ecb8d" font-size="16">&rarr;</text>
+        <rect x="120" y="10" width="60" height="40" rx="5" fill="#f5a623" opacity=".3" stroke="#f5a623"/>
+        <text x="150" y="35" fill="#f5a623" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">Compute</text>
+        <text x="200" y="20" fill="#4ecb8d" font-size="9" font-family="JetBrains Mono,monospace">activations</text>
+        <text x="200" y="45" fill="#4ecb8d" font-size="9" font-family="JetBrains Mono,monospace">stay on SRAM</text>
+      </svg>
+    </div>
+  </div>
+  <p style="margin-top:.5em;text-align:center">The same hardware runs <span class="a">70B</span> or <span class="a">405B</span> parameter models &mdash; only the MemoryX configuration and streaming schedule change.</p>
+  <div class="slide-footer">cerebras / 08</div>
+</section>
+
+<!-- Slide 9: CS-3 System -->
+<section>
+  <div class="slide-hdr"><span class="tag">SYSTEM</span><h2>CS-3 System Packaging</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Form Factor</h3>
+      <ul>
+        <li><span class="a">15U</span> rack-mountable</li>
+        <li>Integrated WSE-3 wafer</li>
+        <li>Custom power delivery</li>
+        <li>All I/O and networking</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Power &amp; Cooling</h3>
+      <ul>
+        <li><span class="b">~23 kW</span> system power</li>
+        <li>Custom liquid cooling solution</li>
+        <li>Required for wafer thermal load</li>
+        <li>Competitive perf/watt for inference</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Connectivity</h3>
+      <ul>
+        <li>SwarmX links to MemoryX</li>
+        <li>Multi-CS-3 interconnect</li>
+        <li>Standard datacenter networking</li>
+        <li>API-accessible via Cerebras cloud</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 100" width="780" height="95" style="margin-top:.6em">
+    <rect x="50" y="10" width="140" height="75" rx="8" fill="none" stroke="#f5a623" stroke-width="2"/>
+    <text x="120" y="40" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">CS-3 #1</text>
+    <text x="120" y="60" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">WSE-3 + Cooling</text>
+    <line x1="190" y1="48" x2="250" y2="48" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <rect x="250" y="10" width="140" height="75" rx="8" fill="none" stroke="#f5a623" stroke-width="2"/>
+    <text x="320" y="40" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">CS-3 #2</text>
+    <text x="320" y="60" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">WSE-3 + Cooling</text>
+    <line x1="390" y1="48" x2="450" y2="48" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <text x="470" y="52" fill="#8888a8" font-size="20">...</text>
+    <line x1="500" y1="48" x2="540" y2="48" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <rect x="540" y="10" width="200" height="75" rx="8" fill="none" stroke="#a78bfa" stroke-width="2"/>
+    <text x="640" y="40" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">MemoryX Cluster</text>
+    <text x="640" y="60" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">DRAM + Flash weight storage</text>
+  </svg>
+  <div class="slide-footer">cerebras / 09</div>
+</section>
+
+<!-- Slide 10: Inference Performance -->
+<section>
+  <div class="slide-hdr"><span class="tag">PERFORMANCE</span><h2>Inference Benchmarks</h2></div>
+  <table>
+    <tr><th>Model</th><th>Metric</th><th>Cerebras CS-3</th><th>GPU Cluster (8x H100)</th></tr>
+    <tr><td>Llama 3.1 70B</td><td>Tokens/sec/user</td><td><span class="g">&gt;2,000</span></td><td>~80-150</td></tr>
+    <tr><td>Llama 3.1 70B</td><td>Time-to-first-token</td><td><span class="g">&lt;200ms</span></td><td>~300-800ms</td></tr>
+    <tr><td>Llama 3.1 405B</td><td>Throughput</td><td><span class="g">Substantially higher</span></td><td>Baseline</td></tr>
+    <tr><td>Llama 3.1 405B</td><td>Latency</td><td><span class="g">Significantly lower</span></td><td>Baseline</td></tr>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card green">
+      <h3>Why So Fast?</h3>
+      <p>No HBM bottleneck. No inter-chip communication. No tensor parallelism overhead. Weights stream directly through 900K cores at <span class="g">21 PB/s</span>.</p>
+    </div>
+    <div class="card amber">
+      <h3>Sweet Spot</h3>
+      <p>Interactive, low-latency inference. Real-time conversational AI. Scenarios where <span class="a">per-request latency</span> matters more than batched aggregate throughput.</p>
+    </div>
+  </div>
+  <div class="slide-footer">cerebras / 10</div>
+</section>
+
+<!-- Slide 11: Training -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRAINING</span><h2>Training Capabilities</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The weight streaming model adapts to training: both <span class="g">forward-pass weights</span> and <span class="p">backward-pass gradients</span> stream through the compute fabric.</p>
+      <p>Cerebras has demonstrated training convergence on models up to <span class="a">hundreds of billions of parameters</span>, with near-linear scaling across multiple CS-3 systems for data-parallel training.</p>
+      <p>However, the training ecosystem remains <span class="r">less mature</span> than the inference story. Most large-scale training still occurs on GPU clusters due to established tooling and workflow integration.</p>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Training Highlights</h3>
+        <ul>
+          <li>Data-parallel across multiple CS-3s</li>
+          <li>Pipeline parallelism for huge models</li>
+          <li>Near-linear scaling demonstrated</li>
+          <li>100B+ parameter convergence shown</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.8em">
+        <h3>Caveats</h3>
+        <ul>
+          <li>GPU tooling more mature for training</li>
+          <li>Smaller community of practitioners</li>
+          <li>Custom debugging/profiling required</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">cerebras / 11</div>
+</section>
+
+<!-- Slide 12: Software Stack -->
+<section>
+  <div class="slide-hdr"><span class="tag">SOFTWARE</span><h2>Software Stack</h2></div>
+  <svg class="diagram" viewBox="0 0 700 240" width="680" height="230">
+    <!-- Layers -->
+    <rect x="100" y="10" width="500" height="45" rx="6" fill="#f5a623" opacity=".15" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="350" y="38" fill="#f5a623" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">User Code (PyTorch)</text>
+    <rect x="100" y="65" width="500" height="45" rx="6" fill="#4ecb8d" opacity=".15" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="350" y="93" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">Cerebras Model Zoo + APIs</text>
+    <rect x="100" y="120" width="500" height="45" rx="6" fill="#a78bfa" opacity=".15" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="350" y="148" fill="#a78bfa" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">Cerebras Compiler (Graph Optimization + Placement)</text>
+    <rect x="100" y="175" width="500" height="45" rx="6" fill="#60a5fa" opacity=".15" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="350" y="203" fill="#60a5fa" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">WSE Runtime (Core Scheduling + Weight Streaming)</text>
+  </svg>
+  <div class="cols cols-2" style="margin-top:.4em">
+    <div class="card green">
+      <h3>PyTorch Integration</h3>
+      <p>Standard PyTorch code compiles to WSE via custom backend. GPT-style decoders, encoder-decoder, and <span class="g">MoE architectures</span> well supported.</p>
+    </div>
+    <div class="card purple">
+      <h3>Compiler Role</h3>
+      <p>Partitions computation across 900K cores, schedules weight streams from MemoryX, handles placement, routing, and buffer management on the 2D mesh.</p>
+    </div>
+  </div>
+  <div class="slide-footer">cerebras / 12</div>
+</section>
+
+<!-- Slide 13: Cerebras vs GPU -->
+<section>
+  <div class="slide-hdr"><span class="tag">VS GPU</span><h2>Cerebras vs GPU Architecture</h2></div>
+  <table>
+    <tr><th>Dimension</th><th>Cerebras WSE-3</th><th>GPU Cluster (e.g., 8x H100)</th></tr>
+    <tr><td>Memory Bandwidth</td><td><span class="g">21 PB/s on-chip SRAM</span></td><td>~27 TB/s aggregate HBM3e</td></tr>
+    <tr><td>Inter-Chip Comm</td><td><span class="g">None (single chip)</span></td><td>NVLink / InfiniBand required</td></tr>
+    <tr><td>Model Sharding</td><td>Not needed (MemoryX streams)</td><td>Tensor/pipeline parallelism</td></tr>
+    <tr><td>Software Ecosystem</td><td>Growing, narrower</td><td><span class="p">CUDA: massive, mature</span></td></tr>
+    <tr><td>Workload Flexibility</td><td>AI-specialized</td><td><span class="p">General compute + AI</span></td></tr>
+    <tr><td>Deployment Complexity</td><td><span class="g">Single system, simple</span></td><td>Multi-node distributed systems</td></tr>
+    <tr><td>Cost</td><td>High per-system CapEx</td><td>Lower per-unit, scales linearly</td></tr>
+    <tr><td>Economies of Scale</td><td>Niche volumes</td><td><span class="p">Massive supply chain</span></td></tr>
+  </table>
+  <div class="slide-footer">cerebras / 13</div>
+</section>
+
+<!-- Slide 14: Multi-System Scaling -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCALING</span><h2>Multi-System &amp; Cloud</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Multi-CS-3 Configurations</h3>
+      <p>For workloads exceeding single-system capacity, SwarmX interconnects multiple WSE-3 wafers. This enables:</p>
+      <ul>
+        <li><span class="a">Pipeline parallelism</span> for extremely large models</li>
+        <li><span class="g">Data parallelism</span> for training scale-out</li>
+        <li>Shared MemoryX pools across systems</li>
+      </ul>
+      <p>Near-linear scaling has been demonstrated for data-parallel training workloads across multiple CS-3 nodes.</p>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.8em">
+        <h3>Cerebras Inference Cloud</h3>
+        <ul>
+          <li>API access to WSE-backed models</li>
+          <li>No on-premises hardware needed</li>
+          <li>Fastest time-to-first-token available</li>
+          <li>Targets real-time / conversational AI</li>
+          <li>Generally available since 2025</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>Target Users</h3>
+        <p>Developers and enterprises wanting <span class="b">latency benefits</span> of wafer-scale compute without capital investment in CS-3 hardware.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">cerebras / 14</div>
+</section>
+
+<!-- Slide 15: Limitations -->
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITS</span><h2>Limitations &amp; Considerations</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Cost</h3>
+      <p>Each CS-3 represents a <span class="r">significant capital investment</span>. Difficult to justify for smaller orgs or diverse non-AI workloads. Per-system price far exceeds individual GPU servers.</p>
+    </div>
+    <div class="card red">
+      <h3>Ecosystem Maturity</h3>
+      <p>Software stack improving but lacks the <span class="r">breadth and community</span> of CUDA. Not all PyTorch ops supported. Custom debugging and profiling tooling required.</p>
+    </div>
+    <div class="card red">
+      <h3>Model Constraints</h3>
+      <p>While MemoryX extends capacity, there are <span class="r">practical limits</span> to streaming bandwidth. Some novel architectures may not map efficiently to the 2D mesh topology.</p>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card amber">
+      <h3>Deployment Requirements</h3>
+      <ul>
+        <li>Liquid cooling infrastructure mandatory</li>
+        <li>~23 kW per system power requirement</li>
+        <li>Specialized datacenter planning</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Competitive Landscape</h3>
+      <ul>
+        <li>GPU memory tech improving (HBM4 roadmap)</li>
+        <li>NVIDIA interconnects getting faster</li>
+        <li>Other AI ASICs competing (TPU, Trainium)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">cerebras / 15</div>
+</section>
+
+<!-- Slide 16: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.8em">
+        <h3>1. Physics Over Economics</h3>
+        <p>Cerebras bets that <span class="g">data movement physics</span> matters more than commodity processor economics. The WSE-3 eliminates chip boundaries to remove bandwidth bottlenecks.</p>
+      </div>
+      <div class="card amber" style="margin-bottom:.8em">
+        <h3>2. Inference Sweet Spot</h3>
+        <p>For latency-sensitive LLM inference, wafer-scale compute delivers <span class="a">unmatched per-request performance</span>. The weight streaming model decouples model size from on-chip memory.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.8em">
+        <h3>3. Architectural Simplicity</h3>
+        <p>No tensor parallelism, no inter-chip communication, no HBM bottleneck. A <span class="p">single-system solution</span> for models that would require multi-node GPU clusters.</p>
+      </div>
+      <div class="card blue" style="margin-bottom:.8em">
+        <h3>4. Open Questions</h3>
+        <p>Ecosystem maturity, cost accessibility, and whether GPU memory/interconnect improvements will <span class="b">narrow the gap</span>. Worth serious evaluation for latency-critical inference.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">cerebras / 16</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

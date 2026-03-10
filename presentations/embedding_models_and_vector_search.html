@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embedding Models and Vector Search | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <h1>Embedding Models &amp; Vector Search</h1>
+  <div class="subtitle">Dense Representations, Retrieval Architectures, and Production Infrastructure</div>
+  <div class="meta">March 2026 &middot; Technical Deep Dive</div>
+  <div class="slide-footer">embeddings / 01</div>
+</section>
+
+<!-- SLIDE 2: What Are Embeddings? -->
+<section>
+  <div class="slide-hdr"><span class="tag">FOUNDATIONS</span><h2>What Are Embeddings?</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Embeddings are <span class="a">dense vector representations</span> that project discrete objects &mdash; tokens, sentences, passages &mdash; into continuous high-dimensional space where <span class="g">geometric proximity encodes semantic similarity</span>.</p>
+      <ul>
+        <li>Compact: typically <span class="b">256 &ndash; 4096</span> float dimensions</li>
+        <li>Learned end-to-end via contrastive objectives</li>
+        <li>Enable retrieval, clustering, classification without task-specific fine-tuning</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Sparse vs Dense</h3>
+      <ul>
+        <li><span class="r">Sparse (TF-IDF):</span> vocab-sized, mostly zeros, exact lexical match</li>
+        <li><span class="g">Dense (Embeddings):</span> compact, every dim active, semantic match</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">embeddings / 02</div>
+</section>
+
+<!-- SLIDE 3: Embedding Architectures -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Encoder Architectures</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Bi-Encoder</h3>
+      <p>Query &amp; doc encoded <strong>independently</strong>. Single vector per input. Pre-compute doc embeddings, compare at query time.</p>
+      <ul>
+        <li>Fast: O(1) per comparison</li>
+        <li>Used by all production models</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Cross-Encoder</h3>
+      <p>Query + doc concatenated, <strong>joint attention</strong> across all tokens. Highest accuracy.</p>
+      <ul>
+        <li>Slow: O(n) forward passes</li>
+        <li>Deployed as <span class="g">re-ranker</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Late Interaction (ColBERT)</h3>
+      <p>Retains <strong>per-token embeddings</strong>. Relevance via MaxSim operation.</p>
+      <ul>
+        <li>Near cross-encoder quality</li>
+        <li>Doc tokens pre-computable</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" width="900" height="110" viewBox="0 0 900 110">
+    <defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f5a623"/></marker></defs>
+    <rect x="20" y="10" width="240" height="40" rx="6" fill="#10101a" stroke="#f5a623"/>
+    <text x="140" y="36" text-anchor="middle" fill="#e8e8f0" font-size="14" font-family="DM Sans">Bi-Encoder (1st stage)</text>
+    <line x1="260" y1="30" x2="330" y2="30" stroke="#f5a623" stroke-width="2" marker-end="url(#ah)"/>
+    <text x="295" y="22" text-anchor="middle" fill="#8888a8" font-size="11" font-family="JetBrains Mono">top-k</text>
+    <rect x="330" y="10" width="240" height="40" rx="6" fill="#10101a" stroke="#a78bfa"/>
+    <text x="450" y="36" text-anchor="middle" fill="#e8e8f0" font-size="14" font-family="DM Sans">ColBERT re-score (optional)</text>
+    <line x1="570" y1="30" x2="640" y2="30" stroke="#a78bfa" stroke-width="2" marker-end="url(#ah)"/>
+    <text x="605" y="22" text-anchor="middle" fill="#8888a8" font-size="11" font-family="JetBrains Mono">top-m</text>
+    <rect x="640" y="10" width="240" height="40" rx="6" fill="#10101a" stroke="#4ecb8d"/>
+    <text x="760" y="36" text-anchor="middle" fill="#e8e8f0" font-size="14" font-family="DM Sans">Cross-Encoder re-rank</text>
+    <text x="450" y="90" text-anchor="middle" fill="#8888a8" font-size="12" font-family="JetBrains Mono">Multi-stage retrieval pipeline</text>
+  </svg>
+  <div class="slide-footer">embeddings / 03</div>
+</section>
+
+<!-- SLIDE 4: Training Objectives -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRAINING</span><h2>Training Objectives</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Contrastive Learning (InfoNCE)</h3>
+      <p>Pull <span class="g">positive pairs</span> together, push <span class="r">negatives</span> apart. Loss over a batch of N pairs:</p>
+      <pre><code>L = -log( exp(sim(q, d+)/&tau;) / &Sigma; exp(sim(q, di)/&tau;) )</code></pre>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>Negative Mining Strategies</h3>
+        <ul>
+          <li><span class="a">In-batch negatives:</span> free, scale with batch size</li>
+          <li><span class="p">BM25 hard negatives:</span> lexically similar, not relevant</li>
+          <li><span class="g">Dense hard negatives:</span> mined from prior retriever</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3>Knowledge Distillation</h3>
+      <p>Train a <span class="b">bi-encoder student</span> to reproduce the score distribution of a <span class="a">cross-encoder teacher</span>.</p>
+      <ul>
+        <li>Teacher scores query-doc pairs with full attention</li>
+        <li>Student learns to approximate via KL divergence</li>
+        <li>Used in BGE, E5, GTE training pipelines</li>
+      </ul>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Multi-task Training</h3>
+        <ul>
+          <li>Combine retrieval, classification, STS objectives</li>
+          <li>Instruction-tuned variants (E5-Mistral, GTE-Qwen2)</li>
+          <li>Task-specific prefixes guide encoding</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">embeddings / 04</div>
+</section>
+
+<!-- SLIDE 5: Dimensionality & Matryoshka -->
+<section>
+  <div class="slide-hdr"><span class="tag">DIMENSIONS</span><h2>Dimensionality &amp; Matryoshka Embeddings</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Higher dimensions capture more nuance but cost more memory and compute. <span class="a">Matryoshka Representation Learning (MRL)</span> trains the model so that the first <em>d</em> of <em>D</em> dimensions form a valid embedding at any truncation point.</p>
+      <svg class="diagram" width="480" height="130" viewBox="0 0 480 130">
+        <rect x="10" y="20" width="460" height="30" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+        <text x="240" y="41" text-anchor="middle" fill="#f5a623" font-size="12" font-family="JetBrains Mono">Full: 3072 dims (float32) &mdash; 12 KB/vec</text>
+        <rect x="10" y="60" width="300" height="26" rx="4" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="160" y="78" text-anchor="middle" fill="#4ecb8d" font-size="11" font-family="JetBrains Mono">Truncated: 1024 dims &mdash; 4 KB/vec</text>
+        <rect x="10" y="96" width="150" height="26" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+        <text x="85" y="114" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="JetBrains Mono">256 dims &mdash; 1 KB</text>
+      </svg>
+    </div>
+    <div class="card amber">
+      <h3>MRL Trade-offs</h3>
+      <table>
+        <tr><th>Dims</th><th>MTEB Avg</th><th>Memory</th></tr>
+        <tr><td>3072</td><td><span class="a">64.6</span></td><td>12 KB</td></tr>
+        <tr><td>1024</td><td><span class="g">63.8</span></td><td>4 KB</td></tr>
+        <tr><td>512</td><td>62.9</td><td>2 KB</td></tr>
+        <tr><td>256</td><td>61.4</td><td>1 KB</td></tr>
+      </table>
+      <p style="margin-top:.4em;font-size:.68em;color:var(--muted)">~5% recall loss for 12x memory savings</p>
+    </div>
+  </div>
+  <div class="slide-footer">embeddings / 05</div>
+</section>
+
+<!-- SLIDE 6: Similarity Metrics -->
+<section>
+  <div class="slide-hdr"><span class="tag">METRICS</span><h2>Vector Similarity Functions</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Cosine Similarity</h3>
+      <pre><code>cos(a,b) = a&middot;b / (||a|| ||b||)</code></pre>
+      <ul>
+        <li>Magnitude-invariant</li>
+        <li>Default for L2-normalized vectors</li>
+        <li>Range: [-1, 1]</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Dot Product</h3>
+      <pre><code>dot(a,b) = &Sigma; ai * bi</code></pre>
+      <ul>
+        <li>Equivalent to cosine when normalized</li>
+        <li>Captures magnitude signal</li>
+        <li>Fastest to compute</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Euclidean (L2)</h3>
+      <pre><code>L2(a,b) = sqrt(&Sigma;(ai-bi)&sup2;)</code></pre>
+      <ul>
+        <li>Straight-line distance</li>
+        <li>Equivalent to cosine for normalized vecs</li>
+        <li>Used in some clustering tasks</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em">For <span class="a">L2-normalized</span> vectors: minimizing L2 = maximizing cosine = maximizing dot product</p>
+  <div class="slide-footer">embeddings / 06</div>
+</section>
+
+<!-- SLIDE 7: Vector Databases -->
+<section>
+  <div class="slide-hdr"><span class="tag">INFRA</span><h2>Vector Database Landscape</h2></div>
+  <table>
+    <tr><th>Database</th><th>Type</th><th>Index Support</th><th>Key Strength</th></tr>
+    <tr><td><span class="a">FAISS</span></td><td>Library (Meta)</td><td>IVF, PQ, HNSW, Flat</td><td>Gold standard for in-process search, GPU support</td></tr>
+    <tr><td><span class="g">Milvus</span></td><td>Distributed DB</td><td>HNSW, IVF-PQ, DiskANN</td><td>Cloud-native, multi-tenancy, hybrid search</td></tr>
+    <tr><td><span class="p">Qdrant</span></td><td>Distributed DB</td><td>HNSW, scalar/binary quant</td><td>Rust-based, filtering with payload indexes</td></tr>
+    <tr><td><span class="b">Pinecone</span></td><td>Managed Service</td><td>Proprietary ANN</td><td>Zero-ops, serverless tier, metadata filtering</td></tr>
+    <tr><td><span class="r">pgvector</span></td><td>PG Extension</td><td>HNSW, IVFFlat</td><td>SQL integration, no separate infra needed</td></tr>
+  </table>
+  <p style="margin-top:.4em">Choice depends on scale, operational complexity budget, and existing infrastructure.</p>
+  <div class="slide-footer">embeddings / 07</div>
+</section>
+
+<!-- SLIDE 8: Indexing Algorithms -->
+<section>
+  <div class="slide-hdr"><span class="tag">INDEXING</span><h2>ANN Indexing Algorithms</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>HNSW</h3>
+      <p>Multi-layer navigable small-world graph. O(log n) search, excellent recall.</p>
+      <ul>
+        <li>Default in most vector DBs</li>
+        <li>Tunable: <code>M</code>, <code>efConstruction</code>, <code>efSearch</code></li>
+        <li>Memory: ~1.5x raw vectors</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>IVF</h3>
+      <p>Partition space into Voronoi cells via k-means. Search only <code>nprobe</code> nearest clusters.</p>
+      <ul>
+        <li>Fast build time</li>
+        <li>Good for large static corpora</li>
+        <li>Recall tuned via nprobe</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Product Quantization</h3>
+      <p>Split vector into sub-vectors, quantize each to centroid ID. 8&ndash;32x compression.</p>
+      <ul>
+        <li>Dramatic memory reduction</li>
+        <li>Pairs with IVF or HNSW</li>
+        <li>Asymmetric distance for accuracy</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" width="800" height="100" viewBox="0 0 800 100">
+    <rect x="30" y="15" width="170" height="35" rx="5" fill="#10101a" stroke="#f5a623"/>
+    <text x="115" y="38" text-anchor="middle" fill="#f5a623" font-size="12" font-family="JetBrains Mono">HNSW</text>
+    <text x="115" y="68" text-anchor="middle" fill="#8888a8" font-size="10" font-family="DM Sans">Best recall/latency</text>
+    <rect x="240" y="15" width="170" height="35" rx="5" fill="#10101a" stroke="#4ecb8d"/>
+    <text x="325" y="38" text-anchor="middle" fill="#4ecb8d" font-size="12" font-family="JetBrains Mono">IVF-PQ</text>
+    <text x="325" y="68" text-anchor="middle" fill="#8888a8" font-size="10" font-family="DM Sans">Best memory efficiency</text>
+    <rect x="450" y="15" width="170" height="35" rx="5" fill="#10101a" stroke="#a78bfa"/>
+    <text x="535" y="38" text-anchor="middle" fill="#a78bfa" font-size="12" font-family="JetBrains Mono">HNSW-PQ</text>
+    <text x="535" y="68" text-anchor="middle" fill="#8888a8" font-size="10" font-family="DM Sans">Balanced trade-off</text>
+    <rect x="660" y="15" width="120" height="35" rx="5" fill="#10101a" stroke="#60a5fa"/>
+    <text x="720" y="38" text-anchor="middle" fill="#60a5fa" font-size="12" font-family="JetBrains Mono">Flat</text>
+    <text x="720" y="68" text-anchor="middle" fill="#8888a8" font-size="10" font-family="DM Sans">Exact (small N)</text>
+  </svg>
+  <div class="slide-footer">embeddings / 08</div>
+</section>
+
+<!-- SLIDE 9: Hybrid Search -->
+<section>
+  <div class="slide-hdr"><span class="tag">RETRIEVAL</span><h2>Hybrid Search: Dense + Sparse</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" width="300" height="260" viewBox="0 0 300 260">
+        <text x="150" y="20" text-anchor="middle" fill="#f5a623" font-size="14" font-family="Playfair Display" font-weight="700">Query</text>
+        <line x1="90" y1="30" x2="60" y2="60" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="210" y1="30" x2="240" y2="60" stroke="#a78bfa" stroke-width="2"/>
+        <rect x="10" y="60" width="120" height="35" rx="5" fill="#10101a" stroke="#4ecb8d"/>
+        <text x="70" y="83" text-anchor="middle" fill="#4ecb8d" font-size="11" font-family="JetBrains Mono">Dense Encoder</text>
+        <rect x="175" y="60" width="115" height="35" rx="5" fill="#10101a" stroke="#a78bfa"/>
+        <text x="232" y="83" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="JetBrains Mono">BM25 / SPLADE</text>
+        <line x1="70" y1="95" x2="70" y2="130" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="232" y1="95" x2="232" y2="130" stroke="#a78bfa" stroke-width="2"/>
+        <rect x="10" y="130" width="120" height="35" rx="5" fill="#10101a" stroke="#4ecb8d"/>
+        <text x="70" y="153" text-anchor="middle" fill="#4ecb8d" font-size="11" font-family="JetBrains Mono">ANN Search</text>
+        <rect x="175" y="130" width="115" height="35" rx="5" fill="#10101a" stroke="#a78bfa"/>
+        <text x="232" y="153" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="JetBrains Mono">Inverted Index</text>
+        <line x1="90" y1="165" x2="130" y2="195" stroke="#4ecb8d" stroke-width="2"/>
+        <line x1="210" y1="165" x2="170" y2="195" stroke="#a78bfa" stroke-width="2"/>
+        <rect x="95" y="195" width="110" height="35" rx="5" fill="#10101a" stroke="#f5a623"/>
+        <text x="150" y="218" text-anchor="middle" fill="#f5a623" font-size="11" font-family="JetBrains Mono">RRF / Fusion</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Why Hybrid?</h3>
+        <ul>
+          <li>Dense retrieval struggles with <span class="r">exact keywords</span>, rare entities, out-of-domain terms</li>
+          <li>Sparse retrieval misses <span class="r">semantic paraphrases</span></li>
+          <li>Combination consistently outperforms either alone</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Fusion Strategies</h3>
+        <ul>
+          <li><span class="a">RRF:</span> 1/(k+rank), simple, parameter-free</li>
+          <li><span class="b">Learned weights:</span> &alpha;&middot;dense + (1-&alpha;)&middot;sparse</li>
+          <li><span class="g">SPLADE:</span> learned sparse representations bridge the gap</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">embeddings / 09</div>
+</section>
+
+<!-- SLIDE 10: Model Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">MODELS</span><h2>Embedding Model Landscape</h2></div>
+  <table>
+    <tr><th>Model</th><th>Provider</th><th>Dims</th><th>Context</th><th>Notes</th></tr>
+    <tr><td><span class="a">text-embedding-3-large</span></td><td>OpenAI</td><td>3072</td><td>8191</td><td>MRL support, strong general-purpose</td></tr>
+    <tr><td><span class="g">Embed v4</span></td><td>Cohere</td><td>1024</td><td>512</td><td>Multilingual, binary quant support</td></tr>
+    <tr><td><span class="p">BGE-large-en-v1.5</span></td><td>BAAI</td><td>1024</td><td>512</td><td>Open-weight, top MTEB performer</td></tr>
+    <tr><td><span class="b">E5-Mistral-7B</span></td><td>Microsoft</td><td>4096</td><td>32768</td><td>Instruction-tuned, LLM-based encoder</td></tr>
+    <tr><td><span class="r">GTE-Qwen2-7B</span></td><td>Alibaba</td><td>3584</td><td>32768</td><td>Long-context, multilingual</td></tr>
+    <tr><td><span class="a">Nomic Embed v1.5</span></td><td>Nomic AI</td><td>768</td><td>8192</td><td>Open-weight + open-data, MRL</td></tr>
+    <tr><td><span class="g">Arctic Embed L</span></td><td>Snowflake</td><td>1024</td><td>512</td><td>Efficient, strong quality/size ratio</td></tr>
+  </table>
+  <div class="slide-footer">embeddings / 10</div>
+</section>
+
+<!-- SLIDE 11: Quantized Embeddings -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPRESSION</span><h2>Quantized Embeddings</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Scalar Quantization (int8)</h3>
+        <ul>
+          <li>Each dimension: float32 &rarr; int8 (4x savings)</li>
+          <li>Retains <span class="g">95&ndash;99%</span> of full-precision recall</li>
+          <li>Native support in Qdrant, Milvus</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Binary Quantization (1-bit)</h3>
+        <ul>
+          <li>Each dimension &rarr; single bit (32x savings)</li>
+          <li>Hamming distance for comparison</li>
+          <li>Best as first-stage filter + re-score</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3>Compression Comparison</h3>
+      <table>
+        <tr><th>Format</th><th>Bytes/dim</th><th>1M &times; 1024d</th><th>Recall</th></tr>
+        <tr><td>float32</td><td>4</td><td><span class="r">4.0 GB</span></td><td>100%</td></tr>
+        <tr><td>float16</td><td>2</td><td>2.0 GB</td><td>~100%</td></tr>
+        <tr><td>int8</td><td>1</td><td><span class="g">1.0 GB</span></td><td>~98%</td></tr>
+        <tr><td>binary</td><td>0.125</td><td><span class="a">128 MB</span></td><td>~92%*</td></tr>
+      </table>
+      <p style="font-size:.65em;color:var(--muted);margin-top:.3em">*with re-scoring on top candidates</p>
+    </div>
+  </div>
+  <div class="slide-footer">embeddings / 11</div>
+</section>
+
+<!-- SLIDE 12: Chunking Strategies -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRACTICE</span><h2>Chunking Strategies</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Fixed-Size Token</h3>
+      <ul>
+        <li>Split every N tokens with overlap</li>
+        <li>Simple, predictable chunk size</li>
+        <li>May split mid-sentence</li>
+        <li>Typical: 256&ndash;512 tokens, 50 overlap</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Semantic / Structural</h3>
+      <ul>
+        <li>Split at paragraph, section, or heading boundaries</li>
+        <li>Preserves coherent units of meaning</li>
+        <li>Variable chunk sizes</li>
+        <li>Requires document structure parsing</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Recursive Character</h3>
+      <ul>
+        <li>Try delimiters in order: \n\n, \n, sentence, word</li>
+        <li>Fall back to smaller splits</li>
+        <li>Pragmatic middle ground</li>
+        <li>Default in LangChain, LlamaIndex</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.5em"><span class="a">Key trade-off:</span> too small &rarr; lost context &nbsp;|&nbsp; too large &rarr; diluted embedding averaging over multiple topics</p>
+  <div class="slide-footer">embeddings / 12</div>
+</section>
+
+<!-- SLIDE 13: Domain Adaptation -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRACTICE</span><h2>Normalization &amp; Domain Adaptation</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>L2 Normalization</h3>
+      <ul>
+        <li>Most models output normalized vectors &mdash; <span class="a">verify before choosing metric</span></li>
+        <li>Normalized: cosine = dot product (faster)</li>
+        <li>Some models (E5, GTE) normalize by default</li>
+        <li>If unsure, normalize at index time for safety</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Domain Adaptation</h3>
+      <ul>
+        <li>General-purpose embeddings underperform on specialized domains</li>
+        <li>Continued contrastive fine-tuning on <span class="g">~1K in-domain pairs</span> yields major gains</li>
+        <li>Use synthetic query generation from domain docs</li>
+        <li>Frameworks: sentence-transformers, Uniem</li>
+        <li>Risk: catastrophic forgetting &mdash; use low LR, short training</li>
+      </ul>
+    </div>
+  </div>
+  <pre><code># Lightweight domain adaptation with sentence-transformers
+from sentence_transformers import SentenceTransformer, losses, InputExample
+model = SentenceTransformer("BAAI/bge-base-en-v1.5")
+train_examples = [InputExample(texts=[query, positive_passage]) for ...]
+train_loss = losses.MultipleNegativesRankingLoss(model)
+model.fit(train_objectives=[(train_dataloader, train_loss)], epochs=3)</code></pre>
+  <div class="slide-footer">embeddings / 13</div>
+</section>
+
+<!-- SLIDE 14: End-to-End Pipeline -->
+<section>
+  <div class="slide-hdr"><span class="tag">PIPELINE</span><h2>End-to-End RAG Retrieval Pipeline</h2></div>
+  <svg class="diagram" width="1050" height="280" viewBox="0 0 1050 280">
+    <defs><marker id="ah2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f5a623"/></marker></defs>
+    <!-- Ingestion -->
+    <text x="200" y="18" text-anchor="middle" fill="#f5a623" font-size="14" font-family="Playfair Display" font-weight="700">Ingestion Pipeline</text>
+    <rect x="20" y="30" width="100" height="35" rx="5" fill="#10101a" stroke="#60a5fa"/>
+    <text x="70" y="53" text-anchor="middle" fill="#60a5fa" font-size="11" font-family="JetBrains Mono">Documents</text>
+    <line x1="120" y1="47" x2="155" y2="47" stroke="#f5a623" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <rect x="155" y="30" width="90" height="35" rx="5" fill="#10101a" stroke="#4ecb8d"/>
+    <text x="200" y="53" text-anchor="middle" fill="#4ecb8d" font-size="11" font-family="JetBrains Mono">Chunker</text>
+    <line x1="245" y1="47" x2="280" y2="47" stroke="#f5a623" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <rect x="280" y="30" width="110" height="35" rx="5" fill="#10101a" stroke="#a78bfa"/>
+    <text x="335" y="53" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="JetBrains Mono">Embed Model</text>
+    <line x1="390" y1="47" x2="425" y2="47" stroke="#f5a623" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <rect x="425" y="30" width="110" height="35" rx="5" fill="#10101a" stroke="#f5a623"/>
+    <text x="480" y="53" text-anchor="middle" fill="#f5a623" font-size="11" font-family="JetBrains Mono">Vector DB</text>
+    <!-- Query -->
+    <text x="200" y="110" text-anchor="middle" fill="#4ecb8d" font-size="14" font-family="Playfair Display" font-weight="700">Query Pipeline</text>
+    <rect x="20" y="122" width="100" height="35" rx="5" fill="#10101a" stroke="#60a5fa"/>
+    <text x="70" y="145" text-anchor="middle" fill="#60a5fa" font-size="11" font-family="JetBrains Mono">User Query</text>
+    <line x1="120" y1="139" x2="155" y2="139" stroke="#f5a623" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <rect x="155" y="122" width="110" height="35" rx="5" fill="#10101a" stroke="#a78bfa"/>
+    <text x="210" y="145" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="JetBrains Mono">Embed Query</text>
+    <line x1="265" y1="139" x2="300" y2="139" stroke="#f5a623" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <rect x="300" y="122" width="120" height="35" rx="5" fill="#10101a" stroke="#4ecb8d"/>
+    <text x="360" y="145" text-anchor="middle" fill="#4ecb8d" font-size="11" font-family="JetBrains Mono">Hybrid Search</text>
+    <line x1="420" y1="139" x2="455" y2="139" stroke="#f5a623" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <rect x="455" y="122" width="110" height="35" rx="5" fill="#10101a" stroke="#f87171"/>
+    <text x="510" y="145" text-anchor="middle" fill="#f87171" font-size="11" font-family="JetBrains Mono">Re-Ranker</text>
+    <line x1="565" y1="139" x2="600" y2="139" stroke="#f5a623" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <rect x="600" y="122" width="90" height="35" rx="5" fill="#10101a" stroke="#f5a623"/>
+    <text x="645" y="145" text-anchor="middle" fill="#f5a623" font-size="11" font-family="JetBrains Mono">LLM</text>
+    <!-- Decisions -->
+    <text x="525" y="205" text-anchor="middle" fill="#8888a8" font-size="13" font-family="Playfair Display" font-weight="700">Key Decisions at Each Stage</text>
+    <rect x="20" y="218" width="170" height="45" rx="5" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="105" y="237" text-anchor="middle" fill="#4ecb8d" font-size="10" font-family="JetBrains Mono">Chunk size &amp; overlap</text>
+    <text x="105" y="253" text-anchor="middle" fill="#8888a8" font-size="9" font-family="DM Sans">256-512 tokens typical</text>
+    <rect x="220" y="218" width="170" height="45" rx="5" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="305" y="237" text-anchor="middle" fill="#a78bfa" font-size="10" font-family="JetBrains Mono">Model &amp; dimensions</text>
+    <text x="305" y="253" text-anchor="middle" fill="#8888a8" font-size="9" font-family="DM Sans">MRL truncation trade-off</text>
+    <rect x="420" y="218" width="170" height="45" rx="5" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="505" y="237" text-anchor="middle" fill="#f5a623" font-size="10" font-family="JetBrains Mono">Index &amp; quantization</text>
+    <text x="505" y="253" text-anchor="middle" fill="#8888a8" font-size="9" font-family="DM Sans">HNSW + scalar int8</text>
+    <rect x="620" y="218" width="170" height="45" rx="5" fill="#10101a" stroke="#2a2a3a"/>
+    <text x="705" y="237" text-anchor="middle" fill="#f87171" font-size="10" font-family="JetBrains Mono">Re-ranker model</text>
+    <text x="705" y="253" text-anchor="middle" fill="#8888a8" font-size="9" font-family="DM Sans">Cross-encoder on top-50</text>
+  </svg>
+  <div class="slide-footer">embeddings / 14</div>
+</section>
+
+<!-- SLIDE 15: Performance Benchmarks -->
+<section>
+  <div class="slide-hdr"><span class="tag">BENCHMARKS</span><h2>Retrieval Performance Patterns</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>What Matters Most (ranked)</h3>
+      <ol>
+        <li><span class="a">Chunking strategy</span> &mdash; biggest practical lever</li>
+        <li><span class="g">Embedding model choice</span> &mdash; 5-15% recall spread on MTEB</li>
+        <li><span class="p">Hybrid search</span> &mdash; consistent 3-8% recall lift</li>
+        <li><span class="b">Re-ranking</span> &mdash; 5-10% precision improvement</li>
+        <li>Index type &mdash; <1% recall difference for well-tuned HNSW</li>
+        <li>Quantization &mdash; negligible if using re-scoring</li>
+      </ol>
+    </div>
+    <div class="card red">
+      <h3>Common Pitfalls</h3>
+      <ul>
+        <li><span class="r">Wrong similarity metric</span> for the model (cosine vs dot)</li>
+        <li>Chunks too large &rarr; diluted embeddings</li>
+        <li>No query-document asymmetry handling (missing prefixes)</li>
+        <li>Ignoring metadata filters &mdash; pre-filter > post-filter</li>
+        <li>Not evaluating on domain-specific queries</li>
+        <li>Skipping normalization check</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">embeddings / 15</div>
+</section>
+
+<!-- SLIDE 16: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Architecture</h3>
+        <ul>
+          <li>Bi-encoders for retrieval, cross-encoders for re-ranking</li>
+          <li>ColBERT bridges quality-speed gap</li>
+          <li>Multi-stage pipelines combine all three</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Efficiency</h3>
+        <ul>
+          <li>Matryoshka embeddings: truncate dims at deploy time</li>
+          <li>Binary/scalar quantization: 4-32x memory reduction</li>
+          <li>HNSW + PQ for billion-scale indexes</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Quality</h3>
+        <ul>
+          <li>Hybrid search (dense + BM25) consistently wins</li>
+          <li>Chunking matters more than model choice</li>
+          <li>Domain adaptation with ~1K pairs is high-ROI</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Production</h3>
+        <ul>
+          <li>Match similarity metric to model training</li>
+          <li>Start with pgvector, scale to purpose-built DB</li>
+          <li>Evaluate end-to-end, not just embedding quality</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.5em">The cost-quality Pareto frontier keeps improving &mdash; <span class="a">high-quality semantic retrieval is more accessible than ever</span>.</p>
+  <div class="slide-footer">embeddings / 16</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

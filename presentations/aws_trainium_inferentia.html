@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS Trainium & Inferentia | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 1: Title -->
+<section class="title-slide">
+  <h1>AWS Trainium &amp; Inferentia</h1>
+  <div class="subtitle">Amazon's Custom Silicon for ML Training &amp; Inference</div>
+  <div class="meta">March 2026 &mdash; Technical Deep Dive</div>
+  <p style="margin-top:1.5em;font-size:.72em;color:var(--muted);">Annapurna Labs (acq. 2015) &bull; NeuronCore Architecture &bull; Neuron SDK</p>
+  <div class="slide-footer">aws-trainium / 01</div>
+</section>
+
+<!-- Slide 2: Strategic Context -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>AWS Custom Silicon Strategy</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>AWS acquired <span class="a">Annapurna Labs</span> in 2015 for ~$350M, originally for networking chips. The team pivoted to ML accelerators, producing two product lines:</p>
+      <ul>
+        <li><span class="a">Inferentia</span> &mdash; inference-optimized, cost-efficient serving</li>
+        <li><span class="g">Trainium</span> &mdash; training-class accelerators competing with NVIDIA A100/H100</li>
+      </ul>
+      <p>The strategic logic: as the largest cloud provider, AWS can <span class="g">amortize custom chip R&amp;D</span> across massive scale, offer lower prices, and retain better margins than reselling NVIDIA GPUs.</p>
+    </div>
+    <div class="card amber">
+      <h3>Timeline</h3>
+      <ul>
+        <li><span class="b">2015</span> &mdash; Annapurna Labs acquisition</li>
+        <li><span class="b">2018</span> &mdash; Graviton1 (ARM CPUs)</li>
+        <li><span class="b">2019</span> &mdash; Inferentia1 launch</li>
+        <li><span class="b">2022</span> &mdash; Trainium1 launch</li>
+        <li><span class="b">2023</span> &mdash; Inferentia2 launch</li>
+        <li><span class="b">2024-25</span> &mdash; Trainium2 rollout</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">aws-trainium / 02</div>
+</section>
+
+<!-- Slide 3: NeuronCore Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>NeuronCore-v2 Internals</h2></div>
+  <svg class="diagram" viewBox="0 0 880 280" width="860" height="270">
+    <!-- NeuronCore boundary -->
+    <rect x="40" y="10" width="800" height="260" rx="10" fill="none" stroke="#2a2a3a" stroke-width="1.5" stroke-dasharray="6"/>
+    <text x="440" y="35" fill="#f5a623" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">NeuronCore-v2</text>
+    <!-- Tensor Engine -->
+    <rect x="70" y="55" width="170" height="90" rx="8" fill="#181824" stroke="#f5a623" stroke-width="2"/>
+    <text x="155" y="80" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="13" font-weight="600" text-anchor="middle">Tensor Engine</text>
+    <text x="155" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Systolic array</text>
+    <text x="155" y="118" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">BF16 / FP8 / INT8 MatMul</text>
+    <!-- Vector Engine -->
+    <rect x="270" y="55" width="170" height="90" rx="8" fill="#181824" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="355" y="80" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13" font-weight="600" text-anchor="middle">Vector Engine</text>
+    <text x="355" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Element-wise ops</text>
+    <text x="355" y="118" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">Softmax / LayerNorm / GeLU</text>
+    <!-- Scalar Engine -->
+    <rect x="470" y="55" width="170" height="90" rx="8" fill="#181824" stroke="#a78bfa" stroke-width="2"/>
+    <text x="555" y="80" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="13" font-weight="600" text-anchor="middle">Scalar Engine</text>
+    <text x="555" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Control flow</text>
+    <text x="555" y="118" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">Index calc / branching</text>
+    <!-- GPSIMD Engine -->
+    <rect x="670" y="55" width="150" height="90" rx="8" fill="#181824" stroke="#60a5fa" stroke-width="2"/>
+    <text x="745" y="80" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="13" font-weight="600" text-anchor="middle">GPSIMD Engine</text>
+    <text x="745" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Programmable SIMD</text>
+    <text x="745" y="118" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">Custom C++ operators</text>
+    <!-- Arrows connecting engines -->
+    <line x1="240" y1="100" x2="270" y2="100" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowN)"/>
+    <line x1="440" y1="100" x2="470" y2="100" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowN)"/>
+    <line x1="640" y1="100" x2="670" y2="100" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowN)"/>
+    <!-- HBM bar -->
+    <rect x="70" y="175" width="750" height="40" rx="6" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+    <text x="440" y="200" fill="#f87171" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">32 GB HBM2e &mdash; 820 GB/s bandwidth (per Trainium1 chip)</text>
+    <!-- NeuronLink bar -->
+    <rect x="70" y="230" width="750" height="30" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="440" y="250" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">NeuronLink &mdash; 768 GB/s chip-to-chip interconnect</text>
+    <defs><marker id="arrowN" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8888a8"/></marker></defs>
+  </svg>
+  <p style="text-align:center;font-size:.72em;color:var(--muted);">Four specialized engines per NeuronCore. GPSIMD enables custom operator development without firmware updates.</p>
+  <div class="slide-footer">aws-trainium / 03</div>
+</section>
+
+<!-- Slide 4: Inferentia Generations -->
+<section>
+  <div class="slide-hdr"><span class="tag">INFERENCE</span><h2>Inferentia: Two Generations</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Inferentia1 (2019)</h3>
+      <ul>
+        <li>4 NeuronCores per chip</li>
+        <li>8 GB on-chip memory</li>
+        <li>128 TOPS INT8 performance</li>
+        <li>Optimized for BERT, ResNet, early transformers</li>
+        <li>EC2: <code>inf1</code> instances</li>
+        <li>Up to <span class="g">70% lower cost</span> vs. GPU inference</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Inferentia2 (2023)</h3>
+      <ul>
+        <li>NeuronCore-v2 architecture</li>
+        <li>32 GB HBM2e per accelerator</li>
+        <li>Chip-to-chip interconnect for tensor parallelism</li>
+        <li><span class="g">4x throughput</span>, <span class="g">10x lower latency</span> vs. Inf1</li>
+        <li>EC2: <code>inf2</code> instances (1&ndash;12 chips)</li>
+        <li>Supports 100B+ parameter LLMs</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.6em;">The leap from Inf1 to Inf2 reflects the industry shift from serving small classification models to <span class="a">large autoregressive language models</span>, requiring far more memory and inter-chip bandwidth.</p>
+  <div class="slide-footer">aws-trainium / 04</div>
+</section>
+
+<!-- Slide 5: Trainium1 Deep Dive -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRAINING</span><h2>Trainium1: Key Innovations</h2></div>
+  <div class="cols cols-3">
+    <div class="card purple">
+      <h3>Stochastic Rounding</h3>
+      <p>Probabilistic rounding during BF16/FP8 training reduces numerical error accumulation. Enables <span class="g">effective low-precision training</span> with minimal accuracy loss vs. FP32.</p>
+    </div>
+    <div class="card blue">
+      <h3>Custom Data Types</h3>
+      <p>Hardware-native data types optimized for transformer numerical distributions in attention and layer normalization, beyond standard IEEE formats.</p>
+    </div>
+    <div class="card amber">
+      <h3>NeuronLink</h3>
+      <p>Direct chip-to-chip interconnect at <span class="a">768 GB/s</span> aggregate bandwidth. Enables tensor-parallel and data-parallel training without host CPU routing.</p>
+    </div>
+  </div>
+  <div class="cols cols-6040" style="margin-top:.8em;">
+    <div class="card green">
+      <h3>Hardware Specs</h3>
+      <ul>
+        <li>2 NeuronCore-v2 engines per chip</li>
+        <li>32 GB HBM2e, 820 GB/s bandwidth</li>
+        <li>BF16, FP8, INT8 compute support</li>
+        <li>GPSIMD for custom operator kernels</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>vs. A100 (80 GB)</h3>
+      <ul>
+        <li>Lower per-chip memory (32 vs. 80 GB)</li>
+        <li>Lower bandwidth (820 vs. 2,039 GB/s)</li>
+        <li><span class="g">~50% lower price</span> per chip-hour</li>
+        <li>Competitive on price-performance ratio</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">aws-trainium / 05</div>
+</section>
+
+<!-- Slide 6: Trainium2 Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">NEXT-GEN</span><h2>Trainium2: The Generational Leap</h2></div>
+  <svg class="diagram" viewBox="0 0 880 240" width="860" height="230">
+    <!-- Trn1 box -->
+    <rect x="30" y="20" width="260" height="200" rx="10" fill="#181824" stroke="#8888a8" stroke-width="1.5"/>
+    <text x="160" y="50" fill="#8888a8" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">Trainium1</text>
+    <text x="160" y="80" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">2 NeuronCore-v2 / chip</text>
+    <text x="160" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">32 GB HBM2e</text>
+    <text x="160" y="120" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Up to 16 chips / instance</text>
+    <text x="160" y="150" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">trn1.32xlarge</text>
+    <text x="160" y="175" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">512 GB total accelerator mem</text>
+    <text x="160" y="195" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">8 TB/s NeuronLink BW</text>
+    <!-- Arrow -->
+    <text x="360" y="125" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="32" text-anchor="middle">&rarr;</text>
+    <text x="360" y="150" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">~4x perf</text>
+    <!-- Trn2 box -->
+    <rect x="430" y="20" width="420" height="200" rx="10" fill="#181824" stroke="#f5a623" stroke-width="2"/>
+    <text x="640" y="50" fill="#f5a623" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">Trainium2</text>
+    <text x="640" y="80" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">4x compute improvement per chip</text>
+    <text x="640" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Expanded HBM capacity &amp; bandwidth</text>
+    <text x="640" y="130" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">UltraServer: 64 Trn2 chips per node</text>
+    <text x="640" y="155" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">~20 PB/s bisection bandwidth</text>
+    <text x="640" y="180" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Single-node hosting for 400B+ models</text>
+    <text x="640" y="200" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">trn2 instances (2024&ndash;2025 rollout)</text>
+  </svg>
+  <p style="text-align:center;">The 64-chip UltraServer eliminates <span class="r">cross-node communication penalties</span> for models that previously required multi-node GPU deployments.</p>
+  <div class="slide-footer">aws-trainium / 06</div>
+</section>
+
+<!-- Slide 7: UltraCluster & Project Rainier -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCALE</span><h2>UltraClusters &amp; Project Rainier</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 280 320" width="260" height="310">
+        <text x="140" y="20" fill="#f5a623" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">Trn2 UltraCluster</text>
+        <!-- UltraServer nodes -->
+        <rect x="20" y="35" width="240" height="270" rx="8" fill="none" stroke="#2a2a3a" stroke-width="1.5" stroke-dasharray="5"/>
+        <rect x="35" y="50" width="95" height="40" rx="4" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="82" y="68" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">UltraServer 0</text>
+        <text x="82" y="82" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">64 Trn2 chips</text>
+        <rect x="150" y="50" width="95" height="40" rx="4" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="197" y="68" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">UltraServer 1</text>
+        <text x="197" y="82" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">64 Trn2 chips</text>
+        <rect x="35" y="105" width="95" height="40" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="82" y="123" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">UltraServer 2</text>
+        <text x="82" y="137" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">64 Trn2 chips</text>
+        <rect x="150" y="105" width="95" height="40" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="197" y="123" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">UltraServer 3</text>
+        <text x="197" y="137" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">64 Trn2 chips</text>
+        <!-- More nodes -->
+        <text x="140" y="170" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="14" text-anchor="middle">. . .</text>
+        <rect x="35" y="185" width="95" height="40" rx="4" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="82" y="203" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">UltraServer N-1</text>
+        <text x="82" y="217" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">64 Trn2 chips</text>
+        <rect x="150" y="185" width="95" height="40" rx="4" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="197" y="203" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">UltraServer N</text>
+        <text x="197" y="217" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">64 Trn2 chips</text>
+        <!-- Network bar -->
+        <rect x="35" y="245" width="210" height="30" rx="4" fill="#181824" stroke="#f5a623" stroke-width="1"/>
+        <text x="140" y="264" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">Non-blocking Petabit EFA Fabric</text>
+        <!-- Interconnect lines -->
+        <line x1="130" y1="90" x2="150" y2="90" stroke="#f5a623" stroke-width="1"/>
+        <line x1="130" y1="145" x2="150" y2="145" stroke="#f5a623" stroke-width="1"/>
+        <line x1="130" y1="225" x2="150" y2="225" stroke="#f5a623" stroke-width="1"/>
+      </svg>
+    </div>
+    <div>
+      <h3>Scaling to Frontier Models</h3>
+      <p>Trn2 UltraClusters connect <span class="a">thousands of Trainium2 chips</span> through non-blocking petabit-scale EFA networking, enabling training runs that span tens of thousands of accelerators.</p>
+      <div class="card amber" style="margin-top:.6em;">
+        <h3>Project Rainier</h3>
+        <p>AWS + Anthropic collaboration deploying <span class="a">tens of thousands of Trn2 chips</span> for frontier model training. Serves as both:</p>
+        <ul>
+          <li><span class="g">Proof point</span> for Trainium2 at frontier scale</li>
+          <li><span class="g">Demand anchor</span> justifying continued silicon investment</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em;">
+        <h3>Parallelism at Scale</h3>
+        <ul>
+          <li>Data parallelism across UltraServers</li>
+          <li>Tensor parallelism within UltraServer (64 chips)</li>
+          <li>Pipeline parallelism across node boundaries</li>
+          <li>Expert parallelism for MoE architectures</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">aws-trainium / 07</div>
+</section>
+
+<!-- Slide 8: EC2 Instance Family -->
+<section>
+  <div class="slide-hdr"><span class="tag">INSTANCES</span><h2>EC2 Instance Types</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Instance Family</th>
+        <th>Chip</th>
+        <th>Accelerators</th>
+        <th>Total Accel. Memory</th>
+        <th>Inter-chip BW</th>
+        <th>Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>inf1</code></td>
+        <td>Inferentia1</td>
+        <td>1&ndash;16</td>
+        <td>8&ndash;128 GB</td>
+        <td>&mdash;</td>
+        <td>Legacy inference</td>
+      </tr>
+      <tr>
+        <td><code>inf2</code></td>
+        <td><span class="g">Inferentia2</span></td>
+        <td>1&ndash;12</td>
+        <td>32&ndash;384 GB</td>
+        <td>NeuronLink</td>
+        <td>LLM inference</td>
+      </tr>
+      <tr>
+        <td><code>trn1</code></td>
+        <td><span class="a">Trainium1</span></td>
+        <td>1&ndash;16</td>
+        <td>32&ndash;512 GB</td>
+        <td>8 TB/s NeuronLink</td>
+        <td>Model training</td>
+      </tr>
+      <tr>
+        <td><code>trn2</code></td>
+        <td><span class="a">Trainium2</span></td>
+        <td>Up to 64</td>
+        <td>UltraServer config</td>
+        <td>20 PB/s bisection</td>
+        <td>Frontier training</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em;">
+    <div class="card green">
+      <h3>Training Instances (trn)</h3>
+      <p>Include high-bandwidth <span class="a">EFA networking</span> for distributed training. NeuronLink provides intra-node chip-to-chip communication without host CPU involvement.</p>
+    </div>
+    <div class="card blue">
+      <h3>Inference Instances (inf)</h3>
+      <p>Optimized for <span class="g">cost efficiency and throughput density</span>. Typically 30&ndash;50% lower price than comparable NVIDIA instances for supported models.</p>
+    </div>
+  </div>
+  <div class="slide-footer">aws-trainium / 08</div>
+</section>
+
+<!-- Slide 9: Neuron SDK Stack -->
+<section>
+  <div class="slide-hdr"><span class="tag">SOFTWARE</span><h2>Neuron SDK Architecture</h2></div>
+  <svg class="diagram" viewBox="0 0 880 280" width="860" height="270">
+    <!-- Framework layer -->
+    <rect x="60" y="10" width="180" height="45" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="2"/>
+    <text x="150" y="38" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">PyTorch (torch-neuronx)</text>
+    <rect x="270" y="10" width="180" height="45" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="2"/>
+    <text x="360" y="38" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">JAX (XLA backend)</text>
+    <rect x="480" y="10" width="180" height="45" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="570" y="38" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">neuronx-distributed</text>
+    <!-- Arrow down -->
+    <line x1="360" y1="55" x2="360" y2="80" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowS)"/>
+    <!-- Compiler -->
+    <rect x="160" y="80" width="400" height="50" rx="8" fill="#181824" stroke="#f5a623" stroke-width="2"/>
+    <text x="360" y="100" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="13" font-weight="600" text-anchor="middle">Neuron Compiler</text>
+    <text x="360" y="118" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Graph import &rarr; Op fusion &rarr; Layout opt &rarr; Instruction scheduling</text>
+    <!-- Arrow down -->
+    <line x1="360" y1="130" x2="360" y2="155" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowS)"/>
+    <!-- Runtime -->
+    <rect x="160" y="155" width="400" height="45" rx="8" fill="#181824" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="360" y="175" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13" font-weight="600" text-anchor="middle">Neuron Runtime</text>
+    <text x="360" y="191" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Device alloc / memory mgmt / execution scheduling</text>
+    <!-- Arrow down -->
+    <line x1="360" y1="200" x2="360" y2="225" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowS)"/>
+    <!-- Hardware -->
+    <rect x="100" y="225" width="520" height="42" rx="8" fill="#181824" stroke="#f87171" stroke-width="2"/>
+    <text x="360" y="250" fill="#f87171" font-family="DM Sans,sans-serif" font-size="13" font-weight="600" text-anchor="middle">NeuronCore Hardware (Trainium / Inferentia)</text>
+    <!-- Profiler side card -->
+    <rect x="660" y="80" width="170" height="120" rx="8" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="745" y="105" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">Neuron Profiler</text>
+    <text x="745" y="128" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Execution timelines</text>
+    <text x="745" y="146" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Memory utilization</text>
+    <text x="745" y="164" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Comm. patterns</text>
+    <text x="745" y="182" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Bottleneck analysis</text>
+    <line x1="560" y1="155" x2="660" y2="155" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4"/>
+    <defs><marker id="arrowS" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8888a8"/></marker></defs>
+  </svg>
+  <p style="text-align:center;font-size:.72em;color:var(--muted);">The <code>neuronx-distributed</code> library implements tensor, pipeline, and zero-redundancy parallelism patterns for multi-chip scaling.</p>
+  <div class="slide-footer">aws-trainium / 09</div>
+</section>
+
+<!-- Slide 10: Framework Integration -->
+<section>
+  <div class="slide-hdr"><span class="tag">CODE</span><h2>Framework Integration</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>PyTorch (torch-neuronx)</h3>
+      <pre><code>import torch
+import torch_neuronx
+
+# Trace model for NeuronCore compilation
+model = MyTransformer().eval()
+example = torch.randn(1, 512, 768)
+traced = torch_neuronx.trace(model, example)
+
+# Save compiled model
+torch.jit.save(traced, 'model_neuron.pt')
+
+# Inference on NeuronCore
+output = traced(input_tensor)</code></pre>
+    </div>
+    <div>
+      <h3>JAX (XLA Backend)</h3>
+      <pre><code>import jax
+import jax.numpy as jnp
+
+# JAX automatically targets NeuronCores
+# via XLA compiler backend
+@jax.jit
+def forward(params, x):
+    return model.apply(params, x)
+
+# neuronx-distributed for parallelism
+from neuronx_distributed import parallel
+parallel.initialize(
+    tensor_parallel_size=8,
+    pipeline_parallel_size=4
+)</code></pre>
+    </div>
+  </div>
+  <p style="margin-top:.5em;">Both paths intercept at the <span class="a">graph level</span> and redirect operations to NeuronCore hardware. The XLA path shares compilation infrastructure with TPU targeting, easing migration between cloud accelerators.</p>
+  <div class="slide-footer">aws-trainium / 10</div>
+</section>
+
+<!-- Slide 11: GPSIMD Engine -->
+<section>
+  <div class="slide-hdr"><span class="tag">EXTENSIBILITY</span><h2>GPSIMD: Custom Operators on Silicon</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The <span class="b">GPSIMD engine</span> is a programmable SIMD processor embedded within each NeuronCore. Unlike fixed-function accelerator designs, it allows developers to write <span class="a">custom C++ operators</span> that execute directly on the chip.</p>
+      <h3>Capabilities</h3>
+      <ul>
+        <li>Novel activation functions (SwiGLU variants, custom gating)</li>
+        <li>Experimental loss computations</li>
+        <li>Custom numerical techniques (e.g., specialized rounding)</li>
+        <li>Research-stage operators without firmware updates</li>
+      </ul>
+      <h3>Execution Model</h3>
+      <p>GPSIMD runs <span class="g">in parallel</span> with Tensor, Vector, and Scalar engines. Custom operators can execute concurrently with standard MatMul and element-wise operations, avoiding pipeline stalls.</p>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Example: Custom Activation</h3>
+        <pre><code>// GPSIMD kernel for NeuronCore
+#include &lt;neuron/gpsimd.h&gt;
+
+void custom_activation(
+    float* input,
+    float* output,
+    int size) {
+  for (int i = 0; i &lt; size;
+       i += SIMD_WIDTH) {
+    vec_t x = vec_load(input + i);
+    vec_t y = vec_mul(x,
+      vec_sigmoid(x));
+    vec_store(output + i, y);
+  }
+}</code></pre>
+      </div>
+      <p style="font-size:.72em;color:var(--muted);margin-top:.4em;">Requires C++ proficiency and NeuronCore ISA knowledge &mdash; higher barrier than CUDA kernels for most ML engineers.</p>
+    </div>
+  </div>
+  <div class="slide-footer">aws-trainium / 11</div>
+</section>
+
+<!-- Slide 12: Inference Optimizations -->
+<section>
+  <div class="slide-hdr"><span class="tag">SERVING</span><h2>Inference Optimizations on Neuron</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Continuous Batching</h3>
+      <p>Dynamically adds/removes requests from running batch. Maximizes throughput without waiting for static batch to fill.</p>
+      <svg class="diagram" viewBox="0 0 320 100" width="310" height="95">
+        <rect x="10" y="10" width="60" height="25" rx="3" fill="#181824" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="40" y="27" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">req A</text>
+        <rect x="10" y="40" width="100" height="25" rx="3" fill="#181824" stroke="#60a5fa" stroke-width="1"/>
+        <text x="60" y="57" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">req B</text>
+        <rect x="70" y="10" width="80" height="25" rx="3" fill="#181824" stroke="#a78bfa" stroke-width="1"/>
+        <text x="110" y="27" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">req C (new)</text>
+        <rect x="110" y="40" width="50" height="25" rx="3" fill="#181824" stroke="#f5a623" stroke-width="1"/>
+        <text x="135" y="57" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">req D</text>
+        <text x="200" y="35" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">time &rarr;</text>
+        <text x="200" y="55" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="8" text-anchor="middle">Slots reused as</text>
+        <text x="200" y="68" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="8" text-anchor="middle">requests complete</text>
+      </svg>
+    </div>
+    <div class="card purple">
+      <h3>Speculative Decoding</h3>
+      <p>Small <span class="a">draft model</span> generates candidate token sequences, verified in parallel by the full model. Reduces per-request latency for autoregressive generation.</p>
+      <ul>
+        <li>Draft model: smaller, faster (~4x tokens/step)</li>
+        <li>Verification: single forward pass of full model</li>
+        <li>Acceptance rate: typically 70&ndash;85% for well-matched drafts</li>
+        <li>Net speedup: <span class="g">1.5&ndash;2.5x</span> latency reduction</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.5em;">These optimizations compound with Inferentia2 hardware: lower per-chip cost + software efficiency = competitive <span class="a">cost-per-million-tokens</span> for high-throughput serving.</p>
+  <div class="slide-footer">aws-trainium / 12</div>
+</section>
+
+<!-- Slide 13: Cost Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECONOMICS</span><h2>Cost Comparison with NVIDIA Instances</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Instance</th>
+        <th>Chip</th>
+        <th>Accelerators</th>
+        <th>On-Demand $/hr (approx)</th>
+        <th>Accel. Memory</th>
+        <th>Training Perf Index</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>trn1.32xlarge</code></td>
+        <td><span class="a">Trainium1</span></td>
+        <td>16</td>
+        <td><span class="g">~$21.50</span></td>
+        <td>512 GB</td>
+        <td>1.0x (baseline)</td>
+      </tr>
+      <tr>
+        <td><code>p4d.24xlarge</code></td>
+        <td>A100 80GB</td>
+        <td>8</td>
+        <td>~$32.77</td>
+        <td>640 GB</td>
+        <td>~1.2x</td>
+      </tr>
+      <tr>
+        <td><code>p5.48xlarge</code></td>
+        <td>H100 80GB</td>
+        <td>8</td>
+        <td>~$98.32</td>
+        <td>640 GB</td>
+        <td>~3.5x</td>
+      </tr>
+      <tr>
+        <td><code>inf2.48xlarge</code></td>
+        <td><span class="g">Inferentia2</span></td>
+        <td>12</td>
+        <td><span class="g">~$12.98</span></td>
+        <td>384 GB</td>
+        <td>&mdash; (inference)</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em;">
+    <div class="card green">
+      <h3>Where AWS Silicon Wins</h3>
+      <ul>
+        <li>High-volume inference (cost/million tokens)</li>
+        <li>Standard architectures (Llama, GPT-NeoX)</li>
+        <li>Long-running training jobs (amortize port cost)</li>
+        <li>AWS-native organizations (SageMaker integration)</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Where GPUs Still Win</h3>
+      <ul>
+        <li>Novel/exotic model architectures</li>
+        <li>Rapid prototyping and research</li>
+        <li>Multi-cloud or on-prem portability</li>
+        <li>Workloads needing CUDA library ecosystem</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">aws-trainium / 13</div>
+</section>
+
+<!-- Slide 14: Neuron vs CUDA Ecosystem -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>Neuron SDK vs. CUDA Ecosystem</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>Neuron SDK</th><th>CUDA</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Maturity</td><td><span class="r">~5 years</span></td><td><span class="g">~20 years</span></td></tr>
+          <tr><td>Framework Support</td><td>PyTorch, JAX</td><td>PyTorch, JAX, TF, etc.</td></tr>
+          <tr><td>Model Coverage</td><td>Major architectures</td><td>Near-universal</td></tr>
+          <tr><td>Custom Kernels</td><td>GPSIMD (C++)</td><td>CUDA C++ / Triton</td></tr>
+          <tr><td>Profiling</td><td>Neuron Profiler</td><td>Nsight, NCU</td></tr>
+          <tr><td>Community</td><td>Growing</td><td>Massive</td></tr>
+          <tr><td>Debugging</td><td>Improving</td><td>Mature</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>The Porting Tax</h3>
+        <p>Moving a model from CUDA to Neuron requires:</p>
+        <ul>
+          <li>Validating operator coverage in Neuron compiler</li>
+          <li>Replacing unsupported custom CUDA kernels</li>
+          <li>Tuning distributed training configs</li>
+          <li>Numerical validation (stochastic rounding differences)</li>
+          <li>Performance profiling and optimization</li>
+        </ul>
+        <p style="margin-top:.4em;">Effort: <span class="r">days to weeks</span> for standard models, <span class="r">weeks to months</span> for custom architectures.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">aws-trainium / 14</div>
+</section>
+
+<!-- Slide 15: Limitations -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRADE-OFFS</span><h2>Limitations &amp; Challenges</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>SDK Maturity</h3>
+      <ul>
+        <li>Compiler occasionally produces <span class="r">suboptimal code</span> for novel ops</li>
+        <li>Error messages less informative than CUDA toolchain</li>
+        <li>Fewer community resources and Stack Overflow answers</li>
+        <li>Profiling tools improving but <span class="r">less mature</span> than Nsight</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Model Coverage Gaps</h3>
+      <ul>
+        <li>Standard models (Llama, Mistral, GPT-NeoX) well-optimized</li>
+        <li>Exotic architectures may lag GPU support by <span class="r">weeks/months</span></li>
+        <li>Custom training loops require significant porting effort</li>
+        <li>GPSIMD mitigates but requires C++ expertise</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em;">
+    <div class="card red">
+      <h3>Debugging Complexity</h3>
+      <ul>
+        <li>Numerical divergence harder to diagnose than on GPU</li>
+        <li>Stochastic rounding can mask or introduce subtle bugs</li>
+        <li>Multi-chip debugging across NeuronLink still evolving</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Vendor Lock-in</h3>
+      <ul>
+        <li>Neuron SDK is AWS-only &mdash; no multi-cloud portability</li>
+        <li>Models compiled for NeuronCore cannot run elsewhere</li>
+        <li>Risk of stranded engineering investment if migrating away</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">aws-trainium / 15</div>
+</section>
+
+<!-- Slide 16: Competitive Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">LANDSCAPE</span><h2>Custom AI Silicon Landscape</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>AWS Trainium/Inferentia</h3>
+      <ul>
+        <li>NeuronCore-v2 architecture</li>
+        <li>Training + inference coverage</li>
+        <li>UltraServer 64-chip nodes</li>
+        <li>Neuron SDK (PyTorch/JAX)</li>
+        <li><span class="a">Advantage:</span> Cloud-native scale, pricing</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Google TPU</h3>
+      <ul>
+        <li>MXU systolic array architecture</li>
+        <li>TPU v5p / Trillium generations</li>
+        <li>Tight JAX integration</li>
+        <li>Multi-slice pod configurations</li>
+        <li><span class="b">Advantage:</span> JAX ecosystem, proven at scale</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>NVIDIA GPU</h3>
+      <ul>
+        <li>H100 / B200 / Blackwell</li>
+        <li>CUDA ecosystem dominance</li>
+        <li>Universal model support</li>
+        <li>NVLink / NVSwitch interconnect</li>
+        <li><span class="p">Advantage:</span> Ecosystem, portability</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.6em;text-align:center;">All three cloud hyperscalers (AWS, Google, Microsoft/Azure) are investing in custom silicon to <span class="a">reduce NVIDIA dependency</span> and improve margins on AI compute.</p>
+  <div class="slide-footer">aws-trainium / 16</div>
+</section>
+
+<!-- Slide 17: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>What Makes AWS Silicon Distinctive</h3>
+      <ol>
+        <li><span class="a">NeuronCore-v2</span> &mdash; four specialized engines including programmable GPSIMD</li>
+        <li><span class="g">Stochastic rounding</span> &mdash; effective low-precision training with hardware support</li>
+        <li><span class="p">UltraServer</span> &mdash; 64 Trn2 chips in a single node with 20 PB/s bisection BW</li>
+        <li><span class="b">Price-performance</span> &mdash; 30&ndash;50% lower cost than comparable GPU instances</li>
+        <li><span class="a">Vertical integration</span> &mdash; chip + SDK + cloud instances + managed services</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Open Questions</h3>
+      <ol>
+        <li>Can Neuron SDK <span class="r">close the ecosystem gap</span> with CUDA fast enough?</li>
+        <li>Will Trainium2 deliver on <span class="a">frontier training</span> claims at Project Rainier scale?</li>
+        <li>How quickly will model coverage <span class="g">expand beyond standard architectures</span>?</li>
+        <li>Will the porting cost decline enough to attract <span class="b">research workloads</span>?</li>
+        <li>Can AWS maintain the <span class="p">silicon cadence</span> to stay competitive with NVIDIA's roadmap?</li>
+      </ol>
+    </div>
+  </div>
+  <p style="margin-top:.8em;text-align:center;">AWS Trainium and Inferentia represent the most <span class="a">commercially ambitious</span> cloud-native alternative to NVIDIA. Success hinges on whether software ecosystem maturity can match the clear economic and architectural advantages of purpose-built silicon at hyperscaler scale.</p>
+  <div class="slide-footer">aws-trainium / 17</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

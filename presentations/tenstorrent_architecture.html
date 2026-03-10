@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tenstorrent Architecture | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 01: Title -->
+<section class="title-slide">
+  <h1>Tenstorrent Architecture</h1>
+  <div class="subtitle">RISC-V AI Accelerators and the Open Hardware Bet</div>
+  <div style="margin-bottom:1.2em">
+    <span class="pill amber">RISC-V</span>
+    <span class="pill green">open-source</span>
+    <span class="pill purple">Tensix</span>
+    <span class="pill blue">Ethernet mesh</span>
+  </div>
+  <div class="meta">March 2026</div>
+  <div class="slide-footer">tenstorrent / 01</div>
+</section>
+
+<!-- Slide 02: Company Background -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Company Background</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Origins</h3>
+      <ul>
+        <li>Founded <span class="a">2016</span> in Toronto by <span class="a">Ljubisa Bajic</span></li>
+        <li>Novel AI processor built on RISC-V and packet-based dataflow</li>
+        <li>Early focus: composable, open-source hardware</li>
+        <li>Funded through multiple rounds; $300M+ raised</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Jim Keller Era (2023&ndash;)</h3>
+      <ul>
+        <li><span class="g">Jim Keller</span> joined as CEO in 2023</li>
+        <li>Architect of AMD Zen, Apple A-series, x86-64 contributions</li>
+        <li>Strategic vision: <span class="g">open-source alternative</span> to NVIDIA</li>
+        <li>Dual model: sell chips + license IP (ARM-inspired)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Core Thesis</h3>
+    <p>The AI hardware market will reward <span class="p">openness over lock-in</span>. Composable architecture + open ISA + open SDK = ecosystem growth that proprietary stacks cannot match long-term.</p>
+  </div>
+  <div class="slide-footer">tenstorrent / 02</div>
+</section>
+
+<!-- Slide 03: The RISC-V Bet -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>The RISC-V Bet</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card green" style="margin-bottom:.8em">
+        <h3>Why RISC-V?</h3>
+        <ul>
+          <li><span class="g">No per-chip licensing fees</span> &mdash; critical at scale</li>
+          <li>Full freedom to customize microarchitecture</li>
+          <li>Growing ecosystem of tooling and compilers</li>
+          <li>Open ISA aligns with open-source hardware strategy</li>
+          <li>Developer familiarity increasing rapidly</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Custom Implementations</h3>
+        <ul>
+          <li>Not off-the-shelf RISC-V cores</li>
+          <li>Each baby core <span class="a">optimized for its role</span></li>
+          <li>Compute cores: stripped to essentials for matrix/vector orchestration</li>
+          <li>Control core: synchronization and scheduling</li>
+          <li>Area- and power-optimized per function</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <table>
+        <thead><tr><th>Approach</th><th>License Fee</th><th>Customizable</th><th>Ecosystem</th></tr></thead>
+        <tbody>
+          <tr><td><span class="g">RISC-V</span></td><td><span class="g">None</span></td><td><span class="g">Fully</span></td><td>Growing</td></tr>
+          <tr><td>ARM</td><td>Per-chip</td><td>Limited</td><td><span class="g">Mature</span></td></tr>
+          <tr><td>Proprietary</td><td>N/A</td><td>Internal only</td><td>Vendor-locked</td></tr>
+        </tbody>
+      </table>
+      <div class="card blue" style="margin-top:.8em">
+        <h3>Strategic Implication</h3>
+        <p>Open ISA enables <span class="b">IP licensing business</span>: third parties can integrate Tenstorrent's RISC-V cores and Tensix IP into their own SoCs, creating an ARM-like platform play.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 03</div>
+</section>
+
+<!-- Slide 04: Tensix Core Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Tensix Core Architecture</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Five RISC-V Baby Cores per Tensix</h3>
+      <table>
+        <thead><tr><th>#</th><th>Role</th><th>Function</th></tr></thead>
+        <tbody>
+          <tr><td><span class="a">1&ndash;2</span></td><td>Compute</td><td>Issue instructions to matrix/vector engines; manage data dependencies</td></tr>
+          <tr><td><span class="g">3</span></td><td>Data Movement</td><td>Coordinate SRAM &harr; NoC &harr; neighbor transfers</td></tr>
+          <tr><td><span class="p">4</span></td><td>Control</td><td>Synchronization, conditional execution decisions</td></tr>
+          <tr><td><span class="b">5</span></td><td>Ethernet</td><td>Packet formation and routing (on-chip + off-chip)</td></tr>
+        </tbody>
+      </table>
+      <div class="card red" style="margin-top:.6em">
+        <h3>Plus Fixed-Function Engines</h3>
+        <ul>
+          <li><span class="a">Matrix engine</span>: dense matmul (INT8, FP16, BF16, FP32)</li>
+          <li><span class="g">Vector engine</span>: activations, normalization, reductions</li>
+          <li><span class="b">~1 MB local SRAM</span> scratchpad per Tensix</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 260 370" width="260">
+        <defs><marker id="arr" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
+        <rect x="10" y="10" width="240" height="350" rx="10" fill="none" stroke="#2a2a3a" stroke-width="1.5"/>
+        <text x="130" y="35" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="13" font-weight="700">Tensix Core</text>
+        <!-- Baby cores -->
+        <rect x="25" y="50" width="90" height="30" rx="4" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+        <text x="70" y="70" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="9">Compute Core 1</text>
+        <rect x="145" y="50" width="90" height="30" rx="4" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+        <text x="190" y="70" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="9">Compute Core 2</text>
+        <rect x="25" y="90" width="90" height="30" rx="4" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="70" y="110" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Data Movement</text>
+        <rect x="145" y="90" width="90" height="30" rx="4" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
+        <text x="190" y="110" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Control Core</text>
+        <rect x="85" y="130" width="90" height="30" rx="4" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1"/>
+        <text x="130" y="150" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="9">Ethernet Core</text>
+        <!-- Engines -->
+        <line x1="130" y1="160" x2="130" y2="180" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
+        <rect x="25" y="185" width="95" height="45" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <text x="72" y="205" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">Matrix</text>
+        <text x="72" y="220" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">Engine</text>
+        <rect x="140" y="185" width="95" height="45" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="187" y="205" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Vector</text>
+        <text x="187" y="220" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Engine</text>
+        <!-- SRAM -->
+        <line x1="130" y1="230" x2="130" y2="250" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
+        <rect x="30" y="255" width="200" height="40" rx="5" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.2"/>
+        <text x="130" y="280" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">Local SRAM (~1 MB)</text>
+        <!-- NoC -->
+        <line x1="130" y1="295" x2="130" y2="315" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
+        <rect x="30" y="320" width="200" height="28" rx="5" fill="#1a1a2e" stroke="#f87171" stroke-width="1"/>
+        <text x="130" y="339" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="10">Ethernet NoC Interface</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 04</div>
+</section>
+
+<!-- Slide 05: Chip Generations -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Chip Generations</h2></div>
+  <table>
+    <thead>
+      <tr><th>Generation</th><th>Tensix Cores</th><th>Process</th><th>Clock</th><th>Memory</th><th>Interconnect</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Grayskull</span></td><td>120</td><td>12nm</td><td>~1 GHz</td><td>On-chip SRAM</td><td>Basic 2D mesh</td></tr>
+      <tr><td><span class="g">Wormhole</span></td><td>80</td><td>12nm</td><td>~1 GHz</td><td>SRAM + DDR/GDDR</td><td><span class="g">Native Ethernet</span> on die edges</td></tr>
+      <tr><td><span class="p">Blackhole</span></td><td>Improved</td><td>Advanced</td><td>Higher</td><td>GDDR6 / HBM</td><td><span class="p">PCIe Gen5</span> + upgraded Ethernet</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-3" style="margin-top:.8em">
+    <div class="card amber">
+      <h3>Grayskull</h3>
+      <p>Proof-of-concept. <span class="a">120 Tensix cores</span> at 1 GHz. Validated the packet-based dataflow model for transformer inference.</p>
+    </div>
+    <div class="card green">
+      <h3>Wormhole</h3>
+      <p>Key innovation: <span class="g">native Ethernet links</span> on every die edge. 80 cores with higher per-core perf. Direct chip-to-chip via PCB traces.</p>
+    </div>
+    <div class="card purple">
+      <h3>Blackhole</h3>
+      <p><span class="p">PCIe Gen5</span>, GDDR6/HBM, wider matrix engines. Targets both <span class="p">inference and training</span>. Competitive for 7B&ndash;70B models.</p>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 05</div>
+</section>
+
+<!-- Slide 06: Conditional Execution -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Conditional Execution Model</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.8em">
+        <h3>Data-Dependent Compute</h3>
+        <ul>
+          <li>Tensix cores inspect data <span class="g">before dispatching</span> work</li>
+          <li>All-zero tiles after ReLU? <span class="g">Skip the matmul entirely</span></li>
+          <li>Sparse attention masks? Skip masked positions</li>
+          <li>Control RISC-V core checks packet metadata</li>
+          <li>Decides whether to dispatch to matrix engine</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <h3>GPU Contrast</h3>
+        <p>GPUs execute the <span class="r">same instruction across all warp threads</span> regardless of data values. Zero tiles get the same compute as dense tiles. Conditional execution is a fundamental architectural advantage for sparse workloads.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.8em">
+        <h3>Packet-Based Dataflow</h3>
+        <ul>
+          <li>Data moves as <span class="p">packets with metadata</span></li>
+          <li>Each packet: data + destination + dimensions + processing requirements</li>
+          <li>NoC routes dynamically based on runtime conditions</li>
+          <li>Computation <span class="g">triggered by data arrival</span></li>
+          <li>Natural pipelining across the mesh</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>Key Benefit</h3>
+        <p>Reduces need for <span class="b">global synchronization barriers</span>. Each Tensix core fires when its input data arrives, enabling fine-grained pipeline parallelism across the 2D mesh.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 06</div>
+</section>
+
+<!-- Slide 07: Ethernet Everywhere -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Ethernet Everywhere</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Same Protocol at Every Level</h3>
+        <ul>
+          <li><span class="g">On-chip</span>: Tensix &harr; Tensix via Ethernet NoC</li>
+          <li><span class="g">Chip-to-chip</span>: die-edge Ethernet ports</li>
+          <li><span class="g">Rack-to-rack</span>: standard Ethernet links</li>
+          <li>No NVLink, no InfiniBand, no custom ASICs</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Why This Matters</h3>
+        <ul>
+          <li>Single routing logic for all scales</li>
+          <li><span class="a">No proprietary interconnect premium</span></li>
+          <li>Standard PCB traces for chip-to-chip</li>
+          <li>Familiar protocol for network engineers</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 300" width="320">
+        <defs><marker id="arr2" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#4ecb8d"/></marker></defs>
+        <text x="160" y="18" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Ethernet Mesh Topology</text>
+        <!-- 4x4 grid of Tensix nodes -->
+        <g transform="translate(40,35)">
+          <!-- Row labels -->
+          <text x="-15" y="35" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">On-chip</text>
+          <!-- Nodes row 1 -->
+          <rect x="0" y="15" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+          <text x="20" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="60" y="15" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+          <text x="80" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="120" y="15" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+          <text x="140" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="180" y="15" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+          <text x="200" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <!-- Row 1 horizontal links -->
+          <line x1="40" y1="35" x2="60" y2="35" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <line x1="100" y1="35" x2="120" y2="35" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <line x1="160" y1="35" x2="180" y2="35" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <!-- Nodes row 2 -->
+          <rect x="0" y="75" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+          <text x="20" y="100" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="60" y="75" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+          <text x="80" y="100" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="120" y="75" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+          <text x="140" y="100" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="180" y="75" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+          <text x="200" y="100" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <!-- Row 2 horizontal links -->
+          <line x1="40" y1="95" x2="60" y2="95" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <line x1="100" y1="95" x2="120" y2="95" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <line x1="160" y1="95" x2="180" y2="95" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <!-- Vertical links -->
+          <line x1="20" y1="55" x2="20" y2="75" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <line x1="80" y1="55" x2="80" y2="75" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <line x1="140" y1="55" x2="140" y2="75" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <line x1="200" y1="55" x2="200" y2="75" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arr2)"/>
+          <!-- Chip boundary -->
+          <rect x="-10" y="5" width="230" height="120" rx="8" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="110" y="140" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="9">Chip 1</text>
+        </g>
+        <!-- Second chip -->
+        <g transform="translate(40,185)">
+          <rect x="0" y="15" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
+          <text x="20" y="40" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="60" y="15" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
+          <text x="80" y="40" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="120" y="15" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
+          <text x="140" y="40" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <rect x="180" y="15" width="40" height="40" rx="5" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
+          <text x="200" y="40" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8">T</text>
+          <line x1="40" y1="35" x2="60" y2="35" stroke="#4ecb8d" stroke-width="1.2"/>
+          <line x1="100" y1="35" x2="120" y2="35" stroke="#4ecb8d" stroke-width="1.2"/>
+          <line x1="160" y1="35" x2="180" y2="35" stroke="#4ecb8d" stroke-width="1.2"/>
+          <rect x="-10" y="5" width="230" height="60" rx="8" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="110" y="80" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Chip 2</text>
+        </g>
+        <!-- Chip-to-chip Ethernet links -->
+        <line x1="60" y1="165" x2="60" y2="200" stroke="#f87171" stroke-width="2" marker-end="url(#arr2)"/>
+        <line x1="120" y1="165" x2="120" y2="200" stroke="#f87171" stroke-width="2"/>
+        <line x1="180" y1="165" x2="180" y2="200" stroke="#f87171" stroke-width="2"/>
+        <line x1="240" y1="165" x2="240" y2="200" stroke="#f87171" stroke-width="2"/>
+        <text x="280" y="185" text-anchor="start" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="8">Ethernet</text>
+        <text x="280" y="195" text-anchor="start" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="8">chip-to-chip</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 07</div>
+</section>
+
+<!-- Slide 08: Galaxy Multi-Chip Systems -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Galaxy Multi-Chip Systems</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Architecture</h3>
+        <ul>
+          <li>Multiple Wormhole/Blackhole chips tiled into <span class="a">2D mesh</span></li>
+          <li>Each chip connected to neighbors via Ethernet</li>
+          <li>Scales to <span class="a">hundreds of chips</span></li>
+          <li>Flat, uniform network topology</li>
+          <li>No "near" vs "far" protocol distinction</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Use Cases</h3>
+        <ul>
+          <li><span class="g">Large-model inference</span>: distribute weights across chips</li>
+          <li><span class="g">Training</span>: distribute data and gradients</li>
+          <li>Software stack treats entire mesh as <span class="g">single logical fabric</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.6em">
+        <h3>Scaling Advantage</h3>
+        <p>No proprietary interconnect hardware needed. Standard Ethernet from die edge to rack scale. Compare: NVIDIA requires <span class="r">NVLink + NVSwitch + InfiniBand</span> for equivalent multi-chip systems at $$$$ premium.</p>
+      </div>
+      <div class="card purple">
+        <h3>vs Other Multi-Chip Approaches</h3>
+        <table>
+          <thead><tr><th>Vendor</th><th>Interconnect</th></tr></thead>
+          <tbody>
+            <tr><td>NVIDIA</td><td><span class="r">NVLink + NVSwitch</span> (proprietary)</td></tr>
+            <tr><td>Groq</td><td>Plesiosynchronous (custom)</td></tr>
+            <tr><td>Cerebras</td><td>Single wafer (N/A)</td></tr>
+            <tr><td><span class="g">Tenstorrent</span></td><td><span class="g">Ethernet everywhere</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 08</div>
+</section>
+
+<!-- Slide 09: Software Stack Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Software Stack</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 300 280" width="300">
+        <defs><marker id="arr3" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
+        <text x="150" y="18" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Software Stack Layers</text>
+        <rect x="20" y="30" width="260" height="40" rx="6" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="150" y="55" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">PyTorch 2.0 Frontend</text>
+        <line x1="150" y1="70" x2="150" y2="85" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="20" y="85" width="260" height="40" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="150" y="110" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">TT-NN (Op Library)</text>
+        <line x1="150" y1="125" x2="150" y2="140" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="20" y="140" width="260" height="40" rx="6" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="150" y="165" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">TT-Metalium (Low-Level SDK)</text>
+        <line x1="150" y1="180" x2="150" y2="195" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="20" y="195" width="125" height="40" rx="6" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1"/>
+        <text x="82" y="220" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">RISC-V Cores</text>
+        <rect x="155" y="195" width="125" height="40" rx="6" fill="#1a1a2e" stroke="#f87171" stroke-width="1"/>
+        <text x="217" y="213" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="10">Matrix/Vector</text>
+        <text x="217" y="228" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="10">Engines</text>
+        <rect x="20" y="245" width="260" height="25" rx="4" fill="#1a1a2e" stroke="#4ecb8d" stroke-width=".8"/>
+        <text x="150" y="262" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Ethernet NoC + SRAM</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>TT-Metalium</h3>
+        <p>Low-level SDK. Direct control over Tensix cores, NoC, memory. Like writing CUDA kernels but for Tensix. <span class="g">Open-source on GitHub</span>.</p>
+      </div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>TT-NN</h3>
+        <p>Optimized matmul, attention, convolutions, normalization. Handles tiling across cores and mesh parallelism. Supersedes TT-BUDA.</p>
+      </div>
+      <div class="card purple">
+        <h3>PyTorch 2.0 Integration</h3>
+        <p>Custom backend for <span class="p">torch.compile()</span>. Run standard PyTorch models with minimal code changes. Compilation + dispatch to Tensix hardware.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 09</div>
+</section>
+
+<!-- Slide 10: Open-Source Strategy -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Open-Source Strategy</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green">
+        <h3>What's Open</h3>
+        <ul>
+          <li><span class="g">TT-Metalium SDK</span> &mdash; full low-level API</li>
+          <li><span class="g">TT-NN library</span> &mdash; optimized ops</li>
+          <li><span class="g">Hardware specs</span> &mdash; Tensix core, NoC topology, Ethernet interconnect documentation</li>
+          <li><span class="g">RISC-V core designs</span> &mdash; open ISA</li>
+          <li>All on GitHub under permissive licenses</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.6em">
+        <h3>vs Industry Norm</h3>
+        <table>
+          <thead><tr><th>Vendor</th><th>SDK</th><th>HW Specs</th><th>ISA</th></tr></thead>
+          <tbody>
+            <tr><td>NVIDIA</td><td><span class="r">Closed</span></td><td><span class="r">Closed</span></td><td><span class="r">Proprietary</span></td></tr>
+            <tr><td>Groq</td><td>Partial</td><td><span class="r">Closed</span></td><td><span class="r">Proprietary</span></td></tr>
+            <tr><td>Cerebras</td><td>Partial</td><td><span class="r">Closed</span></td><td><span class="r">Proprietary</span></td></tr>
+            <tr><td><span class="g">Tenstorrent</span></td><td><span class="g">Open</span></td><td><span class="g">Open</span></td><td><span class="g">RISC-V</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card amber">
+        <h3>The Bet</h3>
+        <p>Community adoption + ecosystem growth &gt; competitive risk of disclosure. Historical precedent: <span class="a">Linux, RISC-V, Android</span> &mdash; open platforms win at scale.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 10</div>
+</section>
+
+<!-- Slide 11: LLM Inference Performance -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>LLM Inference Performance</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Demonstrated Models</h3>
+        <ul>
+          <li><span class="g">Llama 2 / Llama 3</span> (7B, 13B, 70B)</li>
+          <li><span class="g">Falcon</span> (7B, 40B)</li>
+          <li><span class="g">Mistral</span> (7B)</li>
+          <li>Wormhole n300: competitive on 7B&ndash;13B</li>
+          <li>Blackhole Galaxy: extends to 70B-class</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Where Tenstorrent Shines</h3>
+        <ul>
+          <li>Workloads with <span class="a">sparse activations</span></li>
+          <li>Structured sparsity in attention patterns</li>
+          <li>Conditional execution skips zero tiles</li>
+          <li><span class="a">Cost-per-token</span> for specific model sizes</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.6em">
+        <h3>vs H100 (Dense Workloads)</h3>
+        <p>Current-gen Tenstorrent <span class="r">does not match H100 raw throughput</span> on dense, fully optimized workloads. NVIDIA benefits from: mature software (TensorRT-LLM, vLLM), HBM3 bandwidth, 20 years of CUDA ecosystem.</p>
+      </div>
+      <div class="card blue">
+        <h3>Cost Advantage</h3>
+        <ul>
+          <li>Ethernet mesh avoids <span class="b">NVLink/InfiniBand premium</span></li>
+          <li>No proprietary interconnect hardware</li>
+          <li>RISC-V: no per-chip license fees</li>
+          <li>Competitive TCO at specific workload profiles</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 11</div>
+</section>
+
+<!-- Slide 12: Architecture Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Architecture Comparison</h2></div>
+  <table>
+    <thead>
+      <tr><th>Feature</th><th>Tenstorrent</th><th>NVIDIA GPU</th><th>Groq LPU</th><th>Cerebras WSE</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Compute unit</td><td><span class="a">Tensix (5 RISC-V + engines)</span></td><td>Streaming Multiprocessor</td><td>TSP (spatial dataflow)</td><td>Sparse Linear Algebra Core</td></tr>
+      <tr><td>ISA</td><td><span class="g">RISC-V (open)</span></td><td>PTX (proprietary)</td><td>Proprietary</td><td>Proprietary</td></tr>
+      <tr><td>Memory</td><td>SRAM + GDDR6/HBM</td><td>HBM3/HBM3e</td><td><span class="r">SRAM only (230 MB)</span></td><td>SRAM (40 GB)</td></tr>
+      <tr><td>Interconnect</td><td><span class="g">Ethernet everywhere</span></td><td>NVLink + InfiniBand</td><td>Plesiosynchronous</td><td>On-wafer fabric</td></tr>
+      <tr><td>Sparsity</td><td><span class="g">Conditional execution</span></td><td>Limited (structured 2:4)</td><td>None</td><td>Native sparse</td></tr>
+      <tr><td>Training</td><td><span class="g">Yes (Blackhole)</span></td><td>Yes</td><td><span class="r">No</span></td><td>Yes</td></tr>
+      <tr><td>Open-source</td><td><span class="g">SDK + HW specs</span></td><td><span class="r">Closed</span></td><td>Partial</td><td>Partial</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">tenstorrent / 12</div>
+</section>
+
+<!-- Slide 13: Business Model -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Business Model</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Chip Sales</h3>
+        <ul>
+          <li>Wormhole n150/n300 accelerator cards</li>
+          <li>Blackhole next-gen cards</li>
+          <li>Galaxy multi-chip systems</li>
+          <li>Target: <span class="a">cost-efficient inference</span> at scale</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>IP Licensing (ARM-Style)</h3>
+        <ul>
+          <li>License RISC-V CPU core designs to third parties</li>
+          <li>License Tensix IP for integration into custom SoCs</li>
+          <li><span class="g">Less capital-intensive</span> than chip manufacturing</li>
+          <li>Creates broad ecosystem around Tenstorrent architecture</li>
+          <li>Jim Keller: explicitly inspired by ARM's mobile success</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 260 260" width="260">
+        <text x="130" y="18" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Dual Revenue Model</text>
+        <!-- Chip Sales circle -->
+        <circle cx="90" cy="110" r="60" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="90" y="95" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Chip</text>
+        <text x="90" y="112" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Sales</text>
+        <text x="90" y="135" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Cards + Systems</text>
+        <!-- IP Licensing circle -->
+        <circle cx="170" cy="110" r="60" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="170" y="95" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">IP</text>
+        <text x="170" y="112" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Licensing</text>
+        <text x="170" y="135" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">RISC-V + Tensix</text>
+        <!-- Overlap -->
+        <text x="130" y="105" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8">eco-</text>
+        <text x="130" y="118" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8">system</text>
+        <!-- Bottom label -->
+        <text x="130" y="200" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="10">Platform company, not just a chip vendor</text>
+        <text x="130" y="220" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Inspired by ARM's success in mobile</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 13</div>
+</section>
+
+<!-- Slide 14: Limitations -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Current Limitations</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Early Ecosystem</h3>
+      <ul>
+        <li>Software stack <span class="r">less mature than CUDA</span></li>
+        <li>Limited profiling tools and debuggers</li>
+        <li>Fewer community-contributed libraries</li>
+        <li>Many models need <span class="r">manual Metalium optimization</span></li>
+        <li>PyTorch frontend not yet fully optimized</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Limited Model Zoo</h3>
+      <ul>
+        <li>Fewer models run optimally out-of-the-box</li>
+        <li>Peak performance often requires custom kernels</li>
+        <li>NVIDIA has <span class="a">thousands of optimized models</span></li>
+        <li>Tenstorrent model coverage growing but narrow</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Dense Workload Gap</h3>
+      <ul>
+        <li><span class="p">GPUs excel on dense, regular workloads</span></li>
+        <li>Massive HBM3 bandwidth + optimized kernels</li>
+        <li>Conditional execution advantage only with actual sparsity</li>
+        <li>Fully dense models see less benefit</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Chicken-and-Egg Problem</h3>
+      <ul>
+        <li>Developers wait for <span class="b">hardware adoption</span></li>
+        <li>Customers wait for <span class="b">software maturity</span></li>
+        <li>Competing against NVIDIA's entrenched ecosystem</li>
+        <li>Open-source strategy aims to break the cycle</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 14</div>
+</section>
+
+<!-- Slide 15: Tenstorrent vs GPU Cost Model -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Cost &amp; Scaling Analysis</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <thead><tr><th>Cost Factor</th><th>Tenstorrent</th><th>NVIDIA</th></tr></thead>
+        <tbody>
+          <tr><td>Chip licensing</td><td><span class="g">No ISA fees</span></td><td>N/A (proprietary)</td></tr>
+          <tr><td>Interconnect HW</td><td><span class="g">Standard Ethernet</span></td><td><span class="r">NVLink + NVSwitch $$$</span></td></tr>
+          <tr><td>Multi-chip scaling</td><td>PCB traces + cables</td><td><span class="r">Proprietary bridges</span></td></tr>
+          <tr><td>Software lock-in</td><td><span class="g">Open SDK</span></td><td><span class="r">CUDA ecosystem</span></td></tr>
+          <tr><td>Dense perf/chip</td><td>Lower</td><td><span class="g">Higher</span></td></tr>
+          <tr><td>Sparse perf/chip</td><td><span class="g">Competitive</span></td><td>Limited 2:4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Where TCO Favors Tenstorrent</h3>
+        <ul>
+          <li>Large-scale deployments where <span class="g">interconnect cost dominates</span></li>
+          <li>Workloads with natural sparsity</li>
+          <li>Organizations avoiding vendor lock-in</li>
+          <li>Edge inference at volume (no license fees)</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <h3>Where TCO Favors NVIDIA</h3>
+        <ul>
+          <li>Dense models needing <span class="r">peak raw throughput</span></li>
+          <li>Teams with existing CUDA expertise</li>
+          <li>Workloads requiring mature framework support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 15</div>
+</section>
+
+<!-- Slide 16: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Architecture Strengths</h3>
+      <ul>
+        <li><span class="g">Tensix core</span>: 5 RISC-V cores + matrix/vector engines</li>
+        <li><span class="g">Conditional execution</span> exploits sparsity GPUs waste</li>
+        <li><span class="g">Ethernet everywhere</span> eliminates proprietary interconnect</li>
+        <li><span class="g">Open-source</span> SDK, HW specs, and ISA</li>
+        <li>Scales from chip to rack with same protocol</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Strategic Position</h3>
+      <ul>
+        <li><span class="a">Dual model</span>: chips + IP licensing</li>
+        <li>Three chip generations: Grayskull &rarr; Wormhole &rarr; Blackhole</li>
+        <li>Galaxy systems for multi-chip inference + training</li>
+        <li>Jim Keller's vision: <span class="a">RISC-V of AI accelerators</span></li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Honest Gaps</h3>
+      <ul>
+        <li>Dense throughput trails H100</li>
+        <li>Software ecosystem still maturing</li>
+        <li>Limited model zoo vs NVIDIA</li>
+        <li>Chicken-and-egg adoption challenge</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>The Big Question</h3>
+      <p>If the industry moves toward <span class="p">heterogeneous, composable AI infrastructure on open standards</span>, Tenstorrent is positioned to be the platform. Whether that future arrives &mdash; and how quickly &mdash; determines if the open hardware bet pays off.</p>
+    </div>
+  </div>
+  <div class="slide-footer">tenstorrent / 16</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,transition:'fade',transitionSpeed:'fast',controlsTutorial:false,controlsLayout:'edges',progress:true,center:false,margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>

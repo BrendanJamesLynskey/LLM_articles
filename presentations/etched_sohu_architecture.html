@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etched Sohu Architecture | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 01: Title -->
+<section class="title-slide">
+  <h1>Etched Sohu</h1>
+  <div class="subtitle">A Transformer-Specific ASIC for Inference</div>
+  <div style="margin-bottom:1.2em">
+    <span class="pill amber">ASIC</span>
+    <span class="pill green">transformer</span>
+    <span class="pill purple">inference</span>
+    <span class="pill blue">specialization</span>
+  </div>
+  <div class="meta">March 2026</div>
+  <div class="slide-footer">etched-sohu / 01</div>
+</section>
+
+<!-- Slide 02: Company Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Etched: Company Overview</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>The Company</h3>
+      <ul>
+        <li>Founded <span class="a">2022</span></li>
+        <li>Backed by <span class="a">Y Combinator</span></li>
+        <li>Raised <span class="a">$120M+</span> in venture funding</li>
+        <li>Chip: <span class="g">Sohu</span></li>
+        <li>Mission: fastest possible transformer inference</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The Thesis</h3>
+      <p>If transformers remain the dominant AI architecture, a chip that <span class="g">hardcodes transformer operations into silicon</span> will deliver unmatched inference efficiency.</p>
+      <p style="margin-top:.4em">If transformers are displaced, <span class="r">the chip is worthless</span>.</p>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>The Bet</h3>
+    <p>Etched is not building a general AI accelerator. Sohu is a <span class="p">single-architecture ASIC</span> &mdash; it can run transformers and nothing else. This is the most extreme specialization bet in the AI hardware space.</p>
+  </div>
+  <div class="slide-footer">etched-sohu / 02</div>
+</section>
+
+<!-- Slide 03: The Specialization Spectrum -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>The Specialization Spectrum</h2></div>
+  <svg class="diagram" viewBox="0 0 900 200" width="900">
+    <defs>
+      <marker id="arr" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker>
+      <linearGradient id="specGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#f87171" stop-opacity="0.3"/>
+      </linearGradient>
+    </defs>
+    <!-- Spectrum bar -->
+    <rect x="50" y="60" width="800" height="40" rx="8" fill="url(#specGrad)" stroke="#2a2a3a" stroke-width="1"/>
+    <line x1="50" y1="110" x2="850" y2="110" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
+    <text x="50" y="130" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">Flexible</text>
+    <text x="815" y="130" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="10">Specialized</text>
+    <!-- CPU -->
+    <rect x="80" y="30" width="70" height="24" rx="4" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.2"/>
+    <text x="115" y="46" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">CPU</text>
+    <line x1="115" y1="54" x2="115" y2="60" stroke="#60a5fa" stroke-width="1"/>
+    <!-- GPU -->
+    <rect x="220" y="30" width="70" height="24" rx="4" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="255" y="46" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">GPU</text>
+    <line x1="255" y1="54" x2="255" y2="60" stroke="#a78bfa" stroke-width="1"/>
+    <!-- FPGA -->
+    <rect x="380" y="30" width="70" height="24" rx="4" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+    <text x="415" y="46" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">FPGA</text>
+    <line x1="415" y1="54" x2="415" y2="60" stroke="#4ecb8d" stroke-width="1"/>
+    <!-- TPU / Groq -->
+    <rect x="540" y="30" width="100" height="24" rx="4" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+    <text x="590" y="46" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">TPU / Groq</text>
+    <line x1="590" y1="54" x2="590" y2="60" stroke="#f5a623" stroke-width="1"/>
+    <!-- Sohu -->
+    <rect x="730" y="22" width="100" height="32" rx="4" fill="#1a1a2e" stroke="#f87171" stroke-width="2"/>
+    <text x="780" y="43" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">SOHU</text>
+    <line x1="780" y1="54" x2="780" y2="60" stroke="#f87171" stroke-width="1.5"/>
+    <!-- Labels below -->
+    <text x="115" y="155" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="9">Any workload</text>
+    <text x="255" y="155" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="9">Parallel compute</text>
+    <text x="415" y="155" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="9">Reconfigurable</text>
+    <text x="590" y="155" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="9">AI inference</text>
+    <text x="780" y="155" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="9" font-weight="600">Transformers only</text>
+  </svg>
+  <div class="cols cols-3" style="margin-top:.4em">
+    <div class="card blue">
+      <h3>GPU Approach</h3>
+      <p>General-purpose CUDA cores, programmable pipelines, caches. Can run <span class="b">any workload</span> but carries overhead.</p>
+    </div>
+    <div class="card amber">
+      <h3>AI ASIC (TPU, Groq)</h3>
+      <p>Hardcode <span class="a">matrix multiply + general NN ops</span>. Efficient for many architectures, not just transformers.</p>
+    </div>
+    <div class="card red">
+      <h3>Sohu: Extreme ASIC</h3>
+      <p>Hardcode <span class="r">softmax, layer norm, attention, transformer-specific matmuls</span>. Maximum efficiency, zero flexibility.</p>
+    </div>
+  </div>
+  <div class="slide-footer">etched-sohu / 03</div>
+</section>
+
+<!-- Slide 04: What Gets Hardcoded -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>What Gets Burned into Silicon</h2></div>
+  <svg class="diagram" viewBox="0 0 800 320" width="800">
+    <defs><marker id="arr2" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
+    <text x="400" y="20" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="14" font-weight="700">Transformer Layer &rarr; Sohu Hardware Pipeline</text>
+    <!-- Input -->
+    <rect x="20" y="45" width="120" height="40" rx="6" fill="#1a1a2e" stroke="#8888a8" stroke-width="1"/>
+    <text x="80" y="69" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10">Input Tokens</text>
+    <line x1="140" y1="65" x2="170" y2="65" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+    <!-- QKV Projection -->
+    <rect x="170" y="40" width="120" height="50" rx="6" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="230" y="60" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">QKV Projection</text>
+    <text x="230" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Fixed matmul unit</text>
+    <line x1="290" y1="65" x2="320" y2="65" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+    <!-- Attention -->
+    <rect x="320" y="40" width="140" height="50" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="390" y="60" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Attention + Softmax</text>
+    <text x="390" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Hardwired pipeline</text>
+    <line x1="460" y1="65" x2="490" y2="65" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+    <!-- LayerNorm -->
+    <rect x="490" y="40" width="110" height="50" rx="6" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="545" y="60" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">Layer Norm</text>
+    <text x="545" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Dedicated circuit</text>
+    <line x1="600" y1="65" x2="630" y2="65" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+    <!-- FFN -->
+    <rect x="630" y="40" width="120" height="50" rx="6" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="690" y="60" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">FFN Layers</text>
+    <text x="690" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Fixed matmul unit</text>
+    <!-- Residual arrow -->
+    <path d="M230,90 L230,120 L690,120 L690,90" fill="none" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="460" y="136" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="9">Residual connection (hardwired)</text>
+    <!-- GPU comparison below -->
+    <rect x="50" y="170" width="700" height="55" rx="6" fill="#0e0e18" stroke="#2a2a3a" stroke-width="1"/>
+    <text x="400" y="190" text-anchor="middle" fill="#8888a8" font-family="Playfair Display,serif" font-size="11">GPU Equivalent: Each Op Dispatched as Separate Kernel</text>
+    <text x="120" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Instr Decode</text>
+    <text x="240" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Warp Schedule</text>
+    <text x="380" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Cache Lookup</text>
+    <text x="520" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">CUDA Dispatch</text>
+    <text x="660" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Kernel Launch</text>
+    <!-- Sohu label -->
+    <rect x="50" y="250" width="700" height="45" rx="6" fill="#0e0e18" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="400" y="270" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="11">Sohu: Entire Transformer Layer is a Fixed Hardware Pipeline</text>
+    <text x="400" y="286" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">No instruction decode. No scheduling. No cache. No kernel launches.</text>
+  </svg>
+  <div class="slide-footer">etched-sohu / 04</div>
+</section>
+
+<!-- Slide 05: Eliminating GPU Overhead -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Eliminating GPU Overhead</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>H100: Where Transistors Go</h3>
+      <ul>
+        <li>Instruction fetch &amp; decode pipeline</li>
+        <li>Warp schedulers (per SM)</li>
+        <li>Register files for arbitrary programs</li>
+        <li>L1 / L2 cache hierarchies</li>
+        <li>Memory management units</li>
+        <li>Branch predictors</li>
+        <li>PCIe / NVLink interface logic</li>
+      </ul>
+      <p style="margin-top:.3em"><span class="r">&lt;50%</span> of transistors are Tensor Cores doing actual matmul</p>
+    </div>
+    <div class="card green">
+      <h3>Sohu: Reclaimed Silicon</h3>
+      <ul>
+        <li><span class="g">No</span> general-purpose CUDA cores</li>
+        <li><span class="g">No</span> programmable shader pipelines</li>
+        <li><span class="g">No</span> instruction decoders for non-transformer ops</li>
+        <li><span class="g">No</span> hardware branch predictors</li>
+        <li><span class="g">No</span> complex cache hierarchy</li>
+        <li>Dataflow predetermined by architecture</li>
+      </ul>
+      <p style="margin-top:.3em">Freed silicon &rarr; <span class="g">more compute, wider data paths, larger SRAM</span></p>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Result</h3>
+    <p>Etched claims roughly <span class="a">an order of magnitude</span> more useful compute per watt and per mm&sup2; of silicon compared to a GPU running the same transformer workload.</p>
+  </div>
+  <div class="slide-footer">etched-sohu / 05</div>
+</section>
+
+<!-- Slide 06: Chip Design -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Sohu Chip Design</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Fabrication</h3>
+        <ul>
+          <li>Manufactured at <span class="a">TSMC</span></li>
+          <li>Advanced process node</li>
+          <li>Competitive transistor density vs H100 (TSMC 4N)</li>
+          <li>Same foundry as NVIDIA, Apple, AMD</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>On-Chip SRAM Strategy</h3>
+        <ul>
+          <li>Aggressive SRAM allocation for weights + activations</li>
+          <li>High bandwidth, low latency (sub-ns)</li>
+          <li>No HBM dependency on critical path</li>
+          <li>Trade: <span class="r">less capacity</span> for <span class="g">more bandwidth</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple" style="margin-bottom:.6em">
+        <h3>Memory Trade-Off</h3>
+        <table>
+          <thead><tr><th>Property</th><th>SRAM</th><th>HBM</th></tr></thead>
+          <tbody>
+            <tr><td>Bandwidth</td><td><span class="g">Very high</span></td><td>Moderate</td></tr>
+            <tr><td>Latency</td><td><span class="g">Sub-ns</span></td><td>~100s ns</td></tr>
+            <tr><td>Density</td><td><span class="r">Low</span></td><td><span class="g">High</span></td></tr>
+            <tr><td>Power/bit</td><td><span class="g">Low</span></td><td>Higher</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card blue">
+        <h3>Design Implication</h3>
+        <p>Limited per-chip SRAM capacity requires <span class="b">multi-chip configurations</span> for large models. Weights distributed via tensor parallelism across chips.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">etched-sohu / 06</div>
+</section>
+
+<!-- Slide 07: 8-Chip Server -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Eight-Chip Server Configuration</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Reference Deployment</h3>
+        <ul>
+          <li><span class="g">8 Sohu ASICs</span> per server</li>
+          <li>High-bandwidth, low-latency inter-chip links</li>
+          <li>Tensor-parallel model partitioning</li>
+          <li>Each chip holds a <span class="a">weight slice</span> in local SRAM</li>
+          <li>Collective SRAM holds full Llama 70B</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Design Balance</h3>
+        <p>8 chips balances <span class="a">per-chip SRAM limits</span> against practical server form factors and interconnect complexity. Low inter-chip latency preserves throughput.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 320" width="280">
+        <rect x="10" y="10" width="260" height="300" rx="10" fill="none" stroke="#2a2a3a" stroke-width="1.5"/>
+        <text x="140" y="35" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Sohu 8-Chip Server</text>
+        <!-- Chip grid: 2x4 -->
+        <rect x="30" y="50" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="80" y="75" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 0</text>
+        <text x="80" y="93" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="150" y="50" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="200" y="75" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 1</text>
+        <text x="200" y="93" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="30" y="115" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="80" y="140" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 2</text>
+        <text x="80" y="158" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="150" y="115" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="200" y="140" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 3</text>
+        <text x="200" y="158" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="30" y="180" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="80" y="205" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 4</text>
+        <text x="80" y="223" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="150" y="180" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="200" y="205" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 5</text>
+        <text x="200" y="223" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="30" y="245" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="80" y="270" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 6</text>
+        <text x="80" y="288" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="150" y="245" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="200" y="270" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 7</text>
+        <text x="200" y="288" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <!-- Interconnect lines -->
+        <line x1="130" y1="77" x2="150" y2="77" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="130" y1="142" x2="150" y2="142" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="130" y1="207" x2="150" y2="207" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="130" y1="272" x2="150" y2="272" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="80" y1="105" x2="80" y2="115" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="200" y1="105" x2="200" y2="115" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="80" y1="170" x2="80" y2="180" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="200" y1="170" x2="200" y2="180" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="80" y1="235" x2="80" y2="245" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="200" y1="235" x2="200" y2="245" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">etched-sohu / 07</div>
+</section>
+
+<!-- Slide 08: Claimed Performance -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Claimed Performance</h2></div>
+  <div class="cols cols-2">
+    <div class="card green" style="padding:1em">
+      <h3 style="font-size:1.1em">500,000+ tok/s</h3>
+      <p>On Llama 70B per 8-chip server<br>(aggregate throughput, many concurrent requests)</p>
+    </div>
+    <div class="card amber" style="padding:1em">
+      <h3 style="font-size:1.1em">10x+ Throughput vs H100</h3>
+      <p>Compared to equivalent NVIDIA H100-based server configuration</p>
+    </div>
+  </div>
+  <table style="margin-top:.8em">
+    <thead>
+      <tr><th>Metric</th><th>Sohu (8-chip server)</th><th>H100 Server</th><th>Claimed Advantage</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Llama 70B throughput</td><td><span class="g">500K+ tok/s</span></td><td>~50K tok/s</td><td><span class="a">&gt;10x</span></td></tr>
+      <tr><td>Architecture support</td><td><span class="r">Transformers only</span></td><td><span class="g">Any architecture</span></td><td>&mdash;</td></tr>
+      <tr><td>Training support</td><td><span class="r">No</span></td><td><span class="g">Yes</span></td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+  <div class="card red" style="margin-top:.8em">
+    <h3>Important Caveats</h3>
+    <ul>
+      <li>Pre-revenue startup; benchmarks <span class="r">not independently verified</span></li>
+      <li>Comparison baseline matters: naive H100 vs optimized TensorRT-LLM + FP8 + continuous batching</li>
+      <li>Specific batch sizes, sequence lengths, and quantization levels affect comparison</li>
+      <li>AI hardware startups have a <span class="r">history of unverified claims</span></li>
+    </ul>
+  </div>
+  <div class="slide-footer">etched-sohu / 08</div>
+</section>
+
+<!-- Slide 09: The Transformer Longevity Bet -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>The Transformer Longevity Bet</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Why Transformers Will Dominate</h3>
+      <ul>
+        <li><span class="g">Cross-modal dominance:</span> NLP, vision, speech, protein folding, robotics</li>
+        <li><span class="g">Scaling laws:</span> no saturation at current parameter counts</li>
+        <li><span class="g">Ecosystem lock-in:</span> tools, frameworks, training recipes, deployment infra</li>
+        <li><span class="g">Investment inertia:</span> billions spent on transformer-optimized hardware</li>
+        <li><span class="g">Research momentum:</span> vast majority of top papers use transformers</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>The Existential Risk</h3>
+      <ul>
+        <li><span class="r">RNNs dominated until transformers displaced them overnight</span></li>
+        <li><span class="r">Mamba / S4:</span> state-space models with linear sequence scaling</li>
+        <li><span class="r">RWKV:</span> recurrence-based alternative at scale</li>
+        <li><span class="r">Hybrid approaches:</span> mixing attention with other mechanisms</li>
+        <li>If any alternative wins: <span class="r">Sohu has zero residual value</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em">
+    <h3>The Core Question</h3>
+    <p>Sohu is a <span class="p">physical embodiment of a bet</span> on one specific computational graph. It cannot be reprogrammed, reconfigured, or adapted. The economic calculation: cost savings from purpose-built hardware over 3&ndash;5 years vs. the risk of stranded assets if the field shifts.</p>
+  </div>
+  <div class="slide-footer">etched-sohu / 09</div>
+</section>
+
+<!-- Slide 10: Competitive Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Competitive Landscape</h2></div>
+  <table>
+    <thead>
+      <tr><th>Chip</th><th>Approach</th><th>Flexibility</th><th>Training</th><th>Key Trade-Off</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="r">Etched Sohu</span></td><td>Transformer-specific ASIC</td><td><span class="r">None</span></td><td><span class="r">No</span></td><td>Max efficiency, zero adaptability</td></tr>
+      <tr><td><span class="a">Groq LPU</span></td><td>Programmable dataflow (TSP)</td><td><span class="a">Moderate</span></td><td><span class="r">No</span></td><td>Deterministic but not arch-locked</td></tr>
+      <tr><td><span class="b">Cerebras WSE</span></td><td>Wafer-scale engine</td><td><span class="g">High</span></td><td><span class="g">Yes</span></td><td>40 GB SRAM, any architecture</td></tr>
+      <tr><td><span class="p">NVIDIA H100</span></td><td>General-purpose GPU</td><td><span class="g">Maximum</span></td><td><span class="g">Yes</span></td><td>Flexible but overhead-heavy</td></tr>
+      <tr><td><span class="g">Google TPU</span></td><td>Systolic array + HBM</td><td><span class="g">High</span></td><td><span class="g">Yes</span></td><td>Tight JAX/TF integration</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-3" style="margin-top:.8em">
+    <div class="card amber">
+      <h3>vs. Groq</h3>
+      <p>Groq's TSP is <span class="a">programmable</span> &mdash; it can run CNNs, MoE routing, future architectures. Sohu trades this flexibility for <span class="g">higher per-op efficiency</span>.</p>
+    </div>
+    <div class="card blue">
+      <h3>vs. Cerebras</h3>
+      <p>WSE has <span class="b">40 GB on-chip SRAM</span> on a single die, supports training + inference, runs any architecture. More versatile but less specialized.</p>
+    </div>
+    <div class="card purple">
+      <h3>vs. GPUs</h3>
+      <p>GPUs support <span class="p">every architecture ever devised</span>. Organizations using Sohu still need GPUs for training, non-transformer inference, and experiments.</p>
+    </div>
+  </div>
+  <div class="slide-footer">etched-sohu / 10</div>
+</section>
+
+<!-- Slide 11: Software Stack -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Software Stack &amp; Model Support</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 300 280" width="300">
+        <defs><marker id="arr3" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
+        <text x="150" y="20" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Sohu Software Pipeline</text>
+        <rect x="30" y="35" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="150" y="57" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">Standard Model (Llama, etc.)</text>
+        <line x1="150" y1="71" x2="150" y2="85" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="30" y="85" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <text x="150" y="107" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">Architecture Validation</text>
+        <line x1="150" y1="121" x2="150" y2="135" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="30" y="135" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="150" y="157" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">8-Chip Partitioning</text>
+        <line x1="150" y1="171" x2="150" y2="185" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="30" y="185" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.2"/>
+        <text x="150" y="207" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">Data Routing Config</text>
+        <line x1="150" y1="221" x2="150" y2="235" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="30" y="235" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="150" y="257" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Deploy to Sohu Hardware</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Supported Models</h3>
+        <ul>
+          <li><span class="g">Llama family</span> (7B, 13B, 70B)</li>
+          <li>Standard transformer variants</li>
+          <li>Different hidden dims, head counts, layer depths</li>
+          <li>Open-weight models in standard formats</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <h3>Constraints</h3>
+        <ul>
+          <li>Model <span class="r">must conform</span> to transformer template</li>
+          <li>Novel attention patterns need hardware validation</li>
+          <li>Non-standard normalization may not be supported</li>
+          <li>"Compilation" verifies compatibility, not arbitrary code</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">etched-sohu / 11</div>
+</section>
+
+<!-- Slide 12: Inference Economics -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Inference Economics</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>If 10x Throughput Holds</h3>
+      <ul>
+        <li><span class="g">10x fewer servers</span> for same request volume</li>
+        <li>Proportional reduction in CapEx</li>
+        <li>Proportional reduction in power &amp; cooling</li>
+        <li>Proportional reduction in datacenter floor space</li>
+        <li>Dramatic <span class="g">cost-per-token improvement</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>The Economic Calculation</h3>
+      <p>For hyperscale providers processing <span class="a">billions of tokens/day</span>, even a <span class="a">2&ndash;3x verified improvement</span> in cost per token justifies the risk of architecture lock-in.</p>
+      <p style="margin-top:.4em">The bet: savings over <span class="a">3&ndash;5 years</span> of transformer inference vs. risk of stranded assets.</p>
+    </div>
+  </div>
+  <table style="margin-top:.8em">
+    <thead>
+      <tr><th>Factor</th><th>Sohu Advantage</th><th>GPU Advantage</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Throughput per server</td><td><span class="g">10x+ claimed</span></td><td>&mdash;</td></tr>
+      <tr><td>Cost per token (transformer)</td><td><span class="g">Significant reduction</span></td><td>&mdash;</td></tr>
+      <tr><td>Flexibility</td><td>&mdash;</td><td><span class="b">Any model, train + infer</span></td></tr>
+      <tr><td>Risk of stranded assets</td><td><span class="r">High</span></td><td><span class="g">Low</span></td></tr>
+      <tr><td>Software ecosystem</td><td><span class="r">Narrow</span></td><td><span class="g">Mature (CUDA)</span></td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">etched-sohu / 12</div>
+</section>
+
+<!-- Slide 13: Risk Analysis -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Risk Analysis</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Architecture Lock-In</h3>
+      <ul>
+        <li>Chip is physically <span class="r">incapable of non-transformer work</span></li>
+        <li>Cannot be reprogrammed or reconfigured</li>
+        <li>Zero residual value if transformers displaced</li>
+        <li>History: RNNs &rarr; transformers happened fast</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Unverified Claims</h3>
+      <ul>
+        <li>Pre-revenue startup</li>
+        <li>No independent benchmarks</li>
+        <li>AI hardware has history of <span class="a">optimistic projections</span></li>
+        <li>Baseline comparison methodology unclear</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Ecosystem Risk</h3>
+      <ul>
+        <li>Narrow model support vs CUDA</li>
+        <li>Still need GPUs for training</li>
+        <li>Custom architectures may not work</li>
+        <li>Vendor lock-in to single startup</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card blue">
+      <h3>Post-Transformer Threats</h3>
+      <table>
+        <thead><tr><th>Architecture</th><th>Threat Level</th></tr></thead>
+        <tbody>
+          <tr><td>Mamba / S4 (state-space)</td><td><span class="a">Moderate</span> &mdash; linear scaling with sequence length</td></tr>
+          <tr><td>RWKV (recurrence)</td><td><span class="a">Moderate</span> &mdash; scaling to 14B+ params</td></tr>
+          <tr><td>Hybrid architectures</td><td><span class="r">High</span> &mdash; may break Sohu's fixed pipeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card green">
+      <h3>Mitigating Factors</h3>
+      <ul>
+        <li>Transformers have <span class="g">8+ years of dominance</span></li>
+        <li>No alternative has matched transformers at scale</li>
+        <li>Massive ecosystem switching costs</li>
+        <li>Even hybrids typically <span class="g">include attention layers</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">etched-sohu / 13</div>
+</section>
+
+<!-- Slide 14: Industry Skepticism -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>Early Reception &amp; Skepticism</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Sources of Enthusiasm</h3>
+      <ul>
+        <li>Genuine GPU inference limitations are well-documented</li>
+        <li>Clean-sheet ASIC design is <span class="g">intellectually compelling</span></li>
+        <li>YC backing and $120M+ funding signal credibility</li>
+        <li>Transformer dominance shows no near-term signs of ending</li>
+        <li>Inference cost reduction is an urgent industry need</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Sources of Skepticism</h3>
+      <ul>
+        <li><span class="r">Pre-production hardware</span> &mdash; no shipping product yet</li>
+        <li>Claims require superior silicon <span class="r">and</span> optimized multi-chip data movement</li>
+        <li>Many AI hardware startups have <span class="r">failed to deliver</span></li>
+        <li>GPU software (TensorRT-LLM, vLLM) keeps improving</li>
+        <li>The ASIC graveyard is large</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em">
+    <h3>What Would Validate Sohu</h3>
+    <p>Independent benchmarks on production hardware, at realistic batch sizes, with optimized GPU baselines (TensorRT-LLM + FP8 + continuous batching + speculative decoding). Until then, <span class="p">all performance claims remain provisional</span>.</p>
+  </div>
+  <div class="slide-footer">etched-sohu / 14</div>
+</section>
+
+<!-- Slide 15: Implications -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Broader Implications</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>For Inference Providers</h3>
+        <ul>
+          <li>If Sohu delivers, <span class="a">cost per token drops dramatically</span></li>
+          <li>Hyperscalers processing billions of tokens/day benefit most</li>
+          <li>Could reshape <span class="a">inference pricing</span> across the industry</li>
+          <li>But requires committing to transformer-only infrastructure</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>For the Hardware Ecosystem</h3>
+        <ul>
+          <li>Tests the <span class="b">extreme specialization thesis</span></li>
+          <li>If successful, expect more single-architecture ASICs</li>
+          <li>If it fails, validates GPU generality</li>
+          <li>Either outcome informs future chip design philosophy</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>For ML Engineers</h3>
+        <ul>
+          <li>Worth monitoring as production hardware ships</li>
+          <li>Do not plan infrastructure around unverified claims</li>
+          <li>Keep GPU infrastructure for <span class="g">training + flexibility</span></li>
+          <li>Evaluate Sohu when independent benchmarks arrive</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <h3>For AI Research</h3>
+        <ul>
+          <li>Hardware bets are deeply coupled to <span class="p">architectural assumptions</span></li>
+          <li>Post-transformer research directly threatens Sohu's value</li>
+          <li>Highlights how <span class="p">hardware and software co-evolve</span></li>
+          <li>Architecture decisions have multi-year hardware consequences</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">etched-sohu / 15</div>
+</section>
+
+<!-- Slide 16: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>The Promise</h3>
+      <ul>
+        <li>Hardcode transformers into silicon &rarr; <span class="g">eliminate all GPU overhead</span></li>
+        <li><span class="g">500K+ tok/s</span> on Llama 70B per 8-chip server</li>
+        <li><span class="g">10x+ throughput</span> vs H100 (claimed)</li>
+        <li>Order-of-magnitude improvement in <span class="g">inference economics</span></li>
+        <li>TSMC fabrication, on-chip SRAM for bandwidth</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>The Risk</h3>
+      <ul>
+        <li><span class="r">Single-architecture ASIC</span>: transformers or nothing</li>
+        <li>Benchmarks <span class="r">not independently verified</span></li>
+        <li>History of AI hardware claims that don't survive production</li>
+        <li>Post-transformer architectures (Mamba, RWKV) exist</li>
+        <li>GPU software keeps <span class="r">closing the gap</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Bottom Line</h3>
+    <p>Etched Sohu is the <span class="a">logical extreme of the specialization thesis</span>. If you know exactly what computation you need, you can build hardware that does it with unmatched efficiency. The potential reward is enormous. The potential risk is equally stark. For ML engineers: <span class="a">watch closely, wait for production benchmarks, and maintain GPU flexibility</span>.</p>
+  </div>
+  <div class="slide-footer">etched-sohu / 16</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,transition:'fade',transitionSpeed:'fast',controlsTutorial:false,controlsLayout:'edges',progress:true,center:false,margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>

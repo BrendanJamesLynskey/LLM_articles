@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inference Serving Frameworks | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 1: Title -->
+<section class="title-slide">
+  <h1>Inference Serving Frameworks</h1>
+  <div class="subtitle">From Model to Production Endpoint</div>
+  <p>Bridging the gap between trained weights and scalable, low-latency HTTP APIs</p>
+  <div class="meta">March 2026 &mdash; Technical Deep Dive</div>
+  <div class="slide-footer">serving-frameworks / 01</div>
+</section>
+
+<!-- Slide 2: The Serving Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>Why Serving LLMs Is Hard</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Autoregressive Bottleneck</h3>
+      <ul>
+        <li>Each token depends on <span class="a">all previous tokens</span></li>
+        <li>Sequential generation underutilizes GPU parallelism</li>
+        <li>Single request saturates <span class="a">&lt;10%</span> of GPU compute</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>KV Cache Memory Pressure</h3>
+      <ul>
+        <li>70B model at 128K context: <span class="r">~40GB KV cache</span> per request</li>
+        <li>Contiguous allocation causes <span class="r">fragmentation</span></li>
+        <li>Memory, not compute, is the typical bottleneck</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 900 120" width="900" height="120">
+    <rect x="10" y="20" width="160" height="60" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="90" y="55" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="14">HTTP Request</text>
+    <line x1="170" y1="50" x2="240" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="240" y="20" width="160" height="60" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="320" y="55" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="14">Scheduler</text>
+    <line x1="400" y1="50" x2="470" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="470" y="20" width="160" height="60" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="550" y="55" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="14">GPU Engine</text>
+    <line x1="630" y1="50" x2="700" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="700" y="20" width="180" height="60" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="790" y="55" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="14">Token Stream (SSE)</text>
+    <defs><marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8888a8"/></marker></defs>
+  </svg>
+  <div class="slide-footer">serving-frameworks / 02</div>
+</section>
+
+<!-- Slide 3: Core Techniques -->
+<section>
+  <div class="slide-hdr"><span class="tag">TECHNIQUES</span><h2>Core Serving Optimizations</h2></div>
+  <div class="cols cols-3">
+    <div class="card green">
+      <h3>Continuous Batching</h3>
+      <p>New requests enter the batch at each iteration, not waiting for the longest sequence to finish. Maximizes GPU utilization.</p>
+    </div>
+    <div class="card purple">
+      <h3>Paged KV Cache</h3>
+      <p>KV cache split into fixed-size blocks mapped via a block table. Eliminates fragmentation, enables near-100% memory use.</p>
+    </div>
+    <div class="card blue">
+      <h3>Speculative Decoding</h3>
+      <p>Small draft model proposes N tokens; large model verifies in one forward pass. 2-3x latency reduction with identical outputs.</p>
+    </div>
+  </div>
+  <div class="cols cols-3" style="margin-top:.8em">
+    <div class="card amber">
+      <h3>Prefix Caching</h3>
+      <p>Shared system prompts computed once, KV blocks reused across requests. Saves 20-40% prefill compute.</p>
+    </div>
+    <div class="card red">
+      <h3>Kernel Fusion</h3>
+      <p>FlashAttention, fused RoPE, and custom GEMM kernels reduce memory round-trips and kernel launch overhead.</p>
+    </div>
+    <div class="card green">
+      <h3>Quantization</h3>
+      <p>FP8, INT4, GPTQ, AWQ, GGUF -- shrink model footprint by 2-4x with minimal quality degradation.</p>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 03</div>
+</section>
+
+<!-- Slide 4: vLLM -->
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORK</span><h2>vLLM</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>PagedAttention Engine</h3>
+      <p>Borrows virtual memory concepts from OS design. KV cache is split into <span class="a">pages</span> mapped through a block table, eliminating internal fragmentation and enabling near-optimal memory utilization.</p>
+      <h3>Key Capabilities</h3>
+      <ul>
+        <li><span class="g">Continuous batching</span> with preemption support</li>
+        <li><span class="g">Prefix caching</span> -- automatic KV block reuse</li>
+        <li><span class="g">Multi-LoRA</span> -- hot-swap adapters per request</li>
+        <li><span class="g">Speculative decoding</span> with draft models</li>
+        <li>Tensor parallelism across multi-GPU nodes</li>
+        <li>OpenAI-compatible API server</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 280" width="320" height="280">
+        <text x="160" y="20" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="15" font-weight="700">PagedAttention</text>
+        <!-- Physical blocks -->
+        <rect x="20" y="40" width="60" height="40" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="50" y="65" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Blk 0</text>
+        <rect x="90" y="40" width="60" height="40" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="120" y="65" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Blk 1</text>
+        <rect x="160" y="40" width="60" height="40" rx="4" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="190" y="65" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Blk 2</text>
+        <rect x="230" y="40" width="60" height="40" rx="4" fill="#10101a" stroke="#8888a8" stroke-width="1" stroke-dasharray="4"/>
+        <text x="260" y="65" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Free</text>
+        <text x="160" y="105" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">GPU Memory (non-contiguous)</text>
+        <!-- Block table -->
+        <rect x="60" y="130" width="200" height="30" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="160" y="150" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">Block Table: [0, 2, 1]</text>
+        <!-- Logical sequence -->
+        <rect x="40" y="185" width="80" height="35" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="80" y="207" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Seq A</text>
+        <rect x="130" y="185" width="80" height="35" rx="4" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="170" y="207" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">Seq B</text>
+        <rect x="220" y="185" width="80" height="35" rx="4" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+        <text x="260" y="207" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Seq C</text>
+        <text x="160" y="250" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">Logical sequences share blocks</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 04</div>
+</section>
+
+<!-- Slide 5: TensorRT-LLM -->
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORK</span><h2>TensorRT-LLM</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Compiler-Driven Optimization</h3>
+      <ul>
+        <li>Compiles model into <span class="a">hardware-specific execution plan</span></li>
+        <li>Aggressive kernel fusion across layers</li>
+        <li>Native <span class="a">FP8</span> on Hopper/Blackwell GPUs</li>
+        <li>INT4 AWQ/GPTQ quantization support</li>
+        <li>Custom GEMM schedules per GPU architecture</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Runtime Features</h3>
+      <ul>
+        <li><span class="g">Inflight batching</span> with preemption</li>
+        <li>Paged KV cache management</li>
+        <li>Tensor + pipeline parallelism</li>
+        <li>Speculative decoding (Medusa, Eagle)</li>
+        <li>Integrates with Triton Inference Server</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Trade-off</h3>
+    <p><span class="p">Highest raw throughput on NVIDIA GPUs</span> at the cost of portability. Requires explicit compilation steps and is locked to NVIDIA hardware. Best for stable, high-volume production deployments on NVIDIA infrastructure.</p>
+  </div>
+  <div class="slide-footer">serving-frameworks / 05</div>
+</section>
+
+<!-- Slide 6: TGI -->
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORK</span><h2>Text Generation Inference (TGI)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Hugging Face's Production Server</h3>
+      <p>Written in <span class="b">Rust</span> for the serving layer with Python model backends. Prioritizes operational simplicity and ecosystem integration.</p>
+      <ul>
+        <li>One-command Docker deployment for most HF Hub models</li>
+        <li>Continuous batching + Flash Attention</li>
+        <li>Quantization: <span class="pill green">GPTQ</span> <span class="pill purple">AWQ</span> <span class="pill blue">bitsandbytes</span></li>
+        <li>Grammar-constrained structured output</li>
+        <li>Token streaming via SSE</li>
+        <li>Built-in Prometheus metrics + distributed tracing</li>
+        <li>Watermarking support for generated text</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Sweet Spot</h3>
+        <p>Teams wanting a <span class="g">reliable, well-integrated</span> serving layer without deep performance tuning. Sensible defaults, strong observability, and tight HF ecosystem integration.</p>
+      </div>
+      <pre style="margin-top:.6em"><code>docker run --gpus all \
+  -p 8080:80 \
+  ghcr.io/huggingface/\
+  text-generation-inference \
+  --model-id meta-llama/\
+  Llama-3-70B-Instruct \
+  --quantize awq</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 06</div>
+</section>
+
+<!-- Slide 7: SGLang -->
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORK</span><h2>SGLang</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>RadixAttention</h3>
+      <p>Organizes cached KV prefixes in a <span class="p">radix tree</span>. Enables automatic, fine-grained prefix matching without explicit declaration. Ideal for agentic workloads with shared system prompts.</p>
+      <svg class="diagram" viewBox="0 0 360 170" width="360" height="170">
+        <circle cx="180" cy="25" r="18" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="180" y="30" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">root</text>
+        <line x1="165" y1="43" x2="100" y2="75" stroke="#a78bfa" stroke-width="1"/>
+        <line x1="195" y1="43" x2="260" y2="75" stroke="#a78bfa" stroke-width="1"/>
+        <circle cx="100" cy="90" r="18" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="100" y="95" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">sys_A</text>
+        <circle cx="260" cy="90" r="18" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="260" y="95" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">sys_B</text>
+        <line x1="85" y1="108" x2="50" y2="135" stroke="#f5a623" stroke-width="1"/>
+        <line x1="115" y1="108" x2="150" y2="135" stroke="#f5a623" stroke-width="1"/>
+        <circle cx="50" cy="150" r="16" fill="#10101a" stroke="#8888a8" stroke-width="1"/>
+        <text x="50" y="154" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">req1</text>
+        <circle cx="150" cy="150" r="16" fill="#10101a" stroke="#8888a8" stroke-width="1"/>
+        <text x="150" y="154" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">req2</text>
+        <line x1="245" y1="108" x2="220" y2="135" stroke="#4ecb8d" stroke-width="1"/>
+        <line x1="275" y1="108" x2="300" y2="135" stroke="#4ecb8d" stroke-width="1"/>
+        <circle cx="220" cy="150" r="16" fill="#10101a" stroke="#8888a8" stroke-width="1"/>
+        <text x="220" y="154" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">req3</text>
+        <circle cx="300" cy="150" r="16" fill="#10101a" stroke="#8888a8" stroke-width="1"/>
+        <text x="300" y="154" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">req4</text>
+      </svg>
+    </div>
+    <div>
+      <h3>Frontend DSL</h3>
+      <p>Composable Python functions for multi-turn, branching, and constrained generation. Runtime optimizes across structured programs.</p>
+      <pre><code>@sgl.function
+def tool_agent(s, query):
+    s += sgl.system("You are a tool agent.")
+    s += sgl.user(query)
+    s += sgl.assistant(
+        sgl.gen("thought",
+            max_tokens=256))
+    s += sgl.assistant(
+        sgl.gen("action",
+            choices=["search",
+                     "calculate",
+                     "respond"]))</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 07</div>
+</section>
+
+<!-- Slide 8: llama.cpp & Ollama -->
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORK</span><h2>llama.cpp & Ollama</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>llama.cpp</h3>
+      <ul>
+        <li>Pure C/C++ with <span class="b">minimal dependencies</span></li>
+        <li>GGUF quantization: 2-bit through 8-bit</li>
+        <li>Runs on CPU, Apple Silicon, CUDA, Vulkan, SYCL</li>
+        <li>From Raspberry Pi to MacBook Pro</li>
+        <li>Grammar-based constrained generation (GBNF)</li>
+        <li>Broad architecture support (LLaMA, Mistral, Phi, Gemma, Qwen, ...)</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Ollama</h3>
+      <ul>
+        <li><span class="g">Docker-like UX</span> for local LLM serving</li>
+        <li>Model registry with one-command pull + run</li>
+        <li>Automatic quantization and memory management</li>
+        <li>REST API + native client libraries</li>
+        <li>Model layering with Modelfile</li>
+        <li>De facto standard for local LLM development</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <pre><code># llama.cpp server
+./llama-server \
+  -m llama3-70b-Q4_K_M.gguf \
+  --port 8080 --n-gpu-layers 40</code></pre>
+    <pre><code># Ollama
+ollama run llama3:70b
+# That's it. Model downloads, quantizes
+# if needed, and serves automatically.</code></pre>
+  </div>
+  <div class="slide-footer">serving-frameworks / 08</div>
+</section>
+
+<!-- Slide 9: Triton Inference Server -->
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORK</span><h2>Triton Inference Server</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <svg class="diagram" viewBox="0 0 260 300" width="260" height="300">
+        <rect x="30" y="10" width="200" height="40" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="130" y="35" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="13" font-weight="600">gRPC / HTTP API</text>
+        <line x1="130" y1="50" x2="130" y2="70" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="30" y="70" width="200" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="130" y="95" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Request Router</text>
+        <line x1="80" y1="110" x2="80" y2="135" stroke="#8888a8" stroke-width="1"/>
+        <line x1="180" y1="110" x2="180" y2="135" stroke="#8888a8" stroke-width="1"/>
+        <rect x="20" y="135" width="120" height="35" rx="5" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="80" y="157" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">TensorRT-LLM</text>
+        <rect x="150" y="135" width="90" height="35" rx="5" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="195" y="157" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">vLLM</text>
+        <line x1="80" y1="170" x2="80" y2="195" stroke="#8888a8" stroke-width="1"/>
+        <line x1="180" y1="170" x2="180" y2="195" stroke="#8888a8" stroke-width="1"/>
+        <rect x="20" y="195" width="120" height="35" rx="5" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+        <text x="80" y="217" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Embeddings</text>
+        <rect x="150" y="195" width="90" height="35" rx="5" fill="#10101a" stroke="#8888a8" stroke-width="1"/>
+        <text x="195" y="217" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Reranker</text>
+        <rect x="30" y="250" width="200" height="35" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="130" y="272" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="12">Model Ensemble Pipeline</text>
+      </svg>
+    </div>
+    <div>
+      <h3>Multi-Model Orchestrator</h3>
+      <p>Triton is not an LLM engine itself -- it <span class="a">orchestrates multiple backends</span> behind a unified API. Ideal for heterogeneous model serving.</p>
+      <ul>
+        <li><span class="a">Model ensembles</span> -- chain LLM + embedder + reranker</li>
+        <li>Dynamic batching across model types</li>
+        <li>A/B testing and canary deployments</li>
+        <li>Backends: TensorRT-LLM, vLLM, ONNX, PyTorch, TensorFlow</li>
+        <li>GPU resource sharing and model prioritization</li>
+        <li>Production-grade metrics and health checks</li>
+      </ul>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>When to use Triton</h3>
+        <p>When LLMs are <span class="p">one component</span> in a larger serving infrastructure alongside embeddings, classifiers, and other models.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 09</div>
+</section>
+
+<!-- Slide 10: Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARE</span><h2>Framework Comparison</h2></div>
+  <table>
+    <thead>
+      <tr><th>Feature</th><th>vLLM</th><th>TensorRT-LLM</th><th>TGI</th><th>SGLang</th><th>llama.cpp</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Batching</span></td><td>Continuous</td><td>Inflight</td><td>Continuous</td><td>Continuous</td><td>Limited</td></tr>
+      <tr><td><span class="a">KV Cache</span></td><td>PagedAttention</td><td>Paged</td><td>Paged</td><td>RadixAttention</td><td>Static</td></tr>
+      <tr><td><span class="a">Multi-LoRA</span></td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Adapter</td></tr>
+      <tr><td><span class="a">Spec. Decoding</span></td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Draft model</td></tr>
+      <tr><td><span class="a">Structured Output</span></td><td>Outlines</td><td>JSON mode</td><td>Grammar</td><td>Native DSL</td><td>GBNF</td></tr>
+      <tr><td><span class="a">Quantization</span></td><td>GPTQ/AWQ/FP8</td><td>FP8/INT4/INT8</td><td>GPTQ/AWQ</td><td>GPTQ/AWQ/FP8</td><td>GGUF 2-8b</td></tr>
+      <tr><td><span class="a">Hardware</span></td><td>NVIDIA/AMD/TPU</td><td>NVIDIA only</td><td>NVIDIA/AMD</td><td>NVIDIA/AMD</td><td>CPU/GPU/Metal</td></tr>
+      <tr><td><span class="a">Strength</span></td><td><span class="g">Throughput</span></td><td><span class="r">Raw perf.</span></td><td><span class="b">Ease of use</span></td><td><span class="p">Agentic</span></td><td><span class="g">Accessible</span></td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">serving-frameworks / 10</div>
+</section>
+
+<!-- Slide 11: Key Serving Features -->
+<section>
+  <div class="slide-hdr"><span class="tag">FEATURES</span><h2>Production-Essential Capabilities</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Token Streaming (SSE)</h3>
+      <p>Server-sent events deliver tokens as they are generated. Universal across all frameworks. Essential for responsive UX.</p>
+    </div>
+    <div class="card green">
+      <h3>Multi-LoRA Serving</h3>
+      <p>Single base model serves <span class="g">dozens of fine-tuned variants</span> simultaneously. Per-request adapter selection reduces GPU cost dramatically.</p>
+    </div>
+    <div class="card purple">
+      <h3>Speculative Decoding</h3>
+      <p>Draft model proposes tokens, target model verifies in parallel. <span class="p">2-3x latency reduction</span> with mathematically identical outputs.</p>
+    </div>
+    <div class="card blue">
+      <h3>Structured Output</h3>
+      <p>Grammar-constrained decoding, JSON schema enforcement, regex-guided generation. Critical for <span class="b">function calling</span> and data extraction pipelines.</p>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 11</div>
+</section>
+
+<!-- Slide 12: Scaling & Load Balancing -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCALING</span><h2>Scaling & Load Balancing</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>LLM-Specific Challenges</h3>
+      <ul>
+        <li>Request durations vary by <span class="r">orders of magnitude</span></li>
+        <li>Round-robin creates hot spots -- avoid it</li>
+        <li>CPU-based autoscaling metrics are meaningless for GPU workloads</li>
+      </ul>
+      <h3 style="margin-top:.5em">Effective Strategies</h3>
+      <ul>
+        <li><span class="g">Load-aware routing</span>: consider batch occupancy + KV cache utilization</li>
+        <li><span class="p">Prefix-aware routing</span>: direct similar prompts to same instance for cache hits (20-40% throughput gain)</li>
+        <li><span class="b">GPU-aware autoscaling</span>: scale on GPU util + queue depth, not CPU</li>
+        <li><span class="a">Least-connections</span>: simple but effective baseline</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
+        <text x="150" y="20" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="14" font-weight="700">Prefix-Aware Router</text>
+        <!-- Requests -->
+        <rect x="10" y="40" width="80" height="28" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="1"/>
+        <text x="50" y="58" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">sys_A + q1</text>
+        <rect x="110" y="40" width="80" height="28" rx="4" fill="#10101a" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="150" y="58" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">sys_B + q2</text>
+        <rect x="210" y="40" width="80" height="28" rx="4" fill="#10101a" stroke="#f5a623" stroke-width="1"/>
+        <text x="250" y="58" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">sys_A + q3</text>
+        <!-- Router -->
+        <rect x="75" y="95" width="150" height="35" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="150" y="117" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="12" font-weight="600">Prefix Router</text>
+        <line x1="50" y1="68" x2="130" y2="95" stroke="#f5a623" stroke-width="1"/>
+        <line x1="150" y1="68" x2="150" y2="95" stroke="#4ecb8d" stroke-width="1"/>
+        <line x1="250" y1="68" x2="170" y2="95" stroke="#f5a623" stroke-width="1"/>
+        <!-- Instances -->
+        <rect x="20" y="165" width="110" height="50" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="75" y="185" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="11" font-weight="600">Instance 1</text>
+        <text x="75" y="203" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">cached: sys_A</text>
+        <rect x="170" y="165" width="110" height="50" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="225" y="185" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11" font-weight="600">Instance 2</text>
+        <text x="225" y="203" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">cached: sys_B</text>
+        <line x1="120" y1="130" x2="75" y2="165" stroke="#f5a623" stroke-width="1" marker-end="url(#arrow)"/>
+        <line x1="180" y1="130" x2="225" y2="165" stroke="#4ecb8d" stroke-width="1" marker-end="url(#arrow)"/>
+        <text x="150" y="250" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Requests with same prefix &rarr; same instance</text>
+        <text x="150" y="270" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">+20-40% throughput from cache reuse</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 12</div>
+</section>
+
+<!-- Slide 13: Decision Framework -->
+<section>
+  <div class="slide-hdr"><span class="tag">GUIDE</span><h2>Choosing a Framework</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Max Throughput on NVIDIA</h3>
+      <p>Use <span class="a">TensorRT-LLM</span>. Stable model, NVIDIA-only infra, willing to invest in build pipeline. The performance ceiling.</p>
+    </div>
+    <div class="card green">
+      <h3>General-Purpose Serving</h3>
+      <p>Use <span class="g">vLLM</span>. Best balance of performance, flexibility, and community. Broad hardware support, rapid iteration.</p>
+    </div>
+    <div class="card purple">
+      <h3>Agentic / Structured Workloads</h3>
+      <p>Use <span class="p">SGLang</span>. RadixAttention and frontend DSL excel at multi-step reasoning and constrained generation.</p>
+    </div>
+    <div class="card blue">
+      <h3>HuggingFace Ecosystem</h3>
+      <p>Use <span class="b">TGI</span>. Operational simplicity, one-command deploy, strong observability. Pragmatic and reliable.</p>
+    </div>
+    <div class="card red">
+      <h3>Local / Edge / Consumer HW</h3>
+      <p>Use <span class="r">llama.cpp / Ollama</span>. CPU, Apple Silicon, modest GPUs. Development, privacy-sensitive, and edge deployments.</p>
+    </div>
+    <div class="card amber">
+      <h3>Multi-Model Infrastructure</h3>
+      <p>Use <span class="a">Triton</span>. LLMs alongside embedders, rerankers, classifiers behind a unified API. The orchestration layer.</p>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 13</div>
+</section>
+
+<!-- Slide 14: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>The Landscape Has Matured</h3>
+      <ul>
+        <li>Shared architectural principles: <span class="g">continuous batching</span>, <span class="p">paged KV caches</span>, <span class="b">speculative decoding</span></li>
+        <li>Implementations diverge in optimization targets and operational philosophy</li>
+        <li>Many organizations run <span class="a">multiple frameworks</span> -- latency-sensitive interactive + throughput-optimized batch</li>
+      </ul>
+      <h3 style="margin-top:.5em">What Matters Most</h3>
+      <ul>
+        <li>Understanding trade-offs is as important as understanding the models</li>
+        <li>Cost-per-token is the north star metric driving framework evolution</li>
+        <li>The best framework depends on <span class="a">your</span> workload, hardware, and team</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>The Convergence</h3>
+        <p>What began as simple model wrappers has evolved into sophisticated systems managing memory at the page level, compiling hardware-specific execution plans, and coordinating complex multi-step generation programs.</p>
+      </div>
+      <div class="card green">
+        <h3>The Differentiation</h3>
+        <p>vLLM: throughput generalist. TensorRT-LLM: NVIDIA performance ceiling. TGI: operational simplicity. SGLang: agentic intelligence. llama.cpp: universal accessibility. Triton: orchestration backbone.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">serving-frameworks / 14</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

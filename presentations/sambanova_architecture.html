@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SambaNova's SN40L Architecture | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 1: Title -->
+<section class="title-slide">
+  <h1>SambaNova's SN40L Architecture</h1>
+  <div class="subtitle">Dataflow Processing for LLM Inference</div>
+  <div class="meta">March 2026 &mdash; Technical Deep Dive</div>
+  <p style="margin-top:1.5em;font-size:.72em;color:var(--muted);">Founded 2017 &bull; Palo Alto, CA &bull; Kunle Olukotun, Christopher R&eacute;, Rodrigo Liang</p>
+  <div class="slide-footer">sambanova / 01</div>
+</section>
+
+<!-- Slide 2: The Problem with GPUs -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The Memory Wall Problem</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Autoregressive LLM decoding is <span class="r">memory-bandwidth bound</span>, not compute bound. Each token generation reads the full KV cache and model weights from memory.</p>
+      <p>GPUs address this with massive HBM bandwidth, but the <span class="a">von Neumann bottleneck</span> remains: data must travel from memory to compute and back, consuming energy and time on every operation.</p>
+      <p>SambaNova asks: <span class="g">what if data moved through compute instead?</span></p>
+    </div>
+    <div class="card amber">
+      <h3>GPU Inference Bottleneck</h3>
+      <ul>
+        <li>H100: 3.35 TB/s HBM bandwidth</li>
+        <li>Llama 405B FP16: ~810 GB weights</li>
+        <li>Each decode step reads full weights</li>
+        <li>Arithmetic intensity &lt; 1 op/byte</li>
+        <li>Compute utilization often &lt; 30%</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">sambanova / 02</div>
+</section>
+
+<!-- Slide 3: Dataflow vs. Von Neumann -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Dataflow vs. Von Neumann Paradigm</h2></div>
+  <svg class="diagram" viewBox="0 0 900 280" width="860" height="270">
+    <!-- Von Neumann side -->
+    <text x="200" y="25" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">GPU (Von Neumann)</text>
+    <rect x="50" y="40" width="300" height="50" rx="6" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+    <text x="200" y="70" fill="#f87171" font-family="DM Sans,sans-serif" font-size="13" text-anchor="middle">Global Memory (HBM)</text>
+    <line x1="200" y1="90" x2="200" y2="120" stroke="#8888a8" stroke-width="1.5" stroke-dasharray="4"/>
+    <text x="220" y="110" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10">fetch</text>
+    <rect x="100" y="120" width="80" height="40" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="140" y="145" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">SM 0</text>
+    <rect x="210" y="120" width="80" height="40" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="250" y="145" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">SM 1</text>
+    <line x1="140" y1="160" x2="140" y2="190" stroke="#8888a8" stroke-width="1.5" stroke-dasharray="4"/>
+    <line x1="250" y1="160" x2="250" y2="190" stroke="#8888a8" stroke-width="1.5" stroke-dasharray="4"/>
+    <text x="270" y="180" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10">write back</text>
+    <rect x="50" y="190" width="300" height="50" rx="6" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
+    <text x="200" y="220" fill="#f87171" font-family="DM Sans,sans-serif" font-size="13" text-anchor="middle">Global Memory (HBM)</text>
+    <!-- Arrow separator -->
+    <text x="450" y="140" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="28" text-anchor="middle">vs.</text>
+    <!-- Dataflow side -->
+    <text x="700" y="25" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">RDU (Dataflow)</text>
+    <rect x="540" y="100" width="70" height="40" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="575" y="125" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">PCU 0</text>
+    <line x1="610" y1="120" x2="645" y2="120" stroke="#4ecb8d" stroke-width="2" marker-end="url(#arrowG)"/>
+    <rect x="645" y="100" width="70" height="40" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="680" y="125" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">PCU 1</text>
+    <line x1="715" y1="120" x2="750" y2="120" stroke="#4ecb8d" stroke-width="2" marker-end="url(#arrowG)"/>
+    <rect x="750" y="100" width="70" height="40" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="785" y="125" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">PCU 2</text>
+    <rect x="555" y="170" width="55" height="30" rx="4" fill="#181824" stroke="#a78bfa" stroke-width="1"/>
+    <text x="582" y="189" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="9" text-anchor="middle">PMU</text>
+    <rect x="660" y="170" width="55" height="30" rx="4" fill="#181824" stroke="#a78bfa" stroke-width="1"/>
+    <text x="687" y="189" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="9" text-anchor="middle">PMU</text>
+    <rect x="765" y="170" width="55" height="30" rx="4" fill="#181824" stroke="#a78bfa" stroke-width="1"/>
+    <text x="792" y="189" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="9" text-anchor="middle">PMU</text>
+    <line x1="582" y1="140" x2="582" y2="170" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3"/>
+    <line x1="687" y1="140" x2="687" y2="170" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3"/>
+    <line x1="792" y1="140" x2="792" y2="170" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3"/>
+    <text x="700" y="230" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">data flows through compute &rarr;</text>
+    <defs><marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecb8d"/></marker></defs>
+  </svg>
+  <p style="text-align:center;font-size:.72em;color:var(--muted);">Left: data fetched to/from global memory. Right: data streams through spatially arranged compute units with local SRAM.</p>
+  <div class="slide-footer">sambanova / 03</div>
+</section>
+
+<!-- Slide 4: SN40L Chip Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">CHIP</span><h2>SN40L Reconfigurable Dataflow Unit</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Pattern Compute Units</h3>
+      <p>Array of PCUs handling FP16, BF16, FP8, INT8 arithmetic. Spatially configured to match the compute graph of each neural network layer.</p>
+    </div>
+    <div class="card green">
+      <h3>Pattern Memory Units</h3>
+      <p>Distributed on-chip SRAM acting as software-managed scratchpad. Co-located with PCUs to minimize data movement latency.</p>
+    </div>
+    <div class="card purple">
+      <h3>Reconfigurable Network</h3>
+      <p>On-chip interconnect whose topology is reconfigured at runtime. Routes data between PCUs/PMUs to match the model's dataflow pattern.</p>
+    </div>
+  </div>
+  <p style="margin-top:.6em;">Unlike a GPU's fixed pipeline, the RDU's <span class="a">compute topology adapts to each model layer</span>. Attention heads use a different spatial mapping than FFN layers, maximizing utilization across both compute-bound and memory-bound phases.</p>
+  <div class="slide-footer">sambanova / 04</div>
+</section>
+
+<!-- Slide 5: Three-Tier Memory -->
+<section>
+  <div class="slide-hdr"><span class="tag">MEMORY</span><h2>Three-Tier Memory Hierarchy</h2></div>
+  <svg class="diagram" viewBox="0 0 800 240" width="780" height="230">
+    <!-- Tier 1: On-chip SRAM -->
+    <rect x="30" y="10" width="220" height="80" rx="8" fill="#181824" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="140" y="38" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 1: On-Chip SRAM</text>
+    <text x="140" y="58" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Highest BW, lowest latency</text>
+    <text x="140" y="76" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Active weights + KV cache</text>
+    <!-- Arrow 1->2 -->
+    <line x1="250" y1="50" x2="290" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowM)"/>
+    <!-- Tier 2: HBM -->
+    <rect x="290" y="10" width="220" height="80" rx="8" fill="#181824" stroke="#f5a623" stroke-width="2"/>
+    <text x="400" y="38" fill="#f5a623" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 2: On-Package HBM</text>
+    <text x="400" y="58" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Tens of GB capacity</text>
+    <text x="400" y="76" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Model partitions</text>
+    <!-- Arrow 2->3 -->
+    <line x1="510" y1="50" x2="550" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowM)"/>
+    <!-- Tier 3: DDR -->
+    <rect x="550" y="10" width="220" height="80" rx="8" fill="#181824" stroke="#a78bfa" stroke-width="2"/>
+    <text x="660" y="38" fill="#a78bfa" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 3: Off-Chip DDR</text>
+    <text x="660" y="58" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Hundreds of GB capacity</text>
+    <text x="660" y="76" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Full model storage</text>
+    <!-- Bottom note -->
+    <rect x="130" y="120" width="540" height="55" rx="8" fill="#10101a" stroke="#2a2a3a" stroke-width="1"/>
+    <text x="400" y="145" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">SambaFlow compiler orchestrates data placement &amp; prefetching</text>
+    <text x="400" y="163" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Automatic tiering keeps the dataflow pipeline fed without stalls</text>
+    <defs><marker id="arrowM" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8888a8"/></marker></defs>
+  </svg>
+  <p>DDR capacity allows <span class="p">very large models on fewer chips</span> than HBM-only designs. The compiler prefetches next-layer weights from DDR into SRAM while the current layer executes, hiding memory latency behind computation.</p>
+  <div class="slide-footer">sambanova / 05</div>
+</section>
+
+<!-- Slide 6: SambaFlow Compiler -->
+<section>
+  <div class="slide-hdr"><span class="tag">SOFTWARE</span><h2>SambaFlow Compiler Stack</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <h3>Compilation Pipeline</h3>
+      <ol>
+        <li><span class="a">Graph Import</span> &mdash; PyTorch / ONNX model ingestion</li>
+        <li><span class="g">Graph Optimization</span> &mdash; Operator fusion, tiling, layout transforms</li>
+        <li><span class="p">Spatial Mapping</span> &mdash; Assign ops to PCUs, route data through network</li>
+        <li><span class="b">Memory Scheduling</span> &mdash; Three-tier data placement &amp; prefetch planning</li>
+        <li><span class="r">Code Generation</span> &mdash; RDU configuration bitstream</li>
+      </ol>
+    </div>
+    <div class="card blue">
+      <h3>Analogous to FPGA Place-and-Route</h3>
+      <p>The spatial mapping step resembles FPGA toolchains but operates at a <span class="a">coarser granularity</span> &mdash; mapping neural network operations rather than individual logic elements.</p>
+      <p style="margin-top:.5em;">Key difference: the RDU fabric can be <span class="g">reconfigured between layers</span> or between requests, enabling per-layer topology optimization.</p>
+    </div>
+  </div>
+  <div class="slide-footer">sambanova / 06</div>
+</section>
+
+<!-- Slide 7: Software-Defined Reconfiguration -->
+<section>
+  <div class="slide-hdr"><span class="tag">RECONFIGURATION</span><h2>Software-Defined Hardware Adaptation</h2></div>
+  <svg class="diagram" viewBox="0 0 800 200" width="780" height="190">
+    <!-- Attention config -->
+    <rect x="20" y="30" width="230" height="130" rx="8" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="135" y="55" fill="#60a5fa" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">Attention Layer Config</text>
+    <text x="135" y="80" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Memory-bound topology</text>
+    <text x="135" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Wide data paths to PMUs</text>
+    <text x="135" y="120" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">KV cache streaming optimized</text>
+    <text x="135" y="145" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">config_attn.rdu</text>
+    <!-- Arrow -->
+    <text x="310" y="95" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="24" text-anchor="middle">&rarr;</text>
+    <text x="310" y="115" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">reconfig</text>
+    <!-- FFN config -->
+    <rect x="360" y="30" width="230" height="130" rx="8" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="475" y="55" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">FFN Layer Config</text>
+    <text x="475" y="80" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Compute-bound topology</text>
+    <text x="475" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Deep PCU pipelines</text>
+    <text x="475" y="120" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">MatMul throughput maximized</text>
+    <text x="475" y="145" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">config_ffn.rdu</text>
+    <!-- Arrow -->
+    <text x="650" y="95" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="24" text-anchor="middle">&rarr;</text>
+    <text x="650" y="115" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">reconfig</text>
+    <!-- MoE config -->
+    <rect x="700" y="30" width="230" height="130" rx="8" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="815" y="55" fill="#a78bfa" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">MoE Expert Config</text>
+    <text x="815" y="80" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Sparse activation paths</text>
+    <text x="815" y="100" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Dynamic expert routing</text>
+    <text x="815" y="120" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Inactive experts in DDR tier</text>
+    <text x="815" y="145" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">config_moe.rdu</text>
+  </svg>
+  <p style="text-align:center;">The <span class="a">same physical silicon</span> adopts different topologies for each layer type, optimizing both compute-bound and memory-bound phases of the transformer forward pass.</p>
+  <div class="slide-footer">sambanova / 07</div>
+</section>
+
+<!-- Slide 8: Composition of Experts -->
+<section>
+  <div class="slide-hdr"><span class="tag">CoE</span><h2>Composition of Experts</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>SambaNova's <span class="a">Composition of Experts</span> (CoE) runs multiple specialized models on shared RDU hardware with <span class="g">near-zero switching overhead</span>.</p>
+      <h3>How It Works</h3>
+      <ul>
+        <li>Multiple fine-tuned expert models reside across the three-tier memory</li>
+        <li>Query router dispatches to the appropriate domain expert</li>
+        <li>RDU reconfiguration swaps model configs in <span class="a">milliseconds</span></li>
+        <li>Contrast with GPU: weight reload takes <span class="r">seconds</span></li>
+      </ul>
+      <h3>Use Cases</h3>
+      <ul>
+        <li>Enterprise with diverse workloads (code, legal, medical, finance)</li>
+        <li>Each expert fine-tuned for its domain, smaller than a generalist model</li>
+        <li>Shared infrastructure pool, dynamic allocation</li>
+      </ul>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 320" width="270" height="310">
+        <rect x="70" y="5" width="140" height="40" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="30" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">Query Router</text>
+        <line x1="100" y1="45" x2="60" y2="80" stroke="#8888a8" stroke-width="1"/>
+        <line x1="140" y1="45" x2="140" y2="80" stroke="#8888a8" stroke-width="1"/>
+        <line x1="180" y1="45" x2="220" y2="80" stroke="#8888a8" stroke-width="1"/>
+        <rect x="15" y="80" width="90" height="35" rx="5" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="60" y="102" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Code Expert</text>
+        <rect x="120" y="80" width="90" height="35" rx="5" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="165" y="102" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Legal Expert</text>
+        <rect x="175" y="80" width="90" height="35" rx="5" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="220" y="102" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Medical Expert</text>
+        <text x="140" y="145" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">&darr; ms-latency switch &darr;</text>
+        <rect x="30" y="160" width="220" height="50" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="183" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">Shared RDU Fabric</text>
+        <text x="140" y="200" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">reconfigures per expert</text>
+        <rect x="30" y="230" width="220" height="70" rx="6" fill="#181824" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="140" y="255" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Three-Tier Memory</text>
+        <text x="140" y="275" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">All expert weights resident</text>
+        <text x="140" y="290" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">across SRAM / HBM / DDR</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">sambanova / 08</div>
+</section>
+
+<!-- Slide 9: Performance Benchmarks -->
+<section>
+  <div class="slide-hdr"><span class="tag">PERFORMANCE</span><h2>Inference Benchmarks</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Parameters</th>
+        <th>Platform</th>
+        <th>Output Tokens/sec</th>
+        <th>Time to First Token</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Llama 3.1 405B</td>
+        <td>405B</td>
+        <td><span class="a">SN40L (SambaNova Cloud)</span></td>
+        <td><span class="g">100+ tok/s</span></td>
+        <td>&lt; 1s</td>
+      </tr>
+      <tr>
+        <td>DeepSeek-R1</td>
+        <td>671B (MoE)</td>
+        <td><span class="a">SN40L (SambaNova Cloud)</span></td>
+        <td><span class="g">50+ tok/s</span></td>
+        <td>&lt; 1.5s</td>
+      </tr>
+      <tr>
+        <td>Llama 3.1 405B</td>
+        <td>405B</td>
+        <td>8x H100 (vLLM)</td>
+        <td>~30-50 tok/s</td>
+        <td>1-3s</td>
+      </tr>
+      <tr>
+        <td>Llama 3.1 70B</td>
+        <td>70B</td>
+        <td>Groq LPU</td>
+        <td><span class="g">250+ tok/s</span></td>
+        <td>&lt; 0.3s</td>
+      </tr>
+      <tr>
+        <td>Llama 3.1 405B</td>
+        <td>405B</td>
+        <td>Groq LPU</td>
+        <td>~80 tok/s</td>
+        <td>&lt; 0.5s</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.5em;">SambaNova excels at <span class="a">very large models</span> where the three-tier memory avoids multi-node overhead. Groq leads on smaller models where SRAM-only fits. GPU solutions offer the broadest model support.</p>
+  <div class="slide-footer">sambanova / 09</div>
+</section>
+
+<!-- Slide 10: Architecture Comparison -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARISON</span><h2>GPU vs. LPU vs. RDU</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>NVIDIA GPU</h3>
+      <ul>
+        <li><span class="g">Pros:</span> Mature ecosystem, CUDA libraries, universal model support</li>
+        <li><span class="r">Cons:</span> Von Neumann bottleneck, high power draw, memory-BW limited for decode</li>
+        <li>Memory: HBM only (80-192 GB)</li>
+        <li>Best for: Training + general inference</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Groq LPU</h3>
+      <ul>
+        <li><span class="g">Pros:</span> Deterministic latency, extreme tok/s, SRAM-only speed</li>
+        <li><span class="r">Cons:</span> Limited capacity per chip, needs many chips for large models</li>
+        <li>Memory: SRAM only (~230 MB/chip)</li>
+        <li>Best for: Low-latency, smaller models</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>SambaNova RDU</h3>
+      <ul>
+        <li><span class="g">Pros:</span> Reconfigurable fabric, 3-tier memory, CoE, energy efficient</li>
+        <li><span class="r">Cons:</span> Ecosystem maturity, compilation complexity, narrow model support</li>
+        <li>Memory: SRAM + HBM + DDR (100s GB)</li>
+        <li>Best for: Large model inference, multi-model deployments</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">sambanova / 10</div>
+</section>
+
+<!-- Slide 11: DataScale Systems -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCALING</span><h2>Multi-Chip DataScale Systems</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Rack-Scale Architecture</h3>
+      <p>A DataScale rack contains <span class="a">8 RDU nodes</span> connected by a high-bandwidth chip-to-chip fabric that extends the dataflow paradigm across node boundaries.</p>
+      <h3>Parallelism Strategies</h3>
+      <ul>
+        <li><span class="a">Tensor parallelism</span> &mdash; split individual operations across RDUs</li>
+        <li><span class="g">Pipeline parallelism</span> &mdash; different layers on different RDUs</li>
+        <li><span class="p">Expert parallelism</span> &mdash; MoE experts distributed across nodes</li>
+      </ul>
+      <p>SambaFlow handles multi-chip partitioning <span class="g">automatically</span>, enabling trillion-parameter models while maintaining dataflow latency advantages.</p>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 300" width="260" height="290">
+        <text x="140" y="20" fill="#f5a623" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">DataScale Rack</text>
+        <rect x="20" y="30" width="240" height="255" rx="8" fill="none" stroke="#2a2a3a" stroke-width="1.5" stroke-dasharray="5"/>
+        <rect x="40" y="45" width="90" height="35" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="85" y="67" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 0</text>
+        <rect x="150" y="45" width="90" height="35" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="195" y="67" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 1</text>
+        <rect x="40" y="95" width="90" height="35" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="85" y="117" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 2</text>
+        <rect x="150" y="95" width="90" height="35" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="195" y="117" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 3</text>
+        <rect x="40" y="145" width="90" height="35" rx="4" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="85" y="167" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 4</text>
+        <rect x="150" y="145" width="90" height="35" rx="4" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="195" y="167" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 5</text>
+        <rect x="40" y="195" width="90" height="35" rx="4" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="85" y="217" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 6</text>
+        <rect x="150" y="195" width="90" height="35" rx="4" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="195" y="217" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 7</text>
+        <!-- Interconnect lines -->
+        <line x1="130" y1="62" x2="150" y2="62" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="130" y1="112" x2="150" y2="112" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="130" y1="162" x2="150" y2="162" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="130" y1="212" x2="150" y2="212" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="85" y1="80" x2="85" y2="95" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="195" y1="80" x2="195" y2="95" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="85" y1="130" x2="85" y2="145" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="195" y1="130" x2="195" y2="145" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="85" y1="180" x2="85" y2="195" stroke="#f5a623" stroke-width="1.5"/>
+        <line x1="195" y1="180" x2="195" y2="195" stroke="#f5a623" stroke-width="1.5"/>
+        <rect x="55" y="245" width="170" height="25" rx="4" fill="#181824" stroke="#f5a623" stroke-width="1"/>
+        <text x="140" y="262" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">High-BW Chip-to-Chip Fabric</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">sambanova / 11</div>
+</section>
+
+<!-- Slide 12: Energy Efficiency -->
+<section>
+  <div class="slide-hdr"><span class="tag">EFFICIENCY</span><h2>Energy Efficiency Claims</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Why Dataflow Is More Efficient</h3>
+      <ul>
+        <li>Data moves through compute, <span class="a">not</span> fetched from global memory</li>
+        <li>Eliminates redundant memory read/write cycles</li>
+        <li>On-chip SRAM access: ~5 pJ/access vs. HBM ~20 pJ</li>
+        <li>No instruction fetch/decode overhead per operation</li>
+        <li>Spatial execution avoids branch prediction and speculation energy</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Reported Figures</h3>
+      <ul>
+        <li><span class="g">2-3x</span> better perf/watt vs. A100/H100 for large model inference</li>
+        <li>Particularly advantageous for <span class="a">decode phase</span> where arithmetic intensity is low</li>
+        <li>DDR tier uses less power than equivalent HBM capacity</li>
+        <li>Independent verification at scale remains <span class="r">limited</span></li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.5em;">Energy efficiency is especially relevant for always-on inference services where <span class="a">TCO is dominated by power costs</span>. The dataflow model's elimination of unnecessary data movement translates directly to reduced energy per token.</p>
+  <div class="slide-footer">sambanova / 12</div>
+</section>
+
+<!-- Slide 13: SambaNova Cloud -->
+<section>
+  <div class="slide-hdr"><span class="tag">CLOUD</span><h2>SambaNova Cloud Service</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Public API Access</h3>
+      <p>SambaNova Cloud provides hosted inference without on-premises hardware deployment. The service exposes an OpenAI-compatible API, lowering the integration barrier for developers.</p>
+      <h3>Competitive Landscape</h3>
+      <table>
+        <thead>
+          <tr><th>Provider</th><th>Hardware</th><th>Differentiator</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="a">SambaNova</span></td><td>SN40L RDU</td><td>CoE, large model speed</td></tr>
+          <tr><td>Groq</td><td>LPU</td><td>Lowest latency</td></tr>
+          <tr><td>Together AI</td><td>GPU clusters</td><td>Open model breadth</td></tr>
+          <tr><td>Fireworks</td><td>GPU clusters</td><td>Fine-tuning + serving</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card purple">
+      <h3>CoE in the Cloud</h3>
+      <p>The cloud service showcases Composition of Experts through a unified API. Users can route between domain-specific models without managing infrastructure.</p>
+      <p style="margin-top:.5em;">Key advantage: <span class="a">no cold start penalty</span> when switching between expert models, unlike GPU-based platforms that must reload weights.</p>
+      <p style="margin-top:.5em;"><span class="g">Supported models:</span> Llama 3.x, DeepSeek, Mistral, Qwen, domain-specific fine-tunes.</p>
+    </div>
+  </div>
+  <div class="slide-footer">sambanova / 13</div>
+</section>
+
+<!-- Slide 14: Limitations -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRADE-OFFS</span><h2>Limitations and Challenges</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Ecosystem Maturity</h3>
+      <ul>
+        <li>CUDA ecosystem has <span class="a">20+ years</span> of libraries, tools, community</li>
+        <li>SambaFlow is proprietary and closed-source</li>
+        <li>Fewer practitioners with hands-on RDU experience</li>
+        <li>Debugging and profiling tools less mature than NVIDIA's Nsight</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Model Support Breadth</h3>
+      <ul>
+        <li>Popular architectures (Llama, Mistral, DeepSeek) well-optimized</li>
+        <li>Exotic or rapidly evolving architectures need <span class="r">additional compiler work</span></li>
+        <li>New model architectures may take weeks to support vs. days on GPU</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em;">
+    <div class="card red">
+      <h3>Compilation Complexity</h3>
+      <ul>
+        <li>Spatial mapping is NP-hard in general</li>
+        <li>Compilation for new architectures can take <span class="r">hours</span></li>
+        <li>Performance tuning across 3-tier memory not always automatic</li>
+        <li>Manual intervention sometimes needed for optimal placement</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Market Position</h3>
+      <ul>
+        <li>Small installed base limits network effects</li>
+        <li>Talent pool: hard to hire engineers with RDU experience</li>
+        <li>Training workloads still <span class="a">GPU-dominated</span></li>
+        <li>Vendor lock-in concerns for enterprise customers</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">sambanova / 14</div>
+</section>
+
+<!-- Slide 15: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <h3>What Makes SN40L Distinctive</h3>
+      <ol>
+        <li><span class="a">Dataflow paradigm</span> &mdash; data moves through compute, eliminating the von Neumann bottleneck</li>
+        <li><span class="g">Three-tier memory</span> &mdash; SRAM + HBM + DDR enables large models on fewer chips</li>
+        <li><span class="p">Runtime reconfiguration</span> &mdash; hardware adapts topology per layer and per model</li>
+        <li><span class="b">Composition of Experts</span> &mdash; millisecond model switching on shared hardware</li>
+        <li><span class="a">Energy efficiency</span> &mdash; 2-3x perf/watt advantage from reduced data movement</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Open Questions</h3>
+      <ol>
+        <li>Can SambaFlow <span class="r">keep pace</span> with the rapid evolution of model architectures?</li>
+        <li>Will the ecosystem mature fast enough to compete with CUDA's network effects?</li>
+        <li>Can CoE become a <span class="a">standard deployment pattern</span> beyond SambaNova hardware?</li>
+        <li>How will <span class="g">independent benchmarks</span> validate the efficiency claims at scale?</li>
+        <li>Will training workloads ever shift to RDU, or will it remain inference-focused?</li>
+      </ol>
+    </div>
+  </div>
+  <p style="margin-top:.8em;text-align:center;">SambaNova occupies a <span class="a">genuine architectural niche</span> for large-model inference. Whether the RDA paradigm scales its ecosystem to match GPU ubiquity will determine its trajectory from specialized alternative to mainstream infrastructure.</p>
+  <div class="slide-footer">sambanova / 15</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

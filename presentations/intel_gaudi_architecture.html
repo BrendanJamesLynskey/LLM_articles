@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intel Gaudi Architecture | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 01: Title -->
+<section class="title-slide">
+  <h1>Intel Gaudi Architecture</h1>
+  <div class="subtitle">Habana Labs' AI Accelerator with Integrated Ethernet RDMA</div>
+  <div style="margin-bottom:1.2em">
+    <span class="pill amber">hardware</span>
+    <span class="pill green">training</span>
+    <span class="pill purple">inference</span>
+    <span class="pill blue">networking</span>
+  </div>
+  <div class="meta">March 2026</div>
+  <div class="slide-footer">intel-gaudi / 01</div>
+</section>
+
+<!-- Slide 02: Habana Labs History -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>Habana Labs &amp; Intel</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Company Origins</h3>
+      <ul>
+        <li>Founded <span class="a">2016</span> in Israel by David Dahan</li>
+        <li>Team from networking &amp; signal processing ASIC backgrounds</li>
+        <li>Thesis: AI accelerators must treat <span class="g">compute and networking</span> as co-equal design priorities</li>
+        <li>Built Gaudi (training) and Goya (inference) processors</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Intel Acquisition</h3>
+      <ul>
+        <li>Acquired by Intel in <span class="b">December 2019</span> for ~$2B</li>
+        <li>Central pillar of Intel's data center AI strategy</li>
+        <li>Brought both silicon and <span class="g">SynapseAI</span> software stack</li>
+        <li>Positioned as the CUDA alternative in Intel's portfolio</li>
+        <li>Continued development under Intel Datacenter &amp; AI Group</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.8em">
+    <h3>Design Philosophy</h3>
+    <p>Integrate <span class="g">RDMA-capable Ethernet NICs directly on the processor die</span>, eliminating external network adapters and proprietary interconnects. The same Ethernet fabric handles both intra-node and inter-node communication.</p>
+  </div>
+  <div class="slide-footer">intel-gaudi / 02</div>
+</section>
+
+<!-- Slide 03: Network-on-Chip Approach -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Integrated Ethernet vs. Proprietary Interconnects</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Gaudi: On-Die Ethernet RDMA</h3>
+        <ul>
+          <li><span class="g">Standard Ethernet</span> &mdash; no vendor lock-in</li>
+          <li>RDMA NICs integrated on the processor die</li>
+          <li>No external NIC cards needed</li>
+          <li>Direct-connect mesh within a server</li>
+          <li>Same fabric for intra-node &amp; inter-node</li>
+          <li>Lower BoM cost for cluster builds</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Scale-Out Without Switches</h3>
+        <p>Eight Gaudi chips in a server connect via integrated ports in a <span class="a">full mesh</span>. No NVLink bridges, no NVSwitch, no dedicated network adapters for the accelerator interconnect.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.6em">
+        <h3>NVIDIA: Proprietary Stack</h3>
+        <ul>
+          <li><span class="r">NVLink</span> for intra-node (900 GB/s on H100)</li>
+          <li><span class="r">NVSwitch</span> chips for full bisection BW</li>
+          <li><span class="r">InfiniBand</span> (ConnectX) for inter-node</li>
+          <li>Separate network adapters required</li>
+          <li>Higher system complexity &amp; cost</li>
+        </ul>
+      </div>
+      <svg class="diagram" viewBox="0 0 260 160" width="260">
+        <text x="130" y="16" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="11" font-weight="700">Gaudi Direct-Connect Mesh</text>
+        <circle cx="60" cy="60" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <circle cx="130" cy="40" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <circle cx="200" cy="60" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <circle cx="60" cy="120" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <circle cx="130" cy="140" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <circle cx="200" cy="120" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
+        <text x="60" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G1</text>
+        <text x="130" y="44" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G2</text>
+        <text x="200" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G3</text>
+        <text x="60" y="124" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G4</text>
+        <text x="130" y="144" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G5</text>
+        <text x="200" y="124" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G6</text>
+        <line x1="60" y1="60" x2="130" y2="40" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="40" x2="200" y2="60" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="60" x2="200" y2="60" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="60" x2="60" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="60" x2="130" y2="140" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="60" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="40" x2="60" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="40" x2="130" y2="140" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="40" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="200" y1="60" x2="60" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="200" y1="60" x2="130" y2="140" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="200" y1="60" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="120" x2="130" y2="140" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="140" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="120" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">intel-gaudi / 03</div>
+</section>
+
+<!-- Slide 04: Gaudi Generational Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Gaudi Generations at a Glance</h2></div>
+  <table>
+    <thead>
+      <tr><th>Spec</th><th>Gaudi 1 (2019)</th><th>Gaudi 2 (2022)</th><th>Gaudi 3 (2024)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Process</td><td>TSMC 7nm</td><td>TSMC 7nm</td><td><span class="g">TSMC 5nm</span></td></tr>
+      <tr><td>TPCs</td><td>8</td><td>24</td><td><span class="a">64</span></td></tr>
+      <tr><td>Matrix Math Engines</td><td>2</td><td>2</td><td>2 (enhanced)</td></tr>
+      <tr><td>HBM</td><td>32 GB HBM2</td><td>96 GB HBM2e</td><td><span class="g">128 GB HBM2e</span></td></tr>
+      <tr><td>Memory BW</td><td>~1 TB/s</td><td>2.45 TB/s</td><td><span class="g">3.7 TB/s</span></td></tr>
+      <tr><td>Networking</td><td>10&times; 100GbE</td><td>24&times; 100GbE</td><td><span class="b">8&times; 200GbE</span></td></tr>
+      <tr><td>Aggregate NIC BW</td><td>1 Tb/s</td><td>2.4 Tb/s</td><td><span class="b">1.6 Tb/s</span></td></tr>
+      <tr><td>FP8 Support</td><td><span class="r">No</span></td><td><span class="g">Yes (E4M3, E5M2)</span></td><td><span class="g">Yes (4x improvement)</span></td></tr>
+      <tr><td>Precision Formats</td><td>BF16, FP32</td><td>BF16, FP32, FP8</td><td>BF16, FP32, FP8</td></tr>
+    </tbody>
+  </table>
+  <p style="text-align:center;font-size:.72em;color:var(--muted);margin-top:.5em">Each generation: more TPCs, more memory, faster networking, broader precision support.</p>
+  <div class="slide-footer">intel-gaudi / 04</div>
+</section>
+
+<!-- Slide 05: Gaudi 2 Deep Dive -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Gaudi 2 Architecture</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Compute</h3>
+        <ul>
+          <li><span class="a">2 Matrix Math Engines</span> (BF16, FP32, FP8)</li>
+          <li><span class="a">24 Tensor Processor Cores</span> with VLIW ISA</li>
+          <li>Enhanced TPC pipelines with wider execution</li>
+          <li>Each TPC has local SRAM scratchpad</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>Memory</h3>
+        <ul>
+          <li><span class="b">96 GB HBM2e</span> &mdash; fits 70B models in FP8</li>
+          <li><span class="b">2.45 TB/s</span> memory bandwidth</li>
+          <li>3x capacity vs Gaudi 1</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Integrated Networking</h3>
+        <ul>
+          <li><span class="g">24&times; 100GbE RDMA</span> ports on-die</li>
+          <li>2.4 Tb/s aggregate bisection BW</li>
+          <li>21 ports for intra-node full mesh (8 cards)</li>
+          <li>3 ports for inter-node scale-out</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <h3>System-Level Savings</h3>
+        <ul>
+          <li><span class="g">No NVLink bridges</span> needed</li>
+          <li><span class="g">No NVSwitch chips</span> needed</li>
+          <li><span class="g">No dedicated NICs</span> for accelerator fabric</li>
+          <li>Lower BoM vs H100 HGX configuration</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">intel-gaudi / 05</div>
+</section>
+
+<!-- Slide 06: Gaudi 3 -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Gaudi 3 (2024)</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Key Advances</h3>
+        <ul>
+          <li><span class="g">64 Tensor Processor Cores</span> (vs 24 in Gaudi 2)</li>
+          <li>TSMC <span class="a">5nm</span> process (vs 7nm)</li>
+          <li>FP8 throughput: <span class="a">4x improvement</span> over Gaudi 2</li>
+          <li><span class="b">128 GB HBM2e</span> at 3.7 TB/s</li>
+          <li><span class="p">8&times; 200GbE</span> RDMA (RoCE v2)</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>vs NVIDIA H100</h3>
+        <ul>
+          <li>HBM capacity: <span class="g">128 GB &gt; 80 GB</span></li>
+          <li>HBM BW: 3.7 TB/s vs 3.35 TB/s</li>
+          <li>Networking: standard Ethernet vs proprietary NVLink</li>
+          <li>Lower system cost per node</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 250 320" width="250">
+        <text x="125" y="18" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Gaudi 3 Die</text>
+        <rect x="10" y="28" width="230" height="280" rx="10" fill="none" stroke="#2a2a3a" stroke-width="1.5"/>
+        <rect x="25" y="42" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
+        <text x="125" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">2x Matrix Math Engines (FP8/BF16)</text>
+        <rect x="25" y="85" width="200" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="125" y="105" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">64 Tensor Processor Cores</text>
+        <text x="125" y="128" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">VLIW ISA &bull; Local SRAM per TPC</text>
+        <rect x="25" y="148" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1"/>
+        <text x="125" y="170" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">128 GB HBM2e @ 3.7 TB/s</text>
+        <rect x="25" y="191" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
+        <text x="125" y="213" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">8x 200GbE RDMA (RoCE v2)</text>
+        <rect x="25" y="240" width="95" height="50" rx="5" fill="#1a1a2e" stroke="#f87171" stroke-width="1"/>
+        <text x="72" y="260" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="9">PCIe Gen5</text>
+        <text x="72" y="278" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Host I/O</text>
+        <rect x="130" y="240" width="95" height="50" rx="5" fill="#1a1a2e" stroke="#8888a8" stroke-width="1"/>
+        <text x="177" y="260" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">Media Engine</text>
+        <text x="177" y="278" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Decode/Encode</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">intel-gaudi / 06</div>
+</section>
+
+<!-- Slide 07: TPC Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Tensor Processor Core &amp; VLIW ISA</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card purple" style="margin-bottom:.6em">
+        <h3>VLIW Architecture</h3>
+        <ul>
+          <li><span class="p">Very Long Instruction Word</span> ISA</li>
+          <li>Multiple independent ops per cycle:</li>
+          <li>&nbsp;&nbsp;&bull; <span class="a">Vector processing unit</span></li>
+          <li>&nbsp;&nbsp;&bull; <span class="g">Scalar processing unit</span></li>
+          <li>&nbsp;&nbsp;&bull; <span class="b">Load/store unit</span></li>
+          <li>&nbsp;&nbsp;&bull; <span class="p">Special function unit</span></li>
+          <li>Compiler packs ILP explicitly into wide instructions</li>
+          <li>Local SRAM scratchpad per TPC</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Programmability</h3>
+        <p>Developers write custom TPC kernels in <span class="a">C-like syntax</span> via the Habana TPC programming interface. Enables support for novel activations, attention mechanisms, and normalization schemes.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>TPC vs MME Division</h3>
+        <ul>
+          <li><span class="a">MME</span>: GEMM operations (matmuls)</li>
+          <li><span class="g">TPC</span>: everything else:</li>
+          <li>&nbsp;&nbsp;&bull; Activation functions</li>
+          <li>&nbsp;&nbsp;&bull; Layer normalization</li>
+          <li>&nbsp;&nbsp;&bull; Softmax</li>
+          <li>&nbsp;&nbsp;&bull; Rotary positional embeddings</li>
+          <li>&nbsp;&nbsp;&bull; Custom fused kernels</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>Why It Matters</h3>
+        <p>Fixed-function accelerators struggle when model architectures evolve. TPC programmability gives Gaudi <span class="b">flexibility to support new transformer variants</span> without silicon changes.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">intel-gaudi / 07</div>
+</section>
+
+<!-- Slide 08: Software Stack -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>SynapseAI Software Stack</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Habana Bridge for PyTorch</h3>
+        <ul>
+          <li>Drop-in device abstraction: <span class="mono a">torch.hpu</span></li>
+          <li>Replace <span class="mono r">cuda</span> &rarr; <span class="mono g">hpu</span> with minimal changes</li>
+          <li>Graph capture &rarr; optimization passes &rarr; native Gaudi instructions</li>
+          <li>Operator fusion, memory planning, kernel selection</li>
+          <li>Schedules work across MMEs and TPCs</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>DeepSpeed Integration</h3>
+        <ul>
+          <li><span class="g">ZeRO stages 1&ndash;3</span> supported</li>
+          <li>Pipeline &amp; tensor parallelism</li>
+          <li>Mixed-precision training</li>
+          <li>Gradient accumulation &amp; activation checkpointing</li>
+          <li>Maintained in collaboration with Microsoft</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.6em">
+        <h3>vLLM Backend</h3>
+        <ul>
+          <li>Habana contributed <span class="b">Gaudi backend to vLLM</span></li>
+          <li>PagedAttention &amp; continuous batching</li>
+          <li>FP8 inference support</li>
+          <li>Chunked prefill</li>
+          <li>Multi-card tensor parallelism</li>
+          <li>Same serving infra as NVIDIA deployments</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <h3>Optimum Habana</h3>
+        <ul>
+          <li>Hugging Face integration for Gaudi</li>
+          <li>Optimized model implementations</li>
+          <li>Pre-validated models: Llama, Mixtral, Falcon, etc.</li>
+          <li>Simplifies migration from CUDA workflows</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">intel-gaudi / 08</div>
+</section>
+
+<!-- Slide 09: Inference Performance -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Inference Performance</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Llama Benchmarks</h3>
+        <ul>
+          <li>Gaudi 2 (8-card): <span class="g">competitive throughput</span> vs 8x H100 HGX on Llama 2 70B</li>
+          <li>Lower power consumption per server</li>
+          <li>Gaudi 3: strong results on <span class="a">Llama 3 70B</span> and <span class="a">Llama 3 8B</span></li>
+          <li>FP8 inference particularly strong</li>
+          <li>Best at <span class="g">moderate batch sizes</span> typical of production</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Cost-Performance Advantage</h3>
+        <p>Competitive tokens-per-second at a <span class="a">lower price point</span>. Gaudi wins on cost-performance ratio rather than raw peak throughput.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom:.6em">
+        <h3>Intel Tiber AI Cloud</h3>
+        <ul>
+          <li>On-demand access to Gaudi 2 &amp; Gaudi 3 instances</li>
+          <li>Low-friction evaluation path for adoption</li>
+          <li>Pricing set <span class="b">aggressively below</span> NVIDIA GPU cloud</li>
+          <li>Competing on cost-performance, not raw perf</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <h3>Serving Stack</h3>
+        <ul>
+          <li>vLLM with Gaudi backend</li>
+          <li>FP8 + continuous batching</li>
+          <li>Tensor-parallel across 8 cards</li>
+          <li>Integrated RDMA reduces collective latency</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">intel-gaudi / 09</div>
+</section>
+
+<!-- Slide 10: Competitive Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Competitive Comparison</h2></div>
+  <table>
+    <thead>
+      <tr><th>Spec</th><th>Gaudi 3</th><th>NVIDIA H100</th><th>NVIDIA H200</th><th>AMD MI300X</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>HBM Capacity</td><td><span class="g">128 GB</span> HBM2e</td><td>80 GB HBM3</td><td><span class="b">141 GB</span> HBM3e</td><td><span class="a">192 GB</span> HBM3</td></tr>
+      <tr><td>HBM Bandwidth</td><td>3.7 TB/s</td><td>3.35 TB/s</td><td><span class="b">4.8 TB/s</span></td><td><span class="a">5.3 TB/s</span></td></tr>
+      <tr><td>Interconnect</td><td><span class="g">8&times;200GbE</span> (on-die)</td><td>NVLink (900 GB/s)</td><td>NVLink (900 GB/s)</td><td>Infinity Fabric</td></tr>
+      <tr><td>External NIC</td><td><span class="g">Not needed</span></td><td><span class="r">ConnectX required</span></td><td><span class="r">ConnectX required</span></td><td><span class="r">Required</span></td></tr>
+      <tr><td>Software</td><td>SynapseAI</td><td><span class="a">CUDA</span></td><td><span class="a">CUDA</span></td><td>ROCm</td></tr>
+      <tr><td>FP8</td><td><span class="g">Yes</span></td><td><span class="g">Yes</span></td><td><span class="g">Yes</span></td><td><span class="g">Yes</span></td></tr>
+      <tr><td>Training + Inference</td><td><span class="g">Both</span></td><td><span class="g">Both</span></td><td><span class="g">Both</span></td><td><span class="g">Both</span></td></tr>
+    </tbody>
+  </table>
+  <p style="text-align:center;font-size:.72em;color:var(--muted);margin-top:.5em">Gaudi 3 is competitive on raw specs. NVIDIA's advantage is primarily the <span class="a">CUDA ecosystem</span> &mdash; libraries, community, tooling, and inertia.</p>
+  <div class="slide-footer">intel-gaudi / 10</div>
+</section>
+
+<!-- Slide 11: Multi-Node Scaling -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Multi-Node Scaling</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>Integrated RDMA Advantage</h3>
+        <ul>
+          <li>Collective ops (all-reduce, all-gather) execute with <span class="g">minimal software overhead</span></li>
+          <li>No PCIe traversal to reach external NIC</li>
+          <li>Lower latency for gradient synchronization</li>
+          <li>Higher scaling efficiency at <span class="a">64, 128, 256 nodes</span></li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-bottom:.6em">
+        <h3>Cluster Topology</h3>
+        <ul>
+          <li>Intra-node: <span class="a">full mesh</span> via integrated 200GbE</li>
+          <li>Inter-node: remaining ports &rarr; spine switches</li>
+          <li>Standard Ethernet switching &mdash; commodity hardware</li>
+          <li>RoCE v2 for low-latency collectives</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h3>DeepSpeed at Scale</h3>
+        <p>ZeRO + integrated RDMA enables efficient gradient sharding across <span class="b">hundreds of Gaudi accelerators</span> with communication-efficient algorithms.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 250 340" width="250">
+        <text x="125" y="16" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="11" font-weight="700">Multi-Node Gaudi Cluster</text>
+        <!-- Node 1 -->
+        <rect x="15" y="30" width="105" height="120" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="67" y="48" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Node 1</text>
+        <g transform="translate(25,55)">
+          <rect x="0" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="22" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="44" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="66" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="0" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="22" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="44" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="66" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+        </g>
+        <text x="67" y="140" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">8x Gaudi (mesh)</text>
+        <!-- Node 2 -->
+        <rect x="130" y="30" width="105" height="120" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="182" y="48" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Node 2</text>
+        <g transform="translate(140,55)">
+          <rect x="0" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="22" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="44" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="66" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="0" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="22" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="44" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="66" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+        </g>
+        <text x="182" y="140" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">8x Gaudi (mesh)</text>
+        <!-- Spine switch -->
+        <rect x="40" y="180" width="170" height="35" rx="6" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.2"/>
+        <text x="125" y="202" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">200GbE Spine Switch</text>
+        <line x1="67" y1="150" x2="67" y2="180" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="182" y1="150" x2="182" y2="180" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3,2"/>
+        <!-- More nodes -->
+        <rect x="15" y="240" width="105" height="40" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width=".8"/>
+        <text x="67" y="264" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Node 3</text>
+        <rect x="130" y="240" width="105" height="40" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width=".8"/>
+        <text x="182" y="264" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">... Node N</text>
+        <line x1="67" y1="215" x2="67" y2="240" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="182" y1="215" x2="182" y2="240" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="125" y="305" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Standard Ethernet fabric</text>
+        <text x="125" y="320" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">No InfiniBand required</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">intel-gaudi / 11</div>
+</section>
+
+<!-- Slide 12: Software Porting -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Porting from CUDA to Gaudi</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green" style="margin-bottom:.6em">
+        <h3>What's Easy</h3>
+        <ul>
+          <li>Standard PyTorch models: <span class="g">device swap</span> only</li>
+          <li><code>cuda</code> &rarr; <code>hpu</code> in most cases</li>
+          <li>Hugging Face models via <span class="g">Optimum Habana</span></li>
+          <li>DeepSpeed training scripts</li>
+          <li>vLLM inference serving</li>
+        </ul>
+      </div>
+      <pre><code># Minimal porting example
+import torch
+- device = torch.device('cuda')
++ import habana_frameworks.torch
++ device = torch.device('hpu')
+
+model = model.to(device)
+# ... rest of training loop unchanged</code></pre>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:.6em">
+        <h3>What's Hard</h3>
+        <ul>
+          <li><span class="r">Custom CUDA kernels</span> &mdash; must rewrite for TPC</li>
+          <li><span class="r">TensorRT-LLM</span> pipelines &mdash; no equivalent</li>
+          <li><span class="r">Triton GPU kernels</span> &mdash; not supported</li>
+          <li>NCCL-dependent code &mdash; use HCCL instead</li>
+          <li>Unsupported ops require TPC kernel development</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Migration Strategy</h3>
+        <ul>
+          <li>Start with <span class="a">validated models</span> from Optimum Habana</li>
+          <li>Use Tiber AI Cloud for evaluation</li>
+          <li>Profile with SynapseAI profiler</li>
+          <li>Incrementally port custom components</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">intel-gaudi / 12</div>
+</section>
+
+<!-- Slide 13: Limitations -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Limitations</h2></div>
+  <div class="cols cols-3" style="margin-bottom:.6em">
+    <div class="card red">
+      <h3>Software Ecosystem Lag</h3>
+      <ul>
+        <li>Long tail of CUDA libraries <span class="r">does not exist</span> for Gaudi</li>
+        <li>No TensorRT-LLM equivalent</li>
+        <li>No Triton kernel support</li>
+        <li>Custom CUDA extensions require rewrite</li>
+        <li>Primary barrier to adoption</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Smaller Community</h3>
+      <ul>
+        <li>Orders of magnitude <span class="a">fewer developers</span></li>
+        <li>Fewer tutorials &amp; Stack Overflow answers</li>
+        <li>Slower bug identification &amp; resolution</li>
+        <li>Smaller catalog of optimized models</li>
+        <li>Novel architectures: limited support</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Strategic Uncertainty</h3>
+      <ul>
+        <li>Intel AI strategy: <span class="p">multiple pivots</span></li>
+        <li>Nervana &rarr; Habana &rarr; Gaudi &rarr; Falcon Shores?</li>
+        <li>Organizational turbulence</li>
+        <li>Customers need multi-year confidence</li>
+        <li>Competing with Intel's own GPU line</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue">
+    <h3>The Core Tension</h3>
+    <p>Gaudi hardware is <span class="g">technically competitive</span> with NVIDIA on benchmarks and <span class="g">cheaper</span> per node. But CUDA's ecosystem moat &mdash; thousands of libraries, millions of developers, a decade of tooling &mdash; means that <span class="r">raw hardware performance alone cannot drive adoption</span>. The switching cost is the software porting burden.</p>
+  </div>
+  <div class="slide-footer">intel-gaudi / 13</div>
+</section>
+
+<!-- Slide 14: When to Choose Gaudi -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>When to Choose Gaudi</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Good Fit</h3>
+      <ul>
+        <li><span class="g">Cost-sensitive</span> deployments at scale (100+ accelerators)</li>
+        <li>Standard models: Llama, Mixtral, Falcon, GPT-NeoX</li>
+        <li>PyTorch + DeepSpeed training workflows</li>
+        <li>vLLM-based inference serving</li>
+        <li>Organizations wanting to <span class="g">avoid vendor lock-in</span></li>
+        <li>Clusters where <span class="g">networking cost</span> is a major factor</li>
+        <li>Environments that prefer <span class="g">standard Ethernet</span> over InfiniBand</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Poor Fit</h3>
+      <ul>
+        <li>Heavy reliance on <span class="r">custom CUDA kernels</span></li>
+        <li>TensorRT-LLM or Triton-based inference pipelines</li>
+        <li>Novel/experimental model architectures</li>
+        <li>Organizations needing <span class="r">large community support</span></li>
+        <li>Workloads requiring NVIDIA-specific features (NVLink BW)</li>
+        <li>Research teams iterating on architecture rapidly</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.8em">
+    <h3>The Economic Argument</h3>
+    <p>For organizations deploying <span class="a">well-established open-weight models</span> at scale, Gaudi offers a path to <span class="g">30&ndash;40% lower infrastructure cost</span> by eliminating proprietary networking, reducing per-node price, and leveraging competitive Tiber AI Cloud pricing. The porting investment pays off at scale.</p>
+  </div>
+  <div class="slide-footer">intel-gaudi / 14</div>
+</section>
+
+<!-- Slide 15: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Architecture Strengths</h3>
+      <ul>
+        <li><span class="g">Integrated Ethernet RDMA</span> eliminates NVLink/NVSwitch/external NICs</li>
+        <li><span class="g">128 GB HBM2e</span> at 3.7 TB/s (exceeds H100 capacity)</li>
+        <li><span class="g">64 programmable TPCs</span> with VLIW ISA</li>
+        <li><span class="g">FP8</span> with 4x gen-over-gen improvement</li>
+        <li>Both training <span class="a">and</span> inference capable</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Software Ecosystem</h3>
+      <ul>
+        <li><span class="a">SynapseAI</span> + PyTorch bridge (torch.hpu)</li>
+        <li><span class="a">DeepSpeed</span> full integration</li>
+        <li><span class="a">vLLM</span> backend for inference serving</li>
+        <li><span class="a">Optimum Habana</span> for Hugging Face models</li>
+        <li>Growing but still far behind CUDA</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Competitive Position</h3>
+      <ul>
+        <li>Wins on <span class="b">cost-performance ratio</span></li>
+        <li>Wins on <span class="b">networking simplicity</span> and cost</li>
+        <li>Competitive on raw specs vs H100/H200</li>
+        <li>Tiber AI Cloud for low-friction evaluation</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Key Risks</h3>
+      <ul>
+        <li><span class="r">CUDA ecosystem moat</span> is the primary barrier</li>
+        <li>Smaller developer community</li>
+        <li>Intel strategic uncertainty (Falcon Shores overlap)</li>
+        <li>Porting burden for custom workloads</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:.6em;font-size:.78em;color:var(--green)">Gaudi's path: competitive hardware + open networking + cost advantage. The challenge is building the software ecosystem to match.</p>
+  <div class="slide-footer">intel-gaudi / 15</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,transition:'fade',transitionSpeed:'fast',controlsTutorial:false,controlsLayout:'edges',progress:true,center:false,margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>

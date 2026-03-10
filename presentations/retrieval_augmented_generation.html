@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retrieval-Augmented Generation | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- Slide 1: Title -->
+<section class="title-slide">
+  <h1>Retrieval-Augmented Generation</h1>
+  <div class="subtitle">Grounding Large Language Models in External Knowledge</div>
+  <p>
+    <span class="pill amber">RAG</span>
+    <span class="pill green">vector-search</span>
+    <span class="pill purple">embeddings</span>
+    <span class="pill blue">production</span>
+  </p>
+  <div class="meta">March 2026</div>
+  <div class="slide-footer">rag / 01</div>
+</section>
+
+<!-- Slide 2: The Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">01</span><h2>Why RAG?</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>LLM Limitations</h3>
+      <ul>
+        <li>Knowledge frozen at training cutoff</li>
+        <li>Hallucination on factual queries</li>
+        <li>No source attribution</li>
+        <li>Retraining is expensive &amp; slow</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>RAG Solution</h3>
+      <ul>
+        <li>External knowledge at inference time</li>
+        <li>Grounded, verifiable answers</li>
+        <li>Traceable citations to sources</li>
+        <li>Update knowledge without retraining</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.6em">First formalized by <span class="a">Lewis et al. (2020)</span>, RAG decouples <span class="g">knowledge storage</span> from <span class="p">reasoning</span>, letting the generator focus on synthesis.</p>
+  <div class="slide-footer">rag / 02</div>
+</section>
+
+<!-- Slide 3: Pipeline Overview (SVG) -->
+<section>
+  <div class="slide-hdr"><span class="tag">02</span><h2>The RAG Pipeline</h2></div>
+  <svg class="diagram" viewBox="0 0 1100 320" width="1050" height="305">
+    <!-- Query -->
+    <rect x="10" y="120" width="140" height="60" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="80" y="155" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="16" font-weight="600">User Query</text>
+    <!-- Arrow -->
+    <line x1="150" y1="150" x2="210" y2="150" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <!-- Encoder -->
+    <rect x="210" y="110" width="130" height="80" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="275" y="145" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="14" font-weight="600">Query</text>
+    <text x="275" y="168" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="14" font-weight="600">Encoder</text>
+    <!-- Arrow -->
+    <line x1="340" y1="150" x2="400" y2="150" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <!-- Vector DB -->
+    <rect x="400" y="100" width="150" height="100" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="475" y="140" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="14" font-weight="600">Vector DB</text>
+    <text x="475" y="165" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">ANN Search</text>
+    <text x="475" y="185" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">+ Reranking</text>
+    <!-- Arrow -->
+    <line x1="550" y1="150" x2="610" y2="150" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <!-- Context Assembly -->
+    <rect x="610" y="110" width="140" height="80" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="680" y="145" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="14" font-weight="600">Context</text>
+    <text x="680" y="168" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="14" font-weight="600">Assembly</text>
+    <!-- Arrow -->
+    <line x1="750" y1="150" x2="810" y2="150" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
+    <!-- LLM -->
+    <rect x="810" y="100" width="140" height="100" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="880" y="140" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="16" font-weight="700">LLM</text>
+    <text x="880" y="168" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Query + Context</text>
+    <text x="880" y="186" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">&rarr; Answer</text>
+    <!-- Arrow head marker -->
+    <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8888a8"/></marker></defs>
+    <!-- Corpus path -->
+    <rect x="400" y="240" width="150" height="50" rx="8" fill="#10101a" stroke="#8888a8" stroke-width="1.5"/>
+    <text x="475" y="270" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="13">Document Corpus</text>
+    <line x1="475" y1="240" x2="475" y2="200" stroke="#8888a8" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+    <!-- Phase labels -->
+    <text x="340" y="40" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13" font-weight="500">RETRIEVAL PHASE</text>
+    <line x1="190" y1="52" x2="560" y2="52" stroke="#a78bfa" stroke-width="1" opacity="0.4"/>
+    <text x="800" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="500">GENERATION PHASE</text>
+    <line x1="620" y1="52" x2="960" y2="52" stroke="#f5a623" stroke-width="1" opacity="0.4"/>
+  </svg>
+  <div class="slide-footer">rag / 03</div>
+</section>
+
+<!-- Slide 4: Chunking Strategies -->
+<section>
+  <div class="slide-hdr"><span class="tag">03</span><h2>Chunking Strategies</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Fixed-Length</h3>
+      <p>512-token windows with overlap. Simple but splits semantic units mid-thought.</p>
+    </div>
+    <div class="card green">
+      <h3>Recursive Splitting</h3>
+      <p>Respects document hierarchy: headings &rarr; paragraphs &rarr; sentences. Better boundary placement.</p>
+    </div>
+    <div class="card purple">
+      <h3>Semantic Chunking</h3>
+      <p>Embedding similarity between consecutive sentences; split where similarity drops. Preserves topic coherence.</p>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Parent-Child Strategy</h3>
+    <p>Retrieve on <span class="a">small child chunks</span> for precision, then expand to <span class="g">parent section</span> for generation context. Best of both worlds.</p>
+  </div>
+  <div class="slide-footer">rag / 04</div>
+</section>
+
+<!-- Slide 5: Embeddings -->
+<section>
+  <div class="slide-hdr"><span class="tag">04</span><h2>Embedding Models</h2></div>
+  <table>
+    <thead>
+      <tr><th>Model Family</th><th>Dimensions</th><th>Key Feature</th><th>MTEB Avg</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">E5-Mistral</span></td><td>4096</td><td>LLM-based encoder</td><td>66.6</td></tr>
+      <tr><td><span class="g">GTE-Qwen2</span></td><td>1536</td><td>Multi-lingual strength</td><td>67.2</td></tr>
+      <tr><td><span class="p">BGE-M3</span></td><td>1024</td><td>Dense + sparse + colbert in one</td><td>65.8</td></tr>
+      <tr><td><span class="b">Nomic-Embed</span></td><td>768</td><td>Matryoshka dims, open-weight</td><td>63.1</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.5em"><span class="p">Matryoshka representations</span> allow truncating embeddings to lower dimensions (768 &rarr; 256) with graceful quality degradation, enabling memory/quality trade-offs at serving time.</p>
+  <div class="slide-footer">rag / 05</div>
+</section>
+
+<!-- Slide 6: Vector Databases -->
+<section>
+  <div class="slide-hdr"><span class="tag">05</span><h2>Vector Databases &amp; ANN Search</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <thead><tr><th>System</th><th>Type</th><th>Strength</th></tr></thead>
+        <tbody>
+          <tr><td><span class="a">FAISS</span></td><td>Library</td><td>Low-level control, GPU</td></tr>
+          <tr><td><span class="g">Pinecone</span></td><td>Managed</td><td>Zero-ops, hybrid search</td></tr>
+          <tr><td><span class="p">Weaviate</span></td><td>OSS / Cloud</td><td>Multi-modal, GraphQL</td></tr>
+          <tr><td><span class="b">Qdrant</span></td><td>OSS / Cloud</td><td>Filtering, Rust perf</td></tr>
+          <tr><td><span class="r">pgvector</span></td><td>Extension</td><td>Existing Postgres infra</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>ANN Algorithm Trade-offs</h3>
+        <ul>
+          <li><span class="a">HNSW</span> &mdash; best recall/latency, higher memory</li>
+          <li><span class="g">IVF-PQ</span> &mdash; memory-efficient at billion scale</li>
+          <li><span class="p">Binary quantization</span> &mdash; 32x compression, fast pre-filter</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">rag / 06</div>
+</section>
+
+<!-- Slide 7: Retrieval Methods -->
+<section>
+  <div class="slide-hdr"><span class="tag">06</span><h2>Retrieval Methods</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Dense Retrieval</h3>
+      <ul>
+        <li>Bi-encoder similarity</li>
+        <li>Strong on paraphrases</li>
+        <li>Weak on rare terms</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Sparse Retrieval</h3>
+      <ul>
+        <li>BM25, SPLADE</li>
+        <li>Exact keyword matching</li>
+        <li>Strong on entities</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Hybrid Retrieval</h3>
+      <ul>
+        <li>Combines dense + sparse</li>
+        <li>RRF or learned fusion</li>
+        <li>Best overall accuracy</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.6em">Empirically, <span class="p">hybrid retrieval</span> with <span class="a">reciprocal rank fusion</span> consistently outperforms either method alone. Most production systems default to this pattern.</p>
+  <div class="slide-footer">rag / 07</div>
+</section>
+
+<!-- Slide 8: Re-Ranking -->
+<section>
+  <div class="slide-hdr"><span class="tag">07</span><h2>Two-Stage Retrieve &amp; Rerank</h2></div>
+  <svg class="diagram" viewBox="0 0 1050 220" width="1000" height="210">
+    <rect x="10" y="70" width="140" height="70" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="80" y="100" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="14" font-weight="600">Bi-Encoder</text>
+    <text x="80" y="122" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">top-100 @ 5ms</text>
+    <line x1="150" y1="105" x2="280" y2="105" stroke="#8888a8" stroke-width="2" marker-end="url(#arr2)"/>
+    <rect x="280" y="70" width="160" height="70" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="360" y="100" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="14" font-weight="600">Cross-Encoder</text>
+    <text x="360" y="122" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">rerank @ 50ms</text>
+    <line x1="440" y1="105" x2="560" y2="105" stroke="#8888a8" stroke-width="2" marker-end="url(#arr2)"/>
+    <rect x="560" y="70" width="140" height="70" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="630" y="100" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="14" font-weight="600">Top-K Passages</text>
+    <text x="630" y="122" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">k = 3&ndash;5</text>
+    <line x1="700" y1="105" x2="820" y2="105" stroke="#8888a8" stroke-width="2" marker-end="url(#arr2)"/>
+    <rect x="820" y="70" width="140" height="70" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="890" y="100" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="15" font-weight="700">LLM</text>
+    <text x="890" y="122" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">generate</text>
+    <defs><marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8888a8"/></marker></defs>
+    <text x="220" y="180" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">High recall, fast</text>
+    <text x="450" y="180" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">High precision, slower</text>
+  </svg>
+  <p><span class="b">ColBERT-style late interaction</span> offers a middle ground: token-level similarity with pre-computed passage representations, achieving cross-encoder quality at near bi-encoder speed.</p>
+  <div class="slide-footer">rag / 08</div>
+</section>
+
+<!-- Slide 9: Multi-Hop RAG -->
+<section>
+  <div class="slide-hdr"><span class="tag">08</span><h2>Multi-Hop &amp; Iterative RAG</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>Complex questions often require <span class="a">synthesizing information across multiple documents</span>. Single-round retrieval is insufficient.</p>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Iterative Pattern</h3>
+        <ul>
+          <li>Decompose query into sub-questions</li>
+          <li>Retrieve evidence for each sub-question</li>
+          <li>Interleave CoT reasoning with retrieval</li>
+          <li>Refine context at each step</li>
+        </ul>
+      </div>
+      <p style="margin-top:.4em"><span class="p">IRCoT</span> interleaves chain-of-thought with retrieval, dramatically improving multi-step tasks (HotpotQA, MuSiQue).</p>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 380" width="300" height="370">
+        <rect x="80" y="10" width="160" height="45" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="160" y="38" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="13" font-weight="600">Complex Query</text>
+        <line x1="160" y1="55" x2="160" y2="80" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arr3)"/>
+        <rect x="60" y="80" width="200" height="45" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="160" y="108" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="12" font-weight="600">Decompose &rarr; Sub-Q1</text>
+        <line x1="160" y1="125" x2="160" y2="150" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arr3)"/>
+        <rect x="60" y="150" width="200" height="45" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="160" y="178" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="12" font-weight="600">Retrieve + Reason</text>
+        <line x1="160" y1="195" x2="160" y2="220" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arr3)"/>
+        <rect x="60" y="220" width="200" height="45" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="160" y="248" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="12" font-weight="600">Refine &rarr; Sub-Q2</text>
+        <line x1="160" y1="265" x2="160" y2="290" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arr3)"/>
+        <rect x="60" y="290" width="200" height="45" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="160" y="318" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="12" font-weight="600">Retrieve + Synthesize</text>
+        <line x1="160" y1="335" x2="160" y2="355" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arr3)"/>
+        <text x="160" y="375" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Final Answer</text>
+        <defs><marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8888a8"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">rag / 09</div>
+</section>
+
+<!-- Slide 10: Agentic RAG -->
+<section>
+  <div class="slide-hdr"><span class="tag">09</span><h2>Agentic RAG</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The agent treats retrieval as <span class="a">one tool among many</span>, deciding dynamically:</p>
+      <ul>
+        <li><span class="g">When</span> to retrieve (skip for simple queries)</li>
+        <li><span class="p">What query</span> to issue (reformulate if needed)</li>
+        <li><span class="b">Which index</span> to search (multi-source)</li>
+        <li><span class="r">Whether to re-retrieve</span> on poor results</li>
+      </ul>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>Frameworks</h3>
+        <p><span class="a">LangGraph</span>, <span class="g">LlamaIndex Agents</span>, <span class="p">CrewAI</span> &mdash; all support tool-use patterns with retrieval as a callable action.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Agentic Loop</h3>
+        <ul>
+          <li>Receive query</li>
+          <li>Plan: do I need external info?</li>
+          <li>Act: call retrieval / API / calculator</li>
+          <li>Observe: evaluate result quality</li>
+          <li>Decide: answer or iterate</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.5em">
+        <h3>Risks</h3>
+        <p>Runaway tool loops, high latency, unpredictable costs. Guardrails and max-iteration limits are essential.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">rag / 10</div>
+</section>
+
+<!-- Slide 11: Self-RAG & CRAG -->
+<section>
+  <div class="slide-hdr"><span class="tag">10</span><h2>Self-RAG &amp; Corrective RAG</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Self-RAG (Asai et al. 2023)</h3>
+      <ul>
+        <li>Model emits <span class="a">reflection tokens</span></li>
+        <li><code>[Retrieve]</code> &mdash; is retrieval needed?</li>
+        <li><code>[IsRel]</code> &mdash; is passage relevant?</li>
+        <li><code>[IsSup]</code> &mdash; is output supported?</li>
+        <li>Reduces unnecessary retrieval calls</li>
+        <li>Improves factual grounding without external verifier</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>CRAG (Corrective RAG)</h3>
+      <ul>
+        <li>External <span class="p">evaluator</span> scores retrieval quality</li>
+        <li>Three actions based on confidence:
+          <ul>
+            <li><span class="g">Correct</span>: use retrieved docs</li>
+            <li><span class="a">Ambiguous</span>: refine + web search</li>
+            <li><span class="r">Incorrect</span>: fall back to web</li>
+          </ul>
+        </li>
+        <li>Robust to knowledge-base gaps</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">rag / 11</div>
+</section>
+
+<!-- Slide 12: Evaluation -->
+<section>
+  <div class="slide-hdr"><span class="tag">11</span><h2>Evaluation Framework</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Faithfulness</h3>
+      <p>Are generated claims <span class="a">supported</span> by retrieved context? Guards against hallucination.</p>
+    </div>
+    <div class="card green">
+      <h3>Answer Relevance</h3>
+      <p>Does the response <span class="g">address</span> the user's actual question?</p>
+    </div>
+    <div class="card purple">
+      <h3>Context Relevance</h3>
+      <p>Are retrieved passages <span class="p">pertinent</span> to the query? Irrelevant context misleads the generator.</p>
+    </div>
+  </div>
+  <table style="margin-top:.8em">
+    <thead><tr><th>Framework</th><th>Approach</th><th>Metrics</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">RAGAS</span></td><td>LLM-as-judge, component-wise</td><td>Faithfulness, relevance, recall</td></tr>
+      <tr><td><span class="g">ARES</span></td><td>Automated + confidence intervals</td><td>Context relevance, answer faithfulness</td></tr>
+      <tr><td><span class="b">Custom</span></td><td>Human evaluation panels</td><td>Gold standard for high-stakes apps</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">rag / 12</div>
+</section>
+
+<!-- Slide 13: Production - Latency & Caching -->
+<section>
+  <div class="slide-hdr"><span class="tag">12</span><h2>Production: Latency &amp; Caching</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Latency Budget</h3>
+        <ul>
+          <li>Embedding query: <span class="a">5&ndash;15ms</span></li>
+          <li>ANN search: <span class="g">5&ndash;20ms</span></li>
+          <li>Reranking (cross-encoder): <span class="p">30&ndash;80ms</span></li>
+          <li>Total retrieval overhead: <span class="r">50&ndash;200ms</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Semantic Caching</h3>
+        <ul>
+          <li>Cache results for <span class="a">semantically similar</span> queries</li>
+          <li>Embedding similarity for cache hits</li>
+          <li>40&ndash;60% retrieval call reduction</li>
+          <li>GPTCache, Redis vector modules</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top:.5em"><span class="b">Parallel streaming</span>: begin LLM generation while retrieval completes in parallel. Requires careful orchestration to avoid generating before context is ready.</p>
+  <div class="slide-footer">rag / 13</div>
+</section>
+
+<!-- Slide 14: Freshness & Index Maintenance -->
+<section>
+  <div class="slide-hdr"><span class="tag">13</span><h2>Freshness &amp; Index Maintenance</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>RAG's key advantage is <span class="a">updating knowledge without retraining</span>, but this demands disciplined index maintenance.</p>
+      <ul>
+        <li><span class="g">Incremental indexing</span> &mdash; handle additions, updates, deletions</li>
+        <li><span class="p">Embedding versioning</span> &mdash; stale vectors from old encoder silently degrade quality</li>
+        <li><span class="b">CDC pipelines</span> &mdash; change-data-capture from source systems</li>
+        <li><span class="r">Periodic re-indexing</span> &mdash; full rebuild on encoder upgrades</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>Silent Failures</h3>
+        <p>Mixing embeddings from different encoder versions is a common production bug. Recall degrades <span class="r">10&ndash;25%</span> without any explicit error.</p>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Best Practice</h3>
+        <p>Version indices alongside the embedding model. Tag every vector with its <span class="b">encoder_version</span> metadata.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">rag / 14</div>
+</section>
+
+<!-- Slide 15: RAG vs Fine-Tuning -->
+<section>
+  <div class="slide-hdr"><span class="tag">14</span><h2>RAG vs. Fine-Tuning</h2></div>
+  <table>
+    <thead>
+      <tr><th>Dimension</th><th>RAG</th><th>Fine-Tuning</th><th>Both Combined</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Knowledge update</span></td><td>Instant (index swap)</td><td>Requires retraining</td><td>Fast factual + deep domain</td></tr>
+      <tr><td><span class="g">Attribution</span></td><td>Native (source docs)</td><td>Not available</td><td>RAG provides citations</td></tr>
+      <tr><td><span class="p">Behavior/style</span></td><td>Limited (prompting only)</td><td>Deep adaptation</td><td>FT model + RAG knowledge</td></tr>
+      <tr><td><span class="b">Latency</span></td><td>+50&ndash;200ms retrieval</td><td>No overhead</td><td>Trade-off per query</td></tr>
+      <tr><td><span class="r">Corpus size</span></td><td>Handles millions of docs</td><td>Limited by training data</td><td>FT on core, RAG for long tail</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.5em">The strongest production systems <span class="a">combine both</span>: a fine-tuned model for domain reasoning patterns, augmented with RAG for current, verifiable information.</p>
+  <div class="slide-footer">rag / 15</div>
+</section>
+
+<!-- Slide 16: Implementation Sketch -->
+<section>
+  <div class="slide-hdr"><span class="tag">15</span><h2>Implementation Pattern</h2></div>
+  <pre><code class="language-python"># Minimal hybrid RAG pipeline (pseudocode)
+async def rag_query(query: str, top_k: int = 5) -> str:
+    # 1. Encode query
+    q_embedding = encoder.encode(query)
+
+    # 2. Hybrid retrieval: dense + sparse
+    dense_hits  = vector_db.search(q_embedding, limit=100)
+    sparse_hits = bm25_index.search(query, limit=100)
+    candidates  = reciprocal_rank_fusion(dense_hits, sparse_hits)
+
+    # 3. Rerank with cross-encoder
+    reranked = cross_encoder.rerank(query, candidates[:50])
+    top_passages = reranked[:top_k]
+
+    # 4. Assemble prompt and generate
+    context = "\n---\n".join(p.text for p in top_passages)
+    prompt = TEMPLATE.format(context=context, query=query)
+    return await llm.generate(prompt)</code></pre>
+  <p>Production additions: <span class="a">semantic cache</span> before step 1, <span class="g">query rewriting</span> between steps 1&ndash;2, <span class="p">guardrails</span> after step 4, <span class="b">observability</span> at every stage.</p>
+  <div class="slide-footer">rag / 16</div>
+</section>
+
+<!-- Slide 17: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">16</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Architecture</h3>
+      <ul>
+        <li>Hybrid retrieval (dense + sparse) is the production default</li>
+        <li>Two-stage retrieve + rerank for precision</li>
+        <li>Semantic chunking with parent-child expansion</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Advanced Patterns</h3>
+      <ul>
+        <li>Multi-hop for complex reasoning</li>
+        <li>Agentic RAG for dynamic tool selection</li>
+        <li>Self-RAG for adaptive retrieval decisions</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Evaluation</h3>
+      <ul>
+        <li>Faithfulness, answer relevance, context relevance</li>
+        <li>RAGAS / ARES for automated assessment</li>
+        <li>Human eval remains gold standard</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Production</h3>
+      <ul>
+        <li>Semantic caching reduces retrieval calls 40&ndash;60%</li>
+        <li>Version indices with embedding model</li>
+        <li>Combine RAG + fine-tuning for best results</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">rag / 17</div>
+</section>
+
+<!-- Slide 18: Closing -->
+<section class="title-slide">
+  <h1>Retrieval-Augmented Generation</h1>
+  <div class="subtitle">Verifiable, current, attributable knowledge for LLMs</div>
+  <p style="font-size:.82em;color:var(--muted);margin-top:1em">
+    The role of RAG shifts from compensating for limited parametric knowledge<br>
+    to providing <span class="g">grounded, traceable evidence</span> &mdash; essential regardless of model scale.
+  </p>
+  <div class="meta" style="margin-top:1.5em">March 2026</div>
+  <div class="slide-footer">rag / 18</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

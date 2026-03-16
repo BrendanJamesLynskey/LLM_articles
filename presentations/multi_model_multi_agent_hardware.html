@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hardware Implications of Multi-Model Multi-Agent Systems | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root {
+    --amber:  #f5a623;
+    --green:  #4ecb8d;
+    --purple: #a78bfa;
+    --blue:   #60a5fa;
+    --red:    #f87171;
+    --bg:     #0a0a0f;
+    --bg2:    #10101a;
+    --bg3:    #181824;
+    --border: #2a2a3a;
+    --text:   #e8e8f0;
+    --muted:  #8888a8;
+  }
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { background: transparent; overflow-y: auto !important; padding-top: .5em; align-items: flex-start !important; justify-content: flex-start !important; }
+  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal h1 { font-size: 2.4em; color: var(--amber); line-height: 1.15; }
+  .reveal h2 { font-size: 1.7em; color: var(--amber); margin-bottom: .4em; }
+  .reveal h3 { font-size: 1.1em; color: var(--green); margin-bottom: .3em; }
+  .reveal p  { font-size: .82em; line-height: 1.65; color: var(--text); }
+  .reveal li { font-size: .80em; line-height: 1.65; margin-bottom: .2em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .78em; }
+  .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
+                 border-radius: 6px; padding: .6em .9em; margin: .5em 0; }
+  .reveal pre code { font-size: .72em; line-height: 1.5; background: transparent; color: #cdd6f4; }
+  .slide-hdr {
+    display: flex; align-items: center; gap: .6em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .35em; margin-bottom: .6em;
+  }
+  .slide-hdr .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .55em; font-weight: 500;
+    color: var(--bg); background: var(--amber);
+    padding: .15em .5em; border-radius: 3px;
+    letter-spacing: .04em;
+  }
+  .slide-hdr h2 { margin: 0; font-size: 1.3em; }
+  .cols   { display: grid; gap: 1.2em; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-6040 { grid-template-columns: 6fr 4fr; }
+  .cols-4060 { grid-template-columns: 4fr 6fr; }
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .8em 1em;
+  }
+  .card.amber { border-left: 3px solid var(--amber); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.purple{ border-left: 3px solid var(--purple); }
+  .card.blue  { border-left: 3px solid var(--blue); }
+  .card.red   { border-left: 3px solid var(--red); }
+  .card h3 { font-size: .9em; margin: 0 0 .3em; }
+  .card p  { font-size: .76em; margin: 0; color: #b8b8d0; }
+  .card ul { margin: 0; padding-left: 1.2em; }
+  .card li { font-size: .76em; color: #b8b8d0; margin-bottom: .1em; }
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .74em; }
+  .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
+                     padding: .45em .7em; border: 1px solid var(--border); text-align: left; }
+  .reveal table td { padding: .4em .7em; border: 1px solid var(--border); color: #ccc; }
+  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+  .a  { color: var(--amber); font-weight: 600; }
+  .g  { color: var(--green); font-weight: 600; }
+  .p  { color: var(--purple); font-weight: 600; }
+  .b  { color: var(--blue); font-weight: 600; }
+  .r  { color: var(--red); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  svg.diagram { display: block; margin: 0 auto; overflow: visible; }
+  .pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: .6em; padding: .1em .5em; border-radius: 99px;
+    border: 1px solid; margin: 0 .1em;
+  }
+  .pill.amber { color: var(--amber); border-color: var(--amber); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.purple{ color: var(--purple); border-color: var(--purple); }
+  .pill.blue  { color: var(--blue); border-color: var(--blue); }
+  .reveal .slide-footer {
+    position: absolute; bottom: .6em; right: 1.2em;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .45em; color: var(--muted); letter-spacing: .05em;
+  }
+  .title-slide h1 { font-size: 2.6em; }
+  .title-slide .subtitle {
+    font-size: .95em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-weight: 300; letter-spacing: .04em; margin: .5em 0 1.2em;
+  }
+  .title-slide .meta { font-size: .68em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .reveal ul, .reveal ol { margin: .25em 0 .25em 1.2em; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============ SLIDE 1: TITLE ============ -->
+<section class="title-slide">
+  <p style="font-family:'JetBrains Mono',monospace; font-size:.6em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <h1>Hardware Implications of Multi-Model Multi-Agent Systems</h1>
+  <div class="subtitle">GPU Memory, Scheduling, and Orchestration at Scale</div>
+  <hr style="border: none; border-top: 2px solid var(--amber); width: 5em; margin: 0 auto 1em;">
+  <span class="pill amber">GPU Memory</span>
+  <span class="pill green">Multi-Agent</span>
+  <span class="pill purple">Inference</span>
+  <span class="pill blue">Orchestration</span>
+  <p style="max-width:36em; margin:1em auto .8em; font-size:.78em; color:#b8b8d0;">
+    When every agent in a pipeline needs its own specialised model, the hardware
+    problem changes fundamentally &mdash; from serving one model well to juggling many.
+  </p>
+  <p class="meta">March 2026 &nbsp;|&nbsp; LLM Infrastructure</p>
+</section>
+
+<!-- ============ SLIDE 2: THE MULTI-AGENT MULTI-MODEL PROBLEM ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">01</span>
+    <h2>The Multi-Agent Multi-Model Problem</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Specialised Agents, Specialised Models</h3>
+      <p>Modern multi-agent systems assign <span class="a">different models to different roles</span>: a large reasoning model for planning, a code-tuned model for implementation, a small fast model for tool-calling, and an embedding model for retrieval.</p>
+    </div>
+    <div class="card green">
+      <h3>3&ndash;8 Concurrent Models</h3>
+      <p>A realistic pipeline might load <span class="g">Llama 3.1 70B</span> for the supervisor, <span class="g">Qwen2.5-Coder 32B</span> for coding, <span class="g">Mistral 7B</span> for tool dispatch, and <span class="g">nomic-embed-text</span> for RAG &mdash; all resident in VRAM simultaneously.</p>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em;">
+    <h3>Why Not Just One Model?</h3>
+    <p>A single general-purpose model compromises on every task. Specialised models are <span class="p">smaller, faster, and more accurate</span> per role. The trade-off: you need hardware to host all of them at once.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 3: WHY THIS IS DIFFERENT ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">02</span>
+    <h2>Why This Is Different</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Single-Model Serving</h3>
+      <ul>
+        <li>One set of weights in VRAM</li>
+        <li>One KV cache pool to manage</li>
+        <li>Batching across identical requests</li>
+        <li>Well-understood memory planning</li>
+        <li>Mature tooling (vLLM, TGI)</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Multi-Model Serving</h3>
+      <ul>
+        <li><span class="g">Multiple weight sets</span> competing for VRAM</li>
+        <li>Separate KV cache per model</li>
+        <li>Inter-model scheduling &amp; routing</li>
+        <li>Load/unload latency on swap</li>
+        <li>Fragmentation from heterogeneous sizes</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em;">
+    <h3>Key Difference</h3>
+    <p>Single-model serving optimises <span class="b">within one model's memory space</span>. Multi-model serving must optimise <span class="b">across competing models</span> for a shared, finite GPU memory budget.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 4: ANATOMY OF A MULTI-AGENT PIPELINE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">03</span>
+    <h2>Anatomy of a Multi-Agent Pipeline</h2>
+  </div>
+  <svg class="diagram" viewBox="0 0 920 320" width="860" height="300">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8888a8"/></marker>
+      <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f5a623"/></marker>
+    </defs>
+    <!-- User -->
+    <rect x="10" y="120" width="100" height="60" rx="8" fill="none" stroke="#8888a8" stroke-width="1.5"/>
+    <text x="60" y="148" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="13" font-weight="600">User</text>
+    <text x="60" y="166" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">query</text>
+    <!-- Arrow to Supervisor -->
+    <line x1="115" y1="150" x2="195" y2="150" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <!-- Supervisor -->
+    <rect x="200" y="100" width="180" height="100" rx="8" fill="#f5a62315" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="290" y="132" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="14" font-weight="600">Supervisor Agent</text>
+    <text x="290" y="152" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">Llama 3.1 70B</text>
+    <text x="290" y="172" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">planning &amp; routing</text>
+    <text x="290" y="188" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">~40 GB VRAM (Q4)</text>
+    <!-- Arrows to specialists -->
+    <line x1="385" y1="125" x2="495" y2="60" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowAmber)"/>
+    <line x1="385" y1="150" x2="495" y2="150" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowAmber)"/>
+    <line x1="385" y1="175" x2="495" y2="250" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowAmber)"/>
+    <!-- Coder Agent -->
+    <rect x="500" y="25" width="185" height="75" rx="8" fill="#4ecb8d15" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="592" y="50" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Coder Agent</text>
+    <text x="592" y="68" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Qwen2.5-Coder 32B</text>
+    <text x="592" y="85" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">~23 GB (Q5)</text>
+    <!-- Tool-Caller Agent -->
+    <rect x="500" y="115" width="185" height="75" rx="8" fill="#a78bfa15" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="592" y="140" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="13" font-weight="600">Tool-Caller Agent</text>
+    <text x="592" y="158" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Mistral 7B</text>
+    <text x="592" y="175" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">~7.7 GB (Q8)</text>
+    <!-- RAG / Embedding -->
+    <rect x="500" y="215" width="185" height="75" rx="8" fill="#60a5fa15" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="592" y="240" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="13" font-weight="600">RAG Agent</text>
+    <text x="592" y="258" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">nomic-embed-text</text>
+    <text x="592" y="275" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">~0.5 GB (FP16)</text>
+    <!-- Tools -->
+    <line x1="690" y1="152" x2="770" y2="152" stroke="#2a2a3a" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="775" y="120" width="130" height="65" rx="8" fill="none" stroke="#8888a8" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="840" y="148" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12">External Tools</text>
+    <text x="840" y="166" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">APIs, DB, files</text>
+  </svg>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 5: MEMORY BUDGET SINGLE MODEL RECAP ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">04</span>
+    <h2>Memory Budget: Single Model Recap</h2>
+  </div>
+  <div class="card amber" style="margin-bottom:.6em;">
+    <h3>The Formula</h3>
+    <pre><code>Total VRAM = Model Weights + KV Cache + Activations + Framework Overhead</code></pre>
+  </div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Model Weights</h3>
+      <ul>
+        <li>Parameters &times; bytes per parameter</li>
+        <li>70B at FP16 = <span class="g">140 GB</span></li>
+        <li>70B at Q4 (4-bit) &asymp; <span class="g">~38&ndash;42 GB</span></li>
+        <li>Quantisation is essential for local hosting</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>KV Cache</h3>
+      <ul>
+        <li>2 &times; layers &times; heads &times; head_dim &times; seq_len &times; batch &times; bytes</li>
+        <li>Grows linearly with <span class="p">context length</span></li>
+        <li>Llama 70B at 4K context &asymp; <span class="p">2.5 GB</span> per sequence</li>
+        <li>Often the limiting factor for concurrency</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em;">
+    <h3>Activations &amp; Overhead</h3>
+    <p>Intermediate activations during forward pass: typically <span class="b">0.5&ndash;2 GB</span>. CUDA context, framework buffers, and memory allocator overhead add another <span class="b">0.5&ndash;1.5 GB</span>. Together these form the "hidden tax" on GPU memory.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 6: MEMORY BUDGET MULTIPLE MODELS ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">05</span>
+    <h2>Memory Budget: Multiple Models</h2>
+  </div>
+  <p>A realistic 4-model multi-agent configuration, all resident in VRAM:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Role</th>
+        <th>Quant</th>
+        <th>Weight VRAM</th>
+        <th>KV Cache (4K)</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Llama 3.1 70B</span></td>
+        <td>Supervisor / Reasoning</td>
+        <td>Q4_K_M</td>
+        <td>40.0 GB</td>
+        <td>2.5 GB</td>
+        <td><span class="a">42.5 GB</span></td>
+      </tr>
+      <tr>
+        <td><span class="g">Qwen2.5-Coder 32B</span></td>
+        <td>Code generation</td>
+        <td>Q5_K_M</td>
+        <td>23.0 GB</td>
+        <td>1.2 GB</td>
+        <td><span class="g">24.2 GB</span></td>
+      </tr>
+      <tr>
+        <td><span class="p">Mistral 7B</span></td>
+        <td>Tool-calling</td>
+        <td>Q8_0</td>
+        <td>7.7 GB</td>
+        <td>0.5 GB</td>
+        <td><span class="p">8.2 GB</span></td>
+      </tr>
+      <tr>
+        <td><span class="b">nomic-embed-text</span></td>
+        <td>Embeddings / RAG</td>
+        <td>FP16</td>
+        <td>0.5 GB</td>
+        <td>&mdash;</td>
+        <td><span class="b">0.5 GB</span></td>
+      </tr>
+      <tr>
+        <td colspan="4" style="text-align:right; font-weight:600; color:var(--amber);">Framework overhead &amp; CUDA contexts</td>
+        <td>&mdash;</td>
+        <td><span class="r">~2.0 GB</span></td>
+      </tr>
+      <tr>
+        <td colspan="4" style="text-align:right; font-weight:700; color:var(--amber);">TOTAL</td>
+        <td></td>
+        <td style="font-weight:700; color:var(--red);">77.4 GB</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="card red" style="margin-top:.5em;">
+    <h3>Implication</h3>
+    <p>This configuration <span class="r">exceeds the VRAM of every consumer GPU</span> and even a single A100 40GB. You need an 80 GB card minimum &mdash; or a multi-GPU setup.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 7: KV CACHE MULTIPLIER ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">06</span>
+    <h2>KV Cache Multiplier</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>In single-model serving, the KV cache is one pool. In multi-model, <span class="a">each model maintains its own cache</span> with different dimensions.</p>
+      <div class="card amber" style="margin-top:.5em;">
+        <h3>Per-Model KV Cache Formula</h3>
+        <pre><code>KV_bytes = 2 &times; n_layers &times; n_kv_heads
+         &times; head_dim &times; seq_len
+         &times; bytes_per_elem</code></pre>
+      </div>
+      <div class="card red" style="margin-top:.5em;">
+        <h3>The Multiplier Effect</h3>
+        <p>With 4 models active, you have <span class="r">4 independent KV caches</span>. Even if each is modest, the aggregate can consume 4&ndash;8 GB of VRAM that single-model serving never needs.</p>
+      </div>
+    </div>
+    <div>
+      <table>
+        <thead>
+          <tr><th>Model</th><th>Layers</th><th>KV Heads</th><th>KV @ 4K</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="a">Llama 70B</span></td><td>80</td><td>8 (GQA)</td><td>2.5 GB</td></tr>
+          <tr><td><span class="g">Qwen 32B</span></td><td>64</td><td>8 (GQA)</td><td>1.2 GB</td></tr>
+          <tr><td><span class="p">Mistral 7B</span></td><td>32</td><td>8 (GQA)</td><td>0.5 GB</td></tr>
+          <tr><td><span class="b">Embeddings</span></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td colspan="3" style="text-align:right; font-weight:600; color:var(--amber);">Total KV</td><td style="color:var(--red); font-weight:700;">4.2 GB</td></tr>
+        </tbody>
+      </table>
+      <div class="card blue" style="margin-top:.5em;">
+        <h3>With Longer Contexts</h3>
+        <p>At 16K context, each cache <span class="b">4&times; larger</span>. The 70B model alone needs ~10 GB for KV at 16K context.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 8: VRAM FRAGMENTATION ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">07</span>
+    <h2>VRAM Fragmentation</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>When models are loaded and unloaded dynamically, VRAM becomes <span class="r">fragmented</span> &mdash; free memory exists but in scattered chunks too small for the next model.</p>
+      <div class="card red" style="margin-top:.5em;">
+        <h3>Causes</h3>
+        <ul>
+          <li>Models have <span class="r">different sizes</span> (7B vs 32B vs 70B)</li>
+          <li>KV caches grow and shrink dynamically</li>
+          <li>CUDA memory allocator rounds up to block boundaries</li>
+          <li>Unloading a small model leaves an unusable gap</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Mitigations</h3>
+        <ul>
+          <li>Pre-allocate fixed memory pools per model</li>
+          <li>Use <span class="g">PagedAttention</span> for KV caches</li>
+          <li>Defragment by reloading models contiguously</li>
+          <li>Memory-mapped model loading (mmap)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 310" width="300" height="290">
+        <text x="160" y="18" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">VRAM After Load/Unload Cycles</text>
+        <rect x="20" y="30" width="280" height="260" rx="6" fill="none" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="160" y="50" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">80 GB GPU Memory</text>
+        <!-- Occupied blocks -->
+        <rect x="30" y="60" width="260" height="50" rx="3" fill="#f5a62320" stroke="#f5a623" stroke-width="1"/>
+        <text x="160" y="90" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Llama 70B Q4 (40 GB)</text>
+        <rect x="30" y="115" width="60" height="30" rx="3" fill="#18182400" stroke="#f87171" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="60" y="134" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="8">free 5GB</text>
+        <rect x="95" y="115" width="195" height="35" rx="3" fill="#4ecb8d20" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="192" y="137" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Qwen 32B Q5 (23 GB)</text>
+        <rect x="30" y="155" width="40" height="25" rx="3" fill="#18182400" stroke="#f87171" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="50" y="172" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="8">3GB</text>
+        <rect x="75" y="155" width="100" height="30" rx="3" fill="#a78bfa20" stroke="#a78bfa" stroke-width="1"/>
+        <text x="125" y="174" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Mistral 7B</text>
+        <rect x="180" y="155" width="110" height="30" rx="3" fill="#18182400" stroke="#f87171" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="235" y="174" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="8">free 2GB (scattered)</text>
+        <!-- Legend -->
+        <text x="160" y="215" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11">10 GB free but fragmented</text>
+        <text x="160" y="233" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11">Cannot load an 8 GB model!</text>
+        <text x="160" y="260" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Defragmentation requires model reload</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 9: GPU OPTIONS LANDSCAPE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">08</span>
+    <h2>GPU Options: The Landscape</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>GPU</th>
+        <th>VRAM</th>
+        <th>Memory BW</th>
+        <th>FP16 TFLOPS</th>
+        <th>TDP</th>
+        <th>Street Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="p">RTX 4090</span></td>
+        <td>24 GB GDDR6X</td>
+        <td>1,008 GB/s</td>
+        <td>165</td>
+        <td>450W</td>
+        <td>~$1,800</td>
+      </tr>
+      <tr>
+        <td><span class="p">RTX 5090</span></td>
+        <td>32 GB GDDR7</td>
+        <td>1,792 GB/s</td>
+        <td>209</td>
+        <td>575W</td>
+        <td>~$2,000</td>
+      </tr>
+      <tr>
+        <td><span class="b">RTX A6000</span></td>
+        <td>48 GB GDDR6</td>
+        <td>768 GB/s</td>
+        <td>155</td>
+        <td>300W</td>
+        <td>~$3,800</td>
+      </tr>
+      <tr>
+        <td><span class="g">A100 SXM</span></td>
+        <td>80 GB HBM2e</td>
+        <td>2,039 GB/s</td>
+        <td>312</td>
+        <td>400W</td>
+        <td>~$12,000</td>
+      </tr>
+      <tr>
+        <td><span class="a">H100 SXM</span></td>
+        <td>80 GB HBM3</td>
+        <td>3,350 GB/s</td>
+        <td>990</td>
+        <td>700W</td>
+        <td>~$25,000</td>
+      </tr>
+      <tr>
+        <td><span class="a">H200 SXM</span></td>
+        <td>141 GB HBM3e</td>
+        <td>4,800 GB/s</td>
+        <td>990</td>
+        <td>700W</td>
+        <td>~$30,000</td>
+      </tr>
+      <tr>
+        <td><span class="r">MI300X</span></td>
+        <td>192 GB HBM3</td>
+        <td>5,300 GB/s</td>
+        <td>1,308</td>
+        <td>750W</td>
+        <td>~$15,000</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="card green" style="margin-top:.5em;">
+    <h3>Multi-Model Sweet Spot</h3>
+    <p>For multi-model deployments, <span class="g">total VRAM matters more than raw compute</span>. The H200 (141 GB) and MI300X (192 GB) can host the full 4-model stack on a single card.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 10: SINGLE-GPU STRATEGY ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">09</span>
+    <h2>Single-GPU Strategy</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>What Fits on One Card</h3>
+      <table style="font-size:.9em;">
+        <tr><th>GPU</th><th>Models Resident</th></tr>
+        <tr><td>RTX 4090 (24 GB)</td><td>7B + 7B + embed</td></tr>
+        <tr><td>RTX 5090 (32 GB)</td><td>7B + 7B + 7B + embed</td></tr>
+        <tr><td>A6000 (48 GB)</td><td>32B + 7B + embed</td></tr>
+        <tr><td>A100 (80 GB)</td><td>70B Q4 + 7B + embed</td></tr>
+        <tr><td>H200 (141 GB)</td><td>70B + 32B + 7B + embed</td></tr>
+        <tr><td>MI300X (192 GB)</td><td>70B + 32B + 7B &times;2 + embed</td></tr>
+      </table>
+    </div>
+    <div class="card red">
+      <h3>The Swap Penalty</h3>
+      <ul>
+        <li>When a model doesn't fit, it must be <span class="r">swapped from disk</span></li>
+        <li>70B Q4 from NVMe: <span class="r">~8&ndash;12 seconds</span></li>
+        <li>Each swap <span class="r">stalls the entire pipeline</span></li>
+        <li>Repeated swaps dominate total latency</li>
+        <li>Swap = death for interactive workloads</li>
+      </ul>
+      <p style="margin-top:.4em;">Rule of thumb: if you swap more than <span class="r">once per conversation turn</span>, the user experience is unacceptable.</p>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 11: MULTI-GPU STRATEGIES ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">10</span>
+    <h2>Multi-GPU Strategies</h2>
+  </div>
+  <svg class="diagram" viewBox="0 0 920 280" width="860" height="260">
+    <defs>
+      <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8888a8"/></marker>
+    </defs>
+    <text x="230" y="20" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="13" font-weight="600">Strategy A: Model-per-GPU</text>
+    <text x="700" y="20" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Strategy B: TP for Large + Dedicated</text>
+    <!-- Strategy A -->
+    <rect x="20" y="35" width="190" height="100" rx="6" fill="#f5a62310" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="115" y="55" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">GPU 0 (24 GB)</text>
+    <text x="115" y="75" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Mistral 7B Q8</text>
+    <text x="115" y="92" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">+ Embeddings</text>
+    <text x="115" y="125" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">8.2 GB used</text>
+    <rect x="230" y="35" width="190" height="100" rx="6" fill="#4ecb8d10" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="325" y="55" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">GPU 1 (24 GB)</text>
+    <text x="325" y="75" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Qwen 32B Q4</text>
+    <text x="325" y="125" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">20 GB used</text>
+    <!-- PCIe label -->
+    <line x1="210" y1="160" x2="230" y2="160" stroke="#2a2a3a" stroke-width="1"/>
+    <text x="220" y="155" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8" transform="rotate(-90,220,155)">PCIe</text>
+    <!-- Strategy B -->
+    <rect x="500" y="35" width="190" height="100" rx="6" fill="#a78bfa10" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="595" y="55" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">GPU 0 (80 GB)</text>
+    <text x="595" y="78" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Llama 70B TP shard 0</text>
+    <text x="595" y="95" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">+ Mistral 7B + embed</text>
+    <text x="595" y="125" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">~50 GB used</text>
+    <rect x="710" y="35" width="190" height="100" rx="6" fill="#60a5fa10" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="805" y="55" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">GPU 1 (80 GB)</text>
+    <text x="805" y="78" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Llama 70B TP shard 1</text>
+    <text x="805" y="95" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">+ Qwen 32B Q5</text>
+    <text x="805" y="125" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">~55 GB used</text>
+    <!-- NVLink -->
+    <line x1="690" y1="85" x2="710" y2="85" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="700" y="78" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">NVLink</text>
+    <!-- Bottom note -->
+    <rect x="20" y="170" width="400" height="55" rx="6" fill="none" stroke="#2a2a3a" stroke-width="1"/>
+    <text x="220" y="192" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="11">No room for 70B on 2&times;24 GB cards!</text>
+    <text x="220" y="210" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">Must swap 70B from disk or skip it entirely</text>
+    <rect x="500" y="170" width="400" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="700" y="192" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">Full stack resident &mdash; zero swap latency</text>
+    <text x="700" y="210" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="10">NVLink keeps TP overhead low for 70B</text>
+  </svg>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 12: NVLINK VS PCIE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">11</span>
+    <h2>NVLink vs PCIe</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <thead>
+          <tr><th>Interconnect</th><th>Bandwidth</th><th>Latency</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>PCIe 4.0 x16</td><td>32 GB/s</td><td>~1&ndash;2 &micro;s</td></tr>
+          <tr><td>PCIe 5.0 x16</td><td>64 GB/s</td><td>~1&ndash;2 &micro;s</td></tr>
+          <tr><td><span class="g">NVLink 3 (A100)</span></td><td><span class="g">600 GB/s</span></td><td><span class="g">~0.3 &micro;s</span></td></tr>
+          <tr><td><span class="a">NVLink 4 (H100)</span></td><td><span class="a">900 GB/s</span></td><td><span class="a">~0.2 &micro;s</span></td></tr>
+          <tr><td><span class="a">NVLink 5 (B200)</span></td><td><span class="a">1,800 GB/s</span></td><td><span class="a">~0.1 &micro;s</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>When It Matters</h3>
+        <ul>
+          <li><span class="a">Tensor Parallelism</span> &mdash; shards exchange activations every layer. PCIe becomes a severe bottleneck for 70B+ TP.</li>
+          <li><span class="a">Model-per-GPU</span> &mdash; interconnect matters less since models communicate through the CPU/orchestrator, not GPU-to-GPU.</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.5em;">
+        <h3>Practical Rule</h3>
+        <p>If you're splitting <span class="b">one model across GPUs</span> (TP), NVLink is essential. If each GPU runs a <span class="b">different model</span>, PCIe is fine.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 13: CONSUMER HARDWARE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">12</span>
+    <h2>Consumer Hardware Options</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Configuration</th>
+        <th>Total Memory</th>
+        <th>Bandwidth</th>
+        <th>Models Resident</th>
+        <th>Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="p">2&times; RTX 4090</span></td>
+        <td>48 GB (split)</td>
+        <td>2,016 GB/s (per-GPU)</td>
+        <td>32B Q4 + 7B Q8 + embed</td>
+        <td>~$3,600</td>
+      </tr>
+      <tr>
+        <td><span class="p">2&times; RTX 5090</span></td>
+        <td>64 GB (split)</td>
+        <td>3,584 GB/s (per-GPU)</td>
+        <td>32B Q5 + 7B Q8 &times;2 + embed</td>
+        <td>~$4,000</td>
+      </tr>
+      <tr>
+        <td><span class="b">1&times; RTX A6000</span></td>
+        <td>48 GB</td>
+        <td>768 GB/s</td>
+        <td>32B Q5 + 7B Q8 + embed</td>
+        <td>~$3,800</td>
+      </tr>
+      <tr>
+        <td><span class="g">Mac Studio M4 Ultra</span></td>
+        <td>192 GB unified</td>
+        <td>819 GB/s</td>
+        <td><span class="g">70B Q4 + 32B Q5 + 7B + embed</span></td>
+        <td>~$7,000</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.6em;">
+    <div class="card green">
+      <h3>Apple Silicon Advantage</h3>
+      <p>Unified memory means <span class="g">no PCIe bottleneck</span> and 192 GB is enough to host the full multi-model stack. Trade-off: memory bandwidth is ~6&times; lower than HBM, so tokens/sec will lag behind discrete GPUs.</p>
+    </div>
+    <div class="card amber">
+      <h3>Multi-GPU Consumer Caveat</h3>
+      <p>Consumer motherboards lack NVLink. Two 4090s communicate over <span class="a">PCIe only</span>, making tensor parallelism slow. Best used as <span class="a">model-per-GPU</span> with no single model spanning cards.</p>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 14: MODEL LOADING LATENCY ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">13</span>
+    <h2>Model Loading Latency</h2>
+  </div>
+  <p>When a model isn't resident in VRAM, it must be loaded from storage. These times <span class="r">directly add to pipeline latency</span>:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Model Size</th>
+        <th>NVMe (7 GB/s)</th>
+        <th>SATA SSD (550 MB/s)</th>
+        <th>10GbE Network</th>
+        <th>1GbE Network</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="p">7B Q8 (7.7 GB)</span></td>
+        <td><span class="g">1.1 s</span></td>
+        <td>14 s</td>
+        <td>6.2 s</td>
+        <td><span class="r">62 s</span></td>
+      </tr>
+      <tr>
+        <td><span class="b">32B Q5 (23 GB)</span></td>
+        <td><span class="g">3.3 s</span></td>
+        <td>42 s</td>
+        <td>18.4 s</td>
+        <td><span class="r">184 s</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">70B Q4 (40 GB)</span></td>
+        <td><span class="g">5.7 s</span></td>
+        <td>73 s</td>
+        <td>32 s</td>
+        <td><span class="r">320 s</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.6em;">
+    <div class="card green">
+      <h3>NVMe is Essential</h3>
+      <p>Even with NVMe Gen4, a 70B load takes <span class="g">~6 seconds</span>. This is acceptable for cold start but unacceptable mid-conversation. <span class="g">Keep hot models resident.</span></p>
+    </div>
+    <div class="card red">
+      <h3>Network Loading</h3>
+      <p>Loading from a model registry over 1GbE is <span class="r">catastrophically slow</span>. Even 10GbE adds significant latency. Pre-stage models on local NVMe.</p>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 15: MODEL CACHING AND SWAPPING ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">14</span>
+    <h2>Model Caching and Swapping</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Ollama KEEP_ALIVE</h3>
+      <ul>
+        <li>Controls how long a model stays in VRAM after last use</li>
+        <li>Default: <span class="a">5 minutes</span></li>
+        <li>Set to <code>-1</code> for <span class="a">permanent residence</span></li>
+        <li>Set per-model: keep supervisor hot, let others expire</li>
+        <li><code>OLLAMA_NUM_PARALLEL</code> controls concurrent slots</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Hot vs Cold Models</h3>
+      <ul>
+        <li><span class="p">Hot</span>: resident in VRAM, instant inference</li>
+        <li><span class="p">Warm</span>: in system RAM (mmap), ~1&ndash;3s reload</li>
+        <li><span class="r">Cold</span>: on disk only, full load penalty</li>
+        <li>Strategy: keep supervisor + most-used agent hot, others warm</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.6em;">
+    <h3>Tiered Caching Strategy</h3>
+    <p>Treat model hosting like a CPU cache hierarchy: <span class="g">VRAM (L1)</span> for the 2&ndash;3 models used every turn, <span class="g">system RAM (L2)</span> for models used occasionally, and <span class="g">NVMe (L3)</span> for the full model library. Promote and demote based on access frequency.</p>
+  </div>
+  <div class="card blue" style="margin-top:.5em;">
+    <h3>Memory-Mapped Loading</h3>
+    <p>Tools like <span class="b">llama.cpp</span> use mmap to memory-map model files. The OS pages in data on demand, meaning a "warm" model can start generating in <span class="b">&lt;1 second</span> with most weights already in page cache.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 16: SERVING FRAMEWORKS ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">15</span>
+    <h2>Serving Frameworks Comparison</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Framework</th>
+        <th>Multi-Model</th>
+        <th>GPU Backends</th>
+        <th>Batching</th>
+        <th>Best For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Ollama</span></td>
+        <td><span class="g">Yes</span> (swap/concurrent)</td>
+        <td>CUDA, Metal, ROCm</td>
+        <td>Basic parallel</td>
+        <td>Local dev, prototyping</td>
+      </tr>
+      <tr>
+        <td><span class="a">vLLM</span></td>
+        <td>Single model per instance</td>
+        <td>CUDA, ROCm</td>
+        <td><span class="g">Continuous + Paged</span></td>
+        <td>High-throughput production</td>
+      </tr>
+      <tr>
+        <td><span class="a">TGI</span></td>
+        <td>Single model per instance</td>
+        <td>CUDA</td>
+        <td><span class="g">Continuous</span></td>
+        <td>HuggingFace ecosystem</td>
+      </tr>
+      <tr>
+        <td><span class="a">Ray Serve</span></td>
+        <td><span class="g">Yes</span> (multi-deployment)</td>
+        <td>Any (wraps backends)</td>
+        <td>Custom / wrapped</td>
+        <td>Multi-model orchestration</td>
+      </tr>
+      <tr>
+        <td><span class="a">LiteLLM</span></td>
+        <td><span class="g">Yes</span> (proxy/router)</td>
+        <td>Any (API gateway)</td>
+        <td>Pass-through</td>
+        <td>Unified API routing</td>
+      </tr>
+      <tr>
+        <td><span class="a">llama.cpp server</span></td>
+        <td>Single model (multi-slot)</td>
+        <td>CUDA, Metal, Vulkan</td>
+        <td>Parallel slots</td>
+        <td>Lightweight, single model</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="card blue" style="margin-top:.5em;">
+    <h3>Multi-Model Pattern</h3>
+    <p>Most production setups run <span class="b">one vLLM/TGI instance per model</span>, then use <span class="b">LiteLLM or Ray Serve</span> as the routing layer. This gives each model its own memory pool and avoids fragmentation.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 17: PIPELINE LATENCY ANALYSIS ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">16</span>
+    <h2>Pipeline Latency Analysis</h2>
+  </div>
+  <svg class="diagram" viewBox="0 0 920 300" width="860" height="280">
+    <text x="230" y="20" text-anchor="middle" fill="#f87171" font-family="DM Sans" font-size="13" font-weight="600">Sequential Chain (worst case)</text>
+    <text x="690" y="20" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Parallel Fan-Out (optimised)</text>
+    <!-- Sequential -->
+    <rect x="20" y="35" width="120" height="40" rx="4" fill="#f5a62320" stroke="#f5a623" stroke-width="1"/>
+    <text x="80" y="52" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="10">Supervisor</text>
+    <text x="80" y="66" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">2.0s (70B)</text>
+    <line x1="142" y1="55" x2="155" y2="55" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <rect x="160" y="35" width="100" height="40" rx="4" fill="#4ecb8d20" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="210" y="52" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="10">Coder</text>
+    <text x="210" y="66" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">3.5s (32B)</text>
+    <line x1="262" y1="55" x2="275" y2="55" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <rect x="280" y="35" width="100" height="40" rx="4" fill="#a78bfa20" stroke="#a78bfa" stroke-width="1"/>
+    <text x="330" y="52" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="10">Tool-Caller</text>
+    <text x="330" y="66" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">0.5s (7B)</text>
+    <line x1="382" y1="55" x2="395" y2="55" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <rect x="400" y="35" width="60" height="40" rx="4" fill="#60a5fa20" stroke="#60a5fa" stroke-width="1"/>
+    <text x="430" y="52" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="10">RAG</text>
+    <text x="430" y="66" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">0.2s</text>
+    <!-- Total sequential -->
+    <line x1="20" y1="90" x2="460" y2="90" stroke="#f87171" stroke-width="2"/>
+    <text x="240" y="105" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="11">Total: 6.2s sequential</text>
+    <!-- Parallel -->
+    <rect x="500" y="35" width="120" height="40" rx="4" fill="#f5a62320" stroke="#f5a623" stroke-width="1"/>
+    <text x="560" y="52" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="10">Supervisor</text>
+    <text x="560" y="66" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">2.0s (70B)</text>
+    <!-- Fan-out arrows -->
+    <line x1="622" y1="45" x2="660" y2="45" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowAmber)"/>
+    <line x1="622" y1="55" x2="660" y2="95" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowAmber)"/>
+    <line x1="622" y1="65" x2="660" y2="145" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowAmber)"/>
+    <!-- Parallel tasks -->
+    <rect x="665" y="28" width="100" height="35" rx="4" fill="#4ecb8d20" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="715" y="44" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="10">Coder</text>
+    <text x="715" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">3.5s</text>
+    <rect x="665" y="78" width="100" height="35" rx="4" fill="#a78bfa20" stroke="#a78bfa" stroke-width="1"/>
+    <text x="715" y="94" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="10">Tool-Caller</text>
+    <text x="715" y="106" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">0.5s</text>
+    <rect x="665" y="128" width="100" height="35" rx="4" fill="#60a5fa20" stroke="#60a5fa" stroke-width="1"/>
+    <text x="715" y="144" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="10">RAG</text>
+    <text x="715" y="156" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">0.2s</text>
+    <!-- Merge -->
+    <line x1="767" y1="45" x2="810" y2="90" stroke="#4ecb8d" stroke-width="1" marker-end="url(#arrow2)"/>
+    <line x1="767" y1="95" x2="810" y2="90" stroke="#4ecb8d" stroke-width="1"/>
+    <line x1="767" y1="145" x2="810" y2="90" stroke="#4ecb8d" stroke-width="1"/>
+    <rect x="815" y="72" width="90" height="38" rx="4" fill="#4ecb8d20" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="860" y="90" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="10">Merge</text>
+    <text x="860" y="103" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">max(3.5,0.5,0.2)</text>
+    <!-- Total parallel -->
+    <line x1="500" y1="185" x2="905" y2="185" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="700" y="200" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Total: 5.5s (2.0 + 3.5 parallel)</text>
+    <!-- Savings -->
+    <rect x="200" y="220" width="520" height="50" rx="6" fill="#4ecb8d10" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="460" y="242" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="13" font-weight="600">Fan-out saves 11% here &mdash; but requires separate GPU resources per model</text>
+    <text x="460" y="260" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="11">Savings grow with more parallel agents and longer generation lengths</text>
+  </svg>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 18: THE LARGE MODEL BOTTLENECK ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">17</span>
+    <h2>The Large Model Bottleneck</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <p>In most multi-agent pipelines, the <span class="a">largest model dominates total latency</span>. The supervisor (70B) is both the slowest to generate and the model that every pipeline invocation must call.</p>
+      <div class="card red" style="margin-top:.5em;">
+        <h3>Latency Breakdown</h3>
+        <table style="font-size:.9em;">
+          <tr><th>Model</th><th>tok/s</th><th>Output Tokens</th><th>Time</th></tr>
+          <tr><td><span class="a">Llama 70B Q4</span></td><td>~15</td><td>200</td><td><span class="r">13.3s</span></td></tr>
+          <tr><td><span class="g">Qwen 32B Q5</span></td><td>~30</td><td>300</td><td>10.0s</td></tr>
+          <tr><td><span class="p">Mistral 7B Q8</span></td><td>~80</td><td>50</td><td>0.6s</td></tr>
+          <tr><td><span class="b">Embedding</span></td><td>&mdash;</td><td>&mdash;</td><td>0.2s</td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 260" width="300" height="240">
+        <text x="160" y="18" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="11">Time Contribution (%)</text>
+        <!-- Stacked bar -->
+        <rect x="60" y="35" width="200" height="120" rx="0" fill="#f5a62340" stroke="#f5a623" stroke-width="1"/>
+        <text x="160" y="95" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="14" font-weight="600">70B: 55%</text>
+        <rect x="60" y="155" width="200" height="55" rx="0" fill="#4ecb8d40" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="160" y="186" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="12">32B: 41%</text>
+        <rect x="60" y="210" width="200" height="12" rx="0" fill="#a78bfa40" stroke="#a78bfa" stroke-width="1"/>
+        <text x="160" y="237" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="10">7B: 3% | Embed: 1%</text>
+      </svg>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.5em;">
+    <h3>Mitigation Strategies</h3>
+    <p>Use <span class="b">speculative decoding</span> for the 70B model, <span class="b">aggressive quantisation</span> (Q4 or Q3), or replace with a <span class="b">distilled 32B model</span> that captures 90% of the reasoning capability at 2&times; the speed.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 19: BATCHING ACROSS AGENTS ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">18</span>
+    <h2>Batching Across Agents</h2>
+  </div>
+  <p>When <span class="a">multiple user pipelines</span> run concurrently, each model receives requests from different pipelines. Batch these per-model for efficiency:</p>
+  <svg class="diagram" viewBox="0 0 920 240" width="860" height="220">
+    <!-- Pipelines -->
+    <rect x="20" y="20" width="120" height="35" rx="4" fill="#f5a62320" stroke="#f5a623" stroke-width="1"/>
+    <text x="80" y="42" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="11">Pipeline A</text>
+    <rect x="20" y="65" width="120" height="35" rx="4" fill="#4ecb8d20" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="80" y="87" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">Pipeline B</text>
+    <rect x="20" y="110" width="120" height="35" rx="4" fill="#a78bfa20" stroke="#a78bfa" stroke-width="1"/>
+    <text x="80" y="132" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="11">Pipeline C</text>
+    <!-- Arrows to router -->
+    <line x1="142" y1="37" x2="210" y2="75" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <line x1="142" y1="82" x2="210" y2="82" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <line x1="142" y1="127" x2="210" y2="90" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <!-- Router -->
+    <rect x="215" y="55" width="100" height="55" rx="6" fill="none" stroke="#8888a8" stroke-width="1.5"/>
+    <text x="265" y="78" text-anchor="middle" fill="#8888a8" font-family="DM Sans" font-size="12" font-weight="600">Router</text>
+    <text x="265" y="96" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">per-model queue</text>
+    <!-- Arrows to model batches -->
+    <line x1="317" y1="65" x2="400" y2="37" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <line x1="317" y1="82" x2="400" y2="87" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <line x1="317" y1="100" x2="400" y2="137" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <!-- Model batches -->
+    <rect x="405" y="15" width="200" height="50" rx="6" fill="#f5a62315" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="505" y="37" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="12" font-weight="600">70B Batch [A,B,C]</text>
+    <text x="505" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">3 requests batched</text>
+    <rect x="405" y="75" width="200" height="40" rx="6" fill="#4ecb8d15" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="505" y="95" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="12" font-weight="600">32B Batch [A,C]</text>
+    <text x="505" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">2 requests batched</text>
+    <rect x="405" y="125" width="200" height="40" rx="6" fill="#a78bfa15" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="505" y="145" text-anchor="middle" fill="#a78bfa" font-family="DM Sans" font-size="12" font-weight="600">7B Batch [A,B]</text>
+    <text x="505" y="158" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">2 requests batched</text>
+    <!-- Arrows to GPUs -->
+    <line x1="607" y1="40" x2="680" y2="40" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <line x1="607" y1="95" x2="680" y2="95" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <line x1="607" y1="145" x2="680" y2="145" stroke="#2a2a3a" stroke-width="1" marker-end="url(#arrow)"/>
+    <!-- GPUs -->
+    <rect x="685" y="20" width="120" height="45" rx="4" fill="#f5a62310" stroke="#f5a623" stroke-width="1"/>
+    <text x="745" y="38" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">GPU 0</text>
+    <text x="745" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">vLLM + 70B</text>
+    <rect x="685" y="75" width="120" height="45" rx="4" fill="#4ecb8d10" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="745" y="93" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">GPU 1</text>
+    <text x="745" y="110" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">vLLM + 32B</text>
+    <rect x="685" y="130" width="120" height="45" rx="4" fill="#a78bfa10" stroke="#a78bfa" stroke-width="1"/>
+    <text x="745" y="148" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">GPU 2</text>
+    <text x="745" y="165" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">vLLM + 7B</text>
+    <!-- Note -->
+    <text x="460" y="200" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="12">Each model instance uses continuous batching &mdash; throughput scales with concurrent users</text>
+  </svg>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 20: QUANTISATION STRATEGY PER ROLE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">19</span>
+    <h2>Quantisation Strategy per Role</h2>
+  </div>
+  <p>Not all agents need the same precision. Match quantisation to the <span class="a">sensitivity of the task</span>:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Agent Role</th>
+        <th>Model</th>
+        <th>Recommended Quant</th>
+        <th>Rationale</th>
+        <th>VRAM</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Reasoning / Supervisor</span></td>
+        <td>Llama 3.1 70B</td>
+        <td><span class="g">Q6_K</span> or Q8</td>
+        <td>Highest accuracy needed; planning errors cascade</td>
+        <td>54&ndash;70 GB</td>
+      </tr>
+      <tr>
+        <td><span class="g">Code Generation</span></td>
+        <td>Qwen2.5-Coder 32B</td>
+        <td><span class="g">Q5_K_M</span></td>
+        <td>Code is syntax-sensitive; Q4 introduces errors</td>
+        <td>~23 GB</td>
+      </tr>
+      <tr>
+        <td><span class="p">Tool-Calling</span></td>
+        <td>Mistral 7B</td>
+        <td>Q4_K_M</td>
+        <td>Structured output; schema constrains errors</td>
+        <td>~4.4 GB</td>
+      </tr>
+      <tr>
+        <td><span class="b">Embeddings</span></td>
+        <td>nomic-embed-text</td>
+        <td><span class="g">FP16</span></td>
+        <td>Embedding quality degrades sharply with quant</td>
+        <td>~0.5 GB</td>
+      </tr>
+      <tr>
+        <td><span class="r">Summarisation</span></td>
+        <td>Llama 3.1 8B</td>
+        <td>Q4_K_M</td>
+        <td>Lossy task; slight quality loss acceptable</td>
+        <td>~4.7 GB</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="card blue" style="margin-top:.5em;">
+    <h3>Key Insight</h3>
+    <p>By quantising the <span class="b">tool-caller aggressively (Q4)</span> while keeping the reasoning agent at Q6/Q8, you save ~3 GB from the tool-caller with minimal quality impact, freeing VRAM for the model that needs it most.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 21: MEMORY SAVINGS FROM QUANTISATION ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">20</span>
+    <h2>Memory Savings from Quantisation</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>FP16</th>
+        <th>Q8_0</th>
+        <th>Q6_K</th>
+        <th>Q5_K_M</th>
+        <th>Q4_K_M</th>
+        <th>Q3_K_M</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Llama 70B</span></td>
+        <td><span class="r">140 GB</span></td>
+        <td>70 GB</td>
+        <td>54 GB</td>
+        <td>48 GB</td>
+        <td><span class="g">40 GB</span></td>
+        <td>33 GB</td>
+      </tr>
+      <tr>
+        <td><span class="g">Qwen 32B</span></td>
+        <td><span class="r">64 GB</span></td>
+        <td>32 GB</td>
+        <td>25 GB</td>
+        <td>23 GB</td>
+        <td><span class="g">19 GB</span></td>
+        <td>15 GB</td>
+      </tr>
+      <tr>
+        <td><span class="p">Mistral 7B</span></td>
+        <td><span class="r">14.5 GB</span></td>
+        <td>7.7 GB</td>
+        <td>5.9 GB</td>
+        <td>5.1 GB</td>
+        <td><span class="g">4.4 GB</span></td>
+        <td>3.5 GB</td>
+      </tr>
+      <tr>
+        <td><span class="b">Llama 8B</span></td>
+        <td><span class="r">16 GB</span></td>
+        <td>8.5 GB</td>
+        <td>6.6 GB</td>
+        <td>5.7 GB</td>
+        <td><span class="g">4.7 GB</span></td>
+        <td>3.9 GB</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.6em;">
+    <div class="card amber">
+      <h3>Total Stack at Q4 vs FP16</h3>
+      <p>All four models at FP16: <span class="r">234.5 GB</span>. At Q4_K_M: <span class="g">68.1 GB</span>. That's a <span class="a">3.4&times; reduction</span>, making the difference between needing a multi-node cluster and fitting on a single 80 GB GPU.</p>
+    </div>
+    <div class="card green">
+      <h3>Per-Role Optimised Mix</h3>
+      <p>70B at Q6 (54) + 32B at Q5 (23) + 7B at Q4 (4.4) + embed FP16 (0.5) = <span class="g">81.9 GB</span>. Just over one A100 80GB &mdash; consider Q5 for the 70B to squeeze under.</p>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 22: CPU OFFLOADING ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">21</span>
+    <h2>CPU Offloading for the Largest Model</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>How It Works</h3>
+      <ul>
+        <li>Split model layers between <span class="a">GPU and CPU</span></li>
+        <li>GPU processes its layers at full speed</li>
+        <li>CPU layers processed via RAM bandwidth</li>
+        <li>Each CPU layer adds ~5&ndash;15ms latency</li>
+        <li>Controlled via <code>--n-gpu-layers</code> in llama.cpp</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Throughput Impact</h3>
+      <table style="font-size:.9em;">
+        <tr><th>70B Q4 Config</th><th>tok/s</th></tr>
+        <tr><td>All 80 layers on GPU</td><td><span class="g">~15</span></td></tr>
+        <tr><td>60 GPU / 20 CPU</td><td>~10</td></tr>
+        <tr><td>40 GPU / 40 CPU</td><td>~6</td></tr>
+        <tr><td>20 GPU / 60 CPU</td><td><span class="r">~3</span></td></tr>
+        <tr><td>All CPU (DDR5)</td><td><span class="r">~1.5</span></td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.6em;">
+    <h3>Multi-Model Strategy</h3>
+    <p>Offload <span class="g">20&ndash;30 layers of the 70B</span> to CPU, freeing ~10&ndash;15 GB of VRAM for the smaller specialist models. The 70B loses ~30% throughput, but the pipeline gains by <span class="g">eliminating swap latency</span> for the other models. Net result is often faster end-to-end.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 23: NETWORK AND STORAGE I/O ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">22</span>
+    <h2>Network and Storage I/O</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Storage Tiers</h3>
+        <table style="font-size:.9em;">
+          <tr><th>Medium</th><th>Bandwidth</th><th>40 GB Load</th></tr>
+          <tr><td>NVMe Gen5</td><td>12 GB/s</td><td><span class="g">3.3s</span></td></tr>
+          <tr><td>NVMe Gen4</td><td>7 GB/s</td><td>5.7s</td></tr>
+          <tr><td>SATA SSD</td><td>550 MB/s</td><td><span class="r">73s</span></td></tr>
+          <tr><td>HDD</td><td>150 MB/s</td><td><span class="r">267s</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Network Tiers</h3>
+        <table style="font-size:.9em;">
+          <tr><th>Link</th><th>Bandwidth</th><th>40 GB Transfer</th></tr>
+          <tr><td>InfiniBand HDR</td><td>25 GB/s</td><td><span class="g">1.6s</span></td></tr>
+          <tr><td>100GbE</td><td>12.5 GB/s</td><td>3.2s</td></tr>
+          <tr><td>25GbE</td><td>3.1 GB/s</td><td>12.9s</td></tr>
+          <tr><td>10GbE</td><td>1.25 GB/s</td><td><span class="r">32s</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.6em;">
+    <h3>Multi-Node Implications</h3>
+    <p>If models are distributed across nodes, <span class="g">inter-node latency</span> adds to every pipeline step that crosses a node boundary. Keep tightly-coupled models (e.g., supervisor + tool-caller) on the <span class="g">same node</span>. Use InfiniBand or 100GbE for cross-node model communication.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 24: PRACTICAL CONFIG HOBBYIST ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">23</span>
+    <h2>Practical Config: Hobbyist</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>Hardware: 1&times; RTX 4090 (24 GB)</h3>
+        <ul>
+          <li>Budget: <span class="a">~$1,800</span></li>
+          <li>Total usable VRAM: ~22 GB (after CUDA overhead)</li>
+          <li>Power: 450W GPU + system = ~600W total</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Model Configuration</h3>
+        <ul>
+          <li><span class="g">Hot</span>: Mistral 7B Q4 (4.4 GB) + embed (0.5 GB)</li>
+          <li><span class="g">Swap-in</span>: Qwen 32B Q4 (19 GB) OR Llama 8B Q6 (6.6 GB)</li>
+          <li>Cannot run 70B &mdash; even Q3 (33 GB) won't fit</li>
+          <li>2&ndash;3 small models hot, swap the rest</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Workflow</h3>
+        <ul>
+          <li>Use Mistral 7B as both tool-caller and lightweight reasoner</li>
+          <li>Swap in Qwen 32B for coding tasks</li>
+          <li>Expect <span class="p">~3&ndash;5s swap delay</span> per model change</li>
+          <li>Ollama with <code>KEEP_ALIVE=5m</code></li>
+          <li>Accept sequential, not parallel agents</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.5em;">
+        <h3>Limitations</h3>
+        <ul>
+          <li>No 70B model at all</li>
+          <li>Only 1&ndash;2 models resident at a time</li>
+          <li>Swap latency disrupts interactive use</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 25: PRACTICAL CONFIG SMALL TEAM ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">24</span>
+    <h2>Practical Config: Small Team</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>Hardware Options</h3>
+        <ul>
+          <li><span class="a">2&times; RTX 4090</span> (48 GB split, ~$3,600)</li>
+          <li><span class="a">1&times; A6000</span> (48 GB unified, ~$3,800)</li>
+          <li><span class="a">Mac Studio M4 Ultra</span> (192 GB unified, ~$7,000)</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>2&times; 4090 Configuration</h3>
+        <ul>
+          <li>GPU 0: Qwen 32B Q4 (19 GB) + embed (0.5 GB)</li>
+          <li>GPU 1: Mistral 7B Q8 (7.7 GB) + Llama 8B Q5 (5.7 GB)</li>
+          <li><span class="g">4 models hot simultaneously</span></li>
+          <li>Still no 70B; max single model is 32B per GPU</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Mac Studio Configuration</h3>
+        <ul>
+          <li><span class="p">Llama 70B Q4</span> (40 GB) &mdash; supervisor</li>
+          <li><span class="p">Qwen 32B Q5</span> (23 GB) &mdash; coder</li>
+          <li><span class="p">Mistral 7B Q8</span> (7.7 GB) &mdash; tools</li>
+          <li><span class="p">Embeddings</span> (0.5 GB) &mdash; RAG</li>
+          <li>Total: 71 GB of 192 GB &mdash; <span class="g">plenty of headroom</span></li>
+          <li>Slower tok/s than CUDA but zero swap</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.5em;">
+        <h3>Best Choice</h3>
+        <p>For multi-model: <span class="b">Mac Studio wins on capacity</span>. For single-model speed: 2&times;4090 wins on tok/s. Choose based on whether you need the 70B supervisor.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 26: PRACTICAL CONFIG PRODUCTION ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">25</span>
+    <h2>Practical Config: Production</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>Hardware: A100/H100 80 GB</h3>
+        <ul>
+          <li>Single A100 80GB: <span class="a">~$12,000</span></li>
+          <li>Single H100 80GB: <span class="a">~$25,000</span></li>
+          <li>H100 delivers ~3&times; tok/s vs A100 for same model</li>
+          <li>HBM bandwidth: 2&ndash;3.4 TB/s</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Single-Card Layout</h3>
+        <ul>
+          <li><span class="g">Llama 70B Q4</span> (40 GB)</li>
+          <li><span class="g">Mistral 7B Q8</span> (7.7 GB)</li>
+          <li><span class="g">Embedding model</span> (0.5 GB)</li>
+          <li>KV caches (~4 GB)</li>
+          <li>Remaining: ~28 GB for Qwen 32B Q4 (19 GB) + headroom</li>
+          <li><span class="g">Full stack on one 80 GB card</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>2&times; H100 with NVLink</h3>
+        <ul>
+          <li>160 GB total with 900 GB/s interconnect</li>
+          <li>70B at <span class="p">FP16 with TP=2</span> for maximum quality</li>
+          <li>32B + 7B + embeddings on remaining VRAM</li>
+          <li>Continuous batching via vLLM per model</li>
+          <li>Supports 10&ndash;20 concurrent user pipelines</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.5em;">
+        <h3>Cloud Equivalent</h3>
+        <p>AWS <code>p4d.24xlarge</code> (8&times; A100 40GB): <span class="b">~$32/hr</span>. GCP <code>a3-highgpu-1g</code> (1&times; H100 80GB): <span class="b">~$4/hr</span>. For multi-model, a single 80 GB instance is often more cost-effective than multiple smaller ones.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 27: PRACTICAL CONFIG ENTERPRISE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">26</span>
+    <h2>Practical Config: Enterprise</h2>
+  </div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Architecture</h3>
+      <ul>
+        <li>Multi-node GPU cluster</li>
+        <li><span class="a">GPU-per-model-class</span> allocation</li>
+        <li>Dedicated nodes for 70B+ models</li>
+        <li>Shared pool for small models</li>
+        <li>InfiniBand interconnect</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Autoscaling</h3>
+      <ul>
+        <li>Scale 70B replicas based on <span class="g">queue depth</span></li>
+        <li>Scale small-model pool by request rate</li>
+        <li>Pre-warm models on standby nodes</li>
+        <li>Spot/preemptible instances for batch workloads</li>
+        <li>Kubernetes + GPU operator</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Example Cluster</h3>
+      <ul>
+        <li>4&times; H100 nodes for 70B (TP=2, 2 replicas)</li>
+        <li>2&times; H100 nodes for 32B models</li>
+        <li>2&times; A100 nodes for 7B + embeddings</li>
+        <li>Total: <span class="p">8 nodes, ~$200K hardware</span></li>
+        <li>Serves 100+ concurrent agent pipelines</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em;">
+    <h3>Model Routing Layer</h3>
+    <p>A central <span class="b">LiteLLM or custom gateway</span> routes each agent's request to the appropriate model pool. Load balancing across replicas, with fallback to quantised versions during peak load. Health checks ensure failed instances are drained gracefully.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 28: COST COMPARISON ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">27</span>
+    <h2>Cost Comparison</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Configuration</th>
+        <th>Hardware Cost</th>
+        <th>Power (System)</th>
+        <th>Annual Electricity</th>
+        <th>Cloud Equivalent</th>
+        <th>Cloud Annual</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="p">1&times; RTX 4090</span></td>
+        <td>$2,500</td>
+        <td>600W</td>
+        <td>$630</td>
+        <td>g5.xlarge (A10G)</td>
+        <td><span class="r">$8,900</span></td>
+      </tr>
+      <tr>
+        <td><span class="p">2&times; RTX 4090</span></td>
+        <td>$4,500</td>
+        <td>1,000W</td>
+        <td>$1,050</td>
+        <td>g5.2xlarge</td>
+        <td><span class="r">$14,000</span></td>
+      </tr>
+      <tr>
+        <td><span class="g">Mac Studio M4 Ultra</span></td>
+        <td>$7,000</td>
+        <td>200W</td>
+        <td>$210</td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+      </tr>
+      <tr>
+        <td><span class="b">1&times; A100 80GB</span></td>
+        <td>$15,000</td>
+        <td>600W</td>
+        <td>$630</td>
+        <td>p4d (shared)</td>
+        <td><span class="r">$35,000</span></td>
+      </tr>
+      <tr>
+        <td><span class="a">1&times; H100 80GB</span></td>
+        <td>$28,000</td>
+        <td>900W</td>
+        <td>$945</td>
+        <td>a3-highgpu-1g</td>
+        <td><span class="r">$35,000</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="card green" style="margin-top:.5em;">
+    <h3>Break-Even Analysis</h3>
+    <p>At 24/7 utilization, on-premises hardware pays for itself in <span class="g">3&ndash;8 months</span> vs cloud. For intermittent use (&lt;8 hrs/day), cloud is more economical. Multi-model workloads tend toward high utilization, favoring on-prem.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 29: POWER AND THERMAL ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">28</span>
+    <h2>Power and Thermal Considerations</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <thead>
+          <tr><th>Configuration</th><th>GPU TDP</th><th>System Total</th><th>Monthly Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1&times; RTX 4090</td><td>450W</td><td>~600W</td><td>$52</td></tr>
+          <tr><td>2&times; RTX 4090</td><td>900W</td><td>~1,100W</td><td>$96</td></tr>
+          <tr><td>2&times; H100 SXM</td><td>1,400W</td><td>~1,800W</td><td>$158</td></tr>
+          <tr><td>8&times; H100 node</td><td>5,600W</td><td>~7,500W</td><td><span class="r">$657</span></td></tr>
+          <tr><td>Mac Studio M4 Ultra</td><td>&mdash;</td><td><span class="g">~200W</span></td><td><span class="g">$18</span></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:.7em; color:var(--muted); margin-top:.3em;">Assuming $0.12/kWh, 24/7 sustained inference</p>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>Thermal Challenges</h3>
+        <ul>
+          <li>Multi-GPU rigs need <span class="r">serious cooling</span></li>
+          <li>2&times; 4090 in consumer case: thermal throttling likely</li>
+          <li>H100 SXM requires liquid cooling or server chassis</li>
+          <li>Sustained inference = sustained heat (no idle periods)</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>Multi-Model Advantage</h3>
+        <p>Not all models are active simultaneously. When the coder agent is generating, the tool-caller GPU is <span class="g">partially idle</span>. Average power draw is typically <span class="g">60&ndash;75% of peak TDP</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 30: SOFTWARE ORCHESTRATION ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">29</span>
+    <h2>Software Orchestration</h2>
+  </div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Kubernetes + GPU</h3>
+      <ul>
+        <li>NVIDIA GPU Operator for device plugins</li>
+        <li><span class="a">MIG</span> (Multi-Instance GPU) to slice H100</li>
+        <li>Resource requests: <code>nvidia.com/gpu: 1</code></li>
+        <li>Node affinity for model-class placement</li>
+        <li>Tolerations for GPU-specific nodes</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>GPU Scheduling</h3>
+      <ul>
+        <li>NVIDIA MPS for GPU sharing between models</li>
+        <li><span class="g">Time-slicing</span>: multiple model pods share one GPU</li>
+        <li>Memory isolation via MIG partitions</li>
+        <li>Priority classes: supervisor &gt; specialists</li>
+        <li>Preemption for high-priority agent requests</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Health &amp; Monitoring</h3>
+      <ul>
+        <li>DCGM (Data Center GPU Manager) metrics</li>
+        <li><span class="p">VRAM utilization</span> per model instance</li>
+        <li>Inference latency P50/P95/P99</li>
+        <li>Model load/unload event tracking</li>
+        <li>Alerting on OOM kills and thermal throttle</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em;">
+    <h3>MIG for Multi-Model</h3>
+    <p>An H100 can be partitioned into <span class="b">up to 7 MIG instances</span>. Assign a 40 GB partition for the 70B model, a 20 GB partition for the 32B, and a 10 GB partition for small models. Each partition has <span class="b">isolated memory and compute</span> &mdash; no fragmentation, no interference.</p>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 31: KEY RECOMMENDATIONS ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">30</span>
+    <h2>Key Recommendations</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>1. Budget for Total VRAM, Not Just the Largest Model</h3>
+        <p>Sum all concurrent model weights + KV caches + overhead. Multi-agent pipelines need <span class="a">2&ndash;4&times; the VRAM</span> of single-model deployments.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em;">
+        <h3>2. Quantise Per-Role</h3>
+        <p>Use high precision for reasoning (Q6/Q8) and aggressive quantisation for structured-output agents (Q4). Save VRAM where quality impact is lowest.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em;">
+        <h3>3. Keep Hot Models Resident</h3>
+        <p>Swap latency kills interactive pipelines. Budget VRAM to keep your <span class="p">2&ndash;3 most-used models permanently loaded</span>.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>4. Use Model-per-GPU When Possible</h3>
+        <p>Avoids fragmentation, simplifies memory management, and enables <span class="b">per-model continuous batching</span> through separate vLLM instances.</p>
+      </div>
+      <div class="card red" style="margin-top:.5em;">
+        <h3>5. Benchmark Your Actual Pipeline</h3>
+        <p>Theoretical VRAM calculations miss fragmentation, CUDA overhead, and KV cache growth. <span class="r">Always test with real workloads</span> before committing to hardware.</p>
+      </div>
+      <div class="card amber" style="margin-top:.5em;">
+        <h3>6. Plan for the Bottleneck</h3>
+        <p>The largest model dominates latency. Invest in <span class="a">speculative decoding, better quantisation, or a faster GPU</span> specifically for that model.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 32: THE FUTURE ============ -->
+<section>
+  <div class="slide-hdr">
+    <span class="tag">31</span>
+    <h2>The Future</h2>
+  </div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Larger Unified Memory</h3>
+      <ul>
+        <li><span class="a">NVIDIA Grace Hopper</span>: 624 GB unified CPU+GPU memory</li>
+        <li>Grace Blackwell GB200: up to 384 GB HBM3e per GPU</li>
+        <li>Eliminates the multi-model VRAM squeeze</li>
+        <li>All models resident with room for massive KV caches</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Cheaper Inference ASICs</h3>
+      <ul>
+        <li><span class="g">Groq LPU</span>: purpose-built for inference, extreme tok/s</li>
+        <li><span class="g">Cerebras</span>, <span class="g">SambaNova</span>: dataflow architectures</li>
+        <li>Could dedicate one ASIC per model class</li>
+        <li>10&ndash;100&times; better perf/$ for inference workloads</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em;">
+    <div class="card purple">
+      <h3>Model Merging &amp; Distillation</h3>
+      <ul>
+        <li><span class="p">Merge</span> specialist models into one multi-talent model</li>
+        <li><span class="p">Distill</span> 70B reasoning into 14B with 90% capability</li>
+        <li>Reduce model count from 4&ndash;6 down to 2&ndash;3</li>
+        <li>Directly reduces VRAM and complexity</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Smarter Orchestration</h3>
+      <ul>
+        <li><span class="b">Predictive model loading</span>: pre-fetch the next agent's model</li>
+        <li>Dynamic quantisation: load at Q4, promote to Q8 if needed</li>
+        <li>Shared-weight architectures across agents</li>
+        <li>Federated multi-node inference with global KV cache</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">Multi-Model Multi-Agent Hardware</div>
+</section>
+
+<!-- ============ SLIDE 33: CLOSING ============ -->
+<section class="title-slide">
+  <p style="font-family:'JetBrains Mono',monospace; font-size:.6em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <h1>Hardware Implications of Multi-Model Multi-Agent Systems</h1>
+  <div class="subtitle">GPU Memory, Scheduling, and Orchestration at Scale</div>
+  <hr style="border: none; border-top: 2px solid var(--amber); width: 5em; margin: 0 auto 1em;">
+  <p style="max-width:34em; margin:0 auto; font-size:.78em; color:#b8b8d0;">
+    Multi-agent systems multiply the hardware challenge: every specialised model
+    competes for finite VRAM. Success demands <span class="a">careful memory budgeting,
+    per-role quantisation, and architecture-aware GPU planning</span>.
+  </p>
+  <p class="meta" style="margin-top:1.5em;">March 2026 &nbsp;|&nbsp; LLM Infrastructure</p>
+</section>
+
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>
+Reveal.initialize({ hash: true, center:false, transition: 'fade', transitionSpeed: 'fast',
+  margin: 0.02, width: 1280, height: 900 });
+
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>

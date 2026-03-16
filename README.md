@@ -49,6 +49,7 @@ This repository holds a few LLM-related articles that interest me.
 | Tenstorrent Architecture | [MD](articles/tenstorrent_architecture.md) | [Slides](presentations/tenstorrent_architecture.html) |
 | Etched Sohu Architecture | [MD](articles/etched_sohu_architecture.md) | [Slides](presentations/etched_sohu_architecture.html) |
 | AMD Instinct MI300X | [MD](articles/amd_mi300x_architecture.md) | [Slides](presentations/amd_mi300x_architecture.html) |
+| Multi-Model Multi-Agent Hardware | [MD](articles/multi_model_multi_agent_hardware.md) | [Slides](presentations/multi_model_multi_agent_hardware.html) |
 
 ## License
 

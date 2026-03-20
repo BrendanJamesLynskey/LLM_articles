@@ -25,6 +25,7 @@ This repository holds a few LLM-related articles that interest me.
 | Open-Weights LLM Landscape | [PDF](articles/open_weights_llm_landscape.pdf) · [MD](articles/open_weights_llm_landscape.md) |
 | Memory Hierarchy and Offloading | [PDF](articles/memory_hierarchy_and_offloading.pdf) · [MD](articles/memory_hierarchy_and_offloading.md) |
 | GPU Power Variability | [PDF](articles/gpu_power_variability.pdf) · [MD](articles/gpu_power_variability.md) |
+| NVIDIA DGX Spark | [MD](articles/nvidia_dgx_spark.md) |
 
 ## License
 

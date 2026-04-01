@@ -26,6 +26,7 @@ This repository holds a few LLM-related articles that interest me.
 | Memory Hierarchy and Offloading | [PDF](articles/memory_hierarchy_and_offloading.pdf) · [MD](articles/memory_hierarchy_and_offloading.md) |
 | GPU Power Variability | [PDF](articles/gpu_power_variability.pdf) · [MD](articles/gpu_power_variability.md) |
 | NVIDIA DGX Spark | [PDF](articles/nvidia_dgx_spark.pdf) · [MD](articles/nvidia_dgx_spark.md) |
+| Model Context Protocol (MCP) | [PDF](articles/model_context_protocol.pdf) · [MD](articles/model_context_protocol.md) |
 
 ## License
 

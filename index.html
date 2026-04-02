@@ -192,6 +192,7 @@
   .cat-training { background: rgba(78,203,141,.15); color: var(--green); }
   .cat-hardware { background: rgba(248,113,113,.15); color: var(--red); }
   .cat-practical { background: rgba(96,165,250,.15); color: var(--blue); }
+  .cat-security { background: rgba(248,113,113,.15); color: var(--red); }
 
   .article-info .desc {
     font-size: .78em;
@@ -286,9 +287,9 @@
       Each article includes an interactive slide presentation.
     </p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">43</div><div class="stat-label">ARTICLES</div></div>
-      <div class="stat"><div class="stat-num">43</div><div class="stat-label">PRESENTATIONS</div></div>
-      <div class="stat"><div class="stat-num">5</div><div class="stat-label">CATEGORIES</div></div>
+      <div class="stat"><div class="stat-num">48</div><div class="stat-label">ARTICLES</div></div>
+      <div class="stat"><div class="stat-num">48</div><div class="stat-label">PRESENTATIONS</div></div>
+      <div class="stat"><div class="stat-num">6</div><div class="stat-label">CATEGORIES</div></div>
     </div>
   </header>
 
@@ -302,6 +303,7 @@
       <button class="filter-pill" data-cat="training">Training</button>
       <button class="filter-pill" data-cat="hardware">Hardware</button>
       <button class="filter-pill" data-cat="practical">Practical</button>
+      <button class="filter-pill" data-cat="security">Security</button>
     </div>
   </div>
 
@@ -828,6 +830,67 @@
       <div class="article-links">
         <a href="presentations/model_context_protocol.html" class="link-slides">Slides</a>
         <a href="articles/model_context_protocol.md" class="link-md">MD</a>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="article-card" data-cat="security" data-title="LLM Security">
+      <div class="article-info">
+        <span class="category cat-security">SECURITY</span>
+        <h3>LLM Security</h3>
+        <p class="desc">Prompt injection, jailbreaking, data poisoning, model theft, information leakage, adversarial inputs, guardrails, red teaming, and the OWASP Top 10 for LLMs.</p>
+      </div>
+      <div class="article-links">
+        <a href="presentations/llm_security.html" class="link-slides">Slides</a>
+        <a href="articles/llm_security.md" class="link-md">MD</a>
+      </div>
+    </div>
+
+    <div class="article-card" data-cat="security" data-title="Agent Security">
+      <div class="article-info">
+        <span class="category cat-security">SECURITY</span>
+        <h3>Agent Security</h3>
+        <p class="desc">Sandboxing, permission models, tool use risks, confused deputy attacks, multi-agent trust boundaries, credential management, supply chain risks, and defense architectures.</p>
+      </div>
+      <div class="article-links">
+        <a href="presentations/agent_security.html" class="link-slides">Slides</a>
+        <a href="articles/agent_security.md" class="link-md">MD</a>
+      </div>
+    </div>
+
+    <div class="article-card" data-cat="security" data-title="MCP Security">
+      <div class="article-info">
+        <span class="category cat-security">SECURITY</span>
+        <h3>MCP Security</h3>
+        <p class="desc">Tool poisoning, indirect prompt injection via tool results, rug-pull attacks, transport security, OAuth 2.1, cross-server data leakage, and enterprise deployment hardening.</p>
+      </div>
+      <div class="article-links">
+        <a href="presentations/mcp_security.html" class="link-slides">Slides</a>
+        <a href="articles/mcp_security.md" class="link-md">MD</a>
+      </div>
+    </div>
+
+    <div class="article-card" data-cat="security" data-title="OAuth 2.1 for AI Applications">
+      <div class="article-info">
+        <span class="category cat-security">SECURITY</span>
+        <h3>OAuth 2.1 for AI Applications</h3>
+        <p class="desc">PKCE, MCP OAuth integration, token management for agents, scoped permissions, delegated authorization, JWT, identity providers, and API gateway patterns.</p>
+      </div>
+      <div class="article-links">
+        <a href="presentations/oauth_for_ai.html" class="link-slides">Slides</a>
+        <a href="articles/oauth_for_ai.md" class="link-md">MD</a>
+      </div>
+    </div>
+
+    <div class="article-card" data-cat="security" data-title="Prompt Injection">
+      <div class="article-info">
+        <span class="category cat-security">SECURITY</span>
+        <h3>Prompt Injection</h3>
+        <p class="desc">Direct and indirect injection, jailbreaks, GCG adversarial suffixes, data exfiltration, the instruction-data conflation problem, defense strategies, and why complete prevention may be impossible.</p>
+      </div>
+      <div class="article-links">
+        <a href="presentations/prompt_injection.html" class="link-slides">Slides</a>
+        <a href="articles/prompt_injection.md" class="link-md">MD</a>
       </div>
     </div>
 

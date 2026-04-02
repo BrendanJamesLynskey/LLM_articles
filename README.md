@@ -8,9 +8,10 @@ A collection of technical articles exploring the systems behind modern large lan
 
 | Topic | Format |
 | --- | --- |
+| Agent Security | [Slides](presentations/agent_security.html) · [MD](articles/agent_security.md) |
 | AMD Instinct MI300X | [Slides](presentations/amd_mi300x_architecture.html) · [MD](articles/amd_mi300x_architecture.md) |
 | Attention Mechanism Innovations | [Slides](presentations/attention_mechanism_innovations.html) · [MD](articles/attention_mechanism_innovations.md) |
-| Attention–FFN Disaggregation | [Slides](presentations/attention_ffn_disaggregation.html) · [PDF](articles/attention_ffn_disaggregation.pdf) · [MD](articles/attention_ffn_disaggregation.md) |
+| Attention–FFN Disaggregation | [Slides](presentations/attention_ffn_disaggregation.html) · [MD](articles/attention_ffn_disaggregation.md) |
 | AWS Trainium and Inferentia | [Slides](presentations/aws_trainium_inferentia.html) · [MD](articles/aws_trainium_inferentia.md) |
 | Batching in LLM Inference | [Slides](presentations/batching_report.html) · [MD](articles/batching_report.md) |
 | Cerebras Wafer-Scale Engine | [Slides](presentations/cerebras_architecture.html) · [MD](articles/cerebras_architecture.md) |
@@ -27,21 +28,25 @@ A collection of technical articles exploring the systems behind modern large lan
 | Inference Serving Frameworks | [Slides](presentations/inference_serving_frameworks.html) · [MD](articles/inference_serving_frameworks.md) |
 | Intel Gaudi Architecture | [Slides](presentations/intel_gaudi_architecture.html) · [MD](articles/intel_gaudi_architecture.md) |
 | KV Cache Optimization | [Slides](presentations/kv_cache_optimization.html) · [MD](articles/kv_cache_optimization.md) |
+| LLM Security | [Slides](presentations/llm_security.html) · [MD](articles/llm_security.md) |
 | LLM Training Stages | [Slides](presentations/llm_training_stages.html) · [MD](articles/llm_training_stages.md) |
 | LoRA and Parameter-Efficient Fine-Tuning | [Slides](presentations/lora_and_peft.html) · [MD](articles/lora_and_peft.md) |
 | Memory Hierarchy and Offloading | [Slides](presentations/memory_hierarchy_and_offloading.html) · [MD](articles/memory_hierarchy_and_offloading.md) |
 | Mixed-Precision Arithmetic | [Slides](presentations/mixed_precision_arithmetic.html) · [MD](articles/mixed_precision_arithmetic.md) |
 | Mixture of Experts | [Slides](presentations/mixture_of_experts.html) · [MD](articles/mixture_of_experts.md) |
-| Model Context Protocol (MCP) | [Slides](presentations/model_context_protocol.html) · [PDF](articles/model_context_protocol.pdf) · [MD](articles/model_context_protocol.md) |
+| MCP Security | [Slides](presentations/mcp_security.html) · [MD](articles/mcp_security.md) |
+| Model Context Protocol (MCP) | [Slides](presentations/model_context_protocol.html) · [MD](articles/model_context_protocol.md) |
 | Multi-Model Multi-Agent Hardware | [Slides](presentations/multi_model_multi_agent_hardware.html) · [MD](articles/multi_model_multi_agent_hardware.md) |
-| NVIDIA DGX Spark | [Slides](presentations/nvidia_dgx_spark.html) · [PDF](articles/nvidia_dgx_spark.pdf) · [MD](articles/nvidia_dgx_spark.md) |
+| NVIDIA DGX Spark | [Slides](presentations/nvidia_dgx_spark.html) · [MD](articles/nvidia_dgx_spark.md) |
 | Non-Deterministic Output in Ollama | [Slides](presentations/ollama_nondeterminism.html) · [MD](articles/ollama_nondeterminism.md) |
+| OAuth 2.1 for AI Applications | [Slides](presentations/oauth_for_ai.html) · [MD](articles/oauth_for_ai.md) |
 | Open-Weights LLM Landscape | [Slides](presentations/open_weights_llm_landscape.html) · [MD](articles/open_weights_llm_landscape.md) |
 | PagedAttention | [Slides](presentations/paged_attention.html) · [MD](articles/paged_attention.md) |
 | Positional Encodings | [Slides](presentations/positional_encodings.html) · [MD](articles/positional_encodings.md) |
 | Post-Transformer Language Models | [Slides](presentations/post_transformer_models.html) · [MD](articles/post_transformer_models.md) |
 | Power and Thermal Management | [Slides](presentations/power_and_thermal_management.html) · [MD](articles/power_and_thermal_management.md) |
 | Prompt Engineering | [Slides](presentations/prompt_engineering.html) · [MD](articles/prompt_engineering.md) |
+| Prompt Injection | [Slides](presentations/prompt_injection.html) · [MD](articles/prompt_injection.md) |
 | Quantization for Inference | [Slides](presentations/quantization_for_inference.html) · [MD](articles/quantization_for_inference.md) |
 | Retrieval-Augmented Generation | [Slides](presentations/retrieval_augmented_generation.html) · [MD](articles/retrieval_augmented_generation.md) |
 | Ring Attention and Sequence Parallelism | [Slides](presentations/ring_attention_and_sequence_parallelism.html) · [MD](articles/ring_attention_and_sequence_parallelism.md) |

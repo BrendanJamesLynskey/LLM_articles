@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OAuth 2.1 for AI Applications | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>OAuth 2.1 for AI Applications</h1>
+  <p class="subtitle">Securing the Agent-Tool Interface</p>
+  <div>
+    <span class="pill amber">oauth</span>
+    <span class="pill green">mcp</span>
+    <span class="pill purple">authorization</span>
+    <span class="pill blue">agents</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">oauth-for-ai / 01</div>
+</section>
+
+<!-- SLIDE 2: Why AI Needs OAuth -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why AI Applications Need OAuth</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>The API Key Problem</h3>
+      <ul>
+        <li>API keys are <span class="r">shared secrets</span> with no identity, scope, or expiration</li>
+        <li>Agent context windows, logs, and tool descriptions are all <span class="r">leak vectors</span></li>
+        <li>No way to limit what the agent does with the key</li>
+        <li>No audit trail connecting agent actions to the <span class="a">initiating user</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>What OAuth Provides</h3>
+      <ul>
+        <li><span class="g">Scoped, time-limited</span> tokens instead of permanent keys</li>
+        <li>Delegated authorization &mdash; agent acts <span class="g">on behalf of</span> the user</li>
+        <li>Revocable access at any time</li>
+        <li>Full audit trail: who, what, when, through which agent</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>The MCP Catalyst</h3>
+    <p>MCP&rsquo;s specification for remote server authentication is built on <span class="b">OAuth 2.1</span>, including PKCE, dynamic client registration, and token-based access control. OAuth literacy is now essential for the agent ecosystem.</p>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 02</div>
+</section>
+
+<!-- SLIDE 3: OAuth Fundamentals -->
+<section>
+  <div class="slide-hdr"><span class="tag">FOUNDATIONS</span><h2>OAuth 2.0/2.1 Core Concepts</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>The Four Roles</h3>
+      <ul>
+        <li><span class="a">Resource Owner</span> &mdash; the user who grants access</li>
+        <li><span class="g">Client</span> &mdash; the AI agent / MCP host</li>
+        <li><span class="p">Authorization Server</span> &mdash; issues tokens (Auth0, Okta, Keycloak)</li>
+        <li><span class="b">Resource Server</span> &mdash; the MCP server / API endpoint</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Key Primitives</h3>
+      <ul>
+        <li><span class="g">Access Tokens</span> &mdash; short-lived (5&ndash;60 min), scoped credentials</li>
+        <li><span class="a">Refresh Tokens</span> &mdash; long-lived, used to obtain new access tokens</li>
+        <li><span class="p">Scopes</span> &mdash; permission strings (e.g. <code>tools:execute</code>)</li>
+        <li><span class="b">Audiences</span> &mdash; which resource server the token targets</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 100" width="750" style="margin-top:.8em">
+    <rect x="10" y="20" width="120" height="55" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="70" y="42" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">User</text>
+    <text x="70" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(Resource Owner)</text>
+    <line x1="130" y1="47" x2="200" y2="47" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="165" y="40" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">consent</text>
+    <rect x="200" y="20" width="140" height="55" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="270" y="42" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Auth Server</text>
+    <text x="270" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(issues tokens)</text>
+    <line x1="340" y1="47" x2="420" y2="47" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="380" y="40" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">token</text>
+    <rect x="420" y="20" width="140" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="490" y="42" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">AI Agent</text>
+    <text x="490" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(Client)</text>
+    <line x1="560" y1="47" x2="640" y2="47" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="600" y="40" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">Bearer</text>
+    <rect x="640" y="20" width="140" height="55" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="710" y="42" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">MCP Server</text>
+    <text x="710" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(Resource Server)</text>
+    <defs><marker id="arrO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="slide-footer">oauth-for-ai / 03</div>
+</section>
+
+<!-- SLIDE 4: Authorization Code Flow -->
+<section>
+  <div class="slide-hdr"><span class="tag">FLOW</span><h2>Authorization Code Flow</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>1. Authorize</h3>
+      <p>Agent redirects user to auth server with requested <span class="a">scopes</span>, redirect URI, state, and <span class="p">PKCE challenge</span>.</p>
+    </div>
+    <div class="card green">
+      <h3>2. Consent</h3>
+      <p>User authenticates and approves permissions. Auth server returns a <span class="g">short-lived authorization code</span> via redirect.</p>
+    </div>
+    <div class="card purple">
+      <h3>3. Exchange</h3>
+      <p>Agent exchanges code + <span class="p">PKCE verifier</span> for an access token and refresh token. User credentials <span class="g">never exposed</span> to agent.</p>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card blue">
+      <h3>Client Credentials Flow</h3>
+      <p>For <span class="b">machine-to-machine</span> (no user present): agent authenticates directly with client ID + secret. Used for backend MCP server-to-server calls.</p>
+    </div>
+    <div class="card red">
+      <h3>Implicit Flow (Removed)</h3>
+      <p>OAuth 2.1 <span class="r">removes the implicit flow</span> entirely. Tokens in URL fragments are exposed to browser history and referrer headers. Use auth code + PKCE instead.</p>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 04</div>
+</section>
+
+<!-- SLIDE 5: PKCE -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>PKCE: Proof Key for Code Exchange</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card purple">
+        <h3>Why PKCE Is Mandatory in OAuth 2.1</h3>
+        <ul>
+          <li>Authorization codes travel through the browser &mdash; <span class="r">interception risk</span></li>
+          <li>Dynamically registered MCP clients are <span class="a">public clients</span> (no pre-shared secret)</li>
+          <li>PKCE adds proof-of-possession: only the <span class="g">original requester</span> can exchange the code</li>
+          <li>Cost: <span class="g">virtually zero</span> &mdash; one hash computation</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Security Property</h3>
+        <p>Even if an attacker intercepts the authorization code <em>and</em> the code challenge, they <span class="g">cannot derive</span> the code verifier (SHA-256 is one-way).</p>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>The PKCE Steps</h3>
+        <ul>
+          <li><span class="a">1.</span> Client generates random <code>code_verifier</code> (43&ndash;128 chars)</li>
+          <li><span class="a">2.</span> Compute <code>code_challenge</code> = SHA256(verifier)</li>
+          <li><span class="a">3.</span> Send challenge with auth request</li>
+          <li><span class="a">4.</span> Auth server stores challenge alongside code</li>
+          <li><span class="a">5.</span> Client sends verifier with token exchange</li>
+          <li><span class="a">6.</span> Server hashes verifier, compares to stored challenge</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 05</div>
+</section>
+
+<!-- SLIDE 6: MCP OAuth Integration -->
+<section>
+  <div class="slide-hdr"><span class="tag">MCP</span><h2>MCP&rsquo;s OAuth Integration</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Server Metadata Discovery</h3>
+      <ul>
+        <li>MCP client fetches <code>/.well-known/oauth-authorization-server</code></li>
+        <li>Returns auth endpoint, token endpoint, registration endpoint</li>
+        <li>Supported scopes, grant types, PKCE methods</li>
+        <li><span class="g">Automated</span> &mdash; no pre-configured knowledge needed</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Dynamic Client Registration</h3>
+      <ul>
+        <li>RFC 7591 &mdash; client registers itself <span class="a">at runtime</span></li>
+        <li>POSTs client_name, redirect_uris, grant_types</li>
+        <li>Receives client_id (and optionally client_secret)</li>
+        <li>Users connect to <span class="a">new MCP servers</span> without manual config</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.6em">
+    <rect x="10" y="15" width="130" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="75" y="37" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">MCP Host</text>
+    <text x="75" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(OAuth Client)</text>
+    <line x1="140" y1="42" x2="230" y2="25" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrO)"/>
+    <text x="185" y="25" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">register</text>
+    <line x1="140" y1="42" x2="230" y2="60" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrO)"/>
+    <text x="185" y="65" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">auth+PKCE</text>
+    <rect x="230" y="5" width="180" height="30" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="320" y="24" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">/oauth/register</text>
+    <rect x="230" y="45" width="180" height="30" rx="6" fill="none" stroke="#f5a623" stroke-width="1.2"/>
+    <text x="320" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">/oauth/authorize</text>
+    <line x1="410" y1="42" x2="500" y2="42" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="455" y="37" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">Bearer token</text>
+    <rect x="500" y="15" width="160" height="55" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="580" y="37" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">MCP Server</text>
+    <text x="580" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(Resource Server)</text>
+  </svg>
+  <div class="slide-footer">oauth-for-ai / 06</div>
+</section>
+
+<!-- SLIDE 7: MCP Authorization Flow -->
+<section>
+  <div class="slide-hdr"><span class="tag">MCP</span><h2>Remote MCP Server Auth Flow</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Step-by-Step</h3>
+      <ul>
+        <li><span class="a">1.</span> Client connects &rarr; server responds <span class="r">401 Unauthorized</span></li>
+        <li><span class="a">2.</span> Client fetches OAuth metadata from well-known endpoint</li>
+        <li><span class="a">3.</span> Client performs dynamic registration (if needed)</li>
+        <li><span class="a">4.</span> Client initiates auth code flow with <span class="p">PKCE</span></li>
+        <li><span class="a">5.</span> User authenticates and approves scopes</li>
+        <li><span class="a">6.</span> Client exchanges code for tokens</li>
+        <li><span class="a">7.</span> Client retries connection with Bearer token</li>
+        <li><span class="a">8.</span> Server validates token &rarr; MCP session established</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Security Properties</h3>
+      <ul>
+        <li>PKCE <span class="g">required</span> for all auth code flows</li>
+        <li>Redirect URI must use <span class="g">localhost</span> for desktop apps</li>
+        <li>Metadata endpoint served over <span class="g">HTTPS</span></li>
+        <li>Token sent <span class="g">only</span> in Authorization header</li>
+        <li>Never in query params or MCP message content</li>
+      </ul>
+      <h3 style="margin-top:.5em">Ongoing Session</h3>
+      <ul>
+        <li>Access token included automatically on each request</li>
+        <li>Refresh token used transparently when token expires</li>
+        <li>No user re-authentication needed</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 07</div>
+</section>
+
+<!-- SLIDE 8: Token Management -->
+<section>
+  <div class="slide-hdr"><span class="tag">TOKENS</span><h2>Token Management for Agents</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>The Long-Running Agent Challenge</h3>
+      <ul>
+        <li>Agents may run for <span class="r">hours or days</span></li>
+        <li>Access tokens expire in <span class="r">15&ndash;60 minutes</span></li>
+        <li>Requires robust <span class="a">refresh token</span> mechanisms</li>
+        <li>Agent crash during rotation can <span class="r">lose access</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Refresh Token Rotation</h3>
+      <ul>
+        <li>Each refresh <span class="g">invalidates the old token</span> and issues a new one</li>
+        <li>Stolen token can only be used <span class="g">once</span> before detection</li>
+        <li>Must use <span class="a">atomic persistence</span> &mdash; store new token before using it</li>
+        <li>Recommended by OAuth 2.1</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Token Storage Hierarchy (Most to Least Secure)</h3>
+    <ul>
+      <li><span class="p">HSMs</span> &mdash; tamper-resistant hardware, highest security</li>
+      <li><span class="g">Secret managers</span> (Vault, AWS Secrets Manager, GCP Secret Manager) &mdash; recommended for production</li>
+      <li><span class="a">Encrypted filesystem</span> &mdash; acceptable for desktop agents (how most MCP hosts store tokens today)</li>
+      <li><span class="b">Environment variables</span> &mdash; in-memory only, lost on restart</li>
+      <li><span class="r">Plaintext files</span> &mdash; unacceptable, equivalent to the API key problem</li>
+    </ul>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 08</div>
+</section>
+
+<!-- SLIDE 9: Token Lifecycle Patterns -->
+<section>
+  <div class="slide-hdr"><span class="tag">PATTERNS</span><h2>Token Lifecycle Patterns</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Proactive Refresh</h3>
+      <p>Refresh token at <span class="a">75% of lifetime</span> elapsed &mdash; avoid failed requests and retry complexity. Never wait for a 401.</p>
+    </div>
+    <div class="card green">
+      <h3>Retry with Refresh</h3>
+      <p>If 401 despite valid-looking token (server-side revocation), attempt <span class="g">one refresh</span> + retry. If refresh fails, surface to user.</p>
+    </div>
+    <div class="card blue">
+      <h3>Graceful Degradation</h3>
+      <p>On refresh failure: <span class="b">pause workflow</span>, notify user, resume from paused state after re-authentication.</p>
+    </div>
+    <div class="card purple">
+      <h3>Per-Tool Token Scoping</h3>
+      <p>Separate token sets per MCP server. Each scoped to <span class="p">minimum permissions</span>. Stored and refreshed independently.</p>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 09</div>
+</section>
+
+<!-- SLIDE 10: Scoped Permissions -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCOPES</span><h2>Designing OAuth Scopes for AI Tools</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>Two-Level Hierarchy</h3>
+        <ul>
+          <li><span class="a">Resource-level:</span> database, files, github, slack</li>
+          <li><span class="g">Action-level:</span> :read, :write, :admin</li>
+          <li>Yields: <code>database:read</code>, <code>files:write</code>, <code>github:read</code></li>
+          <li>Granular enough for least privilege, coarse enough to manage</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.6em">
+        <h3>Scope Escalation Risks</h3>
+        <ul>
+          <li><span class="r">Transitive access:</span> tools:execute + SQL tool = full DB access</li>
+          <li><span class="r">Scope aggregation:</span> read users + write email = spam all users</li>
+          <li><span class="r">Dynamic inheritance:</span> new tools inherit existing scopes</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>MCP Server Scopes</h3>
+        <pre><code>tools:list
+tools:execute
+tools:execute:query
+tools:execute:write
+resources:read
+resources:subscribe
+prompts:list
+prompts:get</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 10</div>
+</section>
+
+<!-- SLIDE 11: Delegated Authorization -->
+<section>
+  <div class="slide-hdr"><span class="tag">DELEGATION</span><h2>The Principal Chain</h2></div>
+  <svg class="diagram" viewBox="0 0 800 80" width="750" style="margin-bottom:.6em">
+    <rect x="10" y="15" width="120" height="50" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="70" y="44" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">User (Alice)</text>
+    <line x1="130" y1="40" x2="200" y2="40" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="165" y="33" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">delegates</text>
+    <rect x="200" y="15" width="150" height="50" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="275" y="44" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Agent (MCP Host)</text>
+    <line x1="350" y1="40" x2="420" y2="40" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="385" y="33" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">calls</text>
+    <rect x="420" y="15" width="150" height="50" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="495" y="44" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Tool (MCP Server)</text>
+    <line x1="570" y1="40" x2="640" y2="40" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="605" y="33" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">queries</text>
+    <rect x="640" y="15" width="140" height="50" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="710" y="44" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">Backend API</text>
+  </svg>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Token Propagation</h3>
+      <p>Agent passes its <span class="a">access token</span> to MCP server. Never shares user&rsquo;s original credentials. Token encodes sub, client_id, scopes.</p>
+    </div>
+    <div class="card green">
+      <h3>Token Exchange (OBO)</h3>
+      <p>MCP server exchanges agent token for a <span class="g">downstream token</span> scoped for the backend API. RFC 8693 On-Behalf-Of flow.</p>
+    </div>
+    <div class="card purple">
+      <h3>Audit Trail</h3>
+      <p>Each hop logs token claims: <span class="p">who</span> (sub), <span class="a">which agent</span> (client_id), <span class="g">what</span> (scope), <span class="b">where</span> (aud).</p>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 11</div>
+</section>
+
+<!-- SLIDE 12: Machine-to-Machine -->
+<section>
+  <div class="slide-hdr"><span class="tag">M2M</span><h2>Machine-to-Machine Authentication</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Client Credentials</h3>
+      <ul>
+        <li>No user involved &mdash; agent authenticates <span class="a">as itself</span></li>
+        <li>Client ID + secret (or assertion) &rarr; access token</li>
+        <li>Permissions configured by admin, not user consent</li>
+        <li>Ideal for <span class="a">backend pipelines</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Service Accounts</h3>
+      <ul>
+        <li>Per-environment identities: prod, staging, dev</li>
+        <li>Prod: <code>database:read</code> only</li>
+        <li>Dev: <code>admin:*</code> on non-prod resources</li>
+        <li>Managed via IdP API, <span class="g">not hardcoded</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Workload Identity</h3>
+      <ul>
+        <li><span class="p">No static secrets</span> &mdash; identity from runtime environment</li>
+        <li>AWS: IAM role &rarr; signed identity document</li>
+        <li>GCP: service account &rarr; Google-signed JWT</li>
+        <li>K8s: projected service account tokens</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Recommendation</h3>
+    <p>Use <span class="b">workload identity</span> for cloud-deployed agents. It eliminates static secrets entirely &mdash; the agent&rsquo;s identity is tied to its runtime environment, and credentials rotate automatically.</p>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 12</div>
+</section>
+
+<!-- SLIDE 13: JWT Structure -->
+<section>
+  <div class="slide-hdr"><span class="tag">JWT</span><h2>JWT Structure and AI-Specific Claims</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>Standard Claims</h3>
+        <ul>
+          <li><code>iss</code> &mdash; issuer (auth server URL)</li>
+          <li><code>sub</code> &mdash; subject (user ID)</li>
+          <li><code>aud</code> &mdash; audience (target MCP server)</li>
+          <li><code>client_id</code> &mdash; the agent application</li>
+          <li><code>scope</code> &mdash; granted permissions</li>
+          <li><code>exp</code> / <code>iat</code> &mdash; expiry and issued-at</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>AI-Specific Custom Claims</h3>
+        <ul>
+          <li><code>agent_type</code> &mdash; coding_assistant, data_pipeline</li>
+          <li><code>session_id</code> &mdash; links token to agent session</li>
+          <li><code>tool_restrictions</code> &mdash; explicit tool allowlist</li>
+          <li><code>max_actions</code> &mdash; invocation budget</li>
+          <li><code>delegation_chain</code> &mdash; full delegation path</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Example JWT Payload</h3>
+        <pre><code>{
+  "iss": "https://auth.example.com",
+  "sub": "user_alice_123",
+  "aud": "https://mcp-db.example.com",
+  "client_id": "claude_desktop",
+  "scope": "tools:execute db:read",
+  "agent_type": "coding_assistant",
+  "session_id": "sess_abc123",
+  "max_actions": 500,
+  "exp": 1743584400,
+  "iat": 1743580800
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 13</div>
+</section>
+
+<!-- SLIDE 14: Token Validation -->
+<section>
+  <div class="slide-hdr"><span class="tag">VALIDATION</span><h2>Token Validation &amp; Introspection</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Local JWT Validation</h3>
+      <ul>
+        <li>Parse JWT, extract header <code>kid</code></li>
+        <li>Fetch signing key from <span class="g">JWKS endpoint</span> (cached)</li>
+        <li>Verify signature (RS256 / ES256)</li>
+        <li>Check <code>exp</code>, <code>nbf</code>, <code>iss</code>, <code>aud</code></li>
+        <li>Check <code>scope</code> contains required permissions</li>
+        <li><span class="g">No network call per request</span> &mdash; fast</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Token Introspection (RFC 7662)</h3>
+      <ul>
+        <li>For opaque tokens or revocation checks</li>
+        <li>POST to <code>/oauth/introspect</code> with token</li>
+        <li>Response: <code>{"active": true, "sub": "...", ...}</code></li>
+        <li>Adds network <span class="r">round-trip per request</span></li>
+        <li>Typically used at session start or periodically</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Audience Restrictions in Multi-Server Agents</h3>
+    <p>An agent with tokens for 3 MCP servers should hold <span class="b">separate tokens</span> with distinct audiences. Token for DB server rejected by GitHub server &mdash; prevents <span class="r">cross-server token replay</span>.</p>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 14</div>
+</section>
+
+<!-- SLIDE 15: Identity Providers -->
+<section>
+  <div class="slide-hdr"><span class="tag">IdP</span><h2>Identity Providers for AI</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Auth0</h3>
+      <ul>
+        <li>M2M apps with <span class="a">audience-scoped tokens</span></li>
+        <li>Custom claims via <span class="a">Actions</span> (serverless hooks)</li>
+        <li>Dynamic client registration via Management API</li>
+        <li>Token exchange for OBO flows</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Okta</h3>
+      <ul>
+        <li>Inline Hooks for <span class="g">custom token claims</span></li>
+        <li>API Access Management: fine-grained scopes</li>
+        <li>Multiple auth servers per environment</li>
+        <li>Strong enterprise SSO integration</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Keycloak (OSS)</h3>
+      <ul>
+        <li><span class="p">Realm-per-tenant</span> for multi-tenant isolation</li>
+        <li>Client Policies: multi-attribute authorization</li>
+        <li>Built-in RFC 8693 token exchange</li>
+        <li>Self-hosted, containerized, edge-friendly</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>OIDC for Agent Identity</h3>
+    <p>OpenID Connect adds <span class="b">authentication</span> on top of OAuth. Enables agent identity verification (ID tokens), federated identity across organizations, and identity propagation through the agent-tool chain.</p>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 15</div>
+</section>
+
+<!-- SLIDE 16: Multi-Tenant Deployments -->
+<section>
+  <div class="slide-hdr"><span class="tag">MULTI-TENANT</span><h2>Multi-Tenant AI Deployments</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Per-Tenant Auth Servers</h3>
+      <ul>
+        <li>Each tenant gets its own <span class="a">authorization server</span> (or Keycloak realm)</li>
+        <li>Tokens signed with different keys</li>
+        <li>Structurally impossible to cross-access</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Tenant-Aware Audiences</h3>
+      <ul>
+        <li>Shared auth server, tenant in <span class="g">audience claim</span></li>
+        <li><code>aud: ".../tenants/acme"</code></li>
+        <li>MCP server validates tenant match</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Data Residency</h3>
+      <ul>
+        <li>Auth server endpoints in <span class="p">required region</span></li>
+        <li>Token cache respects geographic boundaries</li>
+        <li>Introspection routed to regional server</li>
+      </ul>
+    </div>
+  </div>
+  <table style="margin-top:.8em">
+    <thead>
+      <tr><th>Isolation Strategy</th><th>Complexity</th><th>Isolation Strength</th><th>Best For</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Separate auth servers</span></td><td>High</td><td><span class="g">Strongest</span></td><td>Regulated industries, healthcare</td></tr>
+      <tr><td><span class="g">Tenant-aware audiences</span></td><td>Medium</td><td><span class="a">Strong</span></td><td>SaaS platforms, multi-org</td></tr>
+      <tr><td><span class="p">Tenant claim in token</span></td><td>Low</td><td><span class="r">Moderate</span></td><td>Internal multi-team deployments</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">oauth-for-ai / 16</div>
+</section>
+
+<!-- SLIDE 17: API Gateway Patterns -->
+<section>
+  <div class="slide-hdr"><span class="tag">GATEWAY</span><h2>API Gateway Patterns</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Token Validation at the Edge</h3>
+      <ul>
+        <li>Gateway validates OAuth tokens <span class="g">before</span> requests reach MCP server</li>
+        <li>Offloads validation from application code</li>
+        <li>Centralized enforcement point</li>
+        <li>Kong, Envoy, AWS API Gateway, Azure APIM</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Rate Limiting by Token Claims</h3>
+      <ul>
+        <li><span class="a">Per-user</span> limits: based on <code>sub</code> claim</li>
+        <li><span class="g">Per-client</span> limits: based on <code>client_id</code></li>
+        <li><span class="p">Per-scope</span> limits: writes stricter than reads</li>
+        <li><span class="b">Quota budgets</span>: monthly token-based quotas</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>API Key &rarr; OAuth Migration Path</h3>
+    <ul>
+      <li><span class="a">Phase 1:</span> Gateway accepts both API keys and OAuth tokens. Keys mapped to synthetic internal tokens.</li>
+      <li><span class="g">Phase 2:</span> New clients must use OAuth. Existing key clients get deprecation warnings.</li>
+      <li><span class="p">Phase 3:</span> API keys disabled. All access is OAuth-based. Gateway sees only OAuth tokens.</li>
+    </ul>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 17</div>
+</section>
+
+<!-- SLIDE 18: Security Pitfalls -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>Security Pitfalls</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Token Leakage Through Prompts</h3>
+      <ul>
+        <li>Tool responses may include tokens in <span class="r">error messages</span></li>
+        <li>LLM may echo token in response or store in history</li>
+        <li>Fix: sanitize errors, keep auth metadata <span class="g">outside model context</span></li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Bearer Tokens in Tool Descriptions</h3>
+      <ul>
+        <li>Some servers embed <code>Authorization: Bearer sk-...</code> in tool descriptions</li>
+        <li>Token is now in context &mdash; <span class="r">exfiltrable via prompt injection</span></li>
+        <li>Fix: auth at <span class="g">transport layer</span>, never in prompt layer</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Overly Broad Scopes</h3>
+      <ul>
+        <li>Requesting <code>admin:*</code> when only <code>database:read</code> is needed</li>
+        <li>Compromised token grants <span class="r">full access</span></li>
+        <li>Fix: request minimum scopes, use <span class="g">incremental authorization</span></li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Refresh Token Theft</h3>
+      <ul>
+        <li>Long-lived refresh tokens are <span class="r">high-value targets</span></li>
+        <li>Fix: rotation, <span class="g">sender-constrained tokens</span> (DPoP/mTLS)</li>
+        <li>Fix: limit lifetime to expected task duration</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 18</div>
+</section>
+
+<!-- SLIDE 19: Practical Implementation -->
+<section>
+  <div class="slide-hdr"><span class="tag">CODE</span><h2>Protecting an MCP Tool Endpoint (Python)</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green">
+        <h3>Token Validation</h3>
+        <pre><code>from authlib.jose import jwt, JsonWebKey
+import httpx
+
+ISSUER = "https://auth.example.com"
+AUDIENCE = "https://mcp.example.com"
+
+def get_jwks():
+    resp = httpx.get(f"{ISSUER}/.well-known/jwks.json")
+    return JsonWebKey.import_key_set(resp.json())
+
+async def validate_token(token: str) -> dict:
+    jwks = get_jwks()
+    claims = jwt.decode(token, jwks)
+    claims.validate()
+    assert claims["iss"] == ISSUER
+    assert claims["aud"] == AUDIENCE
+    return dict(claims)</code></pre>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Scope Checking</h3>
+        <pre><code>def require_scope(claims, required):
+    scopes = claims.get("scope", "").split()
+    if required not in scopes:
+        raise HTTPException(403,
+          f"Requires '{required}'")
+    return claims
+
+# Tool endpoint
+@app.post("/mcp/tools/call")
+async def call_tool(request, claims=Depends(
+    require_scope("tools:execute"))):
+    tool = request.json()["name"]
+    log(f"{tool} by {claims['sub']} "
+        f"via {claims['client_id']}")
+    # execute tool...</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 19</div>
+</section>
+
+<!-- SLIDE 20: Implementation TypeScript -->
+<section>
+  <div class="slide-hdr"><span class="tag">CODE</span><h2>Protecting an MCP Tool Endpoint (TypeScript)</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green">
+        <h3>Token Validation Middleware</h3>
+        <pre><code>import { createRemoteJWKSet, jwtVerify } from 'jose';
+
+const ISSUER = 'https://auth.example.com';
+const AUDIENCE = 'https://mcp.example.com';
+const jwks = createRemoteJWKSet(
+  new URL(`${ISSUER}/.well-known/jwks.json`));
+
+async function validateToken(req, res, next) {
+  const token = req.headers.authorization?.slice(7);
+  if (!token) return res.status(401).json({
+    error: 'Missing bearer token' });
+  const { payload } = await jwtVerify(token, jwks,
+    { issuer: ISSUER, audience: AUDIENCE });
+  req.claims = payload;
+  next();
+}</code></pre>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Scope + Tool Endpoint</h3>
+        <pre><code>function requireScope(scope) {
+  return (req, res, next) => {
+    const scopes = req.claims?.scope?.split(' ');
+    if (!scopes?.includes(scope))
+      return res.status(403).json({
+        error: `Requires '${scope}'` });
+    next();
+  };
+}
+
+app.post('/mcp/tools/call',
+  validateToken,
+  requireScope('tools:execute'),
+  async (req, res) => {
+    console.log(`${req.body.name} by `
+      + `${req.claims.sub}`);
+    // execute tool...
+  });</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 20</div>
+</section>
+
+<!-- SLIDE 21: Standards Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">STANDARDS</span><h2>Evolving Standards Landscape</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>DPoP (RFC 9449)</h3>
+      <ul>
+        <li>Binds token to client&rsquo;s <span class="a">private key</span></li>
+        <li>Each request includes a signed DPoP proof</li>
+        <li>Stolen token is <span class="g">useless without the key</span></li>
+        <li>Critical for high-security agent deployments</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>RAR (RFC 9396)</h3>
+      <ul>
+        <li>Replaces flat scopes with <span class="g">structured authorization</span></li>
+        <li>Request: specific tools, row limits, denied operations</li>
+        <li>Consent: &ldquo;agent wants to query users table, max 1000 rows&rdquo;</li>
+        <li>Natural fit for tool-based AI apps</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>GNAP (RFC 9635)</h3>
+      <ul>
+        <li>Next-gen authorization &mdash; <span class="p">designed for agent architectures</span></li>
+        <li>Instance-based client identity (key-based, no pre-registration)</li>
+        <li>Multiple interaction modes negotiated per-request</li>
+        <li>Built-in delegation chains &amp; ongoing access management</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>OAuth 2.1 (RFC 9728 Draft)</h3>
+      <ul>
+        <li>Consolidation of <span class="b">OAuth 2.0 best practices</span></li>
+        <li>Mandatory PKCE, no implicit flow</li>
+        <li>Refresh token rotation recommended</li>
+        <li>Strict redirect URI matching</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 21</div>
+</section>
+
+<!-- SLIDE 22: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Why OAuth for AI</h3>
+      <ul>
+        <li>API keys lack <span class="r">scope, expiration, and identity</span></li>
+        <li>Agents need <span class="g">delegated, time-limited</span> access</li>
+        <li>MCP mandates OAuth 2.1 for remote servers</li>
+        <li>Complete audit trail: user &rarr; agent &rarr; tool &rarr; API</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Implementation Checklist</h3>
+      <ul>
+        <li><span class="a">PKCE</span> on all authorization code flows</li>
+        <li><span class="g">Audience restrictions</span> per MCP server</li>
+        <li><span class="p">Minimum scopes</span> per task, not blanket admin</li>
+        <li><span class="b">Secret managers</span> for token storage</li>
+        <li><span class="g">Proactive refresh</span> for long-running agents</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>The Principle</h3>
+    <p>An AI agent should have <span class="p">exactly the permissions it needs</span>, for <span class="g">exactly as long as it needs them</span>, with a <span class="a">complete audit trail</span> of everything it did with those permissions. OAuth 2.1 is the framework that makes this possible.</p>
+  </div>
+  <div class="slide-footer">oauth-for-ai / 22</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

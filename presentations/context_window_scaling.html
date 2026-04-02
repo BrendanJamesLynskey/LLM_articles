@@ -27,15 +27,15 @@
   .reveal .slides section { background: transparent; overflow-y: auto !important; padding-top: .5em; align-items: flex-start !important; justify-content: flex-start !important; }
   .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
   .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
-  .reveal h1 { font-size: 2.4em; color: var(--amber); line-height: 1.15; }
-  .reveal h2 { font-size: 1.7em; color: var(--amber); margin-bottom: .4em; }
-  .reveal h3 { font-size: 1.1em; color: var(--green); margin-bottom: .3em; }
-  .reveal p  { font-size: .82em; line-height: 1.65; color: var(--text); }
-  .reveal li { font-size: .80em; line-height: 1.65; margin-bottom: .2em; }
-  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .78em; }
+  .reveal h1 { font-size: 1.8em; color: var(--amber); line-height: 1.15; }
+  .reveal h2 { font-size: 1.25em; color: var(--amber); margin-bottom: .4em; }
+  .reveal h3 { font-size: .85em; color: var(--green); margin-bottom: .3em; }
+  .reveal p  { font-size: .62em; line-height: 1.65; color: var(--text); }
+  .reveal li { font-size: .60em; line-height: 1.65; margin-bottom: .2em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .60em; }
   .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
                  border-radius: 6px; padding: .6em .9em; margin: .5em 0; }
-  .reveal pre code { font-size: .72em; line-height: 1.5; background: transparent; color: #cdd6f4; }
+  .reveal pre code { font-size: .44em; line-height: 1.5; background: transparent; color: #cdd6f4; }
   .slide-hdr {
     display: flex; align-items: center; gap: .6em;
     border-bottom: 1px solid var(--border);
@@ -43,12 +43,12 @@
   }
   .slide-hdr .tag {
     font-family: 'JetBrains Mono', monospace;
-    font-size: .55em; font-weight: 500;
+    font-size: .44em; font-weight: 500;
     color: var(--bg); background: var(--amber);
     padding: .15em .5em; border-radius: 3px;
     letter-spacing: .04em;
   }
-  .slide-hdr h2 { margin: 0; font-size: 1.3em; }
+  .slide-hdr h2 { margin: 0; font-size: 1.0em; }
   .cols   { display: grid; gap: 1.2em; }
   .cols-2 { grid-template-columns: 1fr 1fr; }
   .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
@@ -63,11 +63,11 @@
   .card.purple{ border-left: 3px solid var(--purple); }
   .card.blue  { border-left: 3px solid var(--blue); }
   .card.red   { border-left: 3px solid var(--red); }
-  .card h3 { font-size: .9em; margin: 0 0 .3em; }
-  .card p  { font-size: .76em; margin: 0; color: #b8b8d0; }
+  .card h3 { font-size: .7em; margin: 0 0 .3em; }
+  .card p  { font-size: .46em; margin: 0; color: #b8b8d0; }
   .card ul { margin: 0; padding-left: 1.2em; }
-  .card li { font-size: .76em; color: #b8b8d0; margin-bottom: .1em; }
-  .reveal table { width: 100%; border-collapse: collapse; font-size: .74em; }
+  .card li { font-size: .46em; color: #b8b8d0; margin-bottom: .1em; }
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .56em; }
   .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
                      padding: .45em .7em; border: 1px solid var(--border); text-align: left; }
   .reveal table td { padding: .4em .7em; border: 1px solid var(--border); color: #ccc; }
@@ -81,7 +81,7 @@
   svg.diagram { display: block; margin: 0 auto; overflow: visible; }
   .pill {
     display: inline-block; font-family: 'JetBrains Mono', monospace;
-    font-size: .6em; padding: .1em .5em; border-radius: 99px;
+    font-size: .48em; padding: .1em .5em; border-radius: 99px;
     border: 1px solid; margin: 0 .1em;
   }
   .pill.amber { color: var(--amber); border-color: var(--amber); }
@@ -91,14 +91,14 @@
   .reveal .slide-footer {
     position: absolute; bottom: .6em; right: 1.2em;
     font-family: 'JetBrains Mono', monospace;
-    font-size: .45em; color: var(--muted); letter-spacing: .05em;
+    font-size: .36em; color: var(--muted); letter-spacing: .05em;
   }
-  .title-slide h1 { font-size: 2.6em; }
+  .title-slide h1 { font-size: 2.0em; }
   .title-slide .subtitle {
-    font-size: .95em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-size: .44em; color: var(--green); font-family: 'DM Sans', sans-serif;
     font-weight: 300; letter-spacing: .04em; margin: .5em 0 1.2em;
   }
-  .title-slide .meta { font-size: .68em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .title-slide .meta { font-size: .52em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
   .reveal ul, .reveal ol { margin: .25em 0 .25em 1.2em; }
 </style>
 </head>
@@ -118,7 +118,7 @@
     <span class="pill purple">MEMORY</span>
     <span class="pill blue">SCALING</span>
   </p>
-  <p style="max-width: 700px; margin: .8em auto 0; font-size: .72em; color: var(--muted);">
+  <p style="max-width: 700px; margin: .8em auto 0; font-size: .44em; color: var(--muted);">
     From 512 tokens to 1M+ &mdash; how positional encodings, efficient attention,
     and memory-augmented architectures have unlocked long-context LLMs.
   </p>
@@ -794,7 +794,7 @@
       <p>Sparse attention, SSMs, and hybrids offer sub-quadratic paths to unlimited context.</p>
     </div>
   </div>
-  <p style="text-align: center; margin-top: .8em; color: var(--muted); font-size: .72em;">
+  <p style="text-align: center; margin-top: .8em; color: var(--muted); font-size: .44em;">
     The interplay between these techniques will shape the next generation of language models.
   </p>
   <div class="slide-footer">Context Window Scaling</div>

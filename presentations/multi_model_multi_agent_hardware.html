@@ -108,7 +108,7 @@
 
 <!-- ============ SLIDE 1: TITLE ============ -->
 <section class="title-slide">
-  <p style="font-family:'JetBrains Mono',monospace; font-size:.6em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <p style="font-family:'JetBrains Mono',monospace; font-size:.48em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
   <h1>Hardware Implications of Multi-Model Multi-Agent Systems</h1>
   <div class="subtitle">GPU Memory, Scheduling, and Orchestration at Scale</div>
   <hr style="border: none; border-top: 2px solid var(--amber); width: 5em; margin: 0 auto 1em;">
@@ -116,7 +116,7 @@
   <span class="pill green">Multi-Agent</span>
   <span class="pill purple">Inference</span>
   <span class="pill blue">Orchestration</span>
-  <p style="max-width:36em; margin:1em auto .8em; font-size:.78em; color:#b8b8d0;">
+  <p style="max-width:36em; margin:1em auto .8em; font-size:.60em; color:#b8b8d0;">
     When every agent in a pipeline needs its own specialised model, the hardware
     problem changes fundamentally &mdash; from serving one model well to juggling many.
   </p>
@@ -529,7 +529,7 @@
   <div class="cols cols-2">
     <div class="card green">
       <h3>What Fits on One Card</h3>
-      <table style="font-size:.9em;">
+      <table style="font-size:.7em;">
         <tr><th>GPU</th><th>Models Resident</th></tr>
         <tr><td>RTX 4090 (24 GB)</td><td>7B + 7B + embed</td></tr>
         <tr><td>RTX 5090 (32 GB)</td><td>7B + 7B + 7B + embed</td></tr>
@@ -937,7 +937,7 @@
       <p>In most multi-agent pipelines, the <span class="a">largest model dominates total latency</span>. The supervisor (70B) is both the slowest to generate and the model that every pipeline invocation must call.</p>
       <div class="card red" style="margin-top:.5em;">
         <h3>Latency Breakdown</h3>
-        <table style="font-size:.9em;">
+        <table style="font-size:.7em;">
           <tr><th>Model</th><th>tok/s</th><th>Output Tokens</th><th>Time</th></tr>
           <tr><td><span class="a">Llama 70B Q4</span></td><td>~15</td><td>200</td><td><span class="r">13.3s</span></td></tr>
           <tr><td><span class="g">Qwen 32B Q5</span></td><td>~30</td><td>300</td><td>10.0s</td></tr>
@@ -1174,7 +1174,7 @@
     </div>
     <div class="card purple">
       <h3>Throughput Impact</h3>
-      <table style="font-size:.9em;">
+      <table style="font-size:.7em;">
         <tr><th>70B Q4 Config</th><th>tok/s</th></tr>
         <tr><td>All 80 layers on GPU</td><td><span class="g">~15</span></td></tr>
         <tr><td>60 GPU / 20 CPU</td><td>~10</td></tr>
@@ -1201,7 +1201,7 @@
     <div>
       <div class="card amber">
         <h3>Storage Tiers</h3>
-        <table style="font-size:.9em;">
+        <table style="font-size:.7em;">
           <tr><th>Medium</th><th>Bandwidth</th><th>40 GB Load</th></tr>
           <tr><td>NVMe Gen5</td><td>12 GB/s</td><td><span class="g">3.3s</span></td></tr>
           <tr><td>NVMe Gen4</td><td>7 GB/s</td><td>5.7s</td></tr>
@@ -1213,7 +1213,7 @@
     <div>
       <div class="card blue">
         <h3>Network Tiers</h3>
-        <table style="font-size:.9em;">
+        <table style="font-size:.7em;">
           <tr><th>Link</th><th>Bandwidth</th><th>40 GB Transfer</th></tr>
           <tr><td>InfiniBand HDR</td><td>25 GB/s</td><td><span class="g">1.6s</span></td></tr>
           <tr><td>100GbE</td><td>12.5 GB/s</td><td>3.2s</td></tr>
@@ -1664,11 +1664,11 @@
 
 <!-- ============ SLIDE 33: CLOSING ============ -->
 <section class="title-slide">
-  <p style="font-family:'JetBrains Mono',monospace; font-size:.6em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <p style="font-family:'JetBrains Mono',monospace; font-size:.48em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
   <h1>Hardware Implications of Multi-Model Multi-Agent Systems</h1>
   <div class="subtitle">GPU Memory, Scheduling, and Orchestration at Scale</div>
   <hr style="border: none; border-top: 2px solid var(--amber); width: 5em; margin: 0 auto 1em;">
-  <p style="max-width:34em; margin:0 auto; font-size:.78em; color:#b8b8d0;">
+  <p style="max-width:34em; margin:0 auto; font-size:.60em; color:#b8b8d0;">
     Multi-agent systems multiply the hardware challenge: every specialised model
     competes for finite VRAM. Success demands <span class="a">careful memory budgeting,
     per-role quantisation, and architecture-aware GPU planning</span>.

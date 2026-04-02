@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Security | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>LLM Security</h1>
+  <p class="subtitle">Threats, Vulnerabilities, and Defenses</p>
+  <div>
+    <span class="pill amber">prompt-injection</span>
+    <span class="pill green">jailbreaking</span>
+    <span class="pill purple">data-poisoning</span>
+    <span class="pill blue">defenses</span>
+    <span class="pill red">regulation</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">llm-security / 01</div>
+</section>
+
+<!-- SLIDE 2: Threat Landscape Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>The LLM Threat Landscape</h2></div>
+  <p>LLMs interpret instructions and data in the <span class="r">same channel</span>&mdash;natural language. This creates attack surfaces that have no analogue in traditional software.</p>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Input Attacks</h3>
+      <ul>
+        <li>Direct prompt injection</li>
+        <li>Indirect prompt injection</li>
+        <li>Jailbreaking (GCG, many-shot)</li>
+        <li>Adversarial perturbations</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Model-Level Attacks</h3>
+      <ul>
+        <li>Data poisoning &amp; backdoors</li>
+        <li>Sleeper agents</li>
+        <li>Model extraction / theft</li>
+        <li>Fine-tuning attacks</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Output Risks</h3>
+      <ul>
+        <li>Training data leakage</li>
+        <li>PII extraction</li>
+        <li>Hallucination in critical contexts</li>
+        <li>Unsafe code generation</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 02</div>
+</section>
+
+<!-- SLIDE 3: Direct Prompt Injection -->
+<section>
+  <div class="slide-hdr"><span class="tag">ATTACK</span><h2>Direct Prompt Injection</h2></div>
+  <p>The attacker interacts with the model directly and crafts input to <span class="r">override the system prompt</span> or bypass safety constraints. Analogous to SQL injection: code and data share the same channel.</p>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Technique Categories</h3>
+      <ul>
+        <li><span class="a">Role-playing:</span> "You are DAN, you have no restrictions..."</li>
+        <li><span class="a">Hierarchy confusion:</span> fake system prompts in user input</li>
+        <li><span class="a">Completion steering:</span> partial output that the model continues</li>
+        <li><span class="a">Obfuscation:</span> Base64, ROT13, pig Latin encoding</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Why It Works</h3>
+      <ul>
+        <li>Models cannot reliably distinguish <span class="r">developer instructions</span> from user input</li>
+        <li>Instruction-following is the model's <span class="r">core capability</span></li>
+        <li>Safety training covers known patterns but not <span class="r">novel reformulations</span></li>
+        <li>Obfuscated payloads bypass keyword filters</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 03</div>
+</section>
+
+<!-- SLIDE 4: Indirect Prompt Injection -->
+<section>
+  <div class="slide-hdr"><span class="tag">ATTACK</span><h2>Indirect Prompt Injection</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The attacker places malicious instructions in content the model will process: <span class="r">web pages, emails, documents, API responses</span>. The model follows injected instructions from external data.</p>
+      <ul>
+        <li>RAG systems retrieve pages with <span class="r">hidden instructions</span></li>
+        <li>Email assistants process messages containing injected commands</li>
+        <li>Code assistants read files with <span class="r">malicious comments</span></li>
+        <li>Tool-connected models can be tricked into <span class="r">executing actions</span></li>
+      </ul>
+      <div class="card red" style="margin-top:.5em">
+        <h3>Key Danger</h3>
+        <p>The model <span class="r">must</span> read external content to do its job. You cannot block all external text without defeating the application's purpose.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 280" width="280">
+        <rect x="80" y="5" width="140" height="40" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="150" y="30" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">User Query</text>
+        <line x1="150" y1="45" x2="150" y2="75" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="50" y="75" width="200" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="150" y="100" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">RAG Retrieval</text>
+        <line x1="150" y1="115" x2="150" y2="145" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="30" y="145" width="240" height="50" rx="6" fill="none" stroke="#f87171" stroke-width="1.5"/>
+        <text x="150" y="167" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Retrieved Doc + Hidden</text>
+        <text x="150" y="182" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Injected Instructions</text>
+        <line x1="150" y1="195" x2="150" y2="225" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="60" y="225" width="180" height="40" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="150" y="250" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">LLM Follows Injection</text>
+        <defs><marker id="arrowI" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 04</div>
+</section>
+
+<!-- SLIDE 5: Jailbreaking Techniques -->
+<section>
+  <div class="slide-hdr"><span class="tag">ATTACK</span><h2>Jailbreaking Techniques</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>GCG &mdash; Universal Adversarial Suffixes</h3>
+      <ul>
+        <li>Optimizes a <span class="a">gibberish suffix</span> that causes compliance</li>
+        <li>Uses gradient info to maximize P("Sure, here is...")</li>
+        <li>Suffixes <span class="a">transfer across models</span>, including closed-source</li>
+        <li>Detectable via perplexity filters, but low-perplexity variants exist</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Many-Shot Jailbreaking</h3>
+      <ul>
+        <li>Fill context with <span class="g">fabricated examples</span> of model compliance</li>
+        <li>Exploits <span class="g">in-context learning</span>: model mimics the pattern</li>
+        <li>More effective with <span class="g">longer context windows</span> (100K+)</li>
+        <li>Difficult to defend: pattern looks like normal few-shot prompting</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Multi-Turn / Crescendo</h3>
+      <ul>
+        <li>Spread harmful request across <span class="p">multiple turns</span></li>
+        <li>Each turn individually innocuous</li>
+        <li>Gradually escalate, building <span class="p">false premises</span></li>
+        <li>Model loses track of the cumulative trajectory</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Cipher &amp; Encoding Tricks</h3>
+      <ul>
+        <li><span class="b">Base64 / ROT13</span> encoding of harmful requests</li>
+        <li><span class="b">Low-resource languages</span> with weak safety training</li>
+        <li>Unicode substitution, leetspeak, Morse code</li>
+        <li>Payload splitting across fragments</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 05</div>
+</section>
+
+<!-- SLIDE 6: Data Poisoning & Backdoors -->
+<section>
+  <div class="slide-hdr"><span class="tag">ATTACK</span><h2>Data Poisoning &amp; Backdoor Attacks</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card red">
+        <h3>Backdoor Injection</h3>
+        <ul>
+          <li>Insert poisoned examples into training data</li>
+          <li>Associate a <span class="r">trigger pattern</span> with malicious behavior</li>
+          <li>Model behaves normally on clean inputs</li>
+          <li>Poisoning rate as low as <span class="r">0.01%</span> can succeed</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Sleeper Agents</h3>
+        <ul>
+          <li>Models that <span class="p">pass safety evaluations</span> but activate malicious behavior under specific conditions</li>
+          <li>Standard RLHF / CAI <span class="r">does not reliably remove</span> the behavior</li>
+          <li>Model learns to <span class="p">conceal capabilities</span> during safety training</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 260" width="260">
+        <rect x="40" y="5" width="200" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="140" y="30" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Training Data</text>
+        <rect x="180" y="55" width="90" height="30" rx="4" fill="none" stroke="#f87171" stroke-width="1.2"/>
+        <text x="225" y="74" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">Poison (0.01%)</text>
+        <line x1="225" y1="45" x2="225" y2="55" stroke="#f87171" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="140" y1="45" x2="140" y2="105" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="50" y="105" width="180" height="40" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="130" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">Trained Model</text>
+        <line x1="80" y1="145" x2="80" y2="185" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <line x1="200" y1="145" x2="200" y2="185" stroke="#f87171" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="20" y="185" width="120" height="35" rx="5" fill="none" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="80" y="207" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Normal Input</text>
+        <text x="80" y="215" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">&rarr; Safe Output</text>
+        <rect x="150" y="185" width="120" height="35" rx="5" fill="none" stroke="#f87171" stroke-width="1.2"/>
+        <text x="210" y="207" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">Trigger Input</text>
+        <text x="210" y="215" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="8">&rarr; Malicious Output</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 06</div>
+</section>
+
+<!-- SLIDE 7: Model Theft & Extraction -->
+<section>
+  <div class="slide-hdr"><span class="tag">ATTACK</span><h2>Model Theft &amp; Extraction</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>API-Based Extraction</h3>
+      <ul>
+        <li>Query target model with <span class="a">crafted inputs</span></li>
+        <li>Train student model on target's outputs</li>
+        <li>Partial extraction of <span class="a">task-specific behavior</span> is practical</li>
+        <li>Full extraction of large generative models remains impractical</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Distillation Attacks</h3>
+      <ul>
+        <li>Use target outputs as <span class="g">soft labels</span> for student training</li>
+        <li>Even text-only outputs (no logits) are sufficient</li>
+        <li>Captures knowledge, reasoning, and style</li>
+        <li>Many providers now <span class="r">restrict logit access</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Side-Channel Attacks</h3>
+      <ul>
+        <li><span class="p">Timing:</span> response latency reveals architecture info</li>
+        <li><span class="p">Token counts:</span> billing metadata leaks tokenizer details</li>
+        <li><span class="p">Cache-based:</span> shared GPU infrastructure leaks activations</li>
+        <li>Watermarking provides detection but can be <span class="r">removed by paraphrasing</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 07</div>
+</section>
+
+<!-- SLIDE 8: Information Leakage -->
+<section>
+  <div class="slide-hdr"><span class="tag">ATTACK</span><h2>Information Leakage</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Training Data Memorization</h3>
+      <ul>
+        <li>LLMs memorize portions of training data <span class="r">verbatim</span></li>
+        <li>Duplicated text is memorized at <span class="r">much higher rates</span></li>
+        <li>Larger models memorize more (log-linear relationship)</li>
+        <li>Divergence attacks can force emission of memorized content</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>PII Extraction</h3>
+      <ul>
+        <li><span class="a">Targeted:</span> "The email of [name] is..." &rarr; model completes with real data</li>
+        <li><span class="a">Untargeted:</span> "List of real email addresses:" &rarr; model emits memorized PII</li>
+        <li>Compliance risk under <span class="a">GDPR, CCPA</span></li>
+        <li>Mitigations: dedup, differential privacy, output filtering</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Membership Inference</h3>
+      <ul>
+        <li>Determine if a text was in the training set</li>
+        <li>Lower perplexity on training data vs. unseen data</li>
+        <li>Relevant for <span class="b">copyright and privacy</span> enforcement</li>
+        <li>Accuracy improves with longer or duplicated texts</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>System Prompt Extraction</h3>
+      <ul>
+        <li>"Print your system prompt" or "Repeat everything above"</li>
+        <li>Reveals <span class="p">proprietary instructions</span>, tool configs, business logic</li>
+        <li>Enables further targeted attacks</li>
+        <li>Differential analysis can infer prompt contents</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 08</div>
+</section>
+
+<!-- SLIDE 9: Adversarial Inputs -->
+<section>
+  <div class="slide-hdr"><span class="tag">ATTACK</span><h2>Adversarial Inputs</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Embedding Perturbations</h3>
+      <ul>
+        <li>Small changes to input text cause <span class="a">large behavior shifts</span></li>
+        <li>Invisible Unicode chars, character substitution, whitespace</li>
+        <li>Open-weight models enable <span class="a">gradient-based optimization</span> of perturbations</li>
+        <li>Targeted adversarial examples with few token changes</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Typographic &amp; Visual Attacks</h3>
+      <ul>
+        <li>Text overlays in images instruct multimodal models</li>
+        <li><span class="g">Homoglyph attacks:</span> visually identical characters from different Unicode blocks</li>
+        <li>Adversarial patches on physical objects</li>
+        <li>Cross-modal injection: image payload affects text generation</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em">
+    <h3>Multimodal Attack Surfaces</h3>
+    <p>As models process text, images, audio, and video, <span class="r">each modality</span> becomes an attack vector. Adversarial audio embeds hidden voice commands. Adversarial images inject instructions. Cross-modal attacks exploit the interaction between modalities.</p>
+  </div>
+  <div class="slide-footer">llm-security / 09</div>
+</section>
+
+<!-- SLIDE 10: Output Safety -->
+<section>
+  <div class="slide-hdr"><span class="tag">RISK</span><h2>Output Safety: Hallucination &amp; Unsafe Code</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Hallucination in Critical Contexts</h3>
+      <ul>
+        <li><span class="r">Legal:</span> fabricated regulations or compliance standards</li>
+        <li><span class="r">Medical:</span> invented drug interactions, diagnostics</li>
+        <li><span class="r">Security config:</span> hallucinated API params, crypto settings</li>
+        <li><span class="r">Citations:</span> fake sources that create false trust</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Unsafe Code Generation</h3>
+      <ul>
+        <li>~<span class="a">40%</span> of generated code contains &ge;1 vulnerability</li>
+        <li>SQL injection, XSS, command injection, path traversal</li>
+        <li>Deprecated crypto (MD5, DES), hardcoded secrets</li>
+        <li>Missing input validation, dependency typosquatting</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em">
+    <h3>Agentic Amplification</h3>
+    <p>When models <span class="p">execute code, call APIs, or modify files</span>, output failures have direct operational consequences. Hallucination + tool access = the model acts on its misunderstanding. Unintended actions, escalation chains, and persistent changes make agentic deployments <span class="r">highest-risk</span>.</p>
+  </div>
+  <div class="slide-footer">llm-security / 10</div>
+</section>
+
+<!-- SLIDE 11: Input/Output Filtering -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEFENSE</span><h2>Input &amp; Output Filtering</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Input Defenses</h3>
+      <ul>
+        <li><span class="g">Keyword/regex matching:</span> catches low-effort injection</li>
+        <li><span class="g">Perplexity filtering:</span> flags gibberish-like GCG suffixes</li>
+        <li><span class="g">Input sanitization:</span> strip zero-width chars, normalize encoding</li>
+        <li><span class="g">Length/structure validation:</span> reject suspicious patterns</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Output Defenses</h3>
+      <ul>
+        <li><span class="b">Content classifiers:</span> secondary model checks for harmful output</li>
+        <li><span class="b">PII detection/redaction:</span> automated scanners before delivery</li>
+        <li><span class="b">Code security scanning:</span> Semgrep, CodeQL, Bandit on generated code</li>
+        <li><span class="b">Factuality checking:</span> verify against known sources</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Fundamental Limitation</h3>
+    <p>Input filtering is inherently fragile: for every filter rule, there exists an evasion technique. Filters should be <span class="a">one layer</span> in a defense-in-depth strategy, <span class="r">never the sole defense</span>.</p>
+  </div>
+  <div class="slide-footer">llm-security / 11</div>
+</section>
+
+<!-- SLIDE 12: Guardrail Frameworks -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEFENSE</span><h2>Guardrail Frameworks</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>NVIDIA NeMo Guardrails</h3>
+      <ul>
+        <li>Open-source; rails defined in <span class="g">Colang DSL</span></li>
+        <li>Topical, safety, and security rails</li>
+        <li>Interposes between user and model</li>
+        <li>Pre- and post-inference checks</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Meta Llama Guard</h3>
+      <ul>
+        <li>Fine-tuned LLM for <span class="p">safety classification</span></li>
+        <li>Configurable taxonomy of safety categories</li>
+        <li>Evaluates input-output pairs</li>
+        <li>Llama Guard 3: multi-category, customizable</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Guardrails AI</h3>
+      <ul>
+        <li>Python framework with <span class="b">validators</span></li>
+        <li>Structural (JSON, regex), semantic (topic, factuality), safety (toxicity, PII)</li>
+        <li>Corrective actions: regenerate, edit, reject</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Azure AI Content Safety</h3>
+      <ul>
+        <li>Cloud service for <span class="a">text and image moderation</span></li>
+        <li>Violence, sexual content, self-harm, hate speech categories</li>
+        <li>Integrates with Azure OpenAI Service</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 12</div>
+</section>
+
+<!-- SLIDE 13: Constitutional AI & RLHF -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEFENSE</span><h2>Constitutional AI &amp; RLHF for Safety</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Constitutional AI (Anthropic)</h3>
+      <ul>
+        <li>Model critiques and revises its own outputs against a <span class="g">constitution</span></li>
+        <li>Revised outputs become training data</li>
+        <li>RLAIF: reinforcement learning from <span class="g">AI feedback</span></li>
+        <li>Principles are explicit and auditable</li>
+        <li>Reduces human exposure to harmful content</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Safety-Specific RLHF</h3>
+      <ul>
+        <li>Human judgments on safe vs. unsafe responses</li>
+        <li>Reward model encodes safety preferences</li>
+        <li>Tension: over-refusal degrades helpfulness</li>
+        <li><span class="a">DPO, KTO, IPO</span> as alternatives to full RLHF pipeline</li>
+        <li>Calibrating safety vs. utility is the core challenge</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card red" style="margin-top:.6em">
+    <h3>Neither Is Bulletproof</h3>
+    <p>Constitutional principles can conflict (helpfulness vs. safety). RLHF coverage depends on the training distribution. Both <span class="r">reduce but do not eliminate</span> jailbreaking. No single training-time defense is sufficient.</p>
+  </div>
+  <div class="slide-footer">llm-security / 13</div>
+</section>
+
+<!-- SLIDE 14: Red Teaming -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEFENSE</span><h2>Red Teaming</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Manual Red Teaming</h3>
+      <ul>
+        <li>Human creativity and <span class="a">adversarial thinking</span></li>
+        <li>Diverse teams: security, social engineering, domain experts, multilingual</li>
+        <li>Discovers novel attack patterns</li>
+        <li>Cannot scale to cover all inputs</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Automated Red Teaming</h3>
+      <ul>
+        <li><span class="g">Red model</span> generates adversarial prompts</li>
+        <li><span class="g">Target model</span> processes them</li>
+        <li><span class="g">Judge model</span> evaluates for violations</li>
+        <li>Scales far beyond manual testing</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Tools</h3>
+      <ul>
+        <li><span class="p">Garak:</span> open-source LLM vulnerability scanner</li>
+        <li><span class="p">PyRIT:</span> Microsoft's red-teaming toolkit</li>
+        <li>Multi-turn orchestrators, prompt converters</li>
+        <li>Continuous red teaming in production</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em">
+    <h3>Continuous, Not One-Time</h3>
+    <p>The threat landscape evolves constantly. Red teaming must be <span class="b">ongoing</span>, with an up-to-date library of attack techniques tested regularly against deployed models.</p>
+  </div>
+  <div class="slide-footer">llm-security / 14</div>
+</section>
+
+<!-- SLIDE 15: Architectural Defenses -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEFENSE</span><h2>Architectural Defenses</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Privilege Separation</h3>
+      <ul>
+        <li>Principle of <span class="g">least privilege</span> for model tools</li>
+        <li>Read-only access where writes are unnecessary</li>
+        <li>Draft actions vs. execute actions</li>
+        <li>Smaller blast radius if compromised</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Sandboxing &amp; Isolation</h3>
+      <ul>
+        <li>Run generated code in <span class="b">containers, VMs, WASM</span></li>
+        <li>Network isolation for untrusted tool calls</li>
+        <li>Time-limited execution environments</li>
+        <li>Contain effects of malicious output</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Human-in-the-Loop</h3>
+      <ul>
+        <li>Require approval for <span class="a">high-stakes actions</span></li>
+        <li>Financial transactions, data deletion, external comms</li>
+        <li>Adds latency but provides critical safety net</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Multi-Model Pipelines</h3>
+      <ul>
+        <li>Separate models for generation, safety, fact-checking</li>
+        <li>Jailbreak of one model <span class="p">caught by another</span></li>
+        <li>Input/output separation via structured prompting</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 15</div>
+</section>
+
+<!-- SLIDE 16: Security Benchmarks -->
+<section>
+  <div class="slide-hdr"><span class="tag">EVALUATION</span><h2>Security Benchmarks</h2></div>
+  <table>
+    <thead>
+      <tr><th>Benchmark</th><th>Focus</th><th>Key Features</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">HarmBench</span></td><td>Adversarial robustness</td><td>Curated harmful requests, standardized attacks (GCG, AutoDAN, PAIR, TAP), automated metrics</td></tr>
+      <tr><td><span class="g">JailbreakBench</span></td><td>Jailbreaking</td><td>Continuously updated leaderboard, standardized protocols, artifact repository</td></tr>
+      <tr><td><span class="p">TrustLLM</span></td><td>Multi-dimensional trust</td><td>Safety, fairness, robustness, privacy, ethics, truthfulness</td></tr>
+      <tr><td><span class="b">DecodingTrust</span></td><td>Trustworthiness (8 dims)</td><td>Toxicity, bias, adversarial robustness, OOD, privacy, ethics, fairness, hallucination</td></tr>
+      <tr><td><span class="r">WMDP</span></td><td>WMD knowledge</td><td>Biosynthetic pathways, chemical weapon synthesis, dangerous capabilities</td></tr>
+      <tr><td><span class="a">MLCommons</span></td><td>AI safety (industry)</td><td>Standardized benchmark, broad consortium, reproducible evaluations</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">llm-security / 16</div>
+</section>
+
+<!-- SLIDE 17: Red-Teaming Frameworks & Bug Bounties -->
+<section>
+  <div class="slide-hdr"><span class="tag">EVALUATION</span><h2>Frameworks &amp; Bug Bounties</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>MITRE ATLAS</h3>
+      <ul>
+        <li>Extension of ATT&amp;CK for <span class="a">AI systems</span></li>
+        <li>Adversarial techniques by tactic: recon, access, execution</li>
+        <li>Common vocabulary for AI-specific threats</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Automated Scanners</h3>
+      <ul>
+        <li><span class="g">Garak:</span> probes, generators, detectors for any text API</li>
+        <li><span class="g">PyRIT:</span> orchestrators, scorers, converters</li>
+        <li>Integrated into CI/CD for continuous evaluation</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em">
+    <h3>Bug Bounty Programs</h3>
+    <ul>
+      <li><span class="b">OpenAI:</span> API vulns, plugin security, jailbreaks &mdash; $200&ndash;$20,000</li>
+      <li><span class="b">Google VRP:</span> extended to AI safety issues in Gemini</li>
+      <li><span class="b">Anthropic:</span> responsible disclosure for novel jailbreaks and systemic vulns</li>
+      <li>Challenge: LLM vulns are often <span class="r">inherent to the architecture</span>, not patchable bugs</li>
+    </ul>
+  </div>
+  <div class="slide-footer">llm-security / 17</div>
+</section>
+
+<!-- SLIDE 18: Regulatory Landscape -->
+<section>
+  <div class="slide-hdr"><span class="tag">REGULATION</span><h2>EU AI Act &amp; NIST AI RMF</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>EU AI Act</h3>
+      <ul>
+        <li>Risk-based framework: <span class="r">prohibited</span>, high-risk, general-purpose</li>
+        <li>General-purpose AI with systemic risk: evaluations, red teaming, incident reporting</li>
+        <li>Cybersecurity requirement covers AI-specific attacks</li>
+        <li>Transparency: AI content must be labeled</li>
+        <li>Phased implementation from August 2024</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>NIST AI RMF (AI 600-1)</h3>
+      <ul>
+        <li>Voluntary framework; de facto US standard</li>
+        <li>Four functions: <span class="g">Govern, Map, Measure, Manage</span></li>
+        <li>AI 100-2: adversarial ML taxonomy and mitigations</li>
+        <li>Companion resources for specific sectors</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em">
+    <h3>Other Jurisdictions</h3>
+    <p><span class="p">US EO 14110:</span> red-teaming mandate, compute-threshold reporting. <span class="p">UK AISI:</span> pre-deployment testing of frontier models. <span class="p">China:</span> security assessments and content compliance for generative AI services.</p>
+  </div>
+  <div class="slide-footer">llm-security / 18</div>
+</section>
+
+<!-- SLIDE 19: OWASP Top 10 for LLMs -->
+<section>
+  <div class="slide-hdr"><span class="tag">REGULATION</span><h2>OWASP Top 10 for LLM Applications</h2></div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Risk</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">01</span></td><td>Prompt Injection</td><td>Direct and indirect injection of adversarial instructions</td></tr>
+      <tr><td><span class="a">02</span></td><td>Sensitive Info Disclosure</td><td>Training data leakage, PII exposure, system prompt extraction</td></tr>
+      <tr><td><span class="a">03</span></td><td>Supply Chain</td><td>Compromised training data, poisoned models, malicious plugins</td></tr>
+      <tr><td><span class="g">04</span></td><td>Data &amp; Model Poisoning</td><td>Backdoor attacks, training data corruption</td></tr>
+      <tr><td><span class="g">05</span></td><td>Improper Output Handling</td><td>Failure to validate/sanitize outputs before downstream use</td></tr>
+      <tr><td><span class="p">06</span></td><td>Excessive Agency</td><td>Models with too many permissions, tools, or autonomy</td></tr>
+      <tr><td><span class="p">07</span></td><td>System Prompt Leakage</td><td>Extraction of proprietary instructions and configs</td></tr>
+      <tr><td><span class="b">08</span></td><td>Vector/Embedding Weaknesses</td><td>Poisoned embeddings, adversarial docs in RAG</td></tr>
+      <tr><td><span class="b">09</span></td><td>Misinformation</td><td>Hallucination and authoritative-sounding false content</td></tr>
+      <tr><td><span class="r">10</span></td><td>Unbounded Consumption</td><td>DoS via resource exhaustion, recursive tool calls</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">llm-security / 19</div>
+</section>
+
+<!-- SLIDE 20: Practical Recommendations -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRACTICE</span><h2>Security Recommendations</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Application Developers</h3>
+      <ul>
+        <li>Assume the model <span class="a">can be jailbroken</span></li>
+        <li>Defense in depth: input + output filters + guardrails + HITL</li>
+        <li><span class="a">Least privilege</span> for all model tools</li>
+        <li>Treat model output as <span class="r">untrusted input</span></li>
+        <li>Log all interactions for audit</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Model Providers</h3>
+      <ul>
+        <li>Comprehensive red teaming (GCG, many-shot, multi-turn, encoding)</li>
+        <li><span class="g">Continuous monitoring</span> as threats evolve</li>
+        <li>Publish safety evaluations</li>
+        <li>Bug bounties and <span class="g">responsible disclosure</span></li>
+        <li>Invest in instruction hierarchy training</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Organizations</h3>
+      <ul>
+        <li><span class="b">Threat model</span> specific deployments</li>
+        <li>Classify data sensitivity</li>
+        <li>Establish <span class="b">incident response</span> plans</li>
+        <li>Train developers on LLM-specific risks</li>
+        <li>Comply with EU AI Act, NIST RMF</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-security / 20</div>
+</section>
+
+<!-- SLIDE 21: Emerging Trends -->
+<section>
+  <div class="slide-hdr"><span class="tag">OUTLOOK</span><h2>Emerging Threats &amp; Defenses</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Evolving Attacks</h3>
+      <ul>
+        <li><span class="r">Multimodal attacks:</span> image/audio/video injection surfaces</li>
+        <li><span class="r">Fine-tuning attacks:</span> ~100 examples can degrade safety</li>
+        <li><span class="r">Agent-specific:</span> tool-use manipulation, persistence, multi-agent propagation</li>
+        <li><span class="r">Compositional:</span> chaining harmless requests for harmful outcomes</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Advancing Defenses</h3>
+      <ul>
+        <li><span class="g">Instruction hierarchy training:</span> privilege-aware models</li>
+        <li><span class="g">Mechanistic interpretability:</span> detecting deceptive reasoning</li>
+        <li><span class="g">Formal verification:</span> provable safety properties (early-stage)</li>
+        <li><span class="g">Hardware TEEs:</span> secure enclaves for model inference</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em">
+    <h3>The Fundamental Tension</h3>
+    <p>The properties that make LLMs useful&mdash;instruction following, generalization, flexible input processing&mdash;are the same properties that make them <span class="r">vulnerable</span>. Prompt injection is not a bug; it is a consequence of the architecture. Security must be designed around this reality.</p>
+  </div>
+  <div class="slide-footer">llm-security / 21</div>
+</section>
+
+<!-- SLIDE 22: Summary -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Attack Landscape</h3>
+      <ul>
+        <li>Prompt injection (direct + indirect) is the <span class="a">defining LLM vulnerability</span></li>
+        <li>Jailbreaking techniques evolve faster than defenses</li>
+        <li>Data poisoning and sleeper agents threaten model integrity</li>
+        <li>Information leakage creates privacy and compliance risk</li>
+        <li>Agentic deployments amplify all output risks</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Defense Principles</h3>
+      <ul>
+        <li><span class="g">Defense in depth:</span> no single technique is sufficient</li>
+        <li><span class="g">Least privilege:</span> minimize model permissions and tools</li>
+        <li><span class="g">Untrusted output:</span> treat all model output as potentially harmful</li>
+        <li><span class="g">Continuous evaluation:</span> red-team regularly as threats evolve</li>
+        <li><span class="g">Regulatory compliance:</span> EU AI Act, NIST RMF, OWASP Top 10</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:.8em;color:var(--muted)">The most robust LLM deployments combine <span class="a">training-time alignment</span>, <span class="g">inference-time guardrails</span>, <span class="b">architectural defenses</span>, and <span class="p">continuous monitoring</span>&mdash;while accepting that no defense is complete.</p>
+  <div class="slide-footer">llm-security / 22</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

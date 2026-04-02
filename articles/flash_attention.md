@@ -214,7 +214,7 @@ Across a range of sequence lengths and model configurations, FlashAttention and 
   B200 (Blackwell)       —                       —                     —                     —                      22% faster than cuDNN
   ---------------------- ----------------------- ---------------------- --------------------- ---------------------- ----------------------
 
-The speedups grow with sequence length because longer sequences are more memory-bound, and FlashAttention's IO reduction has greater impact. Memory savings follow a similar pattern: at N=16384, standard attention requires approximately 4 GB for the attention matrix alone (per head, per layer), while FlashAttention uses approximately 32 MB for the softmax statistics.
+The speedups grow with sequence length because longer sequences are more memory-bound, and FlashAttention's IO reduction has greater impact. Memory savings follow a similar pattern: at N=16384, standard attention requires approximately 512 MB for the attention matrix alone (per head, per layer, in FP16), while FlashAttention uses approximately 32 MB for the softmax statistics.
 
 9.2 Impact on End-to-End Training
 

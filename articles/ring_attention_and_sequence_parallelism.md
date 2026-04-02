@@ -40,7 +40,7 @@ Ring Attention inherits the online softmax technique from FlashAttention. Each l
 
 3.3 Communication Requirements
 
-The minimum block size (and therefore the minimum sequence length per device) is determined by the ratio of compute throughput to interconnect bandwidth. For the computation to fully overlap communication, the local FlashAttention on each block must take at least as long as transferring a KV block to the next device. On modern hardware with NVLink (900 GB/s bidirectional on A100, 1.8 TB/s on H100), blocks of a few thousand tokens are typically sufficient. The original Ring Attention paper calculated that with H100 GPUs connected via NVLink, a minimum of a few thousand tokens per device is needed for full overlap. On slower interconnects (InfiniBand between nodes), larger block sizes are required.
+The minimum block size (and therefore the minimum sequence length per device) is determined by the ratio of compute throughput to interconnect bandwidth. For the computation to fully overlap communication, the local FlashAttention on each block must take at least as long as transferring a KV block to the next device. On modern hardware with NVLink (600 GB/s bidirectional on A100, 900 GB/s on H100), blocks of a few thousand tokens are typically sufficient. The original Ring Attention paper calculated that with H100 GPUs connected via NVLink, a minimum of a few thousand tokens per device is needed for full overlap. On slower interconnects (InfiniBand between nodes), larger block sizes are required.
 
 3.4 Causal Masking and Load Balancing
 

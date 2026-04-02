@@ -20,7 +20,7 @@ Data parallelism is the simplest and most widely used form of distributed traini
 
 2.2 Limitations at Scale
 
-Standard data parallelism requires each accelerator to store a full copy of the model weights, gradients, and optimizer states. For a 70-billion-parameter model in mixed precision with Adam optimizer, this amounts to roughly 840 GB per replica, which is far beyond the memory of any single GPU. Additionally, gradient all-reduce communication becomes a bottleneck as the number of accelerators grows, particularly when communication bandwidth does not scale proportionally with compute. These limitations motivated the development of memory-efficient variants and complementary parallelism strategies.
+Standard data parallelism requires each accelerator to store a full copy of the model weights, gradients, and optimizer states. For a 70-billion-parameter model in mixed precision with Adam optimizer, this amounts to roughly 1,120 GB per replica (2 bytes for BF16 weights, 2 bytes for gradients, 4 bytes for FP32 master weights, and 8 bytes for Adam momentum and variance, totalling 16 bytes per parameter), which is far beyond the memory of any single GPU. Additionally, gradient all-reduce communication becomes a bottleneck as the number of accelerators grows, particularly when communication bandwidth does not scale proportionally with compute. These limitations motivated the development of memory-efficient variants and complementary parallelism strategies.
 
 3\. ZeRO: Memory-Efficient Data Parallelism
 

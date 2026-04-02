@@ -54,7 +54,7 @@ Pure dense retrieval can struggle with exact keyword matching, rare entities, an
 
 ## 8. Quantized Embeddings
 
-Full float32 embeddings consume 4 bytes per dimension; at 1024 dimensions and millions of documents, memory costs become substantial. Scalar quantization reduces each dimension to int8 (1 byte) or even int4, typically retaining 95-99% of full-precision recall. Binary quantization goes further, encoding each dimension as a single bit and using Hamming distance for comparison, achieving 32x compression relative to float32. Binary embeddings are particularly effective as a first-stage filter, with a full-precision re-scoring pass on the top candidates to recover accuracy. Cohere's Embed v3 and several open models now ship with built-in binary quantization support.
+Full float32 embeddings consume 4 bytes per dimension; at 1024 dimensions and millions of documents, memory costs become substantial. Scalar quantization reduces each dimension to int8 (1 byte) or even int4, typically retaining 95-99% of full-precision recall. Binary quantization goes further, encoding each dimension as a single bit and using Hamming distance for comparison, achieving 32x compression relative to float32. Binary embeddings are particularly effective as a first-stage filter, with a full-precision re-scoring pass on the top candidates to recover accuracy. Cohere's Embed v4 and several open models now ship with built-in binary quantization support.
 
 ## 9. The Embedding Model Landscape
 

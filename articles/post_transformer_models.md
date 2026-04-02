@@ -20,7 +20,7 @@ Standard self-attention computes a score between every pair of tokens, yielding 
 
 2.2 KV Cache Growth
 
-During autoregressive generation, transformers must store the key and value vectors for every previously generated token across every layer and attention head. For a model like Llama 3 70B with 80 layers and 64 KV heads using grouped-query attention, the KV cache grows by roughly 1.25 MB per token in FP16. At 128K tokens, this amounts to approximately 160 GB of KV cache alone — exceeding the memory of a single H100 GPU. This growth is the dominant memory bottleneck for long-context generation and limits the batch sizes achievable during serving.
+During autoregressive generation, transformers must store the key and value vectors for every previously generated token across every layer and attention head. For a model like Llama 3 70B with 80 layers and 8 KV heads using grouped-query attention, the KV cache grows by roughly 0.33 MB per token in FP16. At 128K tokens, this amounts to approximately 40 GB of KV cache alone — consuming half the memory of a single H100 GPU. This growth is the dominant memory bottleneck for long-context generation and limits the batch sizes achievable during serving.
 
 2.3 Fixed Computation Per Token
 

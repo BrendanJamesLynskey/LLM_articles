@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Context Protocol (MCP) | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Model Context Protocol</h1>
+  <p class="subtitle">A Universal Interface for LLM Tool Integration</p>
+  <div>
+    <span class="pill amber">MCP</span>
+    <span class="pill green">tool-use</span>
+    <span class="pill purple">protocol</span>
+    <span class="pill blue">agentic</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">model-context-protocol / 01</div>
+</section>
+
+<!-- SLIDE 2: The N×M Integration Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>The N&times;M Integration Problem</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Before MCP</h3>
+      <ul>
+        <li>N LLM apps &times; M tools = <span class="r">N&times;M custom integrations</span></li>
+        <li>Each app writes bespoke glue code per tool</li>
+        <li>Custom function definitions, provider-specific formats</li>
+        <li>Ad hoc serialization, inconsistent error handling</li>
+        <li>Duplicated effort across every new host application</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>With MCP</h3>
+      <ul>
+        <li>Each app implements <span class="g">one MCP client</span></li>
+        <li>Each tool implements <span class="g">one MCP server</span></li>
+        <li>N + M integrations instead of N &times; M</li>
+        <li>Analogous to <span class="a">USB</span> for peripherals or <span class="a">LSP</span> for IDEs</li>
+        <li>Build once, connect everywhere</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Additional Pain Points Solved</h3>
+    <p><span class="b">Fragile context injection</span> &mdash; manual script-based stuffing of data into prompts, with no provenance or freshness guarantees. <span class="b">Static tool discovery</span> &mdash; tools fixed at prompt construction time, no runtime adaptation.</p>
+  </div>
+  <div class="slide-footer">model-context-protocol / 02</div>
+</section>
+
+<!-- SLIDE 3: Architecture — Three Roles -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Three Roles</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>MCP Hosts</h3>
+      <ul>
+        <li>LLM-facing applications that <span class="a">initiate connections</span></li>
+        <li>Mediate between model and external services</li>
+        <li>Manage connection lifecycles</li>
+        <li>Route tool calls, return results</li>
+        <li>Examples: Claude Desktop, Cursor, Cline</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>MCP Clients</h3>
+      <ul>
+        <li>Protocol-level connectors inside the host</li>
+        <li><span class="g">1:1 connection</span> with a specific server</li>
+        <li>Handle JSON-RPC communication</li>
+        <li>Capability negotiation &amp; transport</li>
+        <li>Host manages multiple clients simultaneously</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>MCP Servers</h3>
+      <ul>
+        <li>Lightweight programs exposing capabilities</li>
+        <li>Wrap databases, APIs, file systems, etc.</li>
+        <li><span class="p">Small, focused, composable</span></li>
+        <li>One server = one coherent capability set</li>
+        <li>Standardized MCP interface</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 100" width="750" style="margin-top:.7em">
+    <rect x="10" y="20" width="180" height="60" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="100" y="45" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">Host (LLM App)</text>
+    <text x="100" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">manages N clients</text>
+    <rect x="280" y="20" width="150" height="60" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="355" y="45" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">Client (1:1)</text>
+    <text x="355" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">JSON-RPC layer</text>
+    <rect x="530" y="20" width="150" height="60" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="605" y="45" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">Server</text>
+    <text x="605" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">tools / resources</text>
+    <line x1="190" y1="50" x2="280" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowM)"/>
+    <line x1="430" y1="50" x2="530" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowM)"/>
+    <defs><marker id="arrowM" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="slide-footer">model-context-protocol / 03</div>
+</section>
+
+<!-- SLIDE 4: The Six Capability Primitives -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRIMITIVES</span><h2>Six Capability Primitives</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Tools</h3>
+      <p><span class="a">Model-controlled.</span> Executable functions the LLM invokes to perform actions or retrieve computed results. Defined with name, description, and JSON Schema input.</p>
+    </div>
+    <div class="card green">
+      <h3>Resources</h3>
+      <p><span class="g">Application-controlled.</span> Data sources providing context via URIs. Can be static or dynamic with subscriptions. Like opening a file in an IDE.</p>
+    </div>
+    <div class="card purple">
+      <h3>Prompts</h3>
+      <p><span class="p">User-controlled.</span> Reusable prompt templates for specific workflows. Appear as slash commands or menu options in the host UI.</p>
+    </div>
+    <div class="card blue">
+      <h3>Sampling</h3>
+      <p><span class="b">Bidirectional.</span> Servers can request LLM completions through the client, enabling recursive agentic patterns. Host mediates all requests.</p>
+    </div>
+    <div class="card red">
+      <h3>Roots</h3>
+      <p><span class="r">Informational.</span> Declare filesystem or URI scopes a server operates within. Helps clients understand boundaries; not a hard security enforcement.</p>
+    </div>
+    <div class="card amber">
+      <h3>Logging</h3>
+      <p>Structured log messages at debug, info, warning, error severity levels. Enables observability without separate logging infrastructure.</p>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 04</div>
+</section>
+
+<!-- SLIDE 5: Tools Primitive Detail -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEEP DIVE</span><h2>Tools Primitive</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>Each tool has a <span class="a">name</span>, <span class="g">description</span>, and <span class="p">JSON Schema</span> for inputs</li>
+        <li>Model decides <span class="a">when and how</span> to call based on user request</li>
+        <li>Results returned as structured content (text, images, embedded resources)</li>
+        <li>Dynamic registration: servers can <span class="b">add/remove tools at runtime</span></li>
+        <li>Notification: <code>notifications/tools/list_changed</code></li>
+        <li>Client re-fetches via <code>tools/list</code></li>
+      </ul>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Examples</h3>
+        <p><code>query_database</code>, <code>create_github_issue</code>, <code>run_python_code</code>, <code>search_docs</code></p>
+      </div>
+    </div>
+    <div>
+      <pre><code>{
+  "name": "query_database",
+  "description": "Execute a
+    read-only SQL query",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "sql": {
+        "type": "string",
+        "description": "SQL query"
+      }
+    },
+    "required": ["sql"]
+  }
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 05</div>
+</section>
+
+<!-- SLIDE 6: Resources and Prompts -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRIMITIVES</span><h2>Resources &amp; Prompts</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Resources</h3>
+      <ul>
+        <li>Identified by <span class="g">URIs</span>: <code>file:///path/to/doc.md</code>, <code>postgres://server/db/table</code></li>
+        <li><span class="g">Static</span>: read once at attach time</li>
+        <li><span class="g">Dynamic</span>: updated on change via subscriptions</li>
+        <li>Host decides which resources to attach (application-controlled)</li>
+        <li>Provide contextual information, like opening a file in an IDE</li>
+        <li>Discovery: <code>resources/list</code>, access: <code>resources/read</code></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Prompts</h3>
+      <ul>
+        <li>Reusable <span class="p">prompt templates</span> for specific workflows</li>
+        <li>Example: a database server exposes <code>debug_query</code> template</li>
+        <li><span class="p">User-controlled</span> &mdash; selected explicitly via UI</li>
+        <li>Appear as slash commands or menu items in host</li>
+        <li>Structure natural-language requests into effective workflows</li>
+        <li>Discovery: <code>prompts/list</code>, access: <code>prompts/get</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 06</div>
+</section>
+
+<!-- SLIDE 7: Sampling and Bidirectional Flow -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRIMITIVES</span><h2>Sampling &amp; Bidirectional Flow</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card blue">
+        <h3>What Is Sampling?</h3>
+        <ul>
+          <li>Servers can <span class="b">request LLM completions</span> through the client</li>
+          <li>Enables agentic behaviors: tool uses model for intermediate reasoning</li>
+          <li>Creates <span class="b">bidirectional flow</span>: model &rarr; tool &rarr; model &rarr; tool</li>
+          <li>All sampling requests go through the <span class="a">host</span></li>
+          <li>Host enforces approval policies and rate limits</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Example: Code Review Server</h3>
+        <p>Server uses sampling to have the model analyze each changed file, then aggregates results into a structured review.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 300" width="260">
+        <rect x="80" y="5" width="120" height="40" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="140" y="30" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">LLM</text>
+        <rect x="80" y="80" width="120" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="140" y="105" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Host</text>
+        <rect x="80" y="155" width="120" height="40" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="140" y="180" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">MCP Server</text>
+        <line x1="120" y1="45" x2="120" y2="80" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowS)"/>
+        <text x="80" y="66" fill="#8888a8" font-family="JetBrains Mono" font-size="8">tool_call</text>
+        <line x1="120" y1="120" x2="120" y2="155" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowS)"/>
+        <text x="80" y="141" fill="#8888a8" font-family="JetBrains Mono" font-size="8">tools/call</text>
+        <line x1="160" y1="155" x2="160" y2="120" stroke="#60a5fa" stroke-width="1.2" marker-end="url(#arrowB)"/>
+        <text x="175" y="141" fill="#60a5fa" font-family="JetBrains Mono" font-size="8">sampling</text>
+        <line x1="160" y1="80" x2="160" y2="45" stroke="#60a5fa" stroke-width="1.2" marker-end="url(#arrowB)"/>
+        <text x="175" y="66" fill="#60a5fa" font-family="JetBrains Mono" font-size="8">completion</text>
+        <defs>
+          <marker id="arrowS" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker>
+          <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#60a5fa" stroke-width="1"/></marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 07</div>
+</section>
+
+<!-- SLIDE 8: Protocol Mechanics — JSON-RPC 2.0 -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROTOCOL</span><h2>JSON-RPC 2.0 Foundation</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Requests</h3>
+      <ul>
+        <li>Include <code>id</code>, <code>method</code>, optional <code>params</code></li>
+        <li>Expect a response</li>
+        <li>E.g., <code>tools/call</code>, <code>resources/read</code></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Responses</h3>
+      <ul>
+        <li>Include matching <code>id</code></li>
+        <li>Contain <code>result</code> or <code>error</code></li>
+        <li>Error has code + message</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Notifications</h3>
+      <ul>
+        <li>Include <code>method</code> + optional <code>params</code></li>
+        <li><span class="p">No <code>id</code></span> &mdash; fire-and-forget</li>
+        <li>No response expected</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div>
+      <pre><code>// Request
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "query_database",
+    "arguments": { "sql": "SELECT ..." }
+  }
+}</code></pre>
+    </div>
+    <div>
+      <pre><code>// Response
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [{
+      "type": "text",
+      "text": "3 rows returned..."
+    }]
+  }
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 08</div>
+</section>
+
+<!-- SLIDE 9: Connection Lifecycle -->
+<section>
+  <div class="slide-hdr"><span class="tag">LIFECYCLE</span><h2>Connection Lifecycle</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>1. Transport Establishment</h3>
+        <p>Client starts server process (stdio) or connects to HTTP endpoint (Streamable HTTP).</p>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>2. Initialization</h3>
+        <p>Client sends <code>initialize</code> with protocol version &amp; capabilities. Server responds with its capabilities. Client confirms with <code>initialized</code> notification.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>3. Operation</h3>
+        <p>Bidirectional exchange of requests and notifications: <code>tools/list</code>, <code>tools/call</code>, <code>resources/read</code>, <code>prompts/get</code>, sampling requests.</p>
+      </div>
+      <div class="card red" style="margin-top:.6em">
+        <h3>4. Shutdown</h3>
+        <p>Either side terminates. Client sends <code>close</code> notification, or transport is terminated directly.</p>
+      </div>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.6em">
+    <h3>Capability Negotiation</h3>
+    <p>During initialization, both sides declare supported primitives. Client may offer <span class="b">sampling support</span> and <span class="b">root declarations</span>. Server declares which of the six primitives it supports. This ensures clear expectations before any operations begin.</p>
+  </div>
+  <div class="slide-footer">model-context-protocol / 09</div>
+</section>
+
+<!-- SLIDE 10: Tool Invocation Flow -->
+<section>
+  <div class="slide-hdr"><span class="tag">FLOW</span><h2>Tool Invocation Sequence</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <ol>
+        <li>Host receives model's <span class="a">tool-call request</span> (native format)</li>
+        <li>Host identifies which MCP server exposes the tool</li>
+        <li>Client sends <code>tools/call</code> JSON-RPC request to server</li>
+        <li>Server <span class="g">executes</span> the tool logic</li>
+        <li>Server returns result as <span class="p">structured content</span></li>
+        <li>Host formats result for the model's native format</li>
+        <li>Model incorporates result and <span class="b">continues generating</span></li>
+      </ol>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 300 340" width="280">
+        <rect x="10" y="5" width="80" height="30" rx="4" fill="none" stroke="#f5a623" stroke-width="1.2"/>
+        <text x="50" y="24" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Model</text>
+        <rect x="110" y="5" width="80" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="150" y="24" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Host</text>
+        <rect x="210" y="5" width="80" height="30" rx="4" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="250" y="24" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Server</text>
+        <line x1="50" y1="35" x2="50" y2="320" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="150" y1="35" x2="150" y2="320" stroke="#4ecb8d" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="250" y1="35" x2="250" y2="320" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="50" y1="60" x2="150" y2="75" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowF)"/>
+        <text x="100" y="58" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">tool_call</text>
+        <line x1="150" y1="95" x2="250" y2="110" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowF)"/>
+        <text x="200" y="93" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">tools/call</text>
+        <rect x="220" y="120" width="60" height="40" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="250" y="144" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="8">execute</text>
+        <line x1="250" y1="170" x2="150" y2="185" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowF)"/>
+        <text x="200" y="173" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">result</text>
+        <line x1="150" y1="205" x2="50" y2="220" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowF)"/>
+        <text x="100" y="203" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">formatted</text>
+        <rect x="20" y="230" width="60" height="40" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
+        <text x="50" y="254" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="8">reason</text>
+        <defs><marker id="arrowF" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 10</div>
+</section>
+
+<!-- SLIDE 11: Transport Layers -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRANSPORT</span><h2>Transport Layers</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>stdio</h3>
+      <ul>
+        <li>Client launches server as <span class="a">child process</span></li>
+        <li>Communicates via stdin/stdout</li>
+        <li>Each message = one JSON line</li>
+        <li><span class="a">No network</span> configuration needed</li>
+        <li>Inherits host process security context</li>
+        <li>Default for desktop integrations</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>HTTP + SSE (Legacy)</h3>
+      <ul>
+        <li>SSE endpoint for server-initiated messages</li>
+        <li>HTTP POST for client requests</li>
+        <li>Requires <span class="g">persistent SSE connection</span></li>
+        <li>Network-accessible for remote servers</li>
+        <li>Being superseded by Streamable HTTP</li>
+        <li>Still supported for backward compatibility</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Streamable HTTP</h3>
+      <ul>
+        <li><span class="p">Current recommended</span> remote transport</li>
+        <li>Single HTTP endpoint for all communication</li>
+        <li>POST &rarr; JSON response or SSE stream</li>
+        <li>Firewall-friendly, load-balancer compatible</li>
+        <li>Supports stateless server architectures</li>
+        <li>Optional <code>Mcp-Session-Id</code> header</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 11</div>
+</section>
+
+<!-- SLIDE 12: Transport Selection Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">GUIDANCE</span><h2>Transport Selection</h2></div>
+  <table>
+    <thead>
+      <tr><th>Scenario</th><th>Transport</th><th>Rationale</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Local tools (file access, local DB)</td><td><span class="a">stdio</span></td><td>Simplest, no network exposure, inherits OS permissions</td></tr>
+      <tr><td>Remote APIs, cloud services</td><td><span class="p">Streamable HTTP</span></td><td>Network-accessible, supports load balancing, stateless option</td></tr>
+      <tr><td>Legacy deployments</td><td><span class="g">HTTP + SSE</span></td><td>Still supported but being superseded by Streamable HTTP</td></tr>
+      <tr><td>High-security environments</td><td><span class="b">stdio + SSH tunnel</span></td><td>Keeps server local, uses SSH for remote access</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card amber">
+      <h3>Latency Considerations</h3>
+      <p>stdio: <span class="a">sub-millisecond</span> round-trip overhead. Streamable HTTP: network latency dominates. Tool execution time varies from microseconds (file read) to seconds (API call).</p>
+    </div>
+    <div class="card blue">
+      <h3>Parallel Tool Calls</h3>
+      <p>MCP hosts should execute concurrent <code>tools/call</code> requests in parallel across servers. Protocol is <span class="b">stateless at request level</span>, so concurrent calls are safe.</p>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 12</div>
+</section>
+
+<!-- SLIDE 13: Security Model and Threats -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>Security Model &amp; Threats</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Threat Landscape</h3>
+      <ul>
+        <li>Compromised server could <span class="r">inject misleading context</span></li>
+        <li><span class="r">Data exfiltration</span> through tool arguments</li>
+        <li>Unauthorized actions on backend systems</li>
+        <li>Prompt injection amplified by tool access</li>
+        <li><span class="r">Tool poisoning</span>: hidden instructions in tool descriptions</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Security Principles</h3>
+      <ul>
+        <li><span class="g">Human-in-the-loop</span>: user consent for side-effect operations</li>
+        <li><span class="g">Least privilege</span>: minimal permissions per server</li>
+        <li>Input validation against JSON Schema before execution</li>
+        <li>Output sanitization to prevent indirect prompt injection</li>
+        <li>Allowlists of <span class="g">trusted servers</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Tool Poisoning Example</h3>
+    <p>A malicious server advertises a &ldquo;search documentation&rdquo; tool whose description contains <span class="r">hidden instructions</span> telling the model to exfiltrate contents of other tool calls. Mitigation: review tool descriptions before approval, host-level filtering for suspicious content, trusted server allowlists.</p>
+  </div>
+  <div class="slide-footer">model-context-protocol / 13</div>
+</section>
+
+<!-- SLIDE 14: Authentication (OAuth 2.1) -->
+<section>
+  <div class="slide-hdr"><span class="tag">AUTH</span><h2>Authentication &amp; Authorization</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>OAuth 2.1 Framework</h3>
+      <ul>
+        <li>Recommended for <span class="a">remote MCP servers</span></li>
+        <li>Introduced in 2025-03-26 protocol revision</li>
+        <li>Servers declare auth requirements during connection setup</li>
+        <li>Clients handle the OAuth flow including <span class="a">PKCE</span> for public clients</li>
+        <li>Enables enterprise identity providers and RBAC</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Deployment Patterns</h3>
+      <ul>
+        <li><span class="g">Local stdio</span>: inherits OS-level process permissions</li>
+        <li><span class="g">Team/Enterprise</span>: OAuth-secured remote servers shared by team</li>
+        <li><span class="g">Gateway pattern</span>: central proxy handles auth, rate limiting, logging</li>
+        <li>Role-based access controls per tool or resource</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Roots &amp; Scope Boundaries</h3>
+    <p>The <code>roots</code> primitive declares expected operational scope (e.g., <code>file:///home/user/project</code>). Combined with least-privilege deployment &mdash; read-only DB credentials, scoped API tokens &mdash; this limits the blast radius of any single server compromise. Note: <span class="r">roots are informational</span>, not enforced by the protocol itself.</p>
+  </div>
+  <div class="slide-footer">model-context-protocol / 14</div>
+</section>
+
+<!-- SLIDE 15: Ecosystem and SDKs -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>SDKs &amp; Reference Implementations</h2></div>
+  <table>
+    <thead>
+      <tr><th>Language</th><th>Package</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">TypeScript</span></td><td><code>@modelcontextprotocol/sdk</code></td><td>Reference implementation, full primitive &amp; transport support</td></tr>
+      <tr><td><span class="g">Python</span></td><td><code>mcp</code></td><td>Asyncio-based, comprehensive client &amp; server</td></tr>
+      <tr><td><span class="p">Java / Kotlin</span></td><td>JVM SDK</td><td>Enterprise environments, JVM ecosystem</td></tr>
+      <tr><td><span class="b">C#</span></td><td>.NET SDK</td><td>.NET ecosystem integration</td></tr>
+      <tr><td>Go, Rust, Swift</td><td>Community SDKs</td><td>Community-maintained, additional language coverage</td></tr>
+    </tbody>
+  </table>
+  <div class="card green" style="margin-top:.8em">
+    <h3>FastMCP: Minimal Server in Python</h3>
+    <pre><code>from mcp.server.fastmcp import FastMCP
+mcp = FastMCP("weather-server")
+
+@mcp.tool()
+async def get_weather(city: str) -> str:
+    """Get current weather for a city."""
+    return f"Weather in {city}: 22°C, partly cloudy"
+
+mcp.run(transport="stdio")</code></pre>
+  </div>
+  <div class="slide-footer">model-context-protocol / 15</div>
+</section>
+
+<!-- SLIDE 16: Pre-Built Servers & Host Support -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>Pre-Built Servers &amp; Host Support</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Pre-Built MCP Servers</h3>
+      <ul>
+        <li><span class="a">File system</span> &mdash; read, write, search local files</li>
+        <li><span class="a">GitHub / GitLab</span> &mdash; repos, issues, PRs, code search</li>
+        <li><span class="a">Databases</span> &mdash; PostgreSQL, MySQL, SQLite, MongoDB</li>
+        <li><span class="a">Web</span> &mdash; fetch pages, Brave Search</li>
+        <li><span class="a">Productivity</span> &mdash; Slack, Google Drive, Notion, Linear, Jira</li>
+        <li><span class="a">DevOps</span> &mdash; Docker, Kubernetes, CI/CD</li>
+        <li><span class="a">Memory</span> &mdash; vector databases, knowledge graphs</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Host Applications</h3>
+      <ul>
+        <li><span class="p">Claude Desktop &amp; Claude Code</span> &mdash; first MCP hosts</li>
+        <li><span class="p">IDE extensions</span> &mdash; Cursor, Windsurf, Cline, Continue, Zed</li>
+        <li><span class="p">Agent frameworks</span> &mdash; LangChain, CrewAI, AutoGen</li>
+        <li><span class="p">Enterprise</span> &mdash; Amazon Bedrock, Cloudflare Workers AI</li>
+      </ul>
+      <h3 style="margin-top:.6em">Discovery &amp; Registries</h3>
+      <ul>
+        <li>Official MCP servers repo on GitHub</li>
+        <li>Smithery, Glama, community registries</li>
+        <li>Some hosts integrate <span class="b">registry browsing</span> in UI</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 16</div>
+</section>
+
+<!-- SLIDE 17: Agentic Workflows -->
+<section>
+  <div class="slide-hdr"><span class="tag">AGENTIC</span><h2>Agentic Workflows with MCP</h2></div>
+  <div class="card amber" style="margin-bottom:.8em">
+    <h3>Example: &ldquo;Find and fix the performance regression in the latest PR&rdquo;</h3>
+    <ol>
+      <li>Call <span class="a">GitHub MCP</span> to list recent PRs, identify the relevant one</li>
+      <li>Call <span class="a">GitHub MCP</span> again to fetch the diff</li>
+      <li>Call <span class="g">File System MCP</span> to read affected source files</li>
+      <li>Call <span class="b">Database MCP</span> to query CI performance benchmarks</li>
+      <li>Model <span class="p">reasons</span> about the cause, generates a fix</li>
+      <li>Call <span class="g">File System MCP</span> to write corrected code</li>
+      <li>Call <span class="a">GitHub MCP</span> to create a new PR with the fix</li>
+    </ol>
+  </div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Multi-Agent Coordination</h3>
+      <p>Agents can be MCP hosts with their own servers, or <span class="b">expose capabilities as MCP servers</span> consumed by other agents. Enables hierarchical systems: planning agent delegates to specialists.</p>
+    </div>
+    <div class="card green">
+      <h3>Why This Works</h3>
+      <p>Every tool speaks the <span class="g">same protocol</span>. No custom integration between GitHub, file system, and database tools. The model orchestrates them seamlessly through a uniform interface.</p>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 17</div>
+</section>
+
+<!-- SLIDE 18: Comparison with Alternatives -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARISON</span><h2>MCP vs. Alternatives</h2></div>
+  <table>
+    <thead>
+      <tr><th>Approach</th><th>Scope</th><th>Interoperable</th><th>Dynamic Discovery</th><th>Bidirectional</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">MCP</span></td><td>Universal tool protocol</td><td><span class="g">Yes</span></td><td><span class="g">Yes</span></td><td><span class="g">Yes (sampling)</span></td></tr>
+      <tr><td>Native Function Calling</td><td>Model &harr; host interface</td><td>Provider-specific</td><td>No</td><td>No</td></tr>
+      <tr><td>OpenAPI / REST</td><td>API documentation</td><td>Partial</td><td>No</td><td>No</td></tr>
+      <tr><td>LangChain Tools</td><td>Framework abstraction</td><td>Framework-specific</td><td>Limited</td><td>No</td></tr>
+      <tr><td>OpenAI Agents SDK</td><td>Platform tools</td><td>OpenAI-only</td><td>Limited</td><td>No</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card green">
+      <h3>MCP Sits Above Native Function Calling</h3>
+      <p>MCP does not replace native tool-use APIs. It defines how the host <span class="g">discovers and executes</span> tools on the server side. Tools are presented to the model through its native function-calling interface.</p>
+    </div>
+    <div class="card purple">
+      <h3>Provider-Agnostic</h3>
+      <p>The same MCP servers work with Claude, open-source models, and any LLM supporting tool use. <span class="p">Build once, connect to any provider.</span></p>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 18</div>
+</section>
+
+<!-- SLIDE 19: Limitations and Future Directions -->
+<section>
+  <div class="slide-hdr"><span class="tag">OUTLOOK</span><h2>Limitations &amp; Future Directions</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Current Limitations</h3>
+      <ul>
+        <li><span class="r">Stateless vs. stateful</span> trade-off: stateless scales easily but loses session context</li>
+        <li>Limited guidance on <span class="r">retry semantics</span>, timeouts, graceful degradation</li>
+        <li>Date-based versioning + rapid evolution = potential <span class="r">version mismatches</span></li>
+        <li>Security model still maturing: tool poisoning and prompt injection remain practical risks</li>
+        <li><span class="r">Context window pressure</span> from large tool results</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Future Directions</h3>
+      <ul>
+        <li><span class="g">Richer media types</span> &mdash; streaming audio, video, interactive content</li>
+        <li><span class="g">Standardized auth profiles</span> &mdash; pre-built OAuth configs for common IdPs</li>
+        <li><span class="g">Formal tool verification</span> &mdash; cryptographic signing of tool descriptions</li>
+        <li><span class="g">Inter-server communication</span> &mdash; servers invoke each other directly</li>
+        <li><span class="g">Observability standards</span> &mdash; OpenTelemetry integration for tracing and metrics</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">model-context-protocol / 19</div>
+</section>
+
+<!-- SLIDE 20: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>What MCP Delivers</h3>
+      <ul>
+        <li>Eliminates the <span class="g">N&times;M integration problem</span> with a universal standard</li>
+        <li>Six primitives cover tools, resources, prompts, sampling, roots, logging</li>
+        <li><span class="g">Dynamic discovery</span> &mdash; models find tools at runtime</li>
+        <li>Bidirectional sampling enables <span class="g">recursive agentic patterns</span></li>
+        <li>Growing ecosystem: SDKs in 6+ languages, hundreds of pre-built servers</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Practitioner Guidance</h3>
+      <ul>
+        <li>MCP should be the <span class="a">default integration mechanism</span> for LLM tools</li>
+        <li>Use <span class="a">stdio</span> for local development, <span class="a">Streamable HTTP</span> for remote</li>
+        <li>Enforce least privilege, human-in-the-loop for side effects</li>
+        <li>Validate inputs, sanitize outputs, review tool descriptions</li>
+        <li>Tool providers: expose via MCP for <span class="a">maximum reach</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Bottom Line</h3>
+    <p>MCP is to LLM tool integration what <span class="p">USB was to peripherals</span> and <span class="p">LSP was to IDEs</span>. It provides the foundational infrastructure layer connecting AI models to external data and services &mdash; build once, connect everywhere. As the protocol matures, it is positioned to become the standard that powers the next generation of agentic AI applications.</p>
+  </div>
+  <div class="slide-footer">model-context-protocol / 20</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVIDIA DGX Spark | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>NVIDIA DGX Spark</h1>
+  <p class="subtitle">A Desktop AI Supercomputer for Agents and Local Inference</p>
+  <div>
+    <span class="pill amber">hardware</span>
+    <span class="pill green">inference</span>
+    <span class="pill purple">agents</span>
+    <span class="pill blue">grace-blackwell</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">March 2026</p>
+  <div class="slide-footer">nvidia-dgx-spark / 01</div>
+</section>
+
+<!-- SLIDE 2: Introduction and Origins -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Introduction &amp; Origins</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>From CES to Desktop</h3>
+      <ul>
+        <li>Announced as <span class="a">Project DIGITS</span> at CES 2025 (January)</li>
+        <li>Shipped in <span class="a">October 2025</span> as the DGX Spark</li>
+        <li>First NVIDIA desktop with both NVIDIA CPU and GPU since Tegra dev kits</li>
+        <li>Brings the <span class="a">DGX brand</span> from data center to desktop</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Form Factor</h3>
+      <ul>
+        <li>Size of an Apple Mac Mini: <span class="g">150 &times; 150 &times; 50.5 mm</span></li>
+        <li>Weight: only <span class="g">1.2 kg</span></li>
+        <li>1 petaflop of AI compute in a compact chassis</li>
+        <li>Targets developers, researchers, and data scientists</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Key Value Proposition</h3>
+    <p><span class="b">128 GB unified memory</span> loads models exceeding any single consumer GPU's VRAM. Preinstalled NVIDIA AI stack eliminates days of environment configuration. Desktop-to-data-center portability ensures local work translates directly to production.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 02</div>
+</section>
+
+<!-- SLIDE 3: GB10 Grace Blackwell Superchip -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>GB10 Grace Blackwell Superchip</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Multi-Die SoC</h3>
+      <ul>
+        <li>Co-designed by NVIDIA and <span class="a">MediaTek</span></li>
+        <li>Fabricated on <span class="a">TSMC 3nm</span> process</li>
+        <li>Arm CPU die + Blackwell GPU die on single package</li>
+        <li>Connected via <span class="a">NVLink chip-to-chip</span> (NVLink-C2C)</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>NVLink-C2C Interconnect</h3>
+      <ul>
+        <li>Approximately <span class="g">5&times; bandwidth</span> of PCIe Gen 5</li>
+        <li>Enables <span class="g">coherent unified memory</span> address space</li>
+        <li>No explicit data transfers between CPU and GPU</li>
+        <li>Both processors share same address space transparently</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 100" width="750" style="margin-top:.8em">
+    <rect x="30" y="10" width="220" height="80" rx="8" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="140" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13">Arm CPU Die</text>
+    <text x="140" y="60" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">20 cores (big.LITTLE)</text>
+    <rect x="350" y="20" width="120" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="410" y="52" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">NVLink-C2C</text>
+    <line x1="250" y1="50" x2="350" y2="48" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowNV)"/>
+    <line x1="470" y1="48" x2="550" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowNV)"/>
+    <rect x="550" y="10" width="220" height="80" rx="8" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="660" y="40" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">Blackwell GPU Die</text>
+    <text x="660" y="60" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">6,144 CUDA cores</text>
+    <defs><marker id="arrowNV" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="slide-footer">nvidia-dgx-spark / 03</div>
+</section>
+
+<!-- SLIDE 4: CPU Specifications -->
+<section>
+  <div class="slide-hdr"><span class="tag">CPU</span><h2>Arm big.LITTLE CPU Configuration</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Performance Cores</h3>
+      <ul>
+        <li><span class="a">10 &times; Cortex-X925</span> cores</li>
+        <li>Clock speed up to <span class="a">4 GHz</span></li>
+        <li>Single-threaded performance comparable to Apple M4</li>
+        <li>Off-the-shelf Arm designs (not Neoverse)</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Efficiency Cores</h3>
+      <ul>
+        <li><span class="g">10 &times; Cortex-A725</span> cores</li>
+        <li>Clock speed up to <span class="g">2.8 GHz</span></li>
+        <li>Power-efficient for background tasks</li>
+        <li>Reflects desktop power envelope design</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Design Trade-off</h3>
+    <p>Unlike NVIDIA's data center Grace CPUs that use <span class="p">Neoverse cores</span>, the GB10 uses consumer-class Arm cores to fit a desktop thermal and power envelope. Despite this, the system serves as a <span class="a">capable general-purpose workstation</span> even without GPU acceleration.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 04</div>
+</section>
+
+<!-- SLIDE 5: GPU Specifications -->
+<section>
+  <div class="slide-hdr"><span class="tag">GPU</span><h2>Blackwell GPU &mdash; 1 PFLOP AI Compute</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Compute</h3>
+      <ul>
+        <li><span class="a">48 SMs</span>, 6,144 CUDA cores</li>
+        <li>5th-gen Tensor Cores (FP4/FP8)</li>
+        <li>4th-gen RT cores</li>
+        <li><span class="a">1 PFLOP</span> sparse FP4</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Cache &amp; Engines</h3>
+      <ul>
+        <li><span class="g">24 MB</span> L2 cache</li>
+        <li><span class="g">16 MB</span> L4 side cache</li>
+        <li>2 copy engines for bidirectional transfers</li>
+        <li>1 NVENC + 1 NVDEC</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Positioning</h3>
+      <ul>
+        <li>Tensor throughput between <span class="p">RTX 5070</span> and <span class="p">RTX 5070 Ti</span></li>
+        <li>SM12x variant (consumer Blackwell)</li>
+        <li>Lacks data center SM100 features</li>
+        <li>Separate code paths needed for B200/B300</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card red" style="margin-top:.8em">
+    <h3>Compute Capability Divergence</h3>
+    <p>Data center Blackwell (SM100) includes <span class="r">TMEM, tcgen05, and 2-SM cooperative MMA</span> not present in the Spark's SM12x. Kernel developers targeting both platforms must maintain separate code paths, though <span class="g">Tile IR and cuTile</span> aim to bridge this gap.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 05</div>
+</section>
+
+<!-- SLIDE 6: Unified Memory Architecture -->
+<section>
+  <div class="slide-hdr"><span class="tag">MEMORY</span><h2>Unified Memory Architecture</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>128 GB LPDDR5x</h3>
+      <ul>
+        <li>8 memory chips, <span class="a">16 channels</span></li>
+        <li>256-bit interface at <span class="a">8533 MHz</span></li>
+        <li><span class="a">273 GB/s</span> bandwidth (shared CPU + GPU)</li>
+        <li>Coherent address space via NVLink-C2C</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Inference Advantage</h3>
+      <ul>
+        <li>No system-to-VRAM transfer bottleneck</li>
+        <li>Entire pool available to GPU <span class="g">without partitioning</span></li>
+        <li>Runs models up to <span class="g">200B parameters</span></li>
+        <li>Far exceeds any single consumer GPU's VRAM</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Contrast: Discrete GPU Setup</h3>
+    <p>An RTX 5090 has 32 GB GDDR7 at 1,792 GB/s, but data exceeding VRAM must swap across PCIe at ~64 GB/s. The DGX Spark eliminates this cliff: the <span class="b">entire 128 GB is GPU-accessible</span> at full memory bandwidth, enabling much larger models despite lower peak bandwidth.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 06</div>
+</section>
+
+<!-- SLIDE 7: Memory Bandwidth Trade-offs -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRADE-OFF</span><h2>Memory Bandwidth: Capacity vs. Throughput</h2></div>
+  <table>
+    <thead>
+      <tr><th>Platform</th><th>Memory</th><th>Bandwidth</th><th>Primary Strength</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">DGX Spark</span></td><td>128 GB LPDDR5x</td><td>273 GB/s</td><td>Capacity &mdash; large models fit</td></tr>
+      <tr><td><span class="p">RTX 5070</span></td><td>12 GB GDDR7</td><td>672 GB/s</td><td>Bandwidth &mdash; fast generation</td></tr>
+      <tr><td><span class="b">RTX 5090</span></td><td>32 GB GDDR7</td><td>1,792 GB/s</td><td>Bandwidth + moderate capacity</td></tr>
+      <tr><td><span class="g">Data Center (HBM3e)</span></td><td>192+ GB</td><td>8+ TB/s</td><td>Both capacity and bandwidth</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red">
+      <h3>The Bottleneck</h3>
+      <p>Autoregressive token generation streams full model weights per token. At <span class="r">273 GB/s</span>, this constrains single-user tokens/sec for large models.</p>
+    </div>
+    <div class="card green">
+      <h3>The Sweet Spot</h3>
+      <p>DGX Spark excels at loading <span class="g">very large models</span> at modest per-user throughput, and at <span class="g">batched inference</span> where bandwidth cost is amortized across requests.</p>
+    </div>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 07</div>
+</section>
+
+<!-- SLIDE 8: System Design and Connectivity -->
+<section>
+  <div class="slide-hdr"><span class="tag">SYSTEM</span><h2>Physical Design &amp; Connectivity</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Chassis</h3>
+      <ul>
+        <li>Champagne-gold metal finish</li>
+        <li>Metal foam grilles for cooling</li>
+        <li><span class="a">240W</span> external USB-C PSU</li>
+        <li>GB10 TDP: <span class="a">140W</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Storage</h3>
+      <ul>
+        <li><span class="g">1 TB or 4 TB</span> NVMe M.2 SSD</li>
+        <li>Self-encryption capability</li>
+        <li>Founder's Edition: 4 TB</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Ports &amp; Wireless</h3>
+      <ul>
+        <li>4 &times; USB-C (1 = power)</li>
+        <li>HDMI 2.1a display output</li>
+        <li>10 GbE RJ-45 Ethernet</li>
+        <li><span class="p">Wi-Fi 7</span> + Bluetooth 5.4</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Thermal Design</h3>
+    <p>Sustained full-load AI workloads run <span class="b">without thermal throttling</span>, thanks to the metal-foam cooling and externalized power supply. Idle power: ~35W. Full load: ~170W.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 08</div>
+</section>
+
+<!-- SLIDE 9: ConnectX-7 Networking -->
+<section>
+  <div class="slide-hdr"><span class="tag">NETWORKING</span><h2>ConnectX-7 &amp; Multi-Node Clustering</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>ConnectX-7 SmartNIC</h3>
+      <ul>
+        <li>Dual QSFP ports: <span class="a">200 Gbps</span> aggregate</li>
+        <li>RDMA-capable networking</li>
+        <li>Component value: ~$1,700&ndash;$2,000</li>
+        <li>Unusual for a desktop system</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Cluster Topologies</h3>
+      <ul>
+        <li><span class="g">2 nodes</span>: direct point-to-point link</li>
+        <li><span class="g">3 nodes</span>: ring structure</li>
+        <li><span class="g">4 nodes</span>: requires RoCE 200 GbE switch</li>
+        <li>Up to <span class="g">512 GB</span> shared memory (4 nodes)</li>
+      </ul>
+    </div>
+  </div>
+  <table style="margin-top:.8em">
+    <thead>
+      <tr><th>Nodes</th><th>Memory</th><th>Max Model Size</th><th>Fine-Tuning tok/s</th><th>Inference ms/token</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">1</span></td><td>128 GB</td><td>~200B params</td><td>18,400</td><td>269 ms</td></tr>
+      <tr><td><span class="g">2</span></td><td>256 GB</td><td>~405B (FP4)</td><td>&mdash;</td><td>&mdash;</td></tr>
+      <tr><td><span class="b">4</span></td><td>512 GB</td><td>~700B params</td><td>74,600</td><td>72 ms</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">nvidia-dgx-spark / 09</div>
+</section>
+
+<!-- SLIDE 10: Software Stack -->
+<section>
+  <div class="slide-hdr"><span class="tag">SOFTWARE</span><h2>DGX OS &amp; Preinstalled AI Stack</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>DGX OS</h3>
+      <ul>
+        <li>Ubuntu 24.04 LTS base</li>
+        <li>NVIDIA-optimized kernel</li>
+        <li>Wayland GUI desktop</li>
+        <li>Same OS as data center DGX</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>AI Frameworks</h3>
+      <ul>
+        <li><span class="g">CUDA 13.0</span>, cuDNN, NCCL</li>
+        <li>TensorRT &amp; TensorRT-LLM</li>
+        <li>PyTorch &amp; TensorFlow</li>
+        <li>RAPIDS (cuML, cuDF)</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Containers &amp; Serving</h3>
+      <ul>
+        <li>NVIDIA Container Runtime</li>
+        <li>NGC registry access</li>
+        <li>NVIDIA NIM microservices</li>
+        <li><span class="p">Ollama, SGLang, vLLM</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>DGX Dashboard &amp; Remote Access</h3>
+    <p>Web-based <span class="b">DGX Dashboard</span> for GPU/memory monitoring and JupyterLab management. Free <span class="b">Sync app</span> enables SSH from Windows/Mac for headless operation. Extensive playbook guides validated for Spark hardware.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 10</div>
+</section>
+
+<!-- SLIDE 11: Developer Portability -->
+<section>
+  <div class="slide-hdr"><span class="tag">PORTABILITY</span><h2>Tile IR &amp; cuTile</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>The Problem</h3>
+      <ul>
+        <li>DGX Spark GPU (SM12x) differs from data center Blackwell (SM100)</li>
+        <li>Kernels optimized on Spark need <span class="r">rewriting</span> for B200/B300</li>
+        <li>Teams face friction prototyping locally then deploying to cloud</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The Solution (GTC 2026)</h3>
+      <ul>
+        <li><span class="g">Tile IR</span>: portable intermediate representation for GPU kernels</li>
+        <li><span class="g">cuTile</span>: Python DSL for writing kernels once</li>
+        <li>TileGym: pre-optimized transformer kernels</li>
+        <li>Write on Spark, deploy to B200/B300 with minimal changes</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Roofline Scaling</h3>
+    <p>Roofline analysis shows kernels <span class="p">scale effectively relative to each platform's theoretical peak</span>. Optimizations made locally on DGX Spark translate meaningfully to cloud deployments, validating the desktop-to-data-center promise.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 11</div>
+</section>
+
+<!-- SLIDE 12: Inference Performance -->
+<section>
+  <div class="slide-hdr"><span class="tag">BENCHMARKS</span><h2>Inference Performance Profile</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Strengths</h3>
+      <ul>
+        <li>DeepSeek-R1 14B (FP8, batch 8): <span class="g">2,074 total tok/s</span></li>
+        <li>Per-user throughput: ~83.5 tok/s</li>
+        <li><span class="g">No thermal throttling</span> under sustained load</li>
+        <li>Excels with smaller models + batching</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Bottlenecks</h3>
+      <ul>
+        <li>Large models (70B+) constrained by <span class="r">273 GB/s bandwidth</span></li>
+        <li>Llama 3.1 70B, GPT-OSS 120B: <span class="r">prototyping-tier</span> speed</li>
+        <li>Memory-bandwidth-bound for autoregressive generation</li>
+        <li>Not suited for production serving of large models</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.8em">
+    <h3>Performance Strategy</h3>
+    <p>The system favors <span class="a">memory capacity over memory throughput</span>. It is well-suited for loading very large models at modest per-user throughput, and batching amortizes bandwidth costs across concurrent requests to maximize total throughput.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 12</div>
+</section>
+
+<!-- SLIDE 13: FP4/NVFP4 -->
+<section>
+  <div class="slide-hdr"><span class="tag">QUANTIZATION</span><h2>FP4 &amp; NVFP4 Support</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>NVFP4 Format</h3>
+      <ul>
+        <li>Native hardware support in Blackwell Tensor Cores</li>
+        <li>Near-FP8 accuracy with <span class="a">&lt;1% degradation</span></li>
+        <li><span class="a">Halves memory footprint</span> vs. FP8</li>
+        <li>Larger models fit in fixed 128 GB pool</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Impact on DGX Spark</h3>
+      <ul>
+        <li>Directly reduces <span class="g">bytes-per-token</span> through memory subsystem</li>
+        <li>Nemotron Nano 2 in NVFP4: <span class="g">2&times; throughput</span> vs. FP8</li>
+        <li>Especially valuable for bandwidth-constrained system</li>
+        <li>Negligible accuracy loss in practice</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 80" width="750" style="margin-top:.8em">
+    <rect x="20" y="10" width="170" height="55" rx="6" fill="none" stroke="#f87171" stroke-width="1.5"/>
+    <text x="105" y="32" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="11">FP16 &mdash; 2 bytes</text>
+    <text x="105" y="50" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Baseline</text>
+    <rect x="220" y="10" width="170" height="55" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="305" y="32" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">FP8 &mdash; 1 byte</text>
+    <text x="305" y="50" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">2&times; compression</text>
+    <rect x="420" y="10" width="170" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="505" y="32" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">NVFP4 &mdash; 0.5 byte</text>
+    <text x="505" y="50" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">4&times; compression</text>
+    <rect x="620" y="10" width="170" height="55" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="705" y="32" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">1 PFLOP at FP4</text>
+    <text x="705" y="50" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Peak compute</text>
+  </svg>
+  <div class="slide-footer">nvidia-dgx-spark / 13</div>
+</section>
+
+<!-- SLIDE 14: Fine-Tuning Performance -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRAINING</span><h2>Fine-Tuning Performance</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Capabilities</h3>
+      <ul>
+        <li>Fine-tune models up to <span class="a">~70B parameters</span></li>
+        <li>Full fine-tune Llama 3.2B: <span class="a">82,739 tok/s</span> peak</li>
+        <li>LoRA and QLoRA workflows fully supported</li>
+        <li>Multi-node: 4 nodes = <span class="a">4&times; throughput</span> scaling</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Unsloth Studio Optimization</h3>
+      <ul>
+        <li>Custom GPU kernels for DGX Spark</li>
+        <li><span class="g">2&times; training speed</span> improvement</li>
+        <li>Up to <span class="g">70% VRAM savings</span></li>
+        <li>Graph-based canvas for data gen, monitoring, export</li>
+      </ul>
+    </div>
+  </div>
+  <table style="margin-top:.8em">
+    <thead>
+      <tr><th>Workflow</th><th>Model Size</th><th>Throughput</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Full fine-tune</span></td><td>3.2B</td><td>82,739 tok/s</td><td>Peak single-node</td></tr>
+      <tr><td><span class="g">LoRA / QLoRA</span></td><td>Up to 70B</td><td>Varies</td><td>Memory-efficient adapters</td></tr>
+      <tr><td><span class="b">Multi-node (4&times;)</span></td><td>Up to 70B</td><td>74,600 tok/s</td><td>Linear scaling for fine-tuning</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">nvidia-dgx-spark / 14</div>
+</section>
+
+<!-- SLIDE 15: OpenClaw and the Agent Revolution -->
+<section>
+  <div class="slide-hdr"><span class="tag">AGENTS</span><h2>OpenClaw &amp; the Agent Revolution</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>What Is OpenClaw?</h3>
+      <ul>
+        <li>Autonomous AI agent by Peter Steinberger</li>
+        <li>Executes shell commands, reads/writes files, browses web</li>
+        <li>Connects via WhatsApp, Telegram, Discord, Slack</li>
+        <li><span class="a">247K+ GitHub stars</span>, 48K+ forks</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Industry Impact</h3>
+      <ul>
+        <li>Jensen Huang: <em>"OpenClaw is to agentic AI what GPT was to conversational AI"</em></li>
+        <li>Compared to Linux, Kubernetes, HTML in significance</li>
+        <li>Sam Altman hired Steinberger; project moved to foundation</li>
+        <li><span class="g">"Claws"</span> = autonomous agents that plan, reason, act</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Origin Story</h3>
+    <p>Originally <em>Clawdbot</em>, renamed <em>Moltbot</em> after Anthropic trademark complaint, then <span class="p">OpenClaw</span> in January 2026. Went viral in late January 2026, surpassing React as the most-starred non-aggregator project on GitHub. Every company now needs an <span class="a">OpenClaw strategy</span>.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 15</div>
+</section>
+
+<!-- SLIDE 16: Why DGX Spark for Agents -->
+<section>
+  <div class="slide-hdr"><span class="tag">USE CASE</span><h2>Why DGX Spark Is Ideal for Agents</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Always-On</h3>
+      <ul>
+        <li>Agents run <span class="a">continuously 24/7</span></li>
+        <li>~35W idle, ~170W under load</li>
+        <li>No cloud hourly charges</li>
+        <li>Won't overheat like a laptop</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Memory &amp; Privacy</h3>
+      <ul>
+        <li>128 GB for <span class="g">large context windows</span></li>
+        <li>Run 120B+ models locally</li>
+        <li>No cloud API costs</li>
+        <li><span class="g">All data stays on-device</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Multi-Agent</h3>
+      <ul>
+        <li>Grace Blackwell parallelizes sub-agents</li>
+        <li>4&times; tasks in <span class="p">2.6&times; wall time</span></li>
+        <li>Prefill throughput: ~3&times; increase</li>
+        <li>TensorRT-LLM / vLLM scheduling</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>The Agent Computer Paradigm</h3>
+    <p>Like the shift from mainframes to PCs: rather than submitting agent tasks to shared cloud services, users run <span class="b">personal autonomous agents locally</span> with complete privacy and zero per-token costs. Jensen Huang calls this <em>"the beginning of a new renaissance in software."</em></p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 16</div>
+</section>
+
+<!-- SLIDE 17: NemoClaw Enterprise Security -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>NemoClaw: Enterprise Security for OpenClaw</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>The Security Problem</h3>
+      <ul>
+        <li>OpenClaw described as <span class="r">"insecure by default"</span></li>
+        <li>CVE-2026-25253: CVSS 8.8 RCE via WebSocket hijacking</li>
+        <li><span class="r">21,000+</span> publicly exposed instances found</li>
+        <li>Malicious skills on ClawHub: malware, data exfiltration</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>NemoClaw Stack (GTC 2026)</h3>
+      <ul>
+        <li><span class="g">NVIDIA OpenShell</span>: sandboxed runtime with policy-based guardrails</li>
+        <li>Every network/file/inference call governed by declarative policy</li>
+        <li><span class="g">Nemotron models</span> for local inference (no cloud tokens)</li>
+        <li><span class="g">Privacy router</span> for selective frontier model access</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Architecture Layers</h3>
+    <p>NemoClaw CLI orchestrates: <span class="p">OpenShell gateway</span> &rarr; sandbox environment &rarr; inference provider &rarr; network policy. Versioned blueprints define sandbox config. Lifecycle: resolve artifact &rarr; verify digest &rarr; plan resources &rarr; apply via OpenShell CLI. Organizations connect their own <span class="a">policy engines</span> for compliance.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 17</div>
+</section>
+
+<!-- SLIDE 18: Multi-Agent Architectures -->
+<section>
+  <div class="slide-hdr"><span class="tag">MULTI-AGENT</span><h2>Multi-Agent Architectures on DGX Spark</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Agent Ecosystem Models</h3>
+      <ul>
+        <li><span class="a">Nemotron 3 Super 120B</span>: ~87 GB in NVFP4, 85.6% PinchBench</li>
+        <li>Nemotron 3 Nano 4B: compact starting point</li>
+        <li>Mistral Small 4 (119B, 6B active): chat + coding + agents</li>
+        <li>Qwen3.5 397B, GLM 5, MiniMax M2.5 230B via multi-node</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Multi-Node Benefits</h3>
+      <ul>
+        <li>4 nodes = <span class="g">512 GB</span> shared memory</li>
+        <li>Run 700B param models for complex agent reasoning</li>
+        <li>Distribute specialized sub-agents across nodes</li>
+        <li>Linear speedup for RL and fine-tuning workflows</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Typical Agent Topology</h3>
+    <p>Complex workflows use <span class="b">specialized sub-agents</span>: email triage, calendar scheduling, web research, plus a coordination agent. Each may need its own model instance. Multi-node clustering distributes these across the cluster, with NVIDIA Isaac Lab and Nanochat achieving <span class="g">linear speedup</span> for robotics RL.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 18</div>
+</section>
+
+<!-- SLIDE 19: Competitive Positioning -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPETITION</span><h2>Competitive Positioning</h2></div>
+  <table>
+    <thead>
+      <tr><th>Feature</th><th><span class="a">DGX Spark</span></th><th><span class="p">Apple M4 Ultra</span></th><th><span class="b">AMD Strix Halo</span></th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Memory</td><td>128 GB</td><td>Up to 512 GB</td><td>Up to 128 GB</td></tr>
+      <tr><td>Bandwidth</td><td>273 GB/s</td><td>800+ GB/s</td><td>~256 GB/s</td></tr>
+      <tr><td>AI Compute</td><td><span class="a">1 PFLOP (FP4)</span></td><td>Lower tensor throughput</td><td>No FP4 hardware</td></tr>
+      <tr><td>CUDA Support</td><td><span class="g">Native</span></td><td><span class="r">None</span></td><td><span class="r">ROCm only</span></td></tr>
+      <tr><td>Multi-Node</td><td><span class="g">Up to 4 nodes (512 GB)</span></td><td>None</td><td>None</td></tr>
+      <tr><td>AI Stack</td><td><span class="g">Preinstalled &amp; validated</span></td><td>Limited ecosystem</td><td>ROCm ecosystem</td></tr>
+      <tr><td>Price</td><td>~$4,699</td><td>~$4,000&ndash;$10,000+</td><td>~$2,000&ndash;$2,500</td></tr>
+    </tbody>
+  </table>
+  <div class="card amber" style="margin-top:.6em">
+    <h3>Bottom Line</h3>
+    <p>Apple leads in bandwidth; Strix Halo wins on price. DGX Spark's advantage is the <span class="a">native CUDA ecosystem</span>, preinstalled AI stack, multi-node clustering, and FP4 hardware &mdash; the dominant software platform for AI development.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 19</div>
+</section>
+
+<!-- SLIDE 20: Pricing and Availability -->
+<section>
+  <div class="slide-hdr"><span class="tag">PRICING</span><h2>Pricing &amp; Availability</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>NVIDIA Founder's Edition</h3>
+      <ul>
+        <li>Launch price (Oct 2025): <span class="a">$3,999</span></li>
+        <li>Current price (Feb 2026): <span class="a">$4,699</span></li>
+        <li>4 TB SSD, full ConnectX-7 networking</li>
+        <li>Includes DLI hands-on AI course ($90 value)</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>OEM Partners</h3>
+      <ul>
+        <li>Dell, Acer, ASUS, Gigabyte, HP, Lenovo, MSI</li>
+        <li>Variations in storage, cooling, cosmetics</li>
+        <li>Dell Pro Max with GB10: <span class="g">~$4,757</span> (4 TB)</li>
+        <li>Different remote management options per OEM</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Price Drivers</h3>
+    <p>The $700 price increase reflects <span class="p">premium component costs</span> (ConnectX-7 NIC alone worth ~$1,700&ndash;$2,000), NVIDIA's integration and validation work, and LPDDR5x memory supply pressures. The ConnectX-7 accounts for a significant portion of the retail price.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 20</div>
+</section>
+
+<!-- SLIDE 21: Limitations -->
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITATIONS</span><h2>Limitations &amp; Considerations</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Hardware Constraints</h3>
+      <ul>
+        <li><span class="r">273 GB/s bandwidth</span> limits single-user token gen for large models</li>
+        <li>Cannot match per-request latency of dedicated GPU servers</li>
+        <li>ConnectX-7 adds idle power (~35W) and cost even for standalone users</li>
+        <li>GPU compute capability differs from data center Blackwell</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Software &amp; Platform</h3>
+      <ul>
+        <li><span class="a">DGX OS only</span> &mdash; no Windows, no alternative OS</li>
+        <li>Arm64 architecture: not all x86 Linux software available</li>
+        <li>Some Docker containers need ARM-compatible versions</li>
+        <li>Optimized kernels for B200/B300 require adaptation</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Mitigations</h3>
+    <p>NGC provides <span class="b">ARM64-native containers</span> for common AI workflows. The Arm ecosystem has improved rapidly since launch. Tile IR / cuTile bridge the SM12x-to-SM100 kernel gap. FP4 quantization partially compensates for bandwidth limits by reducing bytes-per-token.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 21</div>
+</section>
+
+<!-- SLIDE 22: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Core Strengths</h3>
+      <ul>
+        <li><span class="g">128 GB unified memory</span>: run 200B+ param models locally</li>
+        <li><span class="g">1 PFLOP</span> AI compute with native FP4 support</li>
+        <li>Complete NVIDIA AI stack &mdash; zero-config path to inference</li>
+        <li>Desktop-to-data-center portability via identical DGX OS</li>
+        <li>Multi-node clustering: up to 512 GB / 700B params</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Best For</h3>
+      <ul>
+        <li><span class="a">Always-on agent computer</span> with NemoClaw security</li>
+        <li>Local LLM prototyping, fine-tuning, and experimentation</li>
+        <li>Developers embedded in the <span class="a">CUDA ecosystem</span></li>
+        <li>Privacy-sensitive workloads (all data stays on-device)</li>
+        <li>Research labs and universities needing turnkey AI platforms</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Bottom Line</h3>
+    <p>The DGX Spark trades peak memory bandwidth for <span class="p">capacity and ecosystem</span>, positioning itself as the reference platform for the emerging <span class="a">"agent computer" era</span>. For developers who need the CUDA stack, large local models, and autonomous agent capabilities, it is the most complete desktop system available.</p>
+  </div>
+  <div class="slide-footer">nvidia-dgx-spark / 22</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

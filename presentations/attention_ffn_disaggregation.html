@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attention–FFN Disaggregation | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:2.4em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.7em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:1.1em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.82em;line-height:1.65}
+  .reveal li{font-size:.80em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.78em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.72em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.55em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.3em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.9em;margin:0 0 .3em}.card p{font-size:.76em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.76em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.74em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.45em;color:var(--muted)}
+  .title-slide h1{font-size:2.6em}
+  .title-slide .subtitle{font-size:.95em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.68em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Attention&ndash;FFN Disaggregation</h1>
+  <p class="subtitle">Why the Future of LLM Inference Splits the Transformer in Two</p>
+  <div>
+    <span class="pill amber">inference</span>
+    <span class="pill green">MoE</span>
+    <span class="pill purple">disaggregation</span>
+    <span class="pill blue">hardware</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">attention-ffn-disaggregation / 01</div>
+</section>
+
+<!-- SLIDE 2: The Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The Core Tension</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>One Chip, Two Workloads</h3>
+      <ul>
+        <li>Every transformer layer has <span class="r">two fundamentally different</span> stages: attention and FFN</li>
+        <li>They have <span class="r">opposite hardware needs</span> during decode</li>
+        <li>Running both on the same GPU forces a compromise <span class="r">neither side wins</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The AFD Insight</h3>
+      <ul>
+        <li>Split the decode loop across <span class="g">two kinds of hardware</span></li>
+        <li>GPUs handle <span class="a">attention</span> (stateful, memory-bound)</li>
+        <li>SRAM-first processors handle <span class="g">FFN/MoE</span> (stateless, weight-heavy)</li>
+        <li>Intermediate activations shuttle between them <span class="b">every token</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Why Now?</h3>
+    <p>MoE models have gone mainstream, context lengths are growing to 128K+, and agentic workloads make per-token latency compound. The attention/FFN asymmetry is no longer an edge case &mdash; it is the <span class="a">default computational profile</span> of frontier models.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 02</div>
+</section>
+
+<!-- SLIDE 3: Inside a Transformer Layer -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Inside a Transformer Layer</h2></div>
+  <p>A decoder-only transformer (GPT, LLaMA, DeepSeek) is a stack of identical layers. Each layer has two main stages:</p>
+  <svg class="diagram" viewBox="0 0 850 120" width="800" style="margin:.6em auto">
+    <rect x="10" y="20" width="180" height="80" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="100" y="55" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13">Attention</text>
+    <text x="100" y="75" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Stateful (KV cache)</text>
+    <line x1="190" y1="60" x2="270" y2="60" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="230" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">residual</text>
+    <rect x="270" y="20" width="180" height="80" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="360" y="55" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13">FFN / MoE</text>
+    <text x="360" y="75" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Stateless (weights)</text>
+    <line x1="450" y1="60" x2="530" y2="60" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="490" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">residual</text>
+    <rect x="530" y="20" width="180" height="80" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="620" y="55" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">Next Layer</text>
+    <text x="620" y="75" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">&times; 61&ndash;126 layers</text>
+    <defs><marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Attention: ~1/3 of Parameters</h3>
+      <ul>
+        <li>Q/K/V projections, attention scores, output projection</li>
+        <li>Each token attends to <span class="a">every previous token</span></li>
+        <li>KV cache grows with context length, is <span class="r">per-request</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>FFN: ~2/3 of Parameters</h3>
+      <ul>
+        <li>Two or three large matrix multiplications + activation</li>
+        <li>Position-wise: processes each token <span class="g">independently</span></li>
+        <li>Stateless &mdash; no memory of previous tokens</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 03</div>
+</section>
+
+<!-- SLIDE 4: Attention Mechanism -->
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Attention During Decode</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>For each new token, compute <span class="a">Q, K, V</span> projections</li>
+        <li>Store new K, V in the <span class="r">KV cache</span></li>
+        <li>Dot-product query against <span class="a">all S cached keys</span></li>
+        <li>Softmax &rarr; weighted sum of cached values</li>
+        <li>Multi-head attention (MHA), GQA, or MLA variants</li>
+      </ul>
+      <div class="card red" style="margin-top:.6em">
+        <h3>The Critical Detail</h3>
+        <p>During decode, each new token must reference the KV cache of <span class="r">every previous token</span>. The cache grows with context length and is <span class="r">per-request</span> &mdash; it cannot be shared across users.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Decode Characteristics</h3>
+        <ul>
+          <li><span class="a">Stateful</span> &mdash; depends on full history</li>
+          <li>Memory footprint <span class="r">grows</span> with context</li>
+          <li>Low arithmetic intensity (~1&ndash;2 op/B)</li>
+          <li>GPU tensor cores sit <span class="r">mostly idle</span></li>
+          <li>Needs: large HBM, high bandwidth</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>KV Cache Size (FP8)</h3>
+        <p><code>2 &times; S &times; d &times; heads &times; layers</code></p>
+        <p>At 128K context on DeepSeek-V3: <span class="p">hundreds of GB</span> per request</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 04</div>
+</section>
+
+<!-- SLIDE 5: FFN Details -->
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>The Feed-Forward Network</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card green">
+        <h3>Structure</h3>
+        <pre><code>FFN(x) = W&#x2082; &middot; activation(W&#x2081; &middot; x)</code></pre>
+        <p>Modern models use SwiGLU (adds a third weight matrix + gating). Hidden dimension typically <span class="g">4&times; model dim</span> (~8/3&times; with SwiGLU).</p>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Key Properties</h3>
+        <ul>
+          <li><span class="b">Position-wise</span>: each token processed independently</li>
+          <li><span class="g">Stateless</span>: no memory of previous tokens</li>
+          <li>Same fixed function applied to every input</li>
+          <li>Contains <span class="a">~2/3</span> of all layer parameters</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Decode Characteristics</h3>
+        <ul>
+          <li>Weights are <span class="a">same for every token</span> in batch</li>
+          <li>Load weights once, reuse across batch</li>
+          <li>Arithmetic intensity: <span class="g">~2B op/B</span> (scales with batch)</li>
+          <li>At batch=1: memory-bound</li>
+          <li>At batch=100+: <span class="g">compute-bound</span></li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>The Key Asymmetry</h3>
+        <p>FFN arithmetic intensity is <span class="p">tuneable via batching</span>. Attention arithmetic intensity is <span class="r">not</span> &mdash; because the KV cache is per-request.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 05</div>
+</section>
+
+<!-- SLIDE 6: Arithmetic Intensity & Roofline -->
+<section>
+  <div class="slide-hdr"><span class="tag">THEORY</span><h2>Arithmetic Intensity &amp; the Roofline Model</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Arithmetic Intensity</h3>
+      <p>Ratio of FLOPs to bytes moved from memory, measured in <span class="a">op/B</span>. Captures how much useful work per byte of data fetched.</p>
+      <ul>
+        <li><span class="r">Low intensity</span> &rarr; memory-bandwidth bound</li>
+        <li><span class="g">High intensity</span> &rarr; compute bound</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Ridge Point</h3>
+      <p>The crossover where compute and bandwidth ceilings meet.</p>
+      <ul>
+        <li>H100: ~2000 TFLOPS FP8, ~3.35 TB/s HBM</li>
+        <li>Ridge point: <span class="g">~600 op/B</span></li>
+        <li>Anything below 600 op/B is <span class="r">memory bound</span> on H100</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Why This Matters</h3>
+    <p>Attention during decode has intensity of <span class="r">~1&ndash;2 op/B</span> &mdash; roughly 300&times; below the ridge point. The GPU's tensor cores are almost entirely idle during attention decode. The FFN can reach the ridge point with sufficient batching, but attention <span class="r">never can</span>.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 06</div>
+</section>
+
+<!-- SLIDE 7: Attention Is Memory-Bound -->
+<section>
+  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>Attention Is Memory-Bound During Decode</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>The Problem</h3>
+      <ul>
+        <li>Must load <span class="r">entire KV cache</span> from HBM per token</li>
+        <li>S tokens &rarr; load 2 &times; S &times; d bytes per head per layer</li>
+        <li>FLOPs: O(S &times; d), bytes: also O(S &times; d)</li>
+        <li>Arithmetic intensity: <span class="r">~1&ndash;2 op/B</span></li>
+        <li>Ridge point on H100: ~600 op/B</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Can Batching Help?</h3>
+      <ul>
+        <li>Batching shares <span class="a">weight loads</span> (Q/K/V projections)</li>
+        <li>But KV caches are <span class="r">per-request</span> &mdash; cannot be shared</li>
+        <li>As context grows, KV cache dominates traffic</li>
+        <li>At 128K context: batching <span class="r">cannot rescue</span> attention</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.8em">
+    <h3>What Attention Needs</h3>
+    <p>Large, high-bandwidth memory systems &mdash; exactly what GPUs with massive <span class="g">HBM pools</span> provide. The GPU is the right hardware for attention, even though its compute units are underutilised during this phase.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 07</div>
+</section>
+
+<!-- SLIDE 8: FFN Is Compute-Bound -->
+<section>
+  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>FFN Is Potentially Compute-Bound</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>How Batching Helps FFN</h3>
+      <ul>
+        <li>All tokens share the <span class="g">same weight matrices</span></li>
+        <li>Weights loaded once, reused across batch</li>
+        <li>Intensity: <span class="g">~2B op/B</span> (B = batch size)</li>
+        <li>At B=1: intensity ~2 (memory-bound)</li>
+        <li>At B=300: intensity ~600 (<span class="g">compute-bound</span>)</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>The Practical Challenge</h3>
+      <ul>
+        <li>Achieving large batch sizes during decode is <span class="r">hard</span></li>
+        <li>Latency constraints limit batching</li>
+        <li>KV cache memory limits concurrent requests</li>
+        <li>Sequential generation keeps per-user batch = 1</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>The Structural Insight</h3>
+    <p>FFN arithmetic intensity is <span class="p">tuneable via batching</span>; attention intensity is <span class="r">fixed</span> regardless of batch. This asymmetry is the seed from which AFD grows &mdash; the two operations live on <span class="p">different sides of the roofline</span>.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 08</div>
+</section>
+
+<!-- SLIDE 9: Summary Comparison Table -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARISON</span><h2>Attention vs. FFN: The Asymmetry</h2></div>
+  <table>
+    <thead>
+      <tr><th>Property</th><th>Attention (Decode)</th><th>FFN (Decode)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="a">Stateful?</span></td><td><span class="r">Yes</span> &mdash; depends on KV cache</td><td><span class="g">No</span> &mdash; same weights for all tokens</td></tr>
+      <tr><td><span class="a">Memory footprint</span></td><td><span class="r">Grows</span> with context length</td><td><span class="g">Fixed</span> (model weights only)</td></tr>
+      <tr><td><span class="a">Arithmetic intensity</span></td><td><span class="r">~1&ndash;2 op/B</span> (memory bound)</td><td><span class="g">~2B op/B</span>; scales with batch</td></tr>
+      <tr><td><span class="a">Ideal hardware</span></td><td>Large HBM, high bandwidth</td><td>High compute, or high bandwidth if low batch</td></tr>
+      <tr><td><span class="a">Per-request state</span></td><td><span class="r">KV cache</span> (large, growing)</td><td><span class="g">None</span></td></tr>
+      <tr><td><span class="a">Batching effect</span></td><td>Limited &mdash; KV cache is per-request</td><td>Strong &mdash; weights shared across batch</td></tr>
+    </tbody>
+  </table>
+  <div class="card amber" style="margin-top:.8em">
+    <h3>Bottom Line</h3>
+    <p>Attention is <span class="r">state-heavy and weight-light</span>. FFN is <span class="g">weight-heavy and state-free</span>. They have almost opposite memory profiles.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 09</div>
+</section>
+
+<!-- SLIDE 10: MoE Amplifies the Split -->
+<section>
+  <div class="slide-hdr"><span class="tag">MOE</span><h2>Mixture of Experts Amplifies the Split</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>What MoE Replaces</h3>
+      <ul>
+        <li>MoE applies <span class="a">exclusively to the FFN</span></li>
+        <li>Attention is <span class="r">completely untouched</span></li>
+        <li>Single FFN &rarr; multiple expert FFNs + router</li>
+        <li>MoE is a technique for making FFN <span class="a">sparse</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Why MoE Exists</h3>
+      <ul>
+        <li>Model quality scales with <span class="a">total parameters</span></li>
+        <li>Inference cost scales with <span class="g">activated parameters</span></li>
+        <li>671B total params, only <span class="g">37B active</span> per token</li>
+        <li>Knowledge of a huge model, cost of a small one</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card red" style="margin-top:.8em">
+    <h3>The Catch</h3>
+    <p>All 671B parameters must be <span class="r">resident in memory</span>, even though only 5.5% are active per token. Different tokens route to different experts, and the router's decisions are not known in advance. The FFN side becomes <span class="r">massively weight-heavy</span> while attention remains unchanged.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 10</div>
+</section>
+
+<!-- SLIDE 11: How MoE Works -->
+<section>
+  <div class="slide-hdr"><span class="tag">MOE</span><h2>How MoE Works: DeepSeek-V3</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card purple">
+        <h3>DeepSeek-V3 MoE Configuration</h3>
+        <ul>
+          <li><span class="a">671B</span> total params, <span class="g">37B</span> active per token</li>
+          <li>61 layers (first 3 use dense FFNs)</li>
+          <li><span class="p">256 routed experts</span> per MoE layer</li>
+          <li><span class="g">1 shared expert</span> (always active)</li>
+          <li>Router assigns each token to <span class="a">top-8</span> experts</li>
+          <li>Per token: 8 routed + 1 shared = <span class="g">9 small FFNs</span></li>
+          <li>Remaining 247 experts: <span class="r">idle for that token</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 320 280" width="290">
+        <rect x="80" y="5" width="160" height="40" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="160" y="30" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">Token Hidden State</text>
+        <line x1="160" y1="45" x2="160" y2="75" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowA)"/>
+        <rect x="100" y="75" width="120" height="35" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="160" y="97" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Router (top-8)</text>
+        <line x1="100" y1="110" x2="30" y2="145" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="130" y1="110" x2="80" y2="145" stroke="#a78bfa" stroke-width="1"/>
+        <line x1="160" y1="110" x2="160" y2="145" stroke="#a78bfa" stroke-width="1"/>
+        <line x1="190" y1="110" x2="240" y2="145" stroke="#a78bfa" stroke-width="1"/>
+        <line x1="220" y1="110" x2="290" y2="145" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3"/>
+        <rect x="10" y="145" width="45" height="28" rx="4" fill="none" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="32" y="163" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="7">E1</text>
+        <rect x="60" y="145" width="45" height="28" rx="4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="82" y="163" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="7">E42</text>
+        <rect x="138" y="145" width="45" height="28" rx="4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="160" y="163" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="7">E117</text>
+        <rect x="218" y="145" width="45" height="28" rx="4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="240" y="163" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="7">E203</text>
+        <rect x="268" y="145" width="45" height="28" rx="4" fill="none" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="290" y="163" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="7">E256</text>
+        <text x="113" y="162" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">...</text>
+        <text x="200" y="162" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">...</text>
+        <rect x="110" y="195" width="100" height="28" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="160" y="213" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Shared Expert</text>
+        <line x1="160" y1="223" x2="160" y2="253" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowA)"/>
+        <text x="160" y="270" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Combine &amp; Output</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 11</div>
+</section>
+
+<!-- SLIDE 12: MoE Memory & Arithmetic Problems -->
+<section>
+  <div class="slide-hdr"><span class="tag">MOE</span><h2>MoE: Memory &amp; Intensity Problems</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>The Memory Problem</h3>
+      <ul>
+        <li>Dense 37B: ~37 GB in FP8</li>
+        <li>DeepSeek-V3 (671B): <span class="r">~671 GB</span> in FP8</li>
+        <li>Only 5.5% active per token, but <span class="r">100% must be in memory</span></li>
+        <li>Different tokens route to different experts</li>
+        <li>Cannot discard unused experts in advance</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>The Intensity Problem</h3>
+      <ul>
+        <li>Dense FFN: all tokens share same weights &rarr; good reuse</li>
+        <li>MoE: tokens <span class="r">scattered</span> across 256 experts</li>
+        <li>Each expert sees only <span class="a">B/32</span> tokens on average</li>
+        <li>Dense model: compute-bound at B &asymp; 120</li>
+        <li>MoE: needs B &asymp; <span class="r">3,840</span> for same intensity</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Expert Parallelism: All-to-All Communication</h3>
+    <p>Experts distributed across many GPUs. Each token must be routed to its assigned experts on <span class="p">different GPUs</span> &mdash; an all-to-all dispatch/combine pattern that is inherently cross-node. This is structurally different from attention's local KV cache access and creates a natural <span class="p">seam</span> in the computation.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 12</div>
+</section>
+
+<!-- SLIDE 13: Three Levels of Disaggregation -->
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORK</span><h2>Three Levels of Disaggregation</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Level 1: Prefill&ndash;Decode</h3>
+      <ul>
+        <li>Separate <span class="a">prompt processing</span> from token generation</li>
+        <li>Prefill: compute-bound (parallel tokens)</li>
+        <li>Decode: memory-bound (sequential tokens)</li>
+        <li>Now <span class="g">standard practice</span> (DistServe, etc.)</li>
+        <li>Different hardware pools, independently scaled</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Level 2: Attention&ndash;FFN (AFD)</h3>
+      <ul>
+        <li>Split <span class="g">within the decode phase</span></li>
+        <li>Attention &rarr; GPU (stateful, KV cache)</li>
+        <li>FFN/MoE &rarr; SRAM accelerator (stateless)</li>
+        <li>Exchange activations <span class="a">every token, every layer</span></li>
+        <li>The focus of this presentation</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Level 3: Experts-as-a-Service</h3>
+      <ul>
+        <li>Fully decouple the <span class="p">MoE expert pool</span></li>
+        <li>Experts as stateless microservices</li>
+        <li>Independent scaling &amp; load balancing</li>
+        <li>Finer-grained resource allocation</li>
+        <li>Significant <span class="r">orchestration complexity</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Progressive Specialisation</h3>
+    <p>Each level recognises a deeper structural boundary in the transformer. Level 1 separates phases. Level 2 separates operations within a phase. Level 3 separates individual experts within an operation.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 13</div>
+</section>
+
+<!-- SLIDE 14: NVIDIA Vera Rubin + LPX -->
+<section>
+  <div class="slide-hdr"><span class="tag">HARDWARE</span><h2>NVIDIA Vera Rubin + Groq 3 LPX</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>GPU Side: Vera Rubin NVL72</h3>
+      <ul>
+        <li>72 GPUs per rack, NVLink interconnect</li>
+        <li>Handles <span class="a">prefill</span> (compute-heavy, parallel)</li>
+        <li>Handles <span class="a">decode attention</span> (KV cache in HBM)</li>
+        <li>Large HBM pools, high bandwidth</li>
+        <li>Does <span class="r">not</span> run FFN/MoE during AFD decode</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>LPU Side: Groq 3 LPX Rack</h3>
+      <ul>
+        <li><span class="g">256 LPU accelerators</span> per rack</li>
+        <li>500 MB SRAM per chip, <span class="g">128 GB at rack scale</span></li>
+        <li><span class="g">40 PB/s</span> on-chip bandwidth (~10&times; GPU HBM)</li>
+        <li>Deterministic, compiler-orchestrated execution</li>
+        <li>2.5 TB/s chip-to-chip interconnect per chip</li>
+        <li>Handles <span class="g">FFN/MoE during decode</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Why This Split Works</h3>
+    <p>FFN/MoE is <span class="g">stateless</span> (no KV cache needed) and <span class="a">bandwidth-dominated at low batch</span>. The LPU's SRAM delivers vastly more bandwidth per FLOP than GPU HBM. Expert weights pre-loaded into SRAM and reused across all requests. Meanwhile, attention stays on GPU because its KV cache needs <span class="b">large, flexible HBM</span>.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 14</div>
+</section>
+
+<!-- SLIDE 15: The AFD Decode Loop -->
+<section>
+  <div class="slide-hdr"><span class="tag">MECHANISM</span><h2>The AFD Decode Loop</h2></div>
+  <svg class="diagram" viewBox="0 0 880 200" width="840" style="margin:.4em auto">
+    <rect x="10" y="10" width="250" height="180" rx="8" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="135" y="35" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="bold">GPU (Vera Rubin)</text>
+    <rect x="30" y="50" width="210" height="30" rx="4" fill="none" stroke="#f5a623" stroke-width="1"/>
+    <text x="135" y="70" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">1. Compute Q/K/V, update KV cache</text>
+    <rect x="30" y="90" width="210" height="30" rx="4" fill="none" stroke="#f5a623" stroke-width="1"/>
+    <text x="135" y="110" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">2. Attention scores + output</text>
+    <rect x="30" y="145" width="210" height="30" rx="4" fill="none" stroke="#a78bfa" stroke-width="1"/>
+    <text x="135" y="165" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">5. Residual + Norm &rarr; next layer</text>
+    <line x1="260" y1="100" x2="370" y2="60" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrowB)"/>
+    <text x="315" y="68" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">activation</text>
+    <line x1="370" y1="150" x2="260" y2="155" stroke="#4ecb8d" stroke-width="2" marker-end="url(#arrowC)"/>
+    <text x="315" y="145" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">FFN output</text>
+    <rect x="370" y="10" width="250" height="180" rx="8" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="495" y="35" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12" font-weight="bold">LPX (Groq 3 LPU)</text>
+    <rect x="390" y="50" width="210" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="495" y="70" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">3. Route to MoE experts</text>
+    <rect x="390" y="90" width="210" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="495" y="110" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">4. Compute FFN, combine outputs</text>
+    <rect x="660" y="40" width="200" height="140" rx="8" fill="none" stroke="#8888a8" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="760" y="65" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Activation tensor:</text>
+    <text x="760" y="85" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">7168 &times; batch_size</text>
+    <text x="760" y="105" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(in FP8)</text>
+    <text x="760" y="135" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Small relative to</text>
+    <text x="760" y="152" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">KV cache or weights</text>
+    <defs>
+      <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#60a5fa" stroke-width="1"/></marker>
+      <marker id="arrowC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#4ecb8d" stroke-width="1"/></marker>
+    </defs>
+  </svg>
+  <div class="cols cols-2" style="margin-top:.4em">
+    <div class="card amber">
+      <h3>Per-Layer Ping-Pong</h3>
+      <p>This loop repeats for <span class="a">every layer</span> (61 in DeepSeek-V3), for <span class="a">every token</span> generated. The intermediate activation is small, keeping communication cost manageable.</p>
+    </div>
+    <div class="card blue">
+      <h3>NVIDIA Dynamo Orchestration</h3>
+      <p>Request routing, activation transfer, KV-aware scheduling, and tail latency control. Classifies requests by latency sensitivity for optimal serving path.</p>
+    </div>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 15</div>
+</section>
+
+<!-- SLIDE 16: Speculative Decoding with AFD -->
+<section>
+  <div class="slide-hdr"><span class="tag">SYNERGY</span><h2>Speculative Decoding with AFD</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>LPX as Draft Engine</h3>
+      <ul>
+        <li>Draft model is <span class="g">small enough</span> to fit in LPX SRAM</li>
+        <li>Deterministic, low-latency execution &rarr; <span class="g">fast candidate generation</span></li>
+        <li>Exactly the property you want from a draft engine</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>GPU as Verifier</h3>
+      <ul>
+        <li>Larger memory and <span class="a">higher compute throughput</span></li>
+        <li>Verifies candidates in parallel (prefill-like)</li>
+        <li>Efficient at the compute-heavy verification step</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.8em">
+    <rect x="10" y="15" width="170" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="95" y="38" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">LPX Draft</text>
+    <text x="95" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">K candidates (fast)</text>
+    <line x1="180" y1="42" x2="260" y2="42" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="220" y="35" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">K tokens</text>
+    <rect x="260" y="15" width="220" height="55" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="370" y="38" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">GPU Verify</text>
+    <text x="370" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">parallel (1 pass)</text>
+    <line x1="480" y1="42" x2="560" y2="42" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <rect x="560" y="15" width="180" height="55" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="650" y="38" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">Accept / Reject</text>
+    <text x="650" y="55" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">multi-token commit</text>
+  </svg>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Clean Division</h3>
+    <p>LPX drafts, GPU verifies. Both processors operate in their respective <span class="p">sweet spots</span> &mdash; the LPU's low-latency SRAM for fast sequential generation, the GPU's parallel compute for bulk verification.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 16</div>
+</section>
+
+<!-- SLIDE 17: Why Now? -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRENDS</span><h2>Why Now? Five Converging Forces</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>1. MoE Is Mainstream</h3>
+      <p>DeepSeek-V3/R1, Qwen3, LLaMA 4 Maverick &mdash; all MoE. The attention/FFN asymmetry is now the <span class="a">default</span> profile of frontier models.</p>
+    </div>
+    <div class="card green">
+      <h3>2. Context Lengths Growing</h3>
+      <p>128K+ tokens. KV cache grows proportionally. Attention becomes <span class="r">more memory-bound</span> and the gap with FFN widens.</p>
+    </div>
+    <div class="card purple">
+      <h3>3. Agentic Workloads</h3>
+      <p>Coding assistants chain <span class="p">50+ inference calls</span>. Per-token latency compounds 50&times;. AFD's latency advantage multiplies.</p>
+    </div>
+    <div class="card blue">
+      <h3>4. Prefix Caching</h3>
+      <p>Shared prompts computed once and cached. Prefill gets cheaper &rarr; <span class="b">larger fraction</span> of compute is in decode &rarr; bigger payoff from optimising decode.</p>
+    </div>
+    <div class="card red">
+      <h3>5. The Economics</h3>
+      <p>NVIDIA claims Vera Rubin + LPX delivers up to <span class="a">35&times;</span> higher tokens/s/MW at 400 tok/s per user vs. GB200 NVL72. Specialised hardware = massive efficiency gains.</p>
+    </div>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 17</div>
+</section>
+
+<!-- SLIDE 18: Challenges -->
+<section>
+  <div class="slide-hdr"><span class="tag">CHALLENGES</span><h2>Challenges &amp; Open Questions</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Communication Overhead</h3>
+      <ul>
+        <li>Every layer of every token: <span class="r">GPU &harr; LPU round trip</span></li>
+        <li>Activation tensor is small, but latency adds up across <span class="r">60+ layers</span></li>
+        <li>Network jitter directly impacts token latency</li>
+        <li>High-bandwidth, low-latency interconnects are <span class="r">essential</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Dense Models Are Harder</h3>
+      <ul>
+        <li>AFD works best with <span class="a">MoE models</span></li>
+        <li>MoE already has all-to-all dispatch to piggyback on</li>
+        <li>Dense FFN has no natural scatter/gather</li>
+        <li>Communication overhead is proportionally larger</li>
+        <li>AFD for dense models remains an <span class="r">open challenge</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Load Balancing</h3>
+      <ul>
+        <li>Attention latency <span class="p">varies with context length</span></li>
+        <li>FFN latency is more stable</li>
+        <li>Mismatch &rarr; pipeline bubbles (one side idles)</li>
+        <li>Optimal ratio depends on model, context, batch &mdash; and changes dynamically</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Scaling &amp; Maturity</h3>
+      <ul>
+        <li>Bipartite topology (M attn &harr; N FFN) is <span class="b">more complex</span></li>
+        <li>Scheduling, routing, fault tolerance all harder</li>
+        <li>Production systems emerging: StepFun, ByteDance, NVIDIA LPX</li>
+        <li>vLLM actively implementing AFD support</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 18</div>
+</section>
+
+<!-- SLIDE 19: Key Takeaways -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>The Core Insight</h3>
+      <ul>
+        <li>The transformer is <span class="g">not a monolithic computation</span></li>
+        <li>Attention: stateful, memory-bound, tied to per-request KV cache</li>
+        <li>FFN/MoE: stateless, weight-heavy, benefits from different memory hierarchy</li>
+        <li>MoE amplifies this divergence to the point where disaggregation becomes <span class="g">necessary</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>The Architecture</h3>
+      <ul>
+        <li>GPUs handle attention (large HBM for KV cache)</li>
+        <li>SRAM-first processors handle FFN/MoE (bandwidth for weights)</li>
+        <li>Small activation tensors shuttle between them <span class="a">every layer</span></li>
+        <li>Vera Rubin + LPX: first major commercial AFD system</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>The Bottom Line</h3>
+    <p>The decode loop is a <span class="p">relay race, not a solo sprint</span>. Matching each half of the transformer to the hardware that serves it best is not a quirk of one vendor's strategy &mdash; it is a structural response to the transformer's own internal asymmetry. AFD will shape inference infrastructure for years to come.</p>
+  </div>
+  <div class="slide-footer">attention-ffn-disaggregation / 19</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

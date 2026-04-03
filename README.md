@@ -8,6 +8,9 @@ A collection of technical articles exploring the systems behind modern large lan
 
 | Topic | Format |
 | --- | --- |
+| Agentic Architectures for LLMs | [MD](articles/agentic_architectures.md) |
+| Agent Frameworks | [MD](articles/agent_frameworks.md) |
+| Agent Memory Systems | [MD](articles/agent_memory_systems.md) |
 | Agent Security | [Slides](presentations/agent_security.html) · [MD](articles/agent_security.md) |
 | AMD Instinct MI300X | [Slides](presentations/amd_mi300x_architecture.html) · [MD](articles/amd_mi300x_architecture.md) |
 | Attention Mechanism Innovations | [Slides](presentations/attention_mechanism_innovations.html) · [MD](articles/attention_mechanism_innovations.md) |
@@ -15,6 +18,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | AWS Trainium and Inferentia | [Slides](presentations/aws_trainium_inferentia.html) · [MD](articles/aws_trainium_inferentia.md) |
 | Batching in LLM Inference | [Slides](presentations/batching_report.html) · [MD](articles/batching_report.md) |
 | Cerebras Wafer-Scale Engine | [Slides](presentations/cerebras_architecture.html) · [MD](articles/cerebras_architecture.md) |
+| Code Generation and Software Engineering Agents | [MD](articles/code_generation_agents.md) |
 | Context Window Scaling | [Slides](presentations/context_window_scaling.html) · [MD](articles/context_window_scaling.md) |
 | Distributed Inference on Small GPUs | [Slides](presentations/distributed_llm_inference_report.html) · [MD](articles/distributed_llm_inference_report.md) |
 | Distributed Training | [Slides](presentations/distributed_training.html) · [MD](articles/distributed_training.md) |
@@ -22,6 +26,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Etched Sohu Architecture | [Slides](presentations/etched_sohu_architecture.html) · [MD](articles/etched_sohu_architecture.md) |
 | Evaluation and Benchmarks | [Slides](presentations/evaluation_and_benchmarks.html) · [MD](articles/evaluation_and_benchmarks.md) |
 | FlashAttention | [Slides](presentations/flash_attention.html) · [MD](articles/flash_attention.md) |
+| Function Calling and Tool Use in LLMs | [MD](articles/function_calling_and_tool_use.md) |
 | Google TPU Architecture | [Slides](presentations/google_tpu_architecture.html) · [MD](articles/google_tpu_architecture.md) |
 | GPU Power Variability | [Slides](presentations/gpu_power_variability.html) · [MD](articles/gpu_power_variability.md) |
 | Groq's LPU Architecture | [Slides](presentations/groq_architecture.html) · [MD](articles/groq_architecture.md) |
@@ -33,6 +38,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | LoRA and Parameter-Efficient Fine-Tuning | [Slides](presentations/lora_and_peft.html) · [MD](articles/lora_and_peft.md) |
 | Memory Hierarchy and Offloading | [Slides](presentations/memory_hierarchy_and_offloading.html) · [MD](articles/memory_hierarchy_and_offloading.md) |
 | Mixed-Precision Arithmetic | [Slides](presentations/mixed_precision_arithmetic.html) · [MD](articles/mixed_precision_arithmetic.md) |
+| Multi-Agent LLM Systems | [MD](articles/multi_agent_systems.md) |
 | Mixture of Experts | [Slides](presentations/mixture_of_experts.html) · [MD](articles/mixture_of_experts.md) |
 | MCP Security | [Slides](presentations/mcp_security.html) · [MD](articles/mcp_security.md) |
 | Model Context Protocol (MCP) | [Slides](presentations/model_context_protocol.html) · [MD](articles/model_context_protocol.md) |
@@ -48,6 +54,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Prompt Engineering | [Slides](presentations/prompt_engineering.html) · [MD](articles/prompt_engineering.md) |
 | Prompt Injection | [Slides](presentations/prompt_injection.html) · [MD](articles/prompt_injection.md) |
 | Quantization for Inference | [Slides](presentations/quantization_for_inference.html) · [MD](articles/quantization_for_inference.md) |
+| Reasoning Models and Test-Time Compute | [MD](articles/reasoning_models.md) |
 | Retrieval-Augmented Generation | [Slides](presentations/retrieval_augmented_generation.html) · [MD](articles/retrieval_augmented_generation.md) |
 | Ring Attention and Sequence Parallelism | [Slides](presentations/ring_attention_and_sequence_parallelism.html) · [MD](articles/ring_attention_and_sequence_parallelism.md) |
 | RLHF and Alignment | [Slides](presentations/rlhf_and_alignment.html) · [MD](articles/rlhf_and_alignment.md) |

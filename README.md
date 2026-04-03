@@ -8,6 +8,7 @@ A collection of technical articles exploring the systems behind modern large lan
 
 | Topic | Format |
 | --- | --- |
+| AI API Design Patterns | [MD](articles/ai_api_design.md) |
 | Agentic Architectures for LLMs | [MD](articles/agentic_architectures.md) |
 | Agent Frameworks | [MD](articles/agent_frameworks.md) |
 | Agent Memory Systems | [MD](articles/agent_memory_systems.md) |
@@ -17,10 +18,13 @@ A collection of technical articles exploring the systems behind modern large lan
 | Attention–FFN Disaggregation | [Slides](presentations/attention_ffn_disaggregation.html) · [MD](articles/attention_ffn_disaggregation.md) |
 | AWS Trainium and Inferentia | [Slides](presentations/aws_trainium_inferentia.html) · [MD](articles/aws_trainium_inferentia.md) |
 | Batching in LLM Inference | [Slides](presentations/batching_report.html) · [MD](articles/batching_report.md) |
+| Capacity Planning for LLM Infrastructure | [MD](articles/capacity_planning.md) |
+| Carbon Footprint and Sustainability in AI | [MD](articles/carbon_footprint_and_sustainability.md) |
 | Cerebras Wafer-Scale Engine | [Slides](presentations/cerebras_architecture.html) · [MD](articles/cerebras_architecture.md) |
 | Code Generation and Software Engineering Agents | [MD](articles/code_generation_agents.md) |
 | Context Window Scaling | [Slides](presentations/context_window_scaling.html) · [MD](articles/context_window_scaling.md) |
 | Distributed Inference on Small GPUs | [Slides](presentations/distributed_llm_inference_report.html) · [MD](articles/distributed_llm_inference_report.md) |
+| Edge and Mobile LLM Deployment | [MD](articles/edge_and_mobile_deployment.md) |
 | Distributed Training | [Slides](presentations/distributed_training.html) · [MD](articles/distributed_training.md) |
 | Embedding Models and Vector Search | [Slides](presentations/embedding_models_and_vector_search.html) · [MD](articles/embedding_models_and_vector_search.md) |
 | Etched Sohu Architecture | [Slides](presentations/etched_sohu_architecture.html) · [MD](articles/etched_sohu_architecture.md) |
@@ -33,6 +37,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Inference Serving Frameworks | [Slides](presentations/inference_serving_frameworks.html) · [MD](articles/inference_serving_frameworks.md) |
 | Intel Gaudi Architecture | [Slides](presentations/intel_gaudi_architecture.html) · [MD](articles/intel_gaudi_architecture.md) |
 | KV Cache Optimization | [Slides](presentations/kv_cache_optimization.html) · [MD](articles/kv_cache_optimization.md) |
+| LLM Economics | [MD](articles/llm_economics.md) |
 | LLM Security | [Slides](presentations/llm_security.html) · [MD](articles/llm_security.md) |
 | LLM Training Stages | [Slides](presentations/llm_training_stages.html) · [MD](articles/llm_training_stages.md) |
 | LoRA and Parameter-Efficient Fine-Tuning | [Slides](presentations/lora_and_peft.html) · [MD](articles/lora_and_peft.md) |
@@ -42,6 +47,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Mixture of Experts | [Slides](presentations/mixture_of_experts.html) · [MD](articles/mixture_of_experts.md) |
 | MCP Security | [Slides](presentations/mcp_security.html) · [MD](articles/mcp_security.md) |
 | Model Context Protocol (MCP) | [Slides](presentations/model_context_protocol.html) · [MD](articles/model_context_protocol.md) |
+| Model Routing and Cascading | [MD](articles/model_routing_and_cascading.md) |
 | Multi-Model Multi-Agent Hardware | [Slides](presentations/multi_model_multi_agent_hardware.html) · [MD](articles/multi_model_multi_agent_hardware.md) |
 | NVIDIA DGX Spark | [Slides](presentations/nvidia_dgx_spark.html) · [MD](articles/nvidia_dgx_spark.md) |
 | Non-Deterministic Output in Ollama | [Slides](presentations/ollama_nondeterminism.html) · [MD](articles/ollama_nondeterminism.md) |
@@ -58,6 +64,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Retrieval-Augmented Generation | [Slides](presentations/retrieval_augmented_generation.html) · [MD](articles/retrieval_augmented_generation.md) |
 | Ring Attention and Sequence Parallelism | [Slides](presentations/ring_attention_and_sequence_parallelism.html) · [MD](articles/ring_attention_and_sequence_parallelism.md) |
 | RLHF and Alignment | [Slides](presentations/rlhf_and_alignment.html) · [MD](articles/rlhf_and_alignment.md) |
+| Scaling Laws for Large Language Models | [MD](articles/scaling_laws.md) |
 | SambaNova's SN40L Architecture | [Slides](presentations/sambanova_architecture.html) · [MD](articles/sambanova_architecture.md) |
 | Speculative Decoding | [Slides](presentations/speculative_decoding.html) · [MD](articles/speculative_decoding.md) |
 | Structured Output and Constrained Decoding | [Slides](presentations/structured_output_and_constrained_decoding.html) · [MD](articles/structured_output_and_constrained_decoding.md) |

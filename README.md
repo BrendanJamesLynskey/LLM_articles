@@ -36,6 +36,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Groq's LPU Architecture | [Slides](presentations/groq_architecture.html) · [MD](articles/groq_architecture.md) |
 | Inference Serving Frameworks | [Slides](presentations/inference_serving_frameworks.html) · [MD](articles/inference_serving_frameworks.md) |
 | Intel Gaudi Architecture | [Slides](presentations/intel_gaudi_architecture.html) · [MD](articles/intel_gaudi_architecture.md) |
+| Knowledge Distillation for LLMs | [MD](articles/knowledge_distillation.md) |
 | KV Cache Optimization | [Slides](presentations/kv_cache_optimization.html) · [MD](articles/kv_cache_optimization.md) |
 | LLM Economics | [MD](articles/llm_economics.md) |
 | LLM Security | [Slides](presentations/llm_security.html) · [MD](articles/llm_security.md) |
@@ -58,6 +59,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Post-Transformer Language Models | [Slides](presentations/post_transformer_models.html) · [MD](articles/post_transformer_models.md) |
 | Power and Thermal Management | [Slides](presentations/power_and_thermal_management.html) · [MD](articles/power_and_thermal_management.md) |
 | Prompt Engineering | [Slides](presentations/prompt_engineering.html) · [MD](articles/prompt_engineering.md) |
+| Pre-training Data Pipelines | [MD](articles/pretraining_data_pipelines.md) |
 | Prompt Injection | [Slides](presentations/prompt_injection.html) · [MD](articles/prompt_injection.md) |
 | Quantization for Inference | [Slides](presentations/quantization_for_inference.html) · [MD](articles/quantization_for_inference.md) |
 | Reasoning Models and Test-Time Compute | [MD](articles/reasoning_models.md) |
@@ -66,10 +68,15 @@ A collection of technical articles exploring the systems behind modern large lan
 | RLHF and Alignment | [Slides](presentations/rlhf_and_alignment.html) · [MD](articles/rlhf_and_alignment.md) |
 | Scaling Laws for Large Language Models | [MD](articles/scaling_laws.md) |
 | SambaNova's SN40L Architecture | [Slides](presentations/sambanova_architecture.html) · [MD](articles/sambanova_architecture.md) |
+| Speech and Audio Models | [MD](articles/speech_and_audio_models.md) |
 | Speculative Decoding | [Slides](presentations/speculative_decoding.html) · [MD](articles/speculative_decoding.md) |
 | Structured Output and Constrained Decoding | [Slides](presentations/structured_output_and_constrained_decoding.html) · [MD](articles/structured_output_and_constrained_decoding.md) |
+| Synthetic Data Generation for LLM Training | [MD](articles/synthetic_data_generation.md) |
 | Tenstorrent Architecture | [Slides](presentations/tenstorrent_architecture.html) · [MD](articles/tenstorrent_architecture.md) |
+| Text-to-Image Diffusion Models | [MD](articles/text_to_image_diffusion.md) |
 | Tokenization | [Slides](presentations/tokenization.html) · [MD](articles/tokenization.md) |
+| Video Understanding with LLMs | [MD](articles/video_understanding.md) |
+| Vision-Language Models | [MD](articles/vision_language_models.md) |
 
 ## License
 

@@ -17,6 +17,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Attention–FFN Disaggregation: Why the Future of LLM Inference Splits the Transformer in Two | [Slides](presentations/attention_ffn_disaggregation.html) · [MD](articles/attention_ffn_disaggregation.md) |
 | AWS Trainium and Inferentia: Amazon's Custom AI Accelerators | [Slides](presentations/aws_trainium_inferentia.html) · [MD](articles/aws_trainium_inferentia.md) |
 | Batching Report | [Slides](presentations/batching_report.html) · [MD](articles/batching_report.md) |
+| Browser and Computer Use Agents | [MD](articles/browser_and_computer_agents.md) |
 | Capacity Planning for LLM Infrastructure | [Slides](presentations/capacity_planning.html) · [MD](articles/capacity_planning.md) |
 | Carbon Footprint and Sustainability in AI | [Slides](presentations/carbon_footprint_and_sustainability.html) · [MD](articles/carbon_footprint_and_sustainability.md) |
 | Cerebras Wafer-Scale Engine: The Largest Chip for AI Inference | [Slides](presentations/cerebras_architecture.html) · [MD](articles/cerebras_architecture.md) |
@@ -27,6 +28,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Edge and Mobile LLM Deployment | [Slides](presentations/edge_and_mobile_deployment.html) · [MD](articles/edge_and_mobile_deployment.md) |
 | Embedding Models and Vector Search | [Slides](presentations/embedding_models_and_vector_search.html) · [MD](articles/embedding_models_and_vector_search.md) |
 | Etched Sohu: A Transformer-Specific ASIC | [Slides](presentations/etched_sohu_architecture.html) · [MD](articles/etched_sohu_architecture.md) |
+| Evaluating LLM Agents | [MD](articles/agent_evaluation.md) |
 | Evaluation And Benchmarks | [Slides](presentations/evaluation_and_benchmarks.html) · [MD](articles/evaluation_and_benchmarks.md) |
 | Flash Attention | [Slides](presentations/flash_attention.html) · [MD](articles/flash_attention.md) |
 | Function Calling and Tool Use in LLMs | [Slides](presentations/function_calling_and_tool_use.html) · [MD](articles/function_calling_and_tool_use.md) |
@@ -76,6 +78,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | The Open-Weights LLM Landscape | [Slides](presentations/open_weights_llm_landscape.html) · [MD](articles/open_weights_llm_landscape.md) |
 | Tokenization | [Slides](presentations/tokenization.html) · [MD](articles/tokenization.md) |
 | Video Understanding with Large Language Models | [Slides](presentations/video_understanding.html) · [MD](articles/video_understanding.md) |
+| Voice Agents and Real-Time Conversational AI | [MD](articles/voice_agents.md) |
 | Vision-Language Models: Unifying Visual and Textual Understanding in Large Models | [Slides](presentations/vision_language_models.html) · [MD](articles/vision_language_models.md) |
 
 ## License

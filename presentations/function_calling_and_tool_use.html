@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Function Calling and Tool Use in LLMs | Technical Report</title>
+<title>Function Calling and Tool Use | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -24,6 +24,7 @@
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
@@ -51,236 +52,168 @@
 
 <section class="title-slide">
   <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
-  <h1>Function Calling and Tool Use in LLMs</h1>
-  <p class="subtitle">Language models, by default, can only generate text. They cannot check the weath</p>
-  <div>
-    <span class="pill amber">tools</span>
-    <span class="pill green">JSON schema</span>
-    <span class="pill purple">MCP</span>
-    <span class="pill blue">streaming</span>
-  </div>
+  <h1>Function Calling &amp; Tool Use</h1>
+  <p class="subtitle">How LLMs Invoke External Functions and Interact with the World</p>
+  <div><span class="pill amber">tool use</span> <span class="pill green">JSON schema</span> <span class="pill purple">MCP</span> <span class="pill blue">streaming</span></div>
   <p class="meta" style="margin-top:1.5em">April 2026</p>
   <div class="slide-footer">function-calling / 01</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
-  <div class="cols cols-2">
-    <div class="card amber">
-      <h3>Introduction</h3>
-      <ul>
-        <li>Language models, by default, can only generate text</li>
-        <li>Function calling is not a minor feature</li>
-        <li>This report provides a comprehensive technical examination of function calling and tool use in LLMs</li>
-      </ul>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why Function Calling Matters</h2></div>
+  <p>Without tool use, an LLM is a reasoning engine with <span class="r">no effectors</span>. Function calling is the primitive that makes agents possible.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card amber"><h3>The Four-Step Protocol</h3>
+      <ul><li><span class="a">1. Define</span> &mdash; host provides tool schemas (name, description, JSON Schema params)</li><li><span class="a">2. Call</span> &mdash; model generates a structured tool call instead of text</li><li><span class="a">3. Execute</span> &mdash; host validates, runs the function, gets a result</li><li><span class="a">4. Incorporate</span> &mdash; result sent back to model, which continues generating</li></ul>
     </div>
-    <div class="card green">
-      <h3>How Function Calling Works</h3>
-      <ul>
-        <li>The Basic Mechanism</li>
-        <li>Tool Definitions</li>
-        <li>The Model's Decision Process</li>
-        <li>Message Flow</li>
-      </ul>
+    <div class="card green"><h3>The Model's Decisions</h3>
+      <ul><li><span class="g">Whether</span> to use a tool (or answer from knowledge)</li><li><span class="g">Which</span> tool to use (matching intent to descriptions)</li><li><span class="g">What arguments</span> to provide (extracting from context)</li><li><span class="g">Sequential or parallel</span> (independent calls run concurrently)</li></ul>
     </div>
   </div>
   <div class="slide-footer">function-calling / 02</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Parallel Tool Calls</h2></div>
+  <div class="slide-hdr"><span class="tag">MECHANICS</span><h2>Tool Definitions and Message Flow</h2></div>
   <div class="cols cols-2">
-    <div class="card purple">
-      <h3>Parallel Tool Calls</h3>
-      <ul>
-        <li>Google**: Supported in Gemini models through multiple `FunctionCall` parts in a single response.</li>
-        <li>Motivation</li>
-        <li>How Parallel Calls Work</li>
-        <li>Provider Support</li>
-        <li>Limitations</li>
-      </ul>
+    <div class="card purple"><h3>Tool Definition (JSON Schema)</h3>
+      <pre><code>{"name": "get_weather",
+ "description": "Get current weather",
+ "parameters": {
+   "type": "object",
+   "properties": {
+     "location": {"type": "string",
+       "description": "City, country"},
+     "unit": {"type": "string",
+       "enum": ["celsius","fahrenheit"]}
+   },
+   "required": ["location"]}}</code></pre>
     </div>
-    <div class="card blue">
-      <h3>Streaming Tool Use</h3>
-      <ul>
-        <li>The Streaming Challenge</li>
-        <li>Implementation Approaches</li>
-        <li>Server-Sent Events (SSE) Protocol</li>
-      </ul>
+    <div class="card blue"><h3>Message Flow</h3>
+      <pre><code>User: "Weather in Tokyo?"
+Model → tool_call: get_weather(
+  location="Tokyo, Japan")
+Host executes → {"temp": 22,
+  "condition": "partly cloudy"}
+Model → "It's 22°C and partly
+  cloudy in Tokyo."</code></pre>
+      <p style="margin-top:.4em">The cycle repeats: model can call another tool based on results before producing a final response.</p>
     </div>
   </div>
   <div class="slide-footer">function-calling / 03</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Tool Choice Modes</h2></div>
+  <div class="slide-hdr"><span class="tag">FEATURE</span><h2>Parallel Tool Calls and Streaming</h2></div>
   <div class="cols cols-2">
-    <div class="card red">
-      <h3>Tool Choice Modes</h3>
-      <ul>
-        <li>Auto Mode</li>
-        <li>Required Mode</li>
-        <li>None Mode</li>
-        <li>Provider-Specific Variations</li>
-      </ul>
+    <div class="card amber"><h3>Parallel Calls</h3>
+      <ul><li>Model generates <span class="a">multiple tool calls</span> in one response</li><li>Host executes concurrently &mdash; latency = max(calls) not sum</li><li>Each call has unique ID for result matching</li><li>Only works for <span class="g">independent</span> calls; dependent calls must be sequential</li><li>Host must handle partial failures</li></ul>
     </div>
-    <div class="card amber">
-      <h3>Provider Implementations</h3>
-      <ul>
-        <li>JSON schema for all tool definitions</li>
-        <li>Parallel tool calls supported</li>
-        <li>Streaming tool use via SSE</li>
-        <li>Strict mode for guaranteed schema conformance</li>
-        <li>Built-in tools for common operations</li>
-      </ul>
+    <div class="card green"><h3>Streaming Tool Use</h3>
+      <ul><li><span class="g">Stop-and-resume</span>: stream text, pause for tool exec, resume</li><li><span class="g">Interleaved SSE</span>: text chunks, tool_call deltas, tool results intermixed</li><li><span class="g">Buffered JSON</span>: partial tool call JSON accumulated until valid</li><li>Event types: <code>content_block_start</code>, <code>input_json_delta</code>, <code>content_block_stop</code></li></ul>
     </div>
   </div>
   <div class="slide-footer">function-calling / 04</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Training for Tool Use</h2></div>
-  <div class="cols cols-2">
-    <div class="card green">
-      <h3>Training for Tool Use</h3>
-      <ul>
-        <li>Demonstrating that LLMs could be specifically trained for API use</li>
-        <li>Showing that retrieval-augmented generation improved tool use accuracy by providing up-to-date API documentation</li>
-        <li>Creating the APIBench benchmark for evaluating tool use</li>
-        <li>Highlighting the problem of "hallucinated APIs"—models generating calls to functions that do not exist</li>
-        <li>A dataset of 16,000+ real-world APIs covering diverse domains</li>
-      </ul>
-    </div>
-    <div class="card purple">
-      <h3>The Model Context Protocol (MCP) and Tool Use</h3>
-      <ul>
-        <li>A human-readable description</li>
-        <li>An input schema (JSON Schema)</li>
-        <li>Tools that become available only after authentication</li>
-        <li>Tools that are created on the fly based on the user's data (e.g., a tool for each database table the user has access to)</li>
-        <li>Tools that are temporarily unavailable due to maintenance or rate limits</li>
-      </ul>
-    </div>
+  <div class="slide-hdr"><span class="tag">MODES</span><h2>Tool Choice Modes</h2></div>
+  <table>
+    <thead><tr><th>Mode</th><th>Behaviour</th><th>Use Case</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Auto</span></td><td>Model decides whether to call a tool</td><td>General conversation</td></tr>
+      <tr><td><span class="g">Required (any)</span></td><td>Must call at least one tool</td><td>Force retrieval over hallucination</td></tr>
+      <tr><td><span class="p">Required (specific)</span></td><td>Must call a named tool</td><td>Structured extraction pipelines</td></tr>
+      <tr><td><span class="r">None</span></td><td>Cannot call tools</td><td>Planning without execution</td></tr>
+    </tbody>
+  </table>
+  <div class="card amber" style="margin-top:.8em"><h3>Provider Syntax Comparison</h3>
+    <table>
+      <thead><tr><th></th><th>OpenAI</th><th>Anthropic</th><th>Google</th></tr></thead>
+      <tbody>
+        <tr><td>Auto</td><td><code>"auto"</code></td><td><code>{"type":"auto"}</code></td><td><code>"AUTO"</code></td></tr>
+        <tr><td>Required</td><td><code>"required"</code></td><td><code>{"type":"any"}</code></td><td><code>"ANY"</code></td></tr>
+        <tr><td>Specific</td><td><code>{"function":{"name":"..."}}</code></td><td><code>{"type":"tool","name":"..."}</code></td><td>&mdash;</td></tr>
+      </tbody>
+    </table>
   </div>
   <div class="slide-footer">function-calling / 05</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Multi-Step Tool Chains</h2></div>
+  <div class="slide-hdr"><span class="tag">PROVIDERS</span><h2>Provider Implementations</h2></div>
   <div class="cols cols-2">
-    <div class="card blue">
-      <h3>Multi-Step Tool Chains</h3>
-      <ul>
-        <li>API errors.** The external service returns an error (rate limit, authentication failure, server error).</li>
-        <li>Empty results.** The tool executes successfully but returns no useful information.</li>
-        <li>Incorrect arguments.** The model provides arguments that are valid JSON but semantically incorrect (wrong date format, non-existent entity).</li>
-        <li>Unexpected result format.** The tool returns data in a format the model does not expect.</li>
-        <li>Retry with different arguments (e.g., a broader search query)</li>
-      </ul>
-    </div>
-    <div class="card red">
-      <h3>Accuracy and Reliability</h3>
-      <ul>
-        <li>Tool selection accuracy.** What fraction of tool calls use the correct tool?</li>
-        <li>Argument accuracy.** What fraction of tool calls provide correct arguments?</li>
-        <li>Format validity.** What fraction of tool calls produce valid JSON that conforms to the schema?</li>
-        <li>End-to-end task success.** What fraction of user queries are answered correctly when tools are available?</li>
-        <li>Unnecessary tool use rate.** How often does the model call a tool when it is not needed?</li>
-      </ul>
-    </div>
+    <div class="card amber"><h3>OpenAI</h3><ul><li><span class="a">Strict mode</span>: constrained decoding guarantees JSON schema conformance</li><li>Built-in tools: web search, code interpreter, file search</li><li>Responses API (2025): server-side tool execution</li><li>Parallel calls + streaming via SSE</li></ul></div>
+    <div class="card purple"><h3>Anthropic (Claude)</h3><ul><li>Content blocks: text + tool_use intermixed</li><li><span class="p">Extended thinking</span>: visible reasoning about tool choice</li><li>Prompt caching for tool definitions</li><li>Computer use as specialised tool type</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card green"><h3>Google (Gemini)</h3><ul><li>Grounding with Google Search (built-in)</li><li>Built-in code execution sandbox</li><li>Multi-modal tool use (images, video)</li></ul></div>
+    <div class="card blue"><h3>Open-Weight Models</h3><ul><li>Llama 3.1+, Mistral, Qwen2.5: special token formats</li><li>Less reliable format adherence</li><li>Community fine-tunes improve quality</li></ul></div>
   </div>
   <div class="slide-footer">function-calling / 06</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Error Handling Patterns</h2></div>
+  <div class="slide-hdr"><span class="tag">TRAINING</span><h2>Training Models for Tool Use</h2></div>
   <div class="cols cols-2">
-    <div class="card amber">
-      <h3>Error Handling Patterns</h3>
-      <ul>
-        <li>Clearly state what went wrong</li>
-        <li>Suggest what the model should do differently</li>
-        <li>Include relevant details (expected format, valid values)</li>
-        <li>Are concise enough to not waste context window space</li>
-        <li>Informing the user that a specific piece of information could not be retrieved</li>
-      </ul>
-    </div>
-    <div class="card green">
-      <h3>Schema Design Best Practices</h3>
-      <ul>
-        <li>Tool names**: Use verb-noun format (`get_weather`, `search_documents`, `create_ticket`). Avoid generic names (`process`, `handle`, `do_thing`).</li>
-        <li>Parameter names**: Use snake_case and be specific (`start_date` not `date`, `max_results` not `n`, `search_query` not `q`).</li>
-        <li>Consistency**: If one tool uses `user_id`, all tools should use `user_id` (not `userId` in some and `user_id` in others).</li>
-        <li>What the tool does**: "Searches the company knowledge base for documents matching the given query."</li>
-        <li>When to use it**: "Use this when the user asks about company policies, procedures, or internal documentation."</li>
-      </ul>
-    </div>
+    <div class="card green"><h3>Supervised Fine-Tuning</h3><ul><li>Manual annotation (high quality, expensive)</li><li>Model-generated data + execution-based filtering</li><li><span class="a">Gorilla</span>: fine-tuned on API docs, retrieval-augmented</li><li><span class="a">ToolBench</span>: 16K+ real APIs, multi-step trajectories</li></ul></div>
+    <div class="card purple"><h3>RL and Constrained Decoding</h3><ul><li>Outcome-based RL: reward correct final answers</li><li>Process-based RL: reward each tool call individually</li><li><span class="p">Constrained decoding</span>: mask invalid tokens at each step</li><li>Guarantees valid JSON &mdash; eliminates formatting errors entirely</li></ul></div>
   </div>
   <div class="slide-footer">function-calling / 07</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Security Considerations</h2></div>
-  <div class="cols cols-2">
-    <div class="card purple">
-      <h3>Security Considerations</h3>
-      <ul>
-        <li>Treating tool results as untrusted data and marking them accordingly in the prompt</li>
-        <li>Filtering or sanitizing tool results before presenting them to the model</li>
-        <li>Using instruction hierarchy training to make the model resistant to instructions in tool results</li>
-        <li>Limiting the model's ability to take sensitive actions based on tool results without human confirmation</li>
-        <li>Scoping tool access per conversation or per task</li>
-      </ul>
-    </div>
-    <div class="card blue">
-      <h3>Advanced Patterns</h3>
-      <ul>
-        <li>Tool-Augmented Generation</li>
-        <li>Recursive Tool Use</li>
-        <li>Tool Creation</li>
-        <li>Multi-Model Tool Chains</li>
-      </ul>
-    </div>
+  <div class="slide-hdr"><span class="tag">MCP</span><h2>MCP and Tool Integration</h2></div>
+  <div class="cols cols-6040">
+    <div class="card amber"><h3>The N&times;M Problem</h3><ul><li>Before MCP: N apps &times; M tools = N&times;M custom integrations</li><li>MCP: <span class="a">universal protocol</span> &mdash; build tool server once, use everywhere</li><li>JSON-RPC 2.0 over stdio or Streamable HTTP</li><li>Dynamic discovery via <code>tools/list</code></li></ul></div>
+    <div class="card green"><h3>MCP vs Native Function Calling</h3><ul><li>MCP sits <span class="g">above</span> native function calling</li><li>Native FC: how model requests invocations</li><li>MCP: how host discovers and executes tools</li><li>MCP tools presented via native FC interface</li></ul></div>
   </div>
   <div class="slide-footer">function-calling / 08</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>Cost and Performance Optimization</h2></div>
+  <div class="slide-hdr"><span class="tag">PATTERNS</span><h2>Multi-Step Chains and Error Handling</h2></div>
   <div class="cols cols-2">
-    <div class="card red">
-      <h3>Cost and Performance Optimization</h3>
-      <ul>
-        <li>Token Economics</li>
-        <li>Latency Optimization</li>
-        <li>Tool use is expensive</li>
-        <li>Optimization strategies include:</li>
-        <li>Minimize tool definition size</li>
-      </ul>
+    <div class="card amber"><h3>Multi-Step Chains</h3>
+      <pre><code>search_issues() → Issue #42
+get_issue_details(42) → description
+read_file("src/auth.py") → code
+edit_file("src/auth.py") → fix
+run_tests() → all pass
+create_pr("Fix #42") → PR #87</code></pre>
+      <p>Each step depends on previous results.</p>
     </div>
-    <div class="card amber">
-      <h3>The Evolving Landscape</h3>
-      <ul>
-        <li>Convergence Across Providers</li>
-        <li>Increasingly Capable Models</li>
-        <li>Tool Use as a Standard Capability</li>
-      </ul>
-    </div>
+    <div class="card red"><h3>Common Failures &amp; Mitigations</h3><ul><li><span class="r">Premature stop</span> → explicit "continue until done" instructions</li><li><span class="r">Infinite loops</span> → max iterations / dedup detection</li><li><span class="r">Hallucinated tools</span> → constrained decoding on tool names</li><li><span class="r">Argument drift</span> → structured result formats</li><li><span class="g">Always</span>: send errors back as tool results for self-correction</li></ul></div>
   </div>
   <div class="slide-footer">function-calling / 09</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
-  <div class="card green">
-      <h3>Conclusion</h3>
-      <ul>
-        <li>Function calling and tool use transform language models from knowledgeable text generators into capable agents that can interact with the world</li>
-        <li>The ecosystem has matured significantly since function calling was first introduced</li>
-        <li>For practitioners, the most impactful investment is in tool definition quality</li>
-      </ul>
-    </div>
+  <div class="slide-hdr"><span class="tag">DESIGN</span><h2>Schema Design Best Practices</h2></div>
+  <div class="cols cols-2">
+    <div class="card green"><h3>Do</h3><ul><li>Descriptions: explain <span class="g">when</span> to use, not just what</li><li>Parameter descriptions with format examples</li><li>Minimal schemas &mdash; fewer params = fewer errors</li><li>Enums over free text where possible</li><li>Separate read from write tools</li></ul></div>
+    <div class="card red"><h3>Don't</h3><ul><li>Vague descriptions ("does stuff with data")</li><li>Overlapping tools with similar purposes</li><li>50+ tools without dynamic loading</li><li>Complex deeply-nested schemas</li><li>Giant tool results (100K+ tokens)</li></ul></div>
+  </div>
   <div class="slide-footer">function-calling / 10</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>Security Considerations</h2></div>
+  <div class="cols cols-3">
+    <div class="card red"><h3>Injection via Args</h3><ul><li>SQL injection through natural language</li><li>Command injection via shell tools</li><li>Path traversal in file ops</li><li>Validate and sanitise all arguments</li></ul></div>
+    <div class="card purple"><h3>Confused Deputy</h3><ul><li>Indirect prompt injection hijacks tool use</li><li>Model uses authorised access for unauthorised purposes</li><li>Human-in-the-loop for sensitive actions</li></ul></div>
+    <div class="card amber"><h3>Data Exfiltration</h3><ul><li>Sensitive data encoded in tool args or URLs</li><li>Markdown image rendering trick</li><li>Output scanning and URL allowlists</li></ul></div>
+  </div>
+  <div class="slide-footer">function-calling / 11</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Core Concepts</h3><ul><li>Function calling is <span class="a">the primitive that makes agents possible</span></li><li>Four-step loop: define → call → execute → incorporate</li><li>Parallel calls reduce latency; streaming maintains responsiveness</li><li>Constrained decoding eliminates JSON formatting errors</li><li>MCP standardises tool discovery across providers</li></ul></div>
+    <div class="card green"><h3>Practical Advice</h3><ul><li>Start with few, well-defined tools; add incrementally</li><li>Write descriptions explaining <span class="g">when</span> to use each tool</li><li>Validate all arguments; sanitise for injection</li><li>Send errors back as tool results for self-correction</li><li>Monitor tool call accuracy and iterate on schemas</li></ul></div>
+  </div>
+  <div class="slide-footer">function-calling / 12</div>
 </section>
 
 </div></div>

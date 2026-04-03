@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Memory Systems for LLM Agents | Technical Report</title>
+<title>Agent Memory Systems | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -51,217 +51,178 @@
 
 <section class="title-slide">
   <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
-  <h1>Memory Systems for LLM Agents</h1>
-  <p class="subtitle">A language model without memory is an amnesiac savant. It can reason brilliantly</p>
-  <div>
-    <span class="pill amber">memory</span>
-    <span class="pill green">RAG</span>
-    <span class="pill purple">context</span>
-    <span class="pill blue">retrieval</span>
-  </div>
+  <h1>Agent Memory Systems</h1>
+  <p class="subtitle">Giving LLM Agents Persistent, Useful Memory Beyond the Context Window</p>
+  <div><span class="pill amber">memory</span> <span class="pill green">RAG</span> <span class="pill purple">vector stores</span> <span class="pill blue">context management</span></div>
   <p class="meta" style="margin-top:1.5em">April 2026</p>
   <div class="slide-footer">agent-memory / 01</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>Why Agents Need Memory</h2></div>
   <div class="cols cols-2">
-    <div class="card amber">
-      <h3>Introduction</h3>
-      <ul>
-        <li>A language model without memory is an amnesiac savant</li>
-        <li>This limitation is not merely inconvenient</li>
-        <li>Memory systems for LLM agents address this gap by providing mechanisms to store, retrieve, and manage information across the agent's context window boundary</li>
-        <li>This report provides a comprehensive technical examination of memory systems for LLM agents</li>
-      </ul>
+    <div class="card red"><h3>The Amnesiac Savant</h3>
+      <ul><li>Without memory, every interaction starts from <span class="r">zero</span></li><li>Context window consumed by system prompt, tools, conversation, retrieved docs</li><li>128K context fills fast with 20 tool definitions + conversation history</li><li>"Lost in the middle" &mdash; models attend poorly to mid-context information</li></ul>
     </div>
-    <div class="card green">
-      <h3>Why Agents Need Memory Beyond Context</h3>
-      <ul>
-        <li>The Context Window Constraint</li>
-        <li>The Multi-Session Problem</li>
-        <li>The Learning Problem</li>
-        <li>The Personalization Problem</li>
-      </ul>
+    <div class="card green"><h3>What Memory Enables</h3>
+      <ul><li><span class="g">Continuity</span>: remember previous sessions and pick up where you left off</li><li><span class="g">Learning</span>: remember mistakes and avoid repeating them</li><li><span class="g">Personalisation</span>: learn user preferences, style, and domain terminology</li><li><span class="g">Knowledge accumulation</span>: build understanding over time</li></ul>
     </div>
   </div>
   <div class="slide-footer">agent-memory / 02</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Taxonomy of Memory Types</h2></div>
-  <div class="cols cols-2">
-    <div class="card purple">
-      <h3>Taxonomy of Memory Types</h3>
-      <ul>
-        <li>Working memory**: The information currently in the model's context window. Actively used for the current task.</li>
-        <li>Short-term memory**: Recent conversation history and intermediate results. Persists for the duration of a session but is pruned or summarized to manage context size.</li>
-        <li>Long-term memory**: Information that persists across sessions. Stored in an external database and retrieved when relevant.</li>
-        <li>Episodic memory**: Memories of specific events and experiences. "Last Tuesday, the user asked me to refactor the authentication module, and I encountered a bug in the session management code."</li>
-        <li>Semantic memory**: General knowledge and facts. "The user's project uses Python 3.11, FastAPI, and PostgreSQL."</li>
-      </ul>
-    </div>
-    <div class="card blue">
-      <h3>Conversation Buffer and Sliding Window</h3>
-      <ul>
-        <li>Full Conversation Buffer</li>
-        <li>Sliding Window</li>
-        <li>Token-Based Window</li>
-      </ul>
-    </div>
+  <div class="slide-hdr"><span class="tag">TAXONOMY</span><h2>Memory Types</h2></div>
+  <table>
+    <thead><tr><th>Type</th><th>Scope</th><th>Persistence</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Working memory</span></td><td>Current context window</td><td>Current turn</td><td>System prompt + active conversation</td></tr>
+      <tr><td><span class="g">Short-term</span></td><td>Current session</td><td>Session duration</td><td>Conversation history, intermediate results</td></tr>
+      <tr><td><span class="p">Long-term</span></td><td>Cross-session</td><td>Durable (DB/files)</td><td>User preferences, learned facts</td></tr>
+      <tr><td><span class="b">Episodic</span></td><td>Specific events</td><td>Durable</td><td>"Last Tuesday we refactored auth module"</td></tr>
+      <tr><td>Semantic</td><td>General knowledge</td><td>Durable</td><td>"User's project uses Python 3.11 + FastAPI"</td></tr>
+      <tr><td>Procedural</td><td>How-to knowledge</td><td>Durable</td><td>"For code reviews, check security + performance"</td></tr>
+    </tbody>
+  </table>
+  <div class="card amber" style="margin-top:.6em"><h3>Key Insight</h3>
+    <p>Only <span class="a">working memory</span> is directly accessible to the model. Everything else must be <span class="g">loaded into working memory</span> (the context window) before the model can use it. Memory management is fundamentally about deciding <span class="p">what to load, when</span>.</p>
   </div>
   <div class="slide-footer">agent-memory / 03</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Summary Memory</h2></div>
+  <div class="slide-hdr"><span class="tag">SHORT-TERM</span><h2>Conversation Buffer and Sliding Window</h2></div>
   <div class="cols cols-2">
-    <div class="card red">
-      <h3>Summary Memory</h3>
-      <ul>
-        <li>Concept</li>
-        <li>Implementation</li>
-        <li>Summary Quality Challenges</li>
-        <li>Hybrid: Summary + Window</li>
-      </ul>
+    <div class="card amber"><h3>Conversation Buffer</h3>
+      <ul><li>Store all messages from the current session</li><li>Include full history in each prompt</li><li>Simple and reliable &mdash; no information loss</li><li><span class="r">Problem</span>: hits context window limit as conversation grows</li><li>Works well for <span class="g">short conversations</span> (&lt;20 turns)</li></ul>
     </div>
-    <div class="card amber">
-      <h3>RAG-Backed Long-Term Memory</h3>
-      <ul>
-        <li>Concept</li>
-        <li>Architecture</li>
-        <li>What to Store</li>
-        <li>Retrieval Strategies</li>
-      </ul>
+    <div class="card purple"><h3>Sliding Window</h3>
+      <ul><li>Keep only the last <span class="p">N messages</span> (or N tokens)</li><li>Older messages are dropped</li><li>Fixed context usage &mdash; never exceeds budget</li><li><span class="r">Problem</span>: loses information from early conversation</li><li>Model may contradict earlier statements</li><li>Works for <span class="g">casual chat</span>; bad for complex tasks</li></ul>
     </div>
   </div>
   <div class="slide-footer">agent-memory / 04</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Vector Store Memory</h2></div>
-  <div class="cols cols-2">
-    <div class="card green">
-      <h3>Vector Store Memory</h3>
-      <ul>
-        <li>Pinecone**: Managed service, good scaling, metadata filtering</li>
-        <li>Weaviate**: Open-source, supports hybrid search (vector + keyword)</li>
-        <li>Chroma**: Lightweight, easy to embed in applications</li>
-        <li>Qdrant**: Open-source, strong filtering capabilities</li>
-        <li>pgvector**: PostgreSQL extension, useful when the application already uses PostgreSQL</li>
-      </ul>
+  <div class="slide-hdr"><span class="tag">SHORT-TERM</span><h2>Summary Memory</h2></div>
+  <div class="cols cols-6040">
+    <div class="card green"><h3>How It Works</h3>
+      <ul><li>Periodically <span class="g">summarise</span> older conversation turns using the LLM</li><li>Replace detailed history with concise summary</li><li>Summary + recent messages fit in context budget</li><li>Progressive summarisation: summarise summaries as they grow</li><li>Can be triggered by token count threshold or turn count</li></ul>
     </div>
-    <div class="card purple">
-      <h3>Knowledge Graph Memory</h3>
-      <ul>
-        <li>Concept</li>
-        <li>Architecture</li>
-        <li>Hybrid: Vector Store + Knowledge Graph</li>
-      </ul>
+    <div class="card blue"><h3>Tradeoffs</h3>
+      <ul><li><span class="g">Pro</span>: retains key information in compact form</li><li><span class="g">Pro</span>: bounded context usage</li><li><span class="r">Con</span>: information loss (details discarded)</li><li><span class="r">Con</span>: summarisation cost (LLM call per summary)</li><li><span class="r">Con</span>: summary errors compound over time</li></ul>
     </div>
   </div>
   <div class="slide-footer">agent-memory / 05</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Memory Consolidation</h2></div>
+  <div class="slide-hdr"><span class="tag">LONG-TERM</span><h2>RAG-Backed and Vector Store Memory</h2></div>
   <div class="cols cols-2">
-    <div class="card blue">
-      <h3>Memory Consolidation</h3>
-      <ul>
-        <li>Time**: Run consolidation daily, weekly, or on a schedule</li>
-        <li>Volume**: Run consolidation when the memory store exceeds a size threshold</li>
-        <li>Session boundaries**: Run consolidation at the end of each agent session</li>
-        <li>Retrieval quality**: Run consolidation when retrieval results show declining relevance</li>
-      </ul>
+    <div class="card amber"><h3>Vector Store Memory</h3>
+      <ul><li>Store memories as <span class="a">text chunks with embeddings</span> in a vector database</li><li>At query time, embed the current context and retrieve <span class="g">top-k similar</span> memories</li><li>Inject retrieved memories into the prompt</li><li>Scales to millions of memories</li><li>Retrieval quality depends on embedding model and chunking strategy</li></ul>
     </div>
-    <div class="card red">
-      <h3>MemGPT and Virtual Context Management</h3>
-      <ul>
-        <li>The MemGPT Concept</li>
-        <li>Architecture</li>
-        <li>Memory Operations</li>
-        <li>Self-Editing Memory</li>
-        <li>Impact and Adoption</li>
-      </ul>
+    <div class="card green"><h3>What to Store</h3>
+      <ul><li><span class="g">User preferences</span>: "prefers TypeScript, dislikes semicolons"</li><li><span class="g">Facts learned</span>: "project uses PostgreSQL 16"</li><li><span class="g">Past interactions</span>: "we debugged auth issue on March 15"</li><li><span class="g">Corrections</span>: "user corrected me: API uses v3 not v2"</li><li><span class="g">Decisions made</span>: "we decided to use microservices"</li></ul>
     </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em"><h3>Retrieval Strategies</h3>
+    <p><span class="p">Recency</span>: prefer recent memories. <span class="p">Relevance</span>: semantic similarity to current query. <span class="p">Importance</span>: score memories by significance (corrections &gt; casual remarks). Most systems combine all three: <code>score = α·recency + β·relevance + γ·importance</code>.</p>
   </div>
   <div class="slide-footer">agent-memory / 06</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Practical Implementations</h2></div>
+  <div class="slide-hdr"><span class="tag">LONG-TERM</span><h2>Knowledge Graph Memory</h2></div>
   <div class="cols cols-2">
-    <div class="card amber">
-      <h3>Practical Implementations</h3>
-      <ul>
-        <li>The current node in the agent's execution graph</li>
-        <li>All state variables (conversation history, intermediate results, accumulated knowledge)</li>
-        <li>Any custom state defined by the developer</li>
-      </ul>
+    <div class="card blue"><h3>How It Works</h3>
+      <ul><li>Store memories as <span class="b">entities and relationships</span> in a graph</li><li>Entity: "FastAPI" &mdash; Relationship: "used_by" &mdash; Entity: "User's project"</li><li>Graph queries retrieve structured knowledge (not just similar text)</li><li>Supports multi-hop reasoning: "What stack does the user's project use?"</li><li>Better for <span class="g">factual / relational</span> memory than vector search</li></ul>
     </div>
-    <div class="card green">
-      <h3>Multi-Session Memory</h3>
-      <ul>
-        <li>The Multi-Session Challenge</li>
-        <li>Session Boundary Processing</li>
-        <li>Session Start Retrieval</li>
-      </ul>
+    <div class="card amber"><h3>Vector Store vs Knowledge Graph</h3>
+      <table>
+        <thead><tr><th></th><th>Vector Store</th><th>Knowledge Graph</th></tr></thead>
+        <tbody>
+          <tr><td>Best for</td><td>Semantic similarity</td><td>Structured facts</td></tr>
+          <tr><td>Query type</td><td>"Things like X"</td><td>"Facts about X"</td></tr>
+          <tr><td>Update</td><td>Append new chunks</td><td>Merge new triples</td></tr>
+          <tr><td>Dedup</td><td>Challenging</td><td>Natural (entity resolution)</td></tr>
+          <tr><td>Complexity</td><td>Lower</td><td>Higher</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
   <div class="slide-footer">agent-memory / 07</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Privacy Considerations</h2></div>
+  <div class="slide-hdr"><span class="tag">ADVANCED</span><h2>Memory Consolidation</h2></div>
   <div class="cols cols-2">
-    <div class="card purple">
-      <h3>Privacy Considerations</h3>
-      <ul>
-        <li>View memories**: Users should be able to see what the agent has stored about them.</li>
-        <li>Edit memories**: Users should be able to correct inaccurate memories.</li>
-        <li>Delete memories**: Users should be able to delete specific memories or all memories.</li>
-        <li>Opt out**: Users should be able to disable memory entirely.</li>
-        <li>GDPR** (EU): Right to access, right to rectification, right to erasure, data minimization, purpose limitation.</li>
-      </ul>
+    <div class="card purple"><h3>The Consolidation Problem</h3>
+      <ul><li>Raw memories accumulate &mdash; retrieval degrades with volume</li><li>Redundant memories waste context budget</li><li>Contradictory memories confuse the model</li><li>Need to <span class="p">merge, update, and prune</span> over time</li></ul>
     </div>
-    <div class="card blue">
-      <h3>Advanced Topics</h3>
-      <ul>
-        <li>Relevance**: Old, unused memories clutter the store and reduce retrieval quality.</li>
-        <li>Accuracy**: Information changes over time, and old memories may be wrong.</li>
-        <li>Privacy**: Users may want certain information forgotten.</li>
-        <li>Cost**: Larger memory stores are more expensive to maintain and search.</li>
-        <li>How recently the memory was accessed (unused memories are candidates for forgetting)</li>
-      </ul>
+    <div class="card green"><h3>Strategies</h3>
+      <ul><li><span class="g">Deduplication</span>: merge near-duplicate memories</li><li><span class="g">Contradiction resolution</span>: newer information overrides older</li><li><span class="g">Abstraction</span>: generalise episodic → semantic ("user corrected me 3 times about API version" → "user's project uses API v3")</li><li><span class="g">Decay</span>: reduce importance of memories not accessed recently</li><li><span class="g">Periodic review</span>: LLM reviews and cleans up memory store</li></ul>
     </div>
   </div>
   <div class="slide-footer">agent-memory / 08</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>Design Considerations for Practitioners</h2></div>
-  <div class="cols cols-2">
-    <div class="card red">
-      <h3>Design Considerations for Practitioners</h3>
-      <ul>
-        <li>System prompt + tool definitions: 20-30%</li>
-        <li>Retrieved memories: 10-20%</li>
-        <li>Conversation history: 30-40%</li>
-        <li>Model reasoning and response: 20-30%</li>
-        <li>Retrieval relevance**: Are the retrieved memories relevant to the current context?</li>
-      </ul>
-    </div>
-    <div class="card amber">
-      <h3>Conclusion</h3>
-      <ul>
-        <li>Memory systems transform LLM agents from stateless responders into persistent entities that learn, adapt, and maintain continuity over time</li>
-        <li>The field has progressed rapidly from simple conversation buffers to sophisticated architectures that combine vector stores, knowledge graphs, active memory management, and consolidation processes</li>
-        <li>For engineers building memory-augmented agents, the key lessons are pragmatic</li>
-      </ul>
-    </div>
+  <div class="slide-hdr"><span class="tag">SYSTEM</span><h2>MemGPT and Virtual Context Management</h2></div>
+  <div class="card amber"><h3>MemGPT: Operating System for LLM Memory</h3>
+    <p>MemGPT (Packer et al., 2023) treats the LLM's context window like an <span class="a">operating system manages RAM</span>. The model has "main memory" (context window) and "external storage" (database). The model can explicitly issue memory operations:</p>
+    <ul>
+      <li><span class="a">core_memory_append</span>: add a fact to persistent core memory (always loaded)</li>
+      <li><span class="a">core_memory_replace</span>: update an existing core memory fact</li>
+      <li><span class="a">archival_memory_insert</span>: store something in long-term archive</li>
+      <li><span class="a">archival_memory_search</span>: retrieve from archive by semantic search</li>
+      <li><span class="a">conversation_search</span>: search past conversation history</li>
+    </ul>
+    <p style="margin-top:.4em">The model <span class="g">controls its own memory</span> &mdash; deciding what to remember, what to search for, and what to forget. This is more flexible than application-controlled memory but requires the model to have good memory management skills.</p>
   </div>
   <div class="slide-footer">agent-memory / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PRACTICE</span><h2>Practical Implementations</h2></div>
+  <div class="cols cols-3">
+    <div class="card green"><h3>LangChain Memory</h3>
+      <ul><li>ConversationBufferMemory</li><li>ConversationSummaryMemory</li><li>ConversationKGMemory</li><li>VectorStoreRetrieverMemory</li><li>Pluggable backends</li></ul>
+    </div>
+    <div class="card blue"><h3>Claude Code Memory</h3>
+      <ul><li>CLAUDE.md project files</li><li>Memory directory with typed entries</li><li>User/feedback/project/reference types</li><li>MEMORY.md index file</li><li>Session-persistent, file-backed</li></ul>
+    </div>
+    <div class="card purple"><h3>Mem0 / Zep</h3>
+      <ul><li>Standalone memory services</li><li>Automatic memory extraction</li><li>Cross-session, multi-user</li><li>API-based integration</li><li>Built-in consolidation</li></ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-memory / 10</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONCERNS</span><h2>Privacy, Security, and Design</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Privacy and Security</h3>
+      <ul><li>Memory stores contain <span class="r">sensitive user data</span></li><li>Must encrypt at rest and in transit</li><li>User should be able to view, edit, and delete memories</li><li>Memory poisoning: adversary injects false memories via prompt injection</li><li>Cross-user leakage in multi-tenant systems</li><li>Regulatory compliance (GDPR right to erasure)</li></ul>
+    </div>
+    <div class="card amber"><h3>Design Principles</h3>
+      <ul><li><span class="a">Start simple</span>: conversation buffer first, add complexity as needed</li><li><span class="a">Memory budget</span>: cap tokens allocated to retrieved memories</li><li><span class="a">Freshness</span>: prefer recent memories for fast-changing information</li><li><span class="a">Transparency</span>: show users what the agent remembers</li><li><span class="a">Graceful degradation</span>: agent should work without memory (just less well)</li></ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-memory / 11</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Core Concepts</h3>
+      <ul><li>Memory bridges the gap between <span class="a">context window limits</span> and long-term agent capability</li><li>Taxonomy mirrors cognitive science: working, episodic, semantic, procedural</li><li>Only working memory (context) is directly accessible; everything else must be loaded</li><li>Vector stores for semantic retrieval; knowledge graphs for structured facts</li><li>Consolidation prevents memory bloat and contradictions</li></ul>
+    </div>
+    <div class="card green"><h3>Practical Guidance</h3>
+      <ul><li>Start with <span class="g">conversation buffer</span>; add summary for longer sessions</li><li>Add <span class="g">vector store memory</span> for cross-session personalisation</li><li>Combine recency + relevance + importance for retrieval scoring</li><li>Give users control over their memory (view, edit, delete)</li><li>MemGPT-style self-managed memory is powerful but requires capable models</li></ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-memory / 12</div>
 </section>
 
 </div></div>

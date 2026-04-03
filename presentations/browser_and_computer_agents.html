@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser and Computer Use Agents | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Browser and Computer Use Agents</h1>
+  <p class="subtitle">The most intuitive interface for a computer is the one humans already use: scree</p>
+  <div>
+    <span class="pill amber">computer use</span>
+    <span class="pill green">browser</span>
+    <span class="pill purple">visual grounding</span>
+    <span class="pill blue">automation</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">browser-agents / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>The most intuitive interface for a computer is the one humans already use: screens, mice, and keyboards</li>
+        <li>This is not a new idea</li>
+        <li>This report provides a comprehensive technical examination of browser and computer use agents</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>How Computer Use Works</h3>
+      <ul>
+        <li>Screenshot capture**: 50-200ms (depending on resolution and compression)</li>
+        <li>Image upload**: 100-500ms (depending on network conditions and image size)</li>
+        <li>Model inference**: 1-5 seconds (the model must process the image and generate the action)</li>
+        <li>Action execution**: 50-200ms (injecting input events)</li>
+        <li>Page/application response**: 100-2000ms (the environment processing the input and updating)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">browser-agents / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Anthropic's Computer Use Implementation</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Anthropic's Computer Use Implementation</h3>
+      <ul>
+        <li>`click`: Click at specified (x, y) coordinates. Supports left, right, and middle click.</li>
+        <li>`double_click`: Double-click at specified coordinates.</li>
+        <li>`mouse_move`: Move the mouse to specified coordinates without clicking.</li>
+        <li>`drag`: Click at start coordinates, hold, and release at end coordinates.</li>
+        <li>`type`: Type a string of text.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>OpenAI's Computer-Using Agent</h3>
+      <ul>
+        <li>Operator and the CUA Model</li>
+        <li>Architecture</li>
+        <li>The Responses API Integration</li>
+        <li>Distinctive Features</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">browser-agents / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Google's Project Mariner</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Google's Project Mariner</h3>
+      <ul>
+        <li>Element identification**: Rather than inferring what a UI element is from its visual appearance, Mariner can read the DOM to determine that element is a button with label "Submit."</li>
+        <li>Precise interaction**: Rather than clicking at pixel coordinates (which may be imprecise), Mariner can target specific DOM elements by their selectors.</li>
+        <li>Hidden state**: The DOM reveals state that may not be visually apparent—disabled buttons, hidden form fields, ARIA labels for accessibility.</li>
+        <li>The agent can only observe and interact with the active tab.</li>
+        <li>It cannot open new tabs or navigate to new domains without user confirmation.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Open-Source Browser and Computer Use Agents</h3>
+      <ul>
+        <li>Screenshot-based observation of any application window</li>
+        <li>Mouse and keyboard control across the entire desktop</li>
+        <li>Command-line execution</li>
+        <li>File system manipulation</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">browser-agents / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>The Action Space</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>The Action Space</h3>
+      <ul>
+        <li>Click** (left, right, middle) at coordinates (x, y)</li>
+        <li>Double-click** at coordinates</li>
+        <li>Drag** from (x1, y1) to (x2, y2)</li>
+        <li>Scroll** up, down, left, or right by a specified amount</li>
+        <li>Hover** at coordinates (move without clicking)</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Visual Grounding</h3>
+      <ul>
+        <li>Element types (button, text field, link, checkbox)</li>
+        <li>Element labels (the text or aria-label associated with each element)</li>
+        <li>Element states (enabled, disabled, checked, selected)</li>
+        <li>Element positions (bounding boxes)</li>
+        <li>Hierarchical relationships (which elements contain which others)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">browser-agents / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Web Navigation Approaches</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Web Navigation Approaches</h3>
+      <ul>
+        <li>Element selection by CSS selector, text content, or accessibility role</li>
+        <li>Reliable click and type operations that wait for elements to be interactive</li>
+        <li>Network request monitoring (useful for detecting when page loads complete)</li>
+        <li>Cookie and session management</li>
+        <li>Multi-tab management</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Safety and Sandboxing</h3>
+      <ul>
+        <li>Navigate to any website</li>
+        <li>Download and execute files</li>
+        <li>Modify system settings</li>
+        <li>Access sensitive information visible on screen</li>
+        <li>Complete screenshot history (before and after each action)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">browser-agents / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Benchmarks</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Benchmarks</h3>
+      <ul>
+        <li>WebArena</li>
+        <li>VisualWebArena</li>
+        <li>OSWorld</li>
+        <li>ScreenSpot</li>
+        <li>MiniWoB++</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Performance Analysis</h3>
+      <ul>
+        <li>Task Success Rates by Complexity</li>
+        <li>Error Categories</li>
+        <li>Model Comparison</li>
+        <li>Cost Analysis</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">browser-agents / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Practical Applications</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Practical Applications</h3>
+      <ul>
+        <li>End-to-end testing**: Navigate through user workflows and verify that each step works correctly.</li>
+        <li>Visual regression testing**: Compare screenshots across versions to detect unintended visual changes.</li>
+        <li>Accessibility testing**: Verify that all interactive elements are accessible and labeled correctly.</li>
+        <li>Cross-browser testing**: Run the same tasks in different browsers and verify consistent behavior.</li>
+        <li>Read data from a spreadsheet or database.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Current Limitations and Future Directions</h3>
+      <ul>
+        <li>Faster model inference (hardware improvements, smaller specialized models)</li>
+        <li>More efficient screenshot encoding (lower resolution where possible, incremental encoding)</li>
+        <li>Action prediction (predicting multiple actions at once instead of one at a time)</li>
+        <li>Speculative execution (beginning the next action before the current one is confirmed)</li>
+        <li>Better visual grounding (more accurate element identification)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">browser-agents / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card red">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>Browser and computer use agents represent a paradigm shift in automation</li>
+        <li>The technology is real and improving rapidly</li>
+        <li>But the technology is also clearly immature</li>
+        <li>The trajectory is encouraging</li>
+      </ul>
+    </div>
+  <div class="slide-footer">browser-agents / 09</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

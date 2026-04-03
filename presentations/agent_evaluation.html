@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluating LLM Agents | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Evaluating LLM Agents</h1>
+  <p class="subtitle">Evaluating a language model is hard. Evaluating an LLM agent is harder by an ord</p>
+  <div>
+    <span class="pill amber">evaluation</span>
+    <span class="pill green">benchmarks</span>
+    <span class="pill purple">SWE-bench</span>
+    <span class="pill blue">testing</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">agent-eval / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>Evaluating a language model is hard</li>
+        <li>This distinction matters because the industry is moving rapidly from model deployment to agent deployment</li>
+        <li>This report provides a comprehensive examination of how LLM agents are evaluated</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Why Agent Evaluation Is Harder Than Model Evaluation</h3>
+      <ul>
+        <li>The Stochastic Action Problem</li>
+        <li>Multi-Step Dependencies</li>
+        <li>Environment Interaction</li>
+        <li>The Cost Problem</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-eval / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Key Benchmarks</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Key Benchmarks</h3>
+      <ul>
+        <li>Level 1: Tasks requiring 1-2 tool calls and straightforward reasoning.</li>
+        <li>Level 2: Tasks requiring 3-5 tool calls with some reasoning complexity.</li>
+        <li>Level 3: Tasks requiring many tool calls, complex reasoning, and sometimes creative problem-solving.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Evaluation Dimensions</h3>
+      <ul>
+        <li>Weighted scoring**: Assign different weights to different tasks based on difficulty, so that solving hard tasks contributes more to the overall score.</li>
+        <li>Functional correctness with gradations**: For coding tasks, measure what fraction of tests pass rather than requiring all tests to pass.</li>
+        <li>Task Success Rate</li>
+        <li>Efficiency and Cost</li>
+        <li>Safety and Guardrail Adherence</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-eval / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Human Evaluation vs. Automated Evaluation</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Human Evaluation vs. Automated Evaluation</h3>
+      <ul>
+        <li>Use a different (ideally more capable) model as the judge.</li>
+        <li>Provide detailed rubrics with specific criteria and scoring guidelines.</li>
+        <li>Include reference solutions when available so the judge can compare.</li>
+        <li>Validate judge accuracy against human labels on a calibration set.</li>
+        <li>Use multiple judge calls and aggregate scores to reduce variance.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>The Reproducibility Problem</h3>
+      <ul>
+        <li>Stochastic Environments</li>
+        <li>API Changes and Model Versioning</li>
+        <li>Cost Variance</li>
+        <li>The Leaderboard Problem</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-eval / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Building Custom Agent Evaluations</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Building Custom Agent Evaluations</h3>
+      <ul>
+        <li>Your agent operates in a specific domain with domain-specific tools and policies.</li>
+        <li>Your agent must satisfy specific quality requirements (latency, cost, accuracy thresholds).</li>
+        <li>You need to test specific failure modes or edge cases relevant to your deployment.</li>
+        <li>Standard benchmarks do not cover your agent's interaction modality (voice, multimodal, etc.).</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Evaluation-Driven Development</h3>
+      <ul>
+        <li>Tasks that the agent previously failed and was fixed to handle.</li>
+        <li>Critical use cases that must always work.</li>
+        <li>Safety-critical scenarios where failure has severe consequences.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-eval / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Leaderboard Gaming and Benchmark Saturation</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Leaderboard Gaming and Benchmark Saturation</h3>
+      <ul>
+        <li>Marginal improvements become statistically insignificant given the benchmark's size and variance.</li>
+        <li>The benchmark no longer reflects the hardest problems in the domain—it has been "solved" even if real-world performance on similar tasks is much lower.</li>
+        <li>Research effort shifts to optimizing for the benchmark rather than improving general capability.</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Real-World vs. Benchmark Performance Gaps</h3>
+      <ul>
+        <li>Why Benchmarks Overestimate Real-World Performance</li>
+        <li>Why Benchmarks Underestimate Real-World Performance</li>
+        <li>Closing the Gap</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-eval / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Advanced Evaluation Topics</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Advanced Evaluation Topics</h3>
+      <ul>
+        <li>Milestone-based evaluation**: Break long tasks into intermediate milestones and evaluate progress at each milestone.</li>
+        <li>Surrogate tasks**: Create shorter tasks that test the same capabilities required for long tasks. If the agent can do the components, it is more likely to succeed at the full task.</li>
+        <li>Sampling**: Evaluate only a sample of long tasks, accepting higher variance in exchange for feasibility.</li>
+        <li>Remove the planning step: How much does performance drop?</li>
+        <li>Remove the error recovery mechanism: How many more tasks fail?</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The State of Evaluation Tooling</h3>
+      <ul>
+        <li>Task management**: Define, version, and organize evaluation tasks.</li>
+        <li>Environment management**: Spin up, reset, and tear down evaluation environments.</li>
+        <li>Execution orchestration**: Run evaluation tasks in parallel across multiple agents and configurations.</li>
+        <li>Trace capture**: Record complete agent trajectories including all LLM calls, tool calls, and environment interactions.</li>
+        <li>Automated scoring**: Apply programmatic checks to score task outcomes.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-eval / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card purple">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>Evaluating LLM agents is fundamentally harder than evaluating language models</li>
+        <li>But significant challenges remain</li>
+      </ul>
+    </div>
+  <div class="slide-footer">agent-eval / 08</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

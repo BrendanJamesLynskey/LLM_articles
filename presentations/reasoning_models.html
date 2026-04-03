@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reasoning Models and Test-Time Compute | Technical Report</title>
+<title>Reasoning Models | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -51,212 +51,155 @@
 
 <section class="title-slide">
   <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
-  <h1>Reasoning Models and Test-Time Compute</h1>
-  <p class="subtitle">For most of the history of deep learning, improving model performance meant incr</p>
-  <div>
-    <span class="pill amber">reasoning</span>
-    <span class="pill green">test-time compute</span>
-    <span class="pill purple">CoT</span>
-    <span class="pill blue">RL</span>
-  </div>
+  <h1>Reasoning Models</h1>
+  <p class="subtitle">Test-Time Compute, Chain-of-Thought, and the Second Scaling Axis</p>
+  <div><span class="pill amber">reasoning</span> <span class="pill green">test-time compute</span> <span class="pill purple">chain-of-thought</span> <span class="pill blue">RL</span></div>
   <p class="meta" style="margin-top:1.5em">April 2026</p>
-  <div class="slide-footer">reasoning / 01</div>
+  <div class="slide-footer">reasoning-models / 01</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="slide-hdr"><span class="tag">PARADIGM</span><h2>The Shift to Variable Test-Time Compute</h2></div>
   <div class="cols cols-2">
-    <div class="card amber">
-      <h3>Introduction</h3>
-      <ul>
-        <li>For most of the history of deep learning, improving model performance meant increasing training compute—training larger models on more data for more steps</li>
-        <li>Reasoning models break this paradigm</li>
-        <li>This report provides a comprehensive technical examination of reasoning models and test-time compute</li>
-      </ul>
+    <div class="card red"><h3>Fixed Compute (Standard Models)</h3>
+      <ul><li>One forward pass per token, regardless of difficulty</li><li>"What is 2+2?" gets <span class="r">the same compute</span> as "Prove Fermat's Last Theorem"</li><li>Fundamentally mismatched to difficulty distribution</li><li>Capability fixed at training time</li></ul>
     </div>
-    <div class="card green">
-      <h3>The Shift to Variable Test-Time Compute</h3>
-      <ul>
-        <li>Fixed vs. Variable Compute</li>
-        <li>How This Differs from Chain-of-Thought Prompting</li>
-        <li>The Two Scaling Axes</li>
-      </ul>
+    <div class="card green"><h3>Variable Compute (Reasoning Models)</h3>
+      <ul><li>Generate a <span class="g">variable-length reasoning chain</span> before the answer</li><li>Easy problems: 0&ndash;50 reasoning tokens</li><li>Hard problems: 5,000&ndash;100,000+ reasoning tokens</li><li>Capability <span class="g">increases with inference-time budget</span></li></ul>
     </div>
   </div>
-  <div class="slide-footer">reasoning / 02</div>
+  <div class="card amber" style="margin-top:.6em"><h3>Two Scaling Axes</h3>
+    <p><span class="a">Training compute</span>: larger models, more data &rarr; determines base capability. <span class="g">Test-time compute</span>: more reasoning tokens &rarr; determines how effectively the model applies that capability. The interaction is <span class="p">multiplicative</span>: a more capable base model benefits more from additional reasoning.</p>
+  </div>
+  <div class="slide-footer">reasoning-models / 02</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Chain-of-Thought Mechanics</h2></div>
-  <div class="cols cols-2">
-    <div class="card purple">
-      <h3>Chain-of-Thought Mechanics</h3>
-      <ul>
-        <li>d/dx(-3x²) = -6x</li>
-        <li>Simple factual questions: 0-50 reasoning tokens</li>
-        <li>Moderate reasoning tasks: 100-500 reasoning tokens</li>
-        <li>Complex multi-step problems: 500-5,000 reasoning tokens</li>
-        <li>Very difficult problems: 5,000-100,000+ reasoning tokens</li>
-      </ul>
+  <div class="slide-hdr"><span class="tag">MECHANICS</span><h2>How Chain-of-Thought Reasoning Works</h2></div>
+  <div class="cols cols-6040">
+    <div class="card purple"><h3>Reasoning Chain Structure</h3>
+      <ul><li><span class="p">Problem analysis</span>: restate, identify variables and constraints</li><li><span class="p">Strategy selection</span>: compare approaches, pick the best</li><li><span class="p">Step-by-step execution</span>: show intermediate work</li><li><span class="p">Self-verification</span>: re-check calculations, test edge cases</li><li><span class="p">Error correction</span>: backtrack and try different approach if needed</li></ul>
     </div>
-    <div class="card blue">
-      <h3>OpenAI o1 and o3</h3>
-      <ul>
-        <li>Low effort**: Minimal reasoning, fast responses, suitable for simple tasks</li>
-        <li>Medium effort**: Moderate reasoning, balanced latency</li>
-        <li>High effort**: Thorough reasoning, higher latency, suitable for complex tasks</li>
-      </ul>
+    <div class="card blue"><h3>Example</h3>
+      <pre><code>Find f'(2) where f(x)=2x³-3x²+x-5
+
+Step 1: f'(x) = 6x²-6x+1
+  (power rule for each term)
+
+Step 2: f'(2) = 6(4)-12+1
+  = 24-12+1 = 13
+
+Verify: 6×4=24 ✓
+  24-12=12 ✓  12+1=13 ✓</code></pre>
     </div>
   </div>
-  <div class="slide-footer">reasoning / 03</div>
+  <div class="card amber" style="margin-top:.6em"><h3>CoT Prompting vs Reasoning Models</h3>
+    <p>CoT <em>prompting</em> ("think step by step") is prompt-dependent, produces unverified reasoning, and allocates uniform effort. Reasoning <em>models</em> are <span class="a">trained</span> to reason, <span class="a">optimised</span> for reasoning quality via RL, and <span class="a">allocate</span> effort proportional to difficulty.</p>
+  </div>
+  <div class="slide-footer">reasoning-models / 03</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Claude Extended Thinking</h2></div>
-  <div class="cols cols-2">
-    <div class="card red">
-      <h3>Claude Extended Thinking</h3>
-      <ul>
-        <li>Architecture</li>
-        <li>Key Design Decisions</li>
-        <li>Thinking Trace Characteristics</li>
-      </ul>
+  <div class="slide-hdr"><span class="tag">MODELS</span><h2>OpenAI o1 / o3 / o4-mini</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>o1 (Sep 2024)</h3>
+      <ul><li>First commercial reasoning model</li><li><span class="r">Hidden</span> reasoning trace (user sees summary only)</li><li>5&ndash;60s latency per response</li><li>Dramatic improvement on math, code, science</li><li>Weaker on non-reasoning tasks</li></ul>
     </div>
-    <div class="card amber">
-      <h3>DeepSeek-R1</h3>
-      <ul>
-        <li>Significance</li>
-        <li>Training Methodology</li>
-        <li>Emergent Behaviors</li>
-        <li>Distillation</li>
-      </ul>
+    <div class="card green"><h3>o3 (Early 2025)</h3>
+      <ul><li>Better quality, reduced latency</li><li><span class="g">Tool use during reasoning</span>: search, code exec, browse integrated into chain</li><li>Configurable effort: low / medium / high</li><li>Explicit quality-latency-cost control</li></ul>
+    </div>
+    <div class="card blue"><h3>o4-mini (Apr 2025)</h3>
+      <ul><li>Reasoning in a <span class="b">smaller, cheaper</span> model</li><li>Makes reasoning accessible for cost-sensitive apps</li><li>Less deep reasoning but far more affordable</li><li>Strong on code and structured tasks</li></ul>
     </div>
   </div>
-  <div class="slide-footer">reasoning / 04</div>
+  <div class="slide-footer">reasoning-models / 04</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>How Reasoning Training Works</h2></div>
+  <div class="slide-hdr"><span class="tag">MODELS</span><h2>Claude Extended Thinking and DeepSeek-R1</h2></div>
   <div class="cols cols-2">
-    <div class="card green">
-      <h3>How Reasoning Training Works</h3>
-      <ul>
-        <li>Process reward**: Based on the correctness of individual reasoning steps. Richer feedback but requires evaluating each step, which is more complex and expensive.</li>
-        <li>ORM for the initial RL training (cheap, objective)</li>
-        <li>PRM for refinement (expensive, but provides better signal)</li>
-        <li>ORM for evaluation (since it directly measures task success)</li>
-      </ul>
+    <div class="card purple"><h3>Claude Extended Thinking</h3>
+      <ul><li>Thinking traces are <span class="p">visible to developers</span> (thinking blocks in API)</li><li>Configurable budget (1K&ndash;128K thinking tokens)</li><li><span class="g">Streaming</span>: watch thinking in real-time</li><li><span class="g">Tool use during thinking</span>: search, code exec integrated into reasoning</li><li>Transparency enables debugging and trust</li></ul>
     </div>
-    <div class="card purple">
-      <h3>Test-Time Compute Scaling Laws</h3>
-      <ul>
-        <li>For rare, high-value tasks (e.g., solving a novel mathematical problem), investing in test-time compute is efficient because the cost is incurred only when the problem appears.</li>
-        <li>For frequent, routine tasks (e.g., classifying customer support tickets), investing in training compute (larger model or more training) is efficient because the per-task inference cost must be low.</li>
-        <li>The Scaling Relationship</li>
-        <li>Compute-Optimal Allocation</li>
-        <li>Test-Time Compute vs. Training Compute</li>
-      </ul>
+    <div class="card green"><h3>DeepSeek-R1</h3>
+      <ul><li><span class="g">Open-weight</span> reasoning model (MIT license)</li><li>Trained with RL on chain-of-thought (GRPO algorithm)</li><li>Key insight: reasoning <span class="a">emerges from RL alone</span> without SFT on reasoning traces</li><li>Distilled into smaller models (1.5B&ndash;70B)</li><li>Comparable to o1 on math and code benchmarks</li></ul>
     </div>
   </div>
-  <div class="slide-footer">reasoning / 05</div>
+  <div class="slide-footer">reasoning-models / 05</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Latency-Quality Tradeoff</h2></div>
+  <div class="slide-hdr"><span class="tag">TRAINING</span><h2>How Reasoning Training Works</h2></div>
   <div class="cols cols-2">
-    <div class="card blue">
-      <h3>Latency-Quality Tradeoff</h3>
-      <ul>
-        <li>The Fundamental Tension</li>
-        <li>Latency Characteristics</li>
-        <li>Managing Latency</li>
-      </ul>
+    <div class="card amber"><h3>Process Reward Models (PRMs)</h3>
+      <ul><li>Score <span class="a">each reasoning step</span>, not just the final answer</li><li>Trained on human annotations of step-correctness</li><li>Enable credit assignment: which step caused failure?</li><li>Guide tree search: prune unpromising branches early</li><li>Better than outcome rewards for complex multi-step problems</li></ul>
     </div>
-    <div class="card red">
-      <h3>Faithfulness of Reasoning Chains</h3>
-      <ul>
-        <li>Training models specifically for faithfulness (rewarding reasoning chains that causally influence the answer)</li>
-        <li>Probing the model's internal representations to verify that they are consistent with the reasoning chain</li>
-        <li>Testing faithfulness by modifying the reasoning chain and checking whether the answer changes accordingly</li>
-        <li>Evaluating faithfulness using perturbation studies—changing input details and verifying that the reasoning chain changes appropriately</li>
-      </ul>
+    <div class="card green"><h3>Outcome Reward Models (ORMs)</h3>
+      <ul><li>Score only the <span class="g">final answer</span> (correct / incorrect)</li><li>Simpler to train (no step-level annotation needed)</li><li>Model must discover good reasoning strategies via exploration</li><li>DeepSeek-R1 used outcome rewards + GRPO</li><li>Key finding: reasoning emerges from RL without explicit CoT training</li></ul>
     </div>
   </div>
-  <div class="slide-footer">reasoning / 06</div>
+  <div class="card purple" style="margin-top:.6em"><h3>Training Pipeline</h3>
+    <p><span class="p">Stage 1</span>: Pre-train a base model. <span class="p">Stage 2</span>: RL with reasoning rewards &mdash; the model learns to generate useful reasoning chains by trial and error. <span class="p">Stage 3</span>: Rejection sampling &mdash; generate many reasoning chains, keep the ones that produce correct answers, use them for further SFT. <span class="p">Stage 4</span>: Distillation &mdash; train smaller models on the reasoning traces of the larger model.</p>
+  </div>
+  <div class="slide-footer">reasoning-models / 06</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Cost Implications</h2></div>
+  <div class="slide-hdr"><span class="tag">SCALING</span><h2>Test-Time Compute Scaling Laws</h2></div>
   <div class="cols cols-2">
-    <div class="card amber">
-      <h3>Cost Implications</h3>
-      <ul>
-        <li>The Cost Structure</li>
-        <li>Cost Comparison</li>
-        <li>Cost Optimization</li>
-      </ul>
+    <div class="card amber"><h3>The Scaling Curve</h3>
+      <ul><li>Accuracy improves <span class="a">log-linearly</span> with reasoning tokens on many benchmarks</li><li>2&times; more thinking tokens &asymp; constant accuracy improvement</li><li>Diminishing returns at extremes (easy problems plateau fast, impossible problems never solve)</li><li>Sweet spot depends on <span class="a">task difficulty &times; model capability</span></li></ul>
     </div>
-    <div class="card green">
-      <h3>Limitations</h3>
-      <ul>
-        <li>Overthinking</li>
-        <li>Hallucinated Reasoning</li>
-        <li>Reasoning Loops</li>
-        <li>Sensitivity to Problem Framing</li>
-        <li>Limited Self-Knowledge</li>
-      </ul>
+    <div class="card blue"><h3>When Test-Time Compute Helps</h3>
+      <ul><li><span class="g">Helps</span>: math, coding, logic, multi-step planning, verification-heavy tasks</li><li><span class="g">Helps</span>: problems with well-defined correctness criteria</li><li><span class="r">Doesn't help</span>: factual recall (model knows it or doesn't)</li><li><span class="r">Doesn't help</span>: creative writing (no single correct answer)</li><li><span class="r">Doesn't help</span>: tasks where the model lacks fundamental knowledge</li></ul>
     </div>
   </div>
-  <div class="slide-footer">reasoning / 07</div>
+  <div class="slide-footer">reasoning-models / 07</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Distilling Reasoning</h2></div>
-  <div class="cols cols-2">
-    <div class="card purple">
-      <h3>Distilling Reasoning</h3>
-      <ul>
-        <li>A 7B parameter model distilled from R1 outperformed larger non-reasoning models on reasoning benchmarks</li>
-        <li>A 32B distilled model approached R1's full performance on many tasks</li>
-        <li>Even a 1.5B distilled model showed meaningful reasoning capability</li>
-      </ul>
+  <div class="slide-hdr"><span class="tag">TRADEOFFS</span><h2>Latency, Cost, and Faithfulness</h2></div>
+  <div class="cols cols-3">
+    <div class="card red"><h3>Latency</h3>
+      <ul><li>Reasoning tokens are generated <span class="r">before the answer</span></li><li>Simple tasks: 5&ndash;10s</li><li>Complex tasks: 30&ndash;120s+</li><li>Not suitable for real-time / low-latency apps</li><li>Streaming thinking mitigates perceived wait</li></ul>
     </div>
-    <div class="card blue">
-      <h3>Practical Considerations for Deployment</h3>
-      <ul>
-        <li>The task requires multi-step reasoning (math, coding, logic)</li>
-        <li>Accuracy matters more than latency</li>
-        <li>The cost per task is justified by the value of the result</li>
-        <li>The task is too complex for a standard model to solve reliably</li>
-        <li>The task is simple and does not benefit from reasoning</li>
-      </ul>
+    <div class="card amber"><h3>Cost</h3>
+      <ul><li>Reasoning tokens are <span class="a">billed</span> (output token pricing)</li><li>10K reasoning tokens on o3 &asymp; 10&times; cost of standard response</li><li>Budget controls are essential for production</li><li>Small reasoning models (o4-mini) reduce cost 5&ndash;10&times;</li></ul>
+    </div>
+    <div class="card purple"><h3>Faithfulness</h3>
+      <ul><li>Does the model <span class="p">actually use</span> its reasoning chain?</li><li>Evidence is mixed: models sometimes reach correct answers via wrong reasoning</li><li>"Unfaithful" reasoning may be post-hoc rationalisation</li><li>Hidden reasoning (o1) makes verification impossible</li></ul>
     </div>
   </div>
-  <div class="slide-footer">reasoning / 08</div>
+  <div class="slide-footer">reasoning-models / 08</div>
 </section>
 
 <section>
-  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>The Future of Reasoning Models</h2></div>
+  <div class="slide-hdr"><span class="tag">PRACTICE</span><h2>Distillation and Deployment</h2></div>
   <div class="cols cols-2">
-    <div class="card red">
-      <h3>The Future of Reasoning Models</h3>
-      <ul>
-        <li>Deeper Reasoning</li>
-        <li>Multi-Modal Reasoning</li>
-        <li>Collaborative Reasoning</li>
-        <li>Verifiable Reasoning</li>
-      </ul>
+    <div class="card green"><h3>Distilling Reasoning</h3>
+      <ul><li>Train smaller model on reasoning traces from larger model</li><li>DeepSeek-R1 distilled to 1.5B&ndash;70B models</li><li>Distilled models reason <span class="g">faster and cheaper</span></li><li>Quality loss: 5&ndash;15% on benchmarks vs teacher</li><li>Sweet spot: 7B&ndash;32B distilled reasoners for production</li></ul>
     </div>
-    <div class="card amber">
-      <h3>Conclusion</h3>
-      <ul>
-        <li>Reasoning models represent a paradigm shift in how language models approach difficult problems</li>
-        <li>The practical implications are significant</li>
-        <li>The field is evolving rapidly</li>
-      </ul>
+    <div class="card amber"><h3>Deployment Patterns</h3>
+      <ul><li><span class="a">Routing</span>: send easy tasks to standard model, hard tasks to reasoning model</li><li><span class="a">Budget tiers</span>: low/medium/high effort per user tier or task type</li><li><span class="a">Verification</span>: use reasoning model to verify standard model's output</li><li><span class="a">Hybrid</span>: standard model with optional "think harder" button</li></ul>
     </div>
   </div>
-  <div class="slide-footer">reasoning / 09</div>
+  <div class="card red" style="margin-top:.6em"><h3>Limitations</h3>
+    <p><span class="r">Overthinking</span>: model wastes tokens on problems it could solve quickly. <span class="r">Hallucinated reasoning</span>: confident but wrong reasoning steps. <span class="r">Circular reasoning</span>: repeating the same argument without progress. <span class="r">Sycophantic reasoning</span>: reasoning toward what the user wants to hear rather than the truth.</p>
+  </div>
+  <div class="slide-footer">reasoning-models / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>The Paradigm Shift</h3>
+      <ul><li>AI capability now scales on <span class="a">two axes</span>: training compute and test-time compute</li><li>Reasoning models generate variable-length thinking chains before answering</li><li>Accuracy improves log-linearly with reasoning tokens</li><li>RL on chain-of-thought is the key training technique</li><li>Reasoning can <span class="g">emerge from RL alone</span> (DeepSeek-R1)</li></ul>
+    </div>
+    <div class="card green"><h3>Practical Guidance</h3>
+      <ul><li>Use reasoning models for math, code, logic, planning</li><li>Don't use them for simple factual recall or creative tasks</li><li>Set budget controls &mdash; reasoning tokens are expensive</li><li>Consider routing: standard model for easy, reasoning for hard</li><li>Distilled models (7B&ndash;32B) offer good quality/cost balance</li><li>Extended thinking with visible traces aids debugging</li></ul>
+    </div>
+  </div>
+  <div class="slide-footer">reasoning-models / 10</div>
 </section>
 
 </div></div>

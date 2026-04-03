@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Orchestration Frameworks | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Agent Orchestration Frameworks</h1>
+  <p class="subtitle">Building an LLM agent from scratch requires implementing a substantial amount of</p>
+  <div>
+    <span class="pill amber">LangGraph</span>
+    <span class="pill green">CrewAI</span>
+    <span class="pill purple">AutoGen</span>
+    <span class="pill blue">DSPy</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">frameworks / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>Agent orchestration frameworks provide this infrastructure as reusable libraries and platforms</li>
+        <li>The ecosystem of agent frameworks has matured significantly since the early days of LangChain in 2022</li>
+        <li>This report provides a comprehensive technical examination of the major agent orchestration frameworks available in 2026</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Why Frameworks</h3>
+      <ul>
+        <li>Retry logic** for failed API calls and tool executions</li>
+        <li>Streaming support** for real-time token delivery</li>
+        <li>State management** for multi-turn conversations and long-running tasks</li>
+        <li>Error handling** for every failure mode (model errors, tool errors, timeout, rate limits)</li>
+        <li>Input/output validation** to catch formatting errors before they propagate</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">frameworks / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>LangGraph</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>LangGraph</h3>
+      <ul>
+        <li>Explicit control flow makes agent behavior predictable and debuggable</li>
+        <li>Checkpointing provides built-in persistence and human-in-the-loop</li>
+        <li>Flexible enough to implement any agent architecture</li>
+        <li>Strong ecosystem integration (LangSmith for observability, LangChain for tools)</li>
+        <li>Active development and large community</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>CrewAI</h3>
+      <ul>
+        <li>Intuitive role-based metaphor that is easy to understand</li>
+        <li>Quick to set up for common multi-agent patterns</li>
+        <li>Good documentation and examples</li>
+        <li>Lower learning curve than graph-based frameworks</li>
+        <li>Less flexible than graph-based approaches for complex workflows</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">frameworks / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>AutoGen / AG2</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>AutoGen / AG2</h3>
+      <ul>
+        <li>Flexible conversation topologies</li>
+        <li>Strong code execution integration</li>
+        <li>Human-in-the-loop as a native pattern</li>
+        <li>Nested conversations for complex workflows</li>
+        <li>Good for research and experimentation</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Semantic Kernel</h3>
+      <ul>
+        <li>Strong .NET/C# support (also available in Python and Java)</li>
+        <li>Enterprise-focused design with good security and compliance features</li>
+        <li>Natural integration with Azure services</li>
+        <li>Plugin system encourages modular, reusable components</li>
+        <li>Historically .NET-first; Python support is solid but lags</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">frameworks / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Anthropic Agent SDK</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Anthropic Agent SDK</h3>
+      <ul>
+        <li>Clean, minimal API</li>
+        <li>Deep Claude integration (extended thinking, prompt caching)</li>
+        <li>Good default behaviors with minimal configuration</li>
+        <li>Type-safe tool definitions</li>
+        <li>Claude-specific (does not support other model providers)</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>OpenAI Agents SDK</h3>
+      <ul>
+        <li>Simple, clean API</li>
+        <li>Built-in guardrails for safety</li>
+        <li>Native tracing for observability</li>
+        <li>Good integration with OpenAI's model ecosystem</li>
+        <li>Relatively new with a developing ecosystem</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">frameworks / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>smolagents</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>smolagents</h3>
+      <ul>
+        <li>Extremely lightweight and easy to learn</li>
+        <li>Code-based actions are natural and flexible</li>
+        <li>Good integration with Hugging Face ecosystem</li>
+        <li>Works well with open-source models</li>
+        <li>Multi-model support out of the box</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Pydantic AI</h3>
+      <ul>
+        <li>Strong type safety throughout</li>
+        <li>Structured output validation</li>
+        <li>Clean dependency injection</li>
+        <li>Multi-model support</li>
+        <li>Pythonic API design</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">frameworks / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>DSPy</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>DSPy</h3>
+      <ul>
+        <li>Automatic prompt optimization</li>
+        <li>Modular, composable design</li>
+        <li>Reduces manual prompt engineering</li>
+        <li>Can significantly improve performance on specific tasks</li>
+        <li>Requires training data for optimization</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Framework Comparison</h3>
+      <ul>
+        <li>You need complex, stateful workflows with conditional branching</li>
+        <li>Checkpointing and human-in-the-loop are requirements</li>
+        <li>You want maximum flexibility and control over the agent architecture</li>
+        <li>You are building a production system that must be reliable and debuggable</li>
+        <li>You want to build multi-agent systems quickly</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">frameworks / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>When to Use a Framework vs. Build Custom</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>When to Use a Framework vs. Build Custom</h3>
+      <ul>
+        <li>You want to build quickly and are comfortable with the framework's abstractions</li>
+        <li>Your use case fits one of the standard patterns (ReAct, multi-agent, pipeline)</li>
+        <li>You need observability, checkpointing, or human-in-the-loop</li>
+        <li>You have a team and want consistent patterns across projects</li>
+        <li>You are not sure which architecture will work best and want to experiment</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Lock-In Risks</h3>
+      <ul>
+        <li>Framework Lock-In</li>
+        <li>Provider Lock-In</li>
+        <li>Abstraction Lock-In</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">frameworks / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>Observability</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Observability</h3>
+      <ul>
+        <li>Trace visualization**: A hierarchical view of every step in an agent run—LLM calls, tool calls, chain executions, with timing and token counts.</li>
+        <li>Run comparison**: Side-by-side comparison of different runs to identify what changed.</li>
+        <li>Evaluation**: Run agents on test datasets and compute metrics.</li>
+        <li>Monitoring**: Real-time dashboards of agent performance, cost, and error rates.</li>
+        <li>Feedback**: Capture human feedback on agent outputs for quality tracking.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Production Patterns</h3>
+      <ul>
+        <li>API layer**: Receives user requests and returns agent responses</li>
+        <li>Agent execution**: Runs the agent logic (framework, model calls, tool execution)</li>
+        <li>Tool servers**: External services that implement tools (databases, APIs, file systems)</li>
+        <li>State store**: Persists conversation history, checkpoints, and memory</li>
+        <li>Observability stack**: Logging, tracing, monitoring, alerting</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">frameworks / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card green">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>The agent framework ecosystem in 2026 offers a rich set of options for building LLM-powered agents</li>
+        <li>For practitioners, the most important advice is to resist the temptation to over-engineer</li>
+      </ul>
+    </div>
+  <div class="slide-footer">frameworks / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

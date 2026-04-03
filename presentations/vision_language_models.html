@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vision-Language Models: Unifying Visual and Textual Understanding in Large Models | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Vision-Language Models: Unifying Visual and Textual Understanding in Large Models</h1>
+  <p class="subtitle">For decades, computer vision and natural language processing developed as separa</p>
+  <div>
+    <span class="pill amber">vision</span>
+    <span class="pill green">VLM</span>
+    <span class="pill purple">multimodal</span>
+    <span class="pill blue">CLIP</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">vision-language / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>For decades, computer vision and natural language processing developed as separate disciplines with distinct architectures, training paradigms, and evaluation benchmarks</li>
+        <li>The emergence of vision-language models (VLMs) has fundamentally changed this picture</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Evolution from Separate Models to Unified VLMs</h3>
+      <ul>
+        <li>The Pipeline Era</li>
+        <li>Attention-Based Cross-Modal Fusion</li>
+        <li>The CLIP Revolution</li>
+        <li>SigLIP and Improved Contrastive Encoders</li>
+        <li>From Dual Encoders to Generative VLMs</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">vision-language / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Image Encoding Architectures</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Image Encoding Architectures</h3>
+      <ul>
+        <li>Vision Transformers (ViT)</li>
+        <li>Feature Extraction Layers</li>
+        <li>Convolutional Encoders and Hybrid Approaches</li>
+        <li>Emerging Encoder Architectures</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Visual Token Integration Strategies</h3>
+      <ul>
+        <li>Visual Tokens in the Sequence (Early Fusion)</li>
+        <li>Cross-Attention (Late Fusion)</li>
+        <li>Adapter-Based Approaches (Projection Modules)</li>
+        <li>Natively Multimodal Architectures</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">vision-language / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Contrastive Pre-training: CLIP and Beyond</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Contrastive Pre-training: CLIP and Beyond</h3>
+      <ul>
+        <li>Counting**: Determining how many objects of a particular type are present in an image is difficult with CLIP features.</li>
+        <li>Text reading (OCR)**: CLIP was not specifically trained to read text in images, and its patch-based tokenization at typical resolutions often makes text illegible.</li>
+        <li>Detailed attribute understanding**: Fine distinctions (specific colors, textures, materials) can be lost in CLIP's global features.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>LLaVA: Visual Instruction Tuning</h3>
+      <ul>
+        <li>MLP Projector**: Replaced the single linear layer with a two-layer MLP (linear → GELU → linear), which improved visual understanding significantly across benchmarks.</li>
+        <li>Higher Resolution**: Increased input resolution from 224×224 to 336×336, producing 576 visual tokens instead of 256. This improved OCR and fine-grained detail recognition.</li>
+        <li>Academic Task Data**: Added training data from academic VQA datasets (VQAv2, GQA, OCR-VQA, TextVQA, VisualGenome) to improve performance on established benchmarks.</li>
+        <li>Stronger Language Model**: Upgraded from Vicuna-13B to variants using LLaMA-2 and eventually other base models.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">vision-language / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Major Commercial VLMs</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Major Commercial VLMs</h3>
+      <ul>
+        <li>Grok (xAI)**: Grok models include vision capabilities with particular strength in real-time visual analysis and integration with the X (formerly Twitter) platform.</li>
+        <li>Mistral**: Pixtral, Mistral's VLM, uses a novel visual encoder architecture and demonstrates competitive performance particularly on document understanding tasks.</li>
+        <li>Amazon Nova**: Amazon's Nova models include vision capabilities integrated into the AWS Bedrock platform.</li>
+        <li>Reka**: Reka's models have demonstrated strong multimodal performance, particularly on video understanding tasks.</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Open-Source VLMs</h3>
+      <ul>
+        <li>Video Support**: Qwen2-VL natively processes video by encoding frames at a configurable frame rate and interleaving them in the input sequence with temporal position encodings.</li>
+        <li>LLaVA-OneVision**: A unified model supporting single-image, multi-image, and video understanding with a single set of weights.</li>
+        <li>LLaVA-Med**: A medical domain VLM fine-tuned on biomedical image-text data for clinical applications.</li>
+        <li>TinyLLaVA**: Compact LLaVA variants using small language models (1B–3B parameters) for edge deployment.</li>
+        <li>LLaVA-NeXT-Interleave**: Extended to handle arbitrarily interleaved image-text inputs.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">vision-language / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Resolution Handling</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Resolution Handling</h3>
+      <ul>
+        <li>Pixel Shuffle / Token Merging**: Adjacent visual tokens are merged (averaged or concatenated and projected) to reduce the total count. InternVL's pixel shuffle reduces tokens by 4×.</li>
+        <li>Perceiver Resampling**: A fixed number of learnable queries attend to the full visual token sequence, producing a compressed representation. Flamingo uses 64 queries regardless of input resolution.</li>
+        <li>Progressive Resolution**: Process the image at low resolution first, then selectively process high-resolution crops of regions the model identifies as relevant.</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>OCR Capabilities</h3>
+      <ul>
+        <li>Extract text from complex layouts (multi-column documents, tables, forms).</li>
+        <li>Understand the hierarchical structure of documents (headers, sections, lists).</li>
+        <li>Interpret tables, including multi-row/multi-column headers and merged cells.</li>
+        <li>Read charts and graphs, extracting both the visual data and the labels/legends.</li>
+        <li>Process handwritten text with reasonable accuracy (though performance drops for unusual handwriting styles).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">vision-language / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Visual Grounding</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Visual Grounding</h3>
+      <ul>
+        <li>Generating plausible but incorrect bounding boxes (the box is in a reasonable location but doesn't precisely match the referred object).</li>
+        <li>Confusing left/right and spatial relationships.</li>
+        <li>Struggling with small objects or objects in cluttered scenes.</li>
+        <li>Difficulty with counting-based references ("the third window from the left").</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Benchmarks and Evaluation</h3>
+      <ul>
+        <li>General Visual Understanding</li>
+        <li>Mathematical and Scientific Reasoning</li>
+        <li>Document and Chart Understanding</li>
+        <li>Hallucination Benchmarks</li>
+        <li>Benchmark Limitations</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">vision-language / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Inference Cost of Visual Tokens</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Inference Cost of Visual Tokens</h3>
+      <ul>
+        <li>Visual token caching**: For repeated analysis of the same image (e.g., multi-turn conversations about a document), cache the visual token representations to avoid re-encoding.</li>
+        <li>Efficient attention**: FlashAttention and other efficient attention implementations reduce the constant factor in attention computation, though they don't change the asymptotic scaling.</li>
+        <li>Token Economics</li>
+        <li>KV Cache Considerations</li>
+        <li>Cost Optimization Strategies</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Limitations and Challenges</h3>
+      <ul>
+        <li>Object hallucination**: Describing objects that are not in the image, often based on contextual expectations (mentioning a keyboard when shown a desk, even if no keyboard is visible).</li>
+        <li>Attribute hallucination**: Incorrect descriptions of colors, sizes, counts, or spatial positions of objects that are present.</li>
+        <li>Relational hallucination**: Incorrectly describing the spatial relationships between objects ("the cat is sitting on the table" when the cat is under the table).</li>
+        <li>Text hallucination**: Generating plausible but incorrect transcriptions of text in images, particularly for partially visible or low-resolution text.</li>
+        <li>Left/right and above/below distinctions, particularly in complex scenes.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">vision-language / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>Applications</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Applications</h3>
+      <ul>
+        <li>Document Processing and Extraction</li>
+        <li>Accessibility</li>
+        <li>Medical Imaging</li>
+        <li>Autonomous Systems and Robotics</li>
+        <li>Content Moderation and Safety</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Future Directions</h3>
+      <ul>
+        <li>Toward Unified Multimodal Models</li>
+        <li>World Models</li>
+        <li>Efficient Visual Processing</li>
+        <li>Grounding and Action</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">vision-language / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card green">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>Key architectural decisions — the choice of visual encoder, the integration strategy (early fusion vs</li>
+      </ul>
+    </div>
+  <div class="slide-footer">vision-language / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

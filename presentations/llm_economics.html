@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Economics of Large Language Models | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>The Economics of Large Language Models</h1>
+  <p class="subtitle">Large language models are among the most capital-intensive technologies ever dev</p>
+  <div>
+    <span class="pill amber">economics</span>
+    <span class="pill green">cost</span>
+    <span class="pill purple">pricing</span>
+    <span class="pill blue">TCO</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">llm-economics / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>This report provides a comprehensive technical analysis of LLM economics</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Training Costs</h3>
+      <ul>
+        <li>NVIDIA H100**: ~1,979 TFLOP/s (BF16 tensor core), ~$2.50/GPU-hour (cloud), ~$1.00/GPU-hour (owned, amortized)</li>
+        <li>NVIDIA B200**: ~4,500 TFLOP/s (BF16 tensor core), ~$4.00/GPU-hour (cloud), ~$1.50/GPU-hour (owned, amortized)</li>
+        <li>Google TPU v5p**: ~459 TFLOP/s (BF16), available only through Google Cloud</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-economics / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Inference Cost Breakdown</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Inference Cost Breakdown</h3>
+      <ul>
+        <li>Prefill is cheap per token.** Because the GPU is compute-saturated during prefill, the cost per input token scales efficiently with hardware utilization.</li>
+        <li>Input: $2-15 per million tokens</li>
+        <li>Output: $8-60 per million tokens</li>
+        <li>The large ratio between input and output pricing reflects the compute-bound vs. memory-bandwidth-bound distinction</li>
+        <li>Input: $0.50-3 per million tokens</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Quantization and Cost Savings</h3>
+      <ul>
+        <li>FP16 → INT8 (W8A8):** Typically less than 0.5% quality degradation on benchmarks. Widely considered a "free" optimization for most applications.</li>
+        <li>FP16 → INT4 (W4A16 or W4A8):** 1-3% quality degradation, acceptable for most applications. The sweet spot for many production deployments.</li>
+        <li>FP16 → INT3 or lower:** Significant quality degradation for most models. Generally not recommended for production use except for very specific low-complexity tasks.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-economics / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Cloud vs. On-Premise Cost Analysis</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Cloud vs. On-Premise Cost Analysis</h3>
+      <ul>
+        <li>Base load on owned/reserved hardware.** Use on-prem or reserved instances for the predictable, steady-state inference load.</li>
+        <li>Burst to cloud.** Use on-demand or spot instances for traffic spikes and temporary capacity needs.</li>
+        <li>Serverless for low-volume models.** Use serverless inference APIs for models that see low or unpredictable traffic, avoiding the cost of dedicated GPUs.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>API Pricing Models</h3>
+      <ul>
+        <li>Per-Token Pricing</li>
+        <li>Per-Request and Subscription Pricing</li>
+        <li>The Cost of Reasoning Tokens</li>
+        <li>Cached and Batched Pricing</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-economics / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Total Cost of Ownership</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Total Cost of Ownership</h3>
+      <ul>
+        <li>Beyond API Costs</li>
+        <li>Cost Optimization Strategies</li>
+        <li>The per-token API cost is only one component of the total cost of operating an LLM-powered application</li>
+        <li>Evaluation and testing costs</li>
+        <li>Data infrastructure costs</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Cost Trends Over Time</h3>
+      <ul>
+        <li>March 2023: ~$2.00/M input tokens (GPT-3.5-turbo)</li>
+        <li>January 2024: ~$0.50/M input tokens (GPT-3.5-turbo updated pricing)</li>
+        <li>November 2024: ~$0.15/M input tokens (GPT-4o-mini)</li>
+        <li>April 2026: ~$0.03-0.08/M input tokens (various providers)</li>
+        <li>Hardware improvements.** H100 → H200 → B200, each generation providing 2-3x better inference throughput per dollar.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-economics / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>When to Fine-Tune vs. Use a Larger Model</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>When to Fine-Tune vs. Use a Larger Model</h3>
+      <ul>
+        <li>The Economic Trade-off</li>
+        <li>Decision Framework</li>
+        <li>The Converging Costs</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Batch Size Economics</h3>
+      <ul>
+        <li>Batch size 1: Full memory-bandwidth cost per token</li>
+        <li>Batch size 8: ~8x cost reduction</li>
+        <li>Batch size 32: ~20-25x cost reduction (sub-linear due to overhead)</li>
+        <li>Batch size 128+: ~50-80x cost reduction, approaching the compute-bound regime</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-economics / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Economic Moats and Competition Dynamics</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Economic Moats and Competition Dynamics</h3>
+      <ul>
+        <li>Sources of Competitive Advantage</li>
+        <li>The Commoditization Risk</li>
+        <li>Possible Durable Moats</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The Economics of Reasoning Models</h3>
+      <ul>
+        <li>Variable Compute Per Query</li>
+        <li>The Thinking Token Tax</li>
+        <li>When Reasoning Models Are Cost-Effective</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-economics / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Economic Implications of Hardware Trends</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Economic Implications of Hardware Trends</h3>
+      <ul>
+        <li>A100 (2020):** ~312 TFLOP/s BF16, ~2 TB/s HBM bandwidth, ~$10,000</li>
+        <li>H100 (2022):** ~1,979 TFLOP/s BF16, ~3.35 TB/s HBM bandwidth, ~$30,000</li>
+        <li>H200 (2024):** ~1,979 TFLOP/s BF16, ~4.8 TB/s HBM bandwidth (141GB HBM3e), ~$30,000</li>
+        <li>B200 (2025):** ~4,500 TFLOP/s BF16, ~8 TB/s HBM bandwidth (192GB HBM3e), ~$35,000</li>
+        <li>Rubin (2026, projected):** ~12,000+ TFLOP/s, ~12+ TB/s, ~$40,000</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Cost Modeling for Decision-Making</h3>
+      <ul>
+        <li>Input: 100K × 500 × $2.50/M = $125/day</li>
+        <li>Output: 100K × 200 × $10.00/M = $200/day</li>
+        <li>Total: $325/day = ~$9,750/month</li>
+        <li>Input: 100K × 500 × $0.15/M = $7.50/day</li>
+        <li>Output: 100K × 200 × $0.60/M = $12/day</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">llm-economics / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card red">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>The economics of large language models are defined by a set of characteristics unusual in the technology industry</li>
+        <li>The most important economic trend is the rapid deflation of inference costs for a given quality level</li>
+        <li>For practitioners, the key economic decisions are model selection (matching model capability to task requirements), infrastructure strategy (cloud vs</li>
+        <li>The competitive dynamics of the LLM market remain uncertain</li>
+      </ul>
+    </div>
+  <div class="slide-footer">llm-economics / 09</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

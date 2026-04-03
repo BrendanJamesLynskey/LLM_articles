@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Function Calling and Tool Use in LLMs | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Function Calling and Tool Use in LLMs</h1>
+  <p class="subtitle">Language models, by default, can only generate text. They cannot check the weath</p>
+  <div>
+    <span class="pill amber">tools</span>
+    <span class="pill green">JSON schema</span>
+    <span class="pill purple">MCP</span>
+    <span class="pill blue">streaming</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">function-calling / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>Language models, by default, can only generate text</li>
+        <li>Function calling is not a minor feature</li>
+        <li>This report provides a comprehensive technical examination of function calling and tool use in LLMs</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>How Function Calling Works</h3>
+      <ul>
+        <li>The Basic Mechanism</li>
+        <li>Tool Definitions</li>
+        <li>The Model's Decision Process</li>
+        <li>Message Flow</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">function-calling / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Parallel Tool Calls</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Parallel Tool Calls</h3>
+      <ul>
+        <li>Google**: Supported in Gemini models through multiple `FunctionCall` parts in a single response.</li>
+        <li>Motivation</li>
+        <li>How Parallel Calls Work</li>
+        <li>Provider Support</li>
+        <li>Limitations</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Streaming Tool Use</h3>
+      <ul>
+        <li>The Streaming Challenge</li>
+        <li>Implementation Approaches</li>
+        <li>Server-Sent Events (SSE) Protocol</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">function-calling / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Tool Choice Modes</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Tool Choice Modes</h3>
+      <ul>
+        <li>Auto Mode</li>
+        <li>Required Mode</li>
+        <li>None Mode</li>
+        <li>Provider-Specific Variations</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Provider Implementations</h3>
+      <ul>
+        <li>JSON schema for all tool definitions</li>
+        <li>Parallel tool calls supported</li>
+        <li>Streaming tool use via SSE</li>
+        <li>Strict mode for guaranteed schema conformance</li>
+        <li>Built-in tools for common operations</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">function-calling / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Training for Tool Use</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Training for Tool Use</h3>
+      <ul>
+        <li>Demonstrating that LLMs could be specifically trained for API use</li>
+        <li>Showing that retrieval-augmented generation improved tool use accuracy by providing up-to-date API documentation</li>
+        <li>Creating the APIBench benchmark for evaluating tool use</li>
+        <li>Highlighting the problem of "hallucinated APIs"—models generating calls to functions that do not exist</li>
+        <li>A dataset of 16,000+ real-world APIs covering diverse domains</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>The Model Context Protocol (MCP) and Tool Use</h3>
+      <ul>
+        <li>A human-readable description</li>
+        <li>An input schema (JSON Schema)</li>
+        <li>Tools that become available only after authentication</li>
+        <li>Tools that are created on the fly based on the user's data (e.g., a tool for each database table the user has access to)</li>
+        <li>Tools that are temporarily unavailable due to maintenance or rate limits</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">function-calling / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Multi-Step Tool Chains</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Multi-Step Tool Chains</h3>
+      <ul>
+        <li>API errors.** The external service returns an error (rate limit, authentication failure, server error).</li>
+        <li>Empty results.** The tool executes successfully but returns no useful information.</li>
+        <li>Incorrect arguments.** The model provides arguments that are valid JSON but semantically incorrect (wrong date format, non-existent entity).</li>
+        <li>Unexpected result format.** The tool returns data in a format the model does not expect.</li>
+        <li>Retry with different arguments (e.g., a broader search query)</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Accuracy and Reliability</h3>
+      <ul>
+        <li>Tool selection accuracy.** What fraction of tool calls use the correct tool?</li>
+        <li>Argument accuracy.** What fraction of tool calls provide correct arguments?</li>
+        <li>Format validity.** What fraction of tool calls produce valid JSON that conforms to the schema?</li>
+        <li>End-to-end task success.** What fraction of user queries are answered correctly when tools are available?</li>
+        <li>Unnecessary tool use rate.** How often does the model call a tool when it is not needed?</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">function-calling / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Error Handling Patterns</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Error Handling Patterns</h3>
+      <ul>
+        <li>Clearly state what went wrong</li>
+        <li>Suggest what the model should do differently</li>
+        <li>Include relevant details (expected format, valid values)</li>
+        <li>Are concise enough to not waste context window space</li>
+        <li>Informing the user that a specific piece of information could not be retrieved</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Schema Design Best Practices</h3>
+      <ul>
+        <li>Tool names**: Use verb-noun format (`get_weather`, `search_documents`, `create_ticket`). Avoid generic names (`process`, `handle`, `do_thing`).</li>
+        <li>Parameter names**: Use snake_case and be specific (`start_date` not `date`, `max_results` not `n`, `search_query` not `q`).</li>
+        <li>Consistency**: If one tool uses `user_id`, all tools should use `user_id` (not `userId` in some and `user_id` in others).</li>
+        <li>What the tool does**: "Searches the company knowledge base for documents matching the given query."</li>
+        <li>When to use it**: "Use this when the user asks about company policies, procedures, or internal documentation."</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">function-calling / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Security Considerations</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Security Considerations</h3>
+      <ul>
+        <li>Treating tool results as untrusted data and marking them accordingly in the prompt</li>
+        <li>Filtering or sanitizing tool results before presenting them to the model</li>
+        <li>Using instruction hierarchy training to make the model resistant to instructions in tool results</li>
+        <li>Limiting the model's ability to take sensitive actions based on tool results without human confirmation</li>
+        <li>Scoping tool access per conversation or per task</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Advanced Patterns</h3>
+      <ul>
+        <li>Tool-Augmented Generation</li>
+        <li>Recursive Tool Use</li>
+        <li>Tool Creation</li>
+        <li>Multi-Model Tool Chains</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">function-calling / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>Cost and Performance Optimization</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Cost and Performance Optimization</h3>
+      <ul>
+        <li>Token Economics</li>
+        <li>Latency Optimization</li>
+        <li>Tool use is expensive</li>
+        <li>Optimization strategies include:</li>
+        <li>Minimize tool definition size</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>The Evolving Landscape</h3>
+      <ul>
+        <li>Convergence Across Providers</li>
+        <li>Increasingly Capable Models</li>
+        <li>Tool Use as a Standard Capability</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">function-calling / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card green">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>Function calling and tool use transform language models from knowledgeable text generators into capable agents that can interact with the world</li>
+        <li>The ecosystem has matured significantly since function calling was first introduced</li>
+        <li>For practitioners, the most impactful investment is in tool definition quality</li>
+      </ul>
+    </div>
+  <div class="slide-footer">function-calling / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

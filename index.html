@@ -187,6 +187,9 @@
   .icon-hardware     { background: rgba(248,113,113,.15); color: var(--red); }
   .icon-practical    { background: rgba(96,165,250,.15); color: var(--blue); }
   .icon-security     { background: rgba(251,146,60,.15); color: var(--orange); }
+  .icon-agents       { background: rgba(52,211,153,.15); color: #34d399; }
+  .icon-multimodal   { background: rgba(244,114,182,.15); color: #f472b6; }
+  .icon-scaling      { background: rgba(250,204,21,.15); color: #facc15; }
 
   /* ── Article Cards ── */
   .articles-grid {
@@ -235,6 +238,9 @@
   .cat-hardware { background: rgba(248,113,113,.15); color: var(--red); }
   .cat-practical { background: rgba(96,165,250,.15); color: var(--blue); }
   .cat-security { background: rgba(251,146,60,.15); color: var(--orange); }
+  .cat-agents { background: rgba(52,211,153,.15); color: #34d399; }
+  .cat-multimodal { background: rgba(244,114,182,.15); color: #f472b6; }
+  .cat-scaling { background: rgba(250,204,21,.15); color: #facc15; }
 
   .article-info .desc {
     font-size: .78em;
@@ -329,9 +335,9 @@
       Each article includes an interactive slide presentation.
     </p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">48</div><div class="stat-label">ARTICLES</div></div>
-      <div class="stat"><div class="stat-num">48</div><div class="stat-label">PRESENTATIONS</div></div>
-      <div class="stat"><div class="stat-num">6</div><div class="stat-label">CATEGORIES</div></div>
+      <div class="stat"><div class="stat-num">69</div><div class="stat-label">ARTICLES</div></div>
+      <div class="stat"><div class="stat-num">69</div><div class="stat-label">PRESENTATIONS</div></div>
+      <div class="stat"><div class="stat-num">9</div><div class="stat-label">CATEGORIES</div></div>
     </div>
   </header>
 
@@ -346,6 +352,9 @@
       <button class="filter-pill" data-cat="hardware">Hardware</button>
       <button class="filter-pill" data-cat="practical">Practical</button>
       <button class="filter-pill" data-cat="security">Security</button>
+      <button class="filter-pill" data-cat="agents">Agents</button>
+      <button class="filter-pill" data-cat="multimodal">Multimodal</button>
+      <button class="filter-pill" data-cat="scaling">Scaling</button>
     </div>
   </div>
 
@@ -606,6 +615,123 @@
       <div class="article-card" data-cat="security" data-title="Prompt Injection">
         <div class="article-info"><span class="category cat-security">SECURITY</span><h3>Prompt Injection</h3><p class="desc">Direct and indirect injection, jailbreaks, GCG adversarial suffixes, data exfiltration, defense strategies, and why complete prevention may be impossible.</p></div>
         <div class="article-links"><a href="presentations/prompt_injection.html" class="link-slides">Slides</a><a href="articles/prompt_injection.md" class="link-md">MD</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AGENTS & ORCHESTRATION ── -->
+  <div class="category-section" data-section="agents">
+    <div class="category-header">
+      <span class="cat-icon icon-agents">Agents</span>
+      <h2>Agents &amp; Orchestration</h2>
+      <span class="cat-count">7 articles</span>
+    </div>
+    <div class="articles-grid">
+      <div class="article-card" data-cat="agents" data-title="Agentic Architectures">
+        <div class="article-info"><span class="category cat-agents">AGENTS</span><h3>Agentic Architectures</h3><p class="desc">ReAct, plan-and-execute, reflection, inner monologue, task decomposition, hierarchical planning, and observe-think-act loops.</p></div>
+        <div class="article-links"><a href="presentations/agentic_architectures.html" class="link-slides">Slides</a><a href="articles/agentic_architectures.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="agents" data-title="Agent Frameworks">
+        <div class="article-info"><span class="category cat-agents">AGENTS</span><h3>Agent Frameworks</h3><p class="desc">LangGraph, CrewAI, AutoGen, Semantic Kernel, Anthropic Agent SDK, OpenAI Agents SDK, DSPy, and production patterns.</p></div>
+        <div class="article-links"><a href="presentations/agent_frameworks.html" class="link-slides">Slides</a><a href="articles/agent_frameworks.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="agents" data-title="Agent Memory Systems">
+        <div class="article-info"><span class="category cat-agents">AGENTS</span><h3>Agent Memory Systems</h3><p class="desc">Working, episodic, and semantic memory; RAG-backed long-term recall; MemGPT; vector stores; knowledge graphs; and multi-session persistence.</p></div>
+        <div class="article-links"><a href="presentations/agent_memory_systems.html" class="link-slides">Slides</a><a href="articles/agent_memory_systems.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="agents" data-title="Code Generation Agents">
+        <div class="article-info"><span class="category cat-agents">AGENTS</span><h3>Code Generation Agents</h3><p class="desc">Copilot, Claude Code, Cursor, Devin; read-plan-edit-test loops; SWE-bench; IDE integration; and productivity impact.</p></div>
+        <div class="article-links"><a href="presentations/code_generation_agents.html" class="link-slides">Slides</a><a href="articles/code_generation_agents.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="agents" data-title="Function Calling and Tool Use">
+        <div class="article-info"><span class="category cat-agents">AGENTS</span><h3>Function Calling and Tool Use</h3><p class="desc">JSON schema definitions, parallel and streaming tool calls, provider implementations, MCP integration, and schema design.</p></div>
+        <div class="article-links"><a href="presentations/function_calling_and_tool_use.html" class="link-slides">Slides</a><a href="articles/function_calling_and_tool_use.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="agents" data-title="Multi-Agent Systems">
+        <div class="article-info"><span class="category cat-agents">AGENTS</span><h3>Multi-Agent Systems</h3><p class="desc">Orchestration patterns, supervisor/worker, message passing, role assignment, ChatDev, MetaGPT, and cost management.</p></div>
+        <div class="article-links"><a href="presentations/multi_agent_systems.html" class="link-slides">Slides</a><a href="articles/multi_agent_systems.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="agents" data-title="Reasoning Models">
+        <div class="article-info"><span class="category cat-agents">AGENTS</span><h3>Reasoning Models</h3><p class="desc">Test-time compute scaling, chain-of-thought, OpenAI o1/o3, DeepSeek-R1, process reward models, and distilling reasoning.</p></div>
+        <div class="article-links"><a href="presentations/reasoning_models.html" class="link-slides">Slides</a><a href="articles/reasoning_models.md" class="link-md">MD</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MULTIMODAL & DATA ── -->
+  <div class="category-section" data-section="multimodal">
+    <div class="category-header">
+      <span class="cat-icon icon-multimodal">Multimodal</span>
+      <h2>Multimodal &amp; Data</h2>
+      <span class="cat-count">7 articles</span>
+    </div>
+    <div class="articles-grid">
+      <div class="article-card" data-cat="multimodal" data-title="Knowledge Distillation">
+        <div class="article-info"><span class="category cat-multimodal">MULTIMODAL</span><h3>Knowledge Distillation</h3><p class="desc">Teacher-student training, soft targets, progressive distillation, CoT reasoning distillation, and capability cliffs.</p></div>
+        <div class="article-links"><a href="presentations/knowledge_distillation.html" class="link-slides">Slides</a><a href="articles/knowledge_distillation.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="multimodal" data-title="Pre-training Data Pipelines">
+        <div class="article-info"><span class="category cat-multimodal">MULTIMODAL</span><h3>Pre-training Data Pipelines</h3><p class="desc">Common Crawl, FineWeb, deduplication, quality filtering, data mixing, decontamination, and Chinchilla-optimal data requirements.</p></div>
+        <div class="article-links"><a href="presentations/pretraining_data_pipelines.html" class="link-slides">Slides</a><a href="articles/pretraining_data_pipelines.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="multimodal" data-title="Speech and Audio Models">
+        <div class="article-info"><span class="category cat-multimodal">MULTIMODAL</span><h3>Speech and Audio Models</h3><p class="desc">Whisper, EnCodec, VALL-E, GPT-4o voice, speech-to-speech, streaming ASR/TTS, and voice agent deployment.</p></div>
+        <div class="article-links"><a href="presentations/speech_and_audio_models.html" class="link-slides">Slides</a><a href="articles/speech_and_audio_models.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="multimodal" data-title="Synthetic Data Generation">
+        <div class="article-info"><span class="category cat-multimodal">MULTIMODAL</span><h3>Synthetic Data Generation</h3><p class="desc">Self-Instruct, Evol-Instruct, distillation pipelines, quality filtering, model collapse risks, and the Phi approach.</p></div>
+        <div class="article-links"><a href="presentations/synthetic_data_generation.html" class="link-slides">Slides</a><a href="articles/synthetic_data_generation.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="multimodal" data-title="Text-to-Image Diffusion Models">
+        <div class="article-info"><span class="category cat-multimodal">MULTIMODAL</span><h3>Text-to-Image Diffusion Models</h3><p class="desc">Latent diffusion, Stable Diffusion, DALL-E, DiT, ControlNet, LoRA, inference optimization, and video generation.</p></div>
+        <div class="article-links"><a href="presentations/text_to_image_diffusion.html" class="link-slides">Slides</a><a href="articles/text_to_image_diffusion.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="multimodal" data-title="Video Understanding">
+        <div class="article-info"><span class="category cat-multimodal">MULTIMODAL</span><h3>Video Understanding</h3><p class="desc">Frame sampling, video tokenization, temporal reasoning, long video analysis, streaming, and benchmarks.</p></div>
+        <div class="article-links"><a href="presentations/video_understanding.html" class="link-slides">Slides</a><a href="articles/video_understanding.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="multimodal" data-title="Vision-Language Models">
+        <div class="article-info"><span class="category cat-multimodal">MULTIMODAL</span><h3>Vision-Language Models</h3><p class="desc">CLIP, LLaVA, GPT-4V, visual instruction tuning, dynamic tiling, OCR, grounding, and inference costs.</p></div>
+        <div class="article-links"><a href="presentations/vision_language_models.html" class="link-slides">Slides</a><a href="articles/vision_language_models.md" class="link-md">MD</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCALING & ECONOMICS ── -->
+  <div class="category-section" data-section="scaling">
+    <div class="category-header">
+      <span class="cat-icon icon-scaling">Scaling</span>
+      <h2>Scaling &amp; Economics</h2>
+      <span class="cat-count">7 articles</span>
+    </div>
+    <div class="articles-grid">
+      <div class="article-card" data-cat="scaling" data-title="AI API Design Patterns">
+        <div class="article-info"><span class="category cat-scaling">SCALING</span><h3>AI API Design Patterns</h3><p class="desc">Chat completions, SSE streaming, structured output, function calling APIs, SDK design, rate limiting, and observability.</p></div>
+        <div class="article-links"><a href="presentations/ai_api_design.html" class="link-slides">Slides</a><a href="articles/ai_api_design.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="scaling" data-title="Capacity Planning">
+        <div class="article-info"><span class="category cat-scaling">SCALING</span><h3>Capacity Planning</h3><p class="desc">GPU cluster sizing, throughput estimation, queuing theory, autoscaling, multi-model serving, and cost optimization.</p></div>
+        <div class="article-links"><a href="presentations/capacity_planning.html" class="link-slides">Slides</a><a href="articles/capacity_planning.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="scaling" data-title="Carbon Footprint and Sustainability">
+        <div class="article-info"><span class="category cat-scaling">SCALING</span><h3>Carbon Footprint and Sustainability</h3><p class="desc">Training and inference energy, carbon intensity, water consumption, hardware lifecycle, and regulatory pressure.</p></div>
+        <div class="article-links"><a href="presentations/carbon_footprint_and_sustainability.html" class="link-slides">Slides</a><a href="articles/carbon_footprint_and_sustainability.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="scaling" data-title="Edge and Mobile Deployment">
+        <div class="article-info"><span class="category cat-scaling">SCALING</span><h3>Edge and Mobile Deployment</h3><p class="desc">On-device inference, mobile architectures, NPU acceleration, llama.cpp, hybrid edge-cloud, and WebLLM.</p></div>
+        <div class="article-links"><a href="presentations/edge_and_mobile_deployment.html" class="link-slides">Slides</a><a href="articles/edge_and_mobile_deployment.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="scaling" data-title="LLM Economics">
+        <div class="article-info"><span class="category cat-scaling">SCALING</span><h3>LLM Economics</h3><p class="desc">Training costs, inference cost breakdown, API pricing, cloud vs on-prem, TCO analysis, and cost trends.</p></div>
+        <div class="article-links"><a href="presentations/llm_economics.html" class="link-slides">Slides</a><a href="articles/llm_economics.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="scaling" data-title="Model Routing and Cascading">
+        <div class="article-info"><span class="category cat-scaling">SCALING</span><h3>Model Routing and Cascading</h3><p class="desc">Classifier-based routing, confidence cascading, RouteLLM, cost-quality Pareto frontier, and production systems.</p></div>
+        <div class="article-links"><a href="presentations/model_routing_and_cascading.html" class="link-slides">Slides</a><a href="articles/model_routing_and_cascading.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="scaling" data-title="Scaling Laws">
+        <div class="article-info"><span class="category cat-scaling">SCALING</span><h3>Scaling Laws</h3><p class="desc">Kaplan power laws, Chinchilla compute-optimal training, data scaling, emergent abilities, and limits of scaling.</p></div>
+        <div class="article-links"><a href="presentations/scaling_laws.html" class="link-slides">Slides</a><a href="articles/scaling_laws.md" class="link-md">MD</a></div>
       </div>
     </div>
   </div>

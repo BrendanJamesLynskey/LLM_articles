@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synthetic Data Generation for LLM Training | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Synthetic Data Generation for LLM Training</h1>
+  <p class="subtitle">The development of large language models has been constrained by three persisten</p>
+  <div>
+    <span class="pill amber">synthetic</span>
+    <span class="pill green">distillation</span>
+    <span class="pill purple">quality</span>
+    <span class="pill blue">training</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">synthetic-data / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>Synthetic data generation — using AI models themselves to create training data — has emerged as a powerful and increasingly essential technique for addressing these constraints</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Why Synthetic Data</h3>
+      <ul>
+        <li>Data Scarcity in Specialized Domains</li>
+        <li>Cost Reduction</li>
+        <li>Quality Control</li>
+        <li>Controllable Diversity</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">synthetic-data / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Self-Instruct and Alpaca</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Self-Instruct and Alpaca</h3>
+      <ul>
+        <li>Shallow diversity**: The generated instructions tended to cluster around common patterns, with limited coverage of complex, multi-step, or domain-specific tasks.</li>
+        <li>Evaluator bias**: The generated data reflected the biases and preferences of the generating model, including its formatting preferences, verbosity tendencies, and knowledge gaps.</li>
+        <li>Legal uncertainty**: Using the output of proprietary models (GPT-3.5, GPT-4) as training data raised legal questions about the terms of service and intellectual property implications.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Evol-Instruct and WizardLM</h3>
+      <ul>
+        <li>Adding constraints ("solve this math problem, but only using prime numbers")</li>
+        <li>Deepening reasoning ("explain why, then provide a counterexample")</li>
+        <li>Increasing complexity ("extend this to handle edge cases")</li>
+        <li>Concretizing ("instead of a general sorting algorithm, implement one for a linked list")</li>
+        <li>Adding multiple steps ("first do X, then analyze the result, then modify based on the analysis")</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">synthetic-data / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Distillation from Stronger Models</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Distillation from Stronger Models</h3>
+      <ul>
+        <li>"You are a helpful assistant. Think step by step and explain your reasoning clearly."</li>
+        <li>"Explain the problem-solving process, including any intermediate steps or considerations."</li>
+        <li>Knowledge Distillation via Synthetic Data</li>
+        <li>Prompt Engineering for Teacher Models</li>
+        <li>The Orca Approach</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Constitutional AI Data Generation</h3>
+      <ul>
+        <li>The Constitutional AI Framework</li>
+        <li>Self-Critique and Revision</li>
+        <li>RLAIF: AI Feedback as Synthetic Preference Data</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">synthetic-data / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Quality Filtering</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Quality Filtering</h3>
+      <ul>
+        <li>Hard threshold**: Retain only examples with reward scores above a fixed threshold.</li>
+        <li>Top-K selection**: For each prompt, generate multiple responses and retain only the highest-scored one.</li>
+        <li>Rejection sampling**: Generate responses until one exceeds the quality threshold, discarding rejected samples.</li>
+        <li>Instruction following**: Does the response address all parts of the instruction?</li>
+        <li>Factual accuracy**: Is the information correct? (Particularly important for knowledge-heavy domains.)</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Code Data Synthesis</h3>
+      <ul>
+        <li>Verifiability**: Generated code can be automatically tested by running it against test cases, providing an objective quality signal.</li>
+        <li>Structured output**: Code follows strict syntax and semantics, making quality assessment more tractable.</li>
+        <li>Scarcity of complex examples**: While GitHub contains enormous amounts of code, well-documented solutions to complex algorithmic problems with step-by-step explanations are relatively scarce.</li>
+        <li>Diversity of approaches**: Multiple correct solutions exist for most coding problems, enabling diverse synthetic data.</li>
+        <li>Run generated code and check for syntax errors, runtime errors, and incorrect output.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">synthetic-data / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Math Data Generation</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Math Data Generation</h3>
+      <ul>
+        <li>Numerical verification**: Check that the numerical answer is correct (for problems with deterministic answers).</li>
+        <li>Symbolic verification**: Use computer algebra systems (SymPy, Mathematica) to verify algebraic manipulations and equations.</li>
+        <li>Proof verification**: For formal proofs, use proof assistants (Lean, Coq) to verify correctness.</li>
+        <li>Step-by-step checking**: Use a judge model to verify each step of a solution, flagging steps that appear incorrect.</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Textbooks Are All You Need: The Phi Model Approach</h3>
+      <ul>
+        <li>"Textbook" data**: Approximately 1B tokens of synthetic Python textbook content generated by GPT-3.5, covering programming concepts from basic to advanced with clear explanations and examples.</li>
+        <li>"Exercise" data**: Approximately 180M tokens of synthetic Python exercises with solutions, generated to practice the concepts covered in the textbooks.</li>
+        <li>Filtered web data**: Approximately 6B tokens of code data from The Stack, filtered for quality using a classifier trained to distinguish high-quality code from low-quality code.</li>
+        <li>Multi-step synthetic data generation with verification</li>
+        <li>Data quality scoring using multiple judge models</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">synthetic-data / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Risks and Challenges</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Risks and Challenges</h3>
+      <ul>
+        <li>Reduced vocabulary diversity (using fewer unique words and phrases)</li>
+        <li>Increased repetition of common patterns</li>
+        <li>Loss of minority perspectives and edge cases</li>
+        <li>Degradation of factual accuracy on less common topics</li>
+        <li>Mixing real and synthetic data**: Including a substantial proportion of real (non-synthetic) data in every training run prevents complete loss of the original data distribution.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Tooling and Infrastructure</h3>
+      <ul>
+        <li>Pipeline abstractions**: Define multi-step data generation workflows (generate → evaluate → filter → augment) as composable pipelines.</li>
+        <li>Model integrations**: Built-in support for calling various LLM APIs (OpenAI, Anthropic, Cohere) and local models (vLLM, TGI) as generators or evaluators.</li>
+        <li>Task templates**: Pre-built templates for common generation tasks (instruction generation, preference pair creation, quality scoring).</li>
+        <li>Structured outputs**: Support for generating structured data (JSON, typed fields) for consistent output formatting.</li>
+        <li>Scalability**: Parallel execution across multiple model instances for high-throughput generation.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">synthetic-data / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Regulatory Considerations</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Regulatory Considerations</h3>
+      <ul>
+        <li>Does synthetic text generated by an AI model receive copyright protection?</li>
+        <li>Does training on synthetic data generated by a copyrighted model create a derivative work?</li>
+        <li>If synthetic data is based on copyrighted source material (e.g., a model generates training data inspired by a copyrighted textbook), does this constitute infringement?</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Best Practices</h3>
+      <ul>
+        <li>Generation statistics**: Success rate, average length, diversity measures.</li>
+        <li>Quality scores**: Distribution of reward model or judge model scores.</li>
+        <li>Diversity measures**: Unique n-grams, topic distribution, format variety.</li>
+        <li>Downstream impact**: A/B testing of models trained with and without the synthetic data on evaluation benchmarks.</li>
+        <li>Models used for generation and their versions/configurations.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">synthetic-data / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card red">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>Synthetic data generation has evolved from a niche technique to a fundamental component of modern LLM training</li>
+        <li>At the same time, synthetic data carries real risks</li>
+      </ul>
+    </div>
+  <div class="slide-footer">synthetic-data / 09</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

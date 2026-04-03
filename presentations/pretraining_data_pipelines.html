@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-training Data Pipelines: From Raw Web Crawls to Trillion-Token Datasets | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Pre-training Data Pipelines: From Raw Web Crawls to Trillion-Token Datasets</h1>
+  <p class="subtitle">The performance of a large language model is determined as much by its training </p>
+  <div>
+    <span class="pill amber">data</span>
+    <span class="pill green">filtering</span>
+    <span class="pill purple">dedup</span>
+    <span class="pill blue">curation</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">data-pipelines / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>The performance of a large language model is determined as much by its training data as by its architecture or training procedure</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Data Sources</h3>
+      <ul>
+        <li>WARC (Web ARChive)**: The raw HTTP responses including headers and full HTML.</li>
+        <li>WET (WARC Encapsulated Text)**: Extracted plain text from the HTML.</li>
+        <li>WAT (Web ARChive Metadata)**: Metadata about each page (URL, headers, timestamps).</li>
+        <li>Wikipedia**: High-quality encyclopedic content in over 300 languages. Typically contributes 1–3% of the pre-training mixture but has outsized impact on factual knowledge.</li>
+        <li>Academic papers**: ArXiv, PubMed, Semantic Scholar — particularly important for scientific and mathematical reasoning.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">data-pipelines / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Text Extraction</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Text Extraction</h3>
+      <ul>
+        <li>Boilerplate removal**: Separating main content from navigation menus, sidebars, footers, advertisements, and cookie notices.</li>
+        <li>Structural preservation**: Maintaining meaningful structure (paragraphs, headings, lists) while removing HTML markup.</li>
+        <li>Table handling**: Converting HTML tables to a text representation that preserves their information content.</li>
+        <li>Script and style removal**: Eliminating JavaScript, CSS, and other non-content elements.</li>
+        <li>Character encoding**: Handling the diverse character encodings found across the web.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Deduplication</h3>
+      <ul>
+        <li>Why Deduplication Matters</li>
+        <li>Exact Deduplication</li>
+        <li>URL-Based Deduplication</li>
+        <li>MinHash Deduplication</li>
+        <li>Suffix Array Deduplication</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">data-pipelines / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Quality Filtering</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Quality Filtering</h3>
+      <ul>
+        <li>The Quality Spectrum</li>
+        <li>Heuristic Filters</li>
+        <li>Perplexity-Based Filtering</li>
+        <li>Classifier-Based Quality Filtering</li>
+        <li>Multi-Stage Filtering</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Content Filtering</h3>
+      <ul>
+        <li>Regular expressions**: Pattern-matching for structured PII (email addresses, phone numbers, SSNs, credit card numbers). Fast but limited to well-defined patterns.</li>
+        <li>Named entity recognition (NER)**: NER models identify person names, organizations, and locations. More flexible than regex but also more expensive and prone to false positives.</li>
+        <li>Custom classifiers**: Specialized models trained on PII detection datasets that can identify less structured PII (partial addresses, dates of birth in context).</li>
+        <li>Keyword/phrase blocklists**: Fast but blunt, catching benign content that contains flagged words in non-harmful contexts.</li>
+        <li>Perspective API**: Google's toxicity scoring API, which provides fine-grained toxicity scores across multiple dimensions (toxicity, severe toxicity, insult, profanity, threat, identity attack).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">data-pipelines / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Data Mixing</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Data Mixing</h3>
+      <ul>
+        <li>Phase 1**: Train on a broad, diverse mixture of web text to learn general language patterns.</li>
+        <li>Phase 2**: Increase the proportion of high-quality, domain-specific data (code, math, scientific text) to build specialized capabilities.</li>
+        <li>Phase 3**: Include more challenging and nuanced content (complex reasoning, multi-step problems) to push the boundaries of capability.</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Specific Pipeline Case Studies</h3>
+      <ul>
+        <li>trafilatura text extraction was worth 2–4 points on benchmarks compared to default Common Crawl WET extraction.</li>
+        <li>MinHash deduplication was essential — without it, model quality degraded significantly.</li>
+        <li>The Gopher/C4 repetition filters were particularly impactful, catching repetitive content that MinHash missed.</li>
+        <li>Removing too aggressively with quality classifiers hurt performance — there is a sweet spot where quality filtering improves average quality without removing too much useful diversity.</li>
+        <li>Common Crawl (processed with a custom pipeline)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">data-pipelines / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Decontamination</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Decontamination</h3>
+      <ul>
+        <li>The Contamination Problem</li>
+        <li>Decontamination Methods</li>
+        <li>Limitations</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Tokenizer-Aware Filtering</h3>
+      <ul>
+        <li>Unknown token density**: Documents with many unknown or single-character tokens may contain unusual characters, formatting artifacts, or non-textual content.</li>
+        <li>Tokens per character ratio**: Deviation from expected ratios flags unusual content.</li>
+        <li>Token entropy**: Very low entropy token sequences indicate repetitive content.</li>
+        <li>Special token concentration**: High density of special tokens, numbers, or punctuation tokens.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">data-pipelines / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Chinchilla Data Requirements</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Chinchilla Data Requirements</h3>
+      <ul>
+        <li>Synthetic data**: Generating additional training data to supplement web crawl data (see the companion report on Synthetic Data Generation).</li>
+        <li>Multilingual data**: Training on text in multiple languages to increase the total pool of available data.</li>
+        <li>Data quality over quantity**: Investing in better quality filtering to extract more value from each token, rather than simply increasing token count.</li>
+        <li>Repeat and upsample**: Repeating high-quality data sources (Wikipedia, curated textbooks, high-quality code) multiple times while cycling through lower-quality web text once.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Emerging Trends</h3>
+      <ul>
+        <li>Model-Based Data Selection</li>
+        <li>Multimodal Data Pipelines</li>
+        <li>Continual Data Pipelines</li>
+        <li>Data Governance and Provenance</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">data-pipelines / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card purple">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>Pre-training data pipelines have evolved from simple "crawl and tokenize" workflows into sophisticated multi-stage engineering systems that rival the complexity of the model architectures they serve</li>
+        <li>Looking ahead, the intersection of data pipeline engineering with legal, ethical, and regulatory considerations will shape the field's direction</li>
+      </ul>
+    </div>
+  <div class="slide-footer">data-pipelines / 08</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

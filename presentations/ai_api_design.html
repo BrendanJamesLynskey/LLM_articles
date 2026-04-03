@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI API Design Patterns | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>AI API Design Patterns</h1>
+  <p class="subtitle">The design of APIs for large language models has converged on a set of patterns </p>
+  <div>
+    <span class="pill amber">API</span>
+    <span class="pill green">streaming</span>
+    <span class="pill purple">SDK</span>
+    <span class="pill blue">patterns</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">api-design / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Introduction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Introduction</h3>
+      <ul>
+        <li>The design of APIs for large language models has converged on a set of patterns that are now industry standard</li>
+        <li>This report provides a comprehensive technical examination of AI API design patterns</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The Chat Completions API Pattern</h3>
+      <ul>
+        <li>`system`: Instructions from the application developer. Highest priority in the instruction hierarchy.</li>
+        <li>`user`: Input from the end user.</li>
+        <li>`assistant`: Previous model outputs. Including these in the messages array provides the model with its own conversation history.</li>
+        <li>`tool`: Output from tool calls (function calling results).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">api-design / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Streaming Responses</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Streaming Responses</h3>
+      <ul>
+        <li>Why Streaming Matters</li>
+        <li>Server-Sent Events (SSE)</li>
+        <li>Chunked Transfer Encoding</li>
+        <li>Streaming for Tool Calls</li>
+        <li>Token-Level vs. Chunk-Level Streaming</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Structured Output</h3>
+      <ul>
+        <li>The Problem</li>
+        <li>JSON Mode</li>
+        <li>Schema-Enforced Output</li>
+        <li>Provider-Specific Approaches</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">api-design / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Function Calling / Tool Use</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Function Calling / Tool Use</h3>
+      <ul>
+        <li>`auto`: Model decides whether to use tools or respond directly.</li>
+        <li>`required`: Model must use at least one tool.</li>
+        <li>`none`: Tools are not available for this request.</li>
+        <li>`{"type": "function", "function": {"name": "..."}}`: Model must call the specified function.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Vision, Audio, and File Upload APIs</h3>
+      <ul>
+        <li>Multimodal Input</li>
+        <li>Design Considerations for Multimodal APIs</li>
+        <li>File Upload Patterns</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">api-design / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Batch APIs</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Batch APIs</h3>
+      <ul>
+        <li>Evaluation and benchmarking.** Running model evaluations over thousands of test cases.</li>
+        <li>Data processing.** Classifying, extracting, or transforming large datasets.</li>
+        <li>Content generation.** Generating product descriptions, translations, or summaries for a catalog.</li>
+        <li>Offline analysis.** Analyzing log data, customer feedback, or documents where real-time response is not needed.</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Embeddings API Patterns</h3>
+      <ul>
+        <li>The Embeddings Endpoint</li>
+        <li>Design Considerations</li>
+        <li>Embeddings APIs convert text to dense vectors for similarity search, clustering, and classification:</li>
+        <li>// Response
+{
+  "data": [
+    {"index": 0, "embedding": [0</li>
+        <li>Dimensionality control</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">api-design / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Rate Limiting and Quotas</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Rate Limiting and Quotas</h3>
+      <ul>
+        <li>Rate Limiting Dimensions</li>
+        <li>Rate Limit Headers</li>
+        <li>Rate Limit Design Considerations</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Error Handling</h3>
+      <ul>
+        <li>400 Bad Request: Invalid request format, unsupported parameters, prompt too long.</li>
+        <li>401 Unauthorized: Invalid or missing API key.</li>
+        <li>403 Forbidden: API key does not have access to the requested resource.</li>
+        <li>404 Not Found: Invalid endpoint or model name.</li>
+        <li>422 Unprocessable Entity: Valid format but semantically invalid (e.g., conflicting parameters).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">api-design / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>SDK Design</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>SDK Design</h3>
+      <ul>
+        <li>Language-Specific SDKs</li>
+        <li>OpenAI SDK Compatibility</li>
+        <li>LLM providers typically offer SDKs in Python and TypeScript/JavaScript, with some offering Go, Java, Ruby, and other languages</li>
+        <li>for await (const chunk of stream) {
+  process</li>
+        <li>The OpenAI Python and TypeScript SDKs have become the de facto standard for LLM API interaction</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Versioning and Deprecation</h3>
+      <ul>
+        <li>Dated versions:** `gpt-4o-2024-05-13` refers to a specific model snapshot. Pinning to a dated version ensures reproducibility.</li>
+        <li>Floating aliases:** `gpt-4o` points to the latest stable version. Using the alias means the model may change without notice.</li>
+        <li>URL versioning:** `/v1/chat/completions` (most common).</li>
+        <li>Header versioning:** `Anthropic-Version: 2024-01-01` (Anthropic's approach).</li>
+        <li>Date-based versioning:** Stripe-style, where the API behavior is pinned to the version specified in the header.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">api-design / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Caching Strategies</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Caching Strategies</h3>
+      <ul>
+        <li>Provider-Side Caching</li>
+        <li>Client-Side Caching</li>
+        <li>OpenAI's prompt caching is automatic—requests with the same prefix are cached transparently, and cached tokens are billed at a discount</li>
+        <li>Embedding-based similarity caching</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Observability</h3>
+      <ul>
+        <li>Request ID (for correlation)</li>
+        <li>Model name and version</li>
+        <li>Input token count and output token count</li>
+        <li>Latency (TTFT, total)</li>
+        <li>Error code (if applicable)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">api-design / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ANALYSIS</span><h2>API Security</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>API Security</h3>
+      <ul>
+        <li>Rotatable (the client can generate new keys and revoke old ones without downtime).</li>
+        <li>Scoped (keys can be restricted to specific models, endpoints, or IP ranges).</li>
+        <li>Rate-limited (per-key rate limits prevent a compromised key from exhausting the organization's quota).</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Webhook Patterns for Async Processing</h3>
+      <ul>
+        <li>The Webhook Pattern</li>
+        <li>Webhook Security</li>
+        <li>For long-running operations (batch processing, fine-tuning, large file processing), the API uses a webhook pattern:</li>
+        <li>// Webhook callback (from provider to client)
+POST https://my-app</li>
+        <li>Signature verification</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">api-design / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DETAIL</span><h2>Conclusion</h2></div>
+  <div class="card green">
+      <h3>Conclusion</h3>
+      <ul>
+        <li>The design patterns for AI APIs have matured rapidly, converging on conventions that balance simplicity, flexibility, and performance</li>
+        <li>The most important design principles that emerge from examining these patterns are:</li>
+        <li>Progressive complexity</li>
+        <li>For API designers, the key advice is to adopt these established patterns rather than inventing new ones</li>
+        <li>For API consumers, the key advice is to build abstractions over the API that isolate your application from provider-specific details</li>
+      </ul>
+    </div>
+  <div class="slide-footer">api-design / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

@@ -131,7 +131,238 @@ procedural_memory = {
 }
 ```
 
-## 4. Conversation Buffer and Sliding Window
+## 4. Two-Tier Memory Architecture
+
+### 4.1 The Core Idea
+
+The most practical memory architecture for production LLM agents is a two-tier system that separates a small, fast **hot tier** from a large, persistent **cold tier**. The hot tier is the agent's working context—information that is immediately available for the current task. The cold tier is an external store—a vector database, knowledge graph, or structured file system—that holds the agent's full accumulated memory. The agent's memory management system moves information between tiers based on relevance, recency, and the current task.
+
+This mirrors how operating systems manage memory hierarchies (CPU cache → RAM → disk) and how human cognition works (working memory → long-term memory). The key insight is that an agent rarely needs all of its memories at once. Most memories are irrelevant to the current task. The two-tier system keeps the context window focused on what matters right now, while ensuring that any memory can be retrieved when needed.
+
+### 4.2 Hot Tier: The Active Context
+
+The hot tier consists of everything currently loaded into the model's context window for the active turn. This includes:
+
+- **System prompt and instructions**: Fixed configuration that defines the agent's behaviour.
+- **Active memories**: A curated subset of long-term memories that are relevant to the current task, retrieved from the cold tier at the start of the session or on demand.
+- **Session state**: The current conversation history (possibly summarised), intermediate results, and the current plan or task list.
+- **Scratchpad**: A mutable working area where the agent can store intermediate reasoning, notes, and temporary data that it needs for the current multi-step task but that should not be persisted long-term.
+
+The hot tier has a strict budget, typically expressed in tokens. A common allocation for a 128K context model might be:
+
+| Component | Budget |
+|---|---|
+| System prompt + tool definitions | 5,000–15,000 tokens |
+| Active memories (retrieved from cold tier) | 2,000–8,000 tokens |
+| Conversation history (recent or summarised) | 10,000–40,000 tokens |
+| Tool results and retrieved documents | 20,000–50,000 tokens |
+| Reserved for model generation | 10,000–30,000 tokens |
+
+Managing this budget is the central challenge of agent memory. Every token spent on one component is unavailable for another. Effective memory management means loading the right information at the right time and evicting information that is no longer needed.
+
+### 4.3 Cold Tier: The Persistent Store
+
+The cold tier holds the agent's full memory—every fact learned, every experience recorded, every preference observed—in a durable external store. The cold tier is never loaded in its entirety into the context. Instead, the agent queries the cold tier and retrieves specific memories that are relevant to the current situation.
+
+Cold tier implementations vary:
+
+- **Vector database** (Pinecone, Weaviate, Qdrant, Chroma): Memories are stored as text chunks with embeddings. Retrieval is by semantic similarity to the current query. Good for "find memories related to X" queries.
+- **Relational database** (PostgreSQL with pgvector): Combines structured queries (filter by user, timestamp, type) with vector similarity. Good for systems that need both structured filtering and semantic retrieval.
+- **Knowledge graph** (Neo4j, or in-memory graph): Memories are stored as entities and relationships. Good for "what do I know about X's relationship to Y" queries.
+- **File system** (Markdown files, JSON): Simple, human-readable, version-controllable. Claude Code's CLAUDE.md and memory directory are examples. Good for systems where memory should be inspectable and editable by humans.
+
+The choice of cold tier depends on the application's requirements for scale, query complexity, and human inspectability. Many production systems combine multiple backends—a vector store for semantic retrieval alongside a relational database for structured metadata.
+
+### 4.4 The Retrieval Bridge
+
+The mechanism that moves information from the cold tier to the hot tier is the retrieval bridge. At its simplest, this is a vector similarity search run at the start of each turn. More sophisticated implementations use multiple retrieval strategies:
+
+**Query-time retrieval.** Before each model call, the system formulates a retrieval query (often from the last user message or the current task description), searches the cold tier, and injects the top-k results into the context. This is the standard RAG pattern applied to agent memory.
+
+**Proactive retrieval.** The system predicts what memories might be useful based on the conversation trajectory, not just the latest message. If the user mentions "the authentication bug," the system retrieves memories about authentication, the specific bug, and the fix that was applied, even if the user has not explicitly asked for this context.
+
+**Model-directed retrieval.** The agent itself decides when to query memory. Using a tool like `search_memory(query)`, the model formulates its own retrieval queries during reasoning. This is the MemGPT approach—the model actively manages its own memory, pulling information from the cold tier when it determines that it needs more context.
+
+**Continuous background retrieval.** A background process monitors the conversation and continuously updates the set of active memories in the hot tier, adding newly relevant memories and evicting those that are no longer pertinent. This keeps the hot tier fresh without requiring explicit retrieval calls.
+
+### 4.5 Writeback: Hot Tier to Cold Tier
+
+Memory is not only read from the cold tier; it is also written back. During a conversation, the agent learns new information—user preferences, project facts, task outcomes, corrections. This information starts in the hot tier (the conversation context) and must be persisted to the cold tier for use in future sessions.
+
+Writeback can be:
+
+- **Explicit**: The model calls a `save_memory(content, type)` tool to persist a specific piece of information. This gives the model control over what to remember but depends on the model's judgment about what is worth saving.
+- **Automatic**: A background process extracts salient information from the conversation at session end (or periodically during the session) and writes it to the cold tier. This ensures nothing important is lost but may store irrelevant information.
+- **Hybrid**: The model explicitly saves important memories, and an automatic process catches anything the model missed. This is the most robust approach but requires deduplication logic.
+
+The quality of writeback directly determines the quality of future retrieval. Poorly written memories (too vague, too verbose, missing context, wrong facts) degrade future interactions.
+
+## 5. Episodic Memory in Depth
+
+### 5.1 What Episodic Memory Captures
+
+Episodic memory records the agent's experiences as discrete events, each grounded in a specific time and context. Unlike semantic memory (which stores abstracted facts), episodic memory preserves the narrative structure of what happened: the sequence of events, the causal relationships, the context in which decisions were made, and the outcomes of actions taken.
+
+A well-structured episodic memory entry contains:
+
+- **Temporal grounding**: When the event occurred (absolute timestamp and relative position within the session).
+- **Context**: What was the user's goal? What task was the agent working on? What was the state of the project?
+- **Event description**: What happened—the user's request, the agent's actions, any tool calls made, any errors encountered.
+- **Outcome**: Did the action succeed or fail? Was the user satisfied? What was the result?
+- **Causal links**: What caused this event? What did it cause? ("The user reported a bug → I investigated → found missing null check → fixed it → tests pass.")
+- **Lessons learned**: What general principle can be derived from this experience? ("Always check for null values when handling optional API response fields.")
+
+```
+{
+    "id": "ep_2026_0328_001",
+    "timestamp": "2026-03-28T14:30:00Z",
+    "session_id": "sess_abc123",
+    "user_goal": "Optimize slow API endpoint",
+    "context": {
+        "project": "user-service",
+        "file": "src/api/search.py",
+        "prior_discussion": "User mentioned search was timing out in production"
+    },
+    "events": [
+        {"action": "read_file", "target": "src/api/search.py", "result": "Found N+1 query pattern"},
+        {"action": "read_file", "target": "src/models/user.py", "result": "No index on email column"},
+        {"action": "edit_file", "target": "src/api/search.py", "change": "Added select_related() to queryset"},
+        {"action": "edit_file", "target": "migrations/0042_add_email_index.py", "change": "Added database index"},
+        {"action": "run_tests", "result": "All 47 tests pass"},
+        {"action": "benchmark", "result": "Query time: 2.3s → 45ms"}
+    ],
+    "outcome": "success",
+    "user_feedback": "positive",
+    "lessons": [
+        "Check for N+1 queries when API endpoints are slow",
+        "Missing database indexes are a common cause of slow queries in this project",
+        "This project uses Django ORM; select_related/prefetch_related are the standard fixes"
+    ],
+    "entities": ["search_endpoint", "email_index", "N+1_query", "Django_ORM"],
+    "related_episodes": ["ep_2026_0315_003"]
+}
+```
+
+### 5.2 Event Boundary Detection
+
+Not every model turn constitutes a distinct episode. A 50-turn conversation about debugging a single issue is one episode, not fifty. Effective episodic memory requires detecting event boundaries—the points where one coherent episode ends and another begins.
+
+Boundary detection heuristics include:
+
+- **Topic shift**: The user's request changes subject. ("OK, enough about the database. Let's work on the authentication flow.")
+- **Task completion**: A task reaches a definitive endpoint (success or failure). ("Great, the tests pass. Let's move on.")
+- **Time gap**: A significant pause in the conversation suggests a natural boundary.
+- **Explicit markers**: The user explicitly starts a new task. ("New topic: I need to set up CI/CD.")
+
+In practice, many systems use the LLM itself to detect boundaries. At session end (or periodically during long sessions), the model is asked to segment the conversation into distinct episodes and summarise each one. This produces cleaner episodic memories than storing raw conversation chunks.
+
+### 5.3 Episodic Retrieval Strategies
+
+Retrieving the right episodic memories is more nuanced than standard RAG. The retrieval query must consider:
+
+- **Temporal relevance**: Recent episodes are generally more relevant than old ones, but not always. A bug fix from six months ago becomes highly relevant when the same bug recurs.
+- **Situational similarity**: Episodes that occurred in similar contexts (same file, same type of task, same error pattern) are more useful than episodes that happen to share keywords.
+- **Causal chains**: If the current situation was caused by a previous event, the causal predecessor should be retrieved. ("This error is caused by the migration we ran last week.")
+- **Outcome filtering**: For learning purposes, both successes and failures are valuable. For providing context, successful resolutions of similar problems are most useful.
+
+A composite retrieval score might weight these factors:
+
+```
+score = α × semantic_similarity(query, episode)
+      + β × recency_decay(episode.timestamp)
+      + γ × context_overlap(current_context, episode.context)
+      + δ × outcome_relevance(episode.outcome, current_task_type)
+```
+
+### 5.4 Episodic Memory and Learning
+
+The most valuable function of episodic memory is enabling the agent to learn from experience. When the agent encounters a situation similar to a previous one, it can retrieve the relevant episode and apply the lessons learned:
+
+- **Avoiding repeated mistakes**: "The last time I tried to use `eval()` in this codebase, the user corrected me and said to use `ast.literal_eval()` instead."
+- **Reusing successful strategies**: "When I optimised the search endpoint last month, adding an index solved the problem. Let me check if the same approach applies here."
+- **Adapting to user preferences**: "The last three times I suggested adding comments, the user removed them. I should write self-documenting code instead of adding comments."
+
+This experience-based learning is distinct from the model's training-time knowledge. It is specific to the user, the project, and the agent's own history of interactions.
+
+## 6. Semantic Memory in Depth
+
+### 6.1 From Episodes to Knowledge
+
+While episodic memory stores what happened, semantic memory stores what the agent *knows*—abstracted facts, relationships, and principles that are not tied to any specific event. Semantic memory is the agent's accumulated knowledge base about the user, the project, the domain, and its own effective strategies.
+
+The relationship between episodic and semantic memory is one of abstraction. Episodic memories are the raw material; semantic memories are the distilled knowledge. After multiple episodes where the user corrects the agent's use of semicolons in JavaScript, the episodic memories record each correction event, while the semantic memory records the abstracted fact: "This user's JavaScript style omits semicolons."
+
+This abstraction process—sometimes called memory distillation or consolidation—can be:
+
+- **Manual**: The agent explicitly extracts knowledge when instructed. ("Remember that I prefer tabs over spaces.")
+- **Automatic**: A background process periodically reviews recent episodic memories and extracts recurring patterns, preferences, and facts.
+- **Model-driven**: The agent recognises during a conversation that it has learned something worth persisting and stores it proactively.
+
+### 6.2 Semantic Memory Schema Design
+
+The structure of semantic memories significantly affects retrieval quality. A flat list of facts becomes unwieldy at scale. Effective schemas organise semantic knowledge into categories with metadata:
+
+```
+{
+    "id": "sem_user_pref_012",
+    "category": "user_preferences",
+    "subcategory": "code_style",
+    "fact": "User uses Black formatter with 88-character line length",
+    "confidence": 0.98,
+    "evidence_count": 7,
+    "first_observed": "2026-02-15T10:00:00Z",
+    "last_confirmed": "2026-03-28T14:30:00Z",
+    "source_episodes": ["ep_001", "ep_005", "ep_012", "ep_019", "ep_023", "ep_031", "ep_042"],
+    "supersedes": "sem_user_pref_008",
+    "tags": ["python", "formatting", "black"]
+}
+```
+
+Key schema design principles:
+
+- **Categorise facts**: user preferences, project facts, domain knowledge, effective strategies. Categories enable filtered retrieval ("give me all project facts") rather than relying solely on semantic similarity.
+- **Track confidence**: Facts observed many times across multiple sessions are high-confidence. A single mention is low-confidence. Retrieval can prioritise high-confidence facts.
+- **Track provenance**: Link each fact back to the episodic memories that support it. This enables verification ("why do I believe this?") and allows the fact to be re-evaluated if source episodes are later found to be unreliable.
+- **Track currency**: When was this fact last confirmed? Old facts may be outdated. The user may have switched from Django to FastAPI since the agent last checked.
+- **Support supersession**: When a fact is updated, the old fact is not deleted but marked as superseded. This maintains audit trails and allows rollback if the update was incorrect.
+
+### 6.3 Fact Lifecycle Management
+
+Semantic facts are not static. They go through a lifecycle:
+
+**Observation**: A new fact is observed in a conversation. "The user's project is called 'nexus' and uses PostgreSQL 16." This is stored as a low-confidence fact with a single source episode.
+
+**Confirmation**: The same fact is observed again in a subsequent interaction. Confidence increases. The source episode list grows. After multiple confirmations, the fact is high-confidence.
+
+**Update**: New information modifies the fact. "The user migrated from PostgreSQL 16 to 17." The old fact is superseded, and a new fact is created with the updated information. The update is itself an episodic event.
+
+**Contradiction**: A new observation contradicts an existing fact. "The user said they use MySQL, but semantic memory says PostgreSQL." The system must resolve the contradiction—typically by trusting the more recent observation, but flagging the conflict for the agent's attention.
+
+**Decay**: A fact that has not been confirmed or accessed for a long time decays in confidence. It is not deleted but is deprioritised in retrieval. If the user has not mentioned Django in six months and recent conversations reference FastAPI, the Django fact should decay.
+
+**Retirement**: A fact is explicitly invalidated, either by the user ("Forget that I use Django, we switched") or by the consolidation process determining that the fact is no longer supported by evidence.
+
+### 6.4 Semantic Memory Retrieval
+
+Retrieving semantic facts differs from retrieving episodic memories. Episodic retrieval seeks narratives; semantic retrieval seeks facts. The optimal retrieval strategy depends on the query type:
+
+- **Direct fact lookup**: "What language does the user's project use?" → search by category (project_facts) and keywords (language, programming).
+- **Preference queries**: "How does the user like their code formatted?" → search by category (user_preferences) and subcategory (code_style).
+- **Contextual enrichment**: The system automatically loads relevant semantic facts based on the current task context. If the agent is about to write Python code, load all semantic memories categorised under Python, code_style, and project conventions.
+- **Contradiction checking**: Before the agent states a fact, it checks semantic memory to ensure consistency. If the agent is about to suggest using Django, it should first check whether the project still uses Django.
+
+In practice, semantic retrieval often works best as a combination of categorical filtering (narrow by type and tags) followed by semantic similarity ranking within the filtered set. This avoids the noise of searching the entire memory store with a single embedding query.
+
+### 6.5 The Episodic-Semantic Bridge
+
+The most sophisticated memory systems maintain an explicit bridge between episodic and semantic memory. Every semantic fact links back to the episodes that support it. Every episode can be queried for the semantic knowledge it contributed. This bidirectional linkage enables:
+
+- **Evidence-based reasoning**: The agent can explain why it believes a fact. "I know your project uses FastAPI because you mentioned it on March 15 when we set up the API routes (ep_023) and again on March 22 when we added middleware (ep_031)."
+- **Confidence calibration**: A semantic fact supported by many independent episodes is more trustworthy than one supported by a single episode. The evidence count directly informs retrieval ranking.
+- **Cascading updates**: When an episodic memory is corrected or deleted (perhaps the user says "actually, that session was about a different project"), the semantic facts derived from it can be re-evaluated and potentially revised.
+- **Active learning**: When the agent notices that a semantic fact has low evidence count or has not been confirmed recently, it can proactively ask the user. "I have on record that your project uses PostgreSQL 16—is that still accurate?"
+
+## 7. Conversation Buffer and Sliding Window
 
 ### 4.1 Full Conversation Buffer
 
@@ -200,7 +431,7 @@ class TokenWindowMemory:
         return context
 ```
 
-## 5. Summary Memory
+## 8. Summary Memory
 
 ### 5.1 Concept
 
@@ -295,7 +526,7 @@ class SummaryWindowMemory:
         return context
 ```
 
-## 6. RAG-Backed Long-Term Memory
+## 9. RAG-Backed Long-Term Memory
 
 ### 6.1 Concept
 
@@ -365,7 +596,7 @@ Where alpha, beta, and gamma are tunable weights.
 
 **Entity-based retrieval.** When the current conversation mentions specific entities (people, projects, tools), retrieve memories tagged with those entities regardless of semantic similarity.
 
-## 7. Vector Store Memory
+## 10. Vector Store Memory
 
 ### 7.1 Architecture
 
@@ -404,7 +635,7 @@ Popular vector databases for agent memory include:
 - **pgvector**: PostgreSQL extension, useful when the application already uses PostgreSQL
 - **FAISS**: Facebook's library, very fast for in-memory search, no built-in persistence
 
-## 8. Knowledge Graph Memory
+## 11. Knowledge Graph Memory
 
 ### 8.1 Concept
 
@@ -495,7 +726,7 @@ class HybridMemory:
         return format_combined_results(semantic_results, graph_results)
 ```
 
-## 9. Memory Consolidation
+## 12. Memory Consolidation
 
 ### 9.1 Concept
 
@@ -564,7 +795,7 @@ Consolidation can be triggered by:
 - **Session boundaries**: Run consolidation at the end of each agent session
 - **Retrieval quality**: Run consolidation when retrieval results show declining relevance
 
-## 10. MemGPT and Virtual Context Management
+## 13. MemGPT and Virtual Context Management
 
 ### 10.1 The MemGPT Concept
 
@@ -618,7 +849,7 @@ core_memory_replace("user",
 
 MemGPT demonstrated that LLMs can effectively manage their own memory when given the right tools. The approach has been adopted and adapted by several systems. Letta (the company founded by the MemGPT creators) has built a production platform around the concept. The core insight—that memory management should be a model capability rather than a system heuristic—has influenced the design of memory systems across the industry.
 
-## 11. Practical Implementations
+## 14. Practical Implementations
 
 ### 11.1 LangChain Memory Types
 
@@ -662,7 +893,7 @@ Anthropic's Claude models support memory through two mechanisms:
 
 OpenAI has implemented memory for ChatGPT through a built-in memory feature that allows the model to store and retrieve facts across conversations. The user can view, edit, and delete stored memories. Developers using the API can implement similar functionality through the Assistants API's thread and file storage capabilities.
 
-## 12. Multi-Session Memory
+## 15. Multi-Session Memory
 
 ### 12.1 The Multi-Session Challenge
 
@@ -758,7 +989,7 @@ class SessionStartRetriever:
         return format_session_context(memories)
 ```
 
-## 13. Privacy Considerations
+## 16. Privacy Considerations
 
 ### 13.1 The Privacy Challenge
 
@@ -793,7 +1024,7 @@ Memory systems that store personal data must comply with relevant regulations:
 - **CCPA** (California): Right to know, right to delete, right to opt out of sale.
 - **Other regulations**: Various jurisdictions have additional requirements for personal data storage and processing.
 
-## 14. Advanced Topics
+## 17. Advanced Topics
 
 ### 14.1 Memory-Augmented Reasoning
 
@@ -859,7 +1090,7 @@ A forgetting mechanism should consider:
 - The importance of the memory (important memories should be retained longer)
 - User-explicit requests to forget
 
-## 15. Design Considerations for Practitioners
+## 18. Design Considerations for Practitioners
 
 ### 15.1 Choosing a Memory Architecture
 
@@ -899,7 +1130,7 @@ Evaluate memory systems on:
 
 Begin with the simplest memory that could work for your application. A sliding window with session summaries covers many use cases. Add vector store retrieval only when the agent demonstrably needs information from past sessions. Add knowledge graphs only when structured relationships are critical. Add MemGPT-style active memory management only when the simpler approaches fail to provide adequate context.
 
-## 16. Conclusion
+## 19. Conclusion
 
 Memory systems transform LLM agents from stateless responders into persistent entities that learn, adapt, and maintain continuity over time. The taxonomy of memory types—working, short-term, long-term, episodic, semantic, and procedural—provides a framework for designing systems that balance completeness with efficiency, detail with abstraction, and persistence with privacy.
 

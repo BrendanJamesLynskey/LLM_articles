@@ -99,6 +99,54 @@
 </section>
 
 <section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Two-Tier Memory Architecture</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Hot Tier: Active Context</h3>
+      <ul><li>Everything currently in the model's <span class="a">context window</span></li><li>System prompt + tool definitions (5K&ndash;15K tokens)</li><li>Active memories retrieved from cold tier (2K&ndash;8K tokens)</li><li>Conversation history, recent or summarised (10K&ndash;40K tokens)</li><li>Scratchpad for intermediate reasoning</li><li><span class="r">Strict budget</span> &mdash; every token spent on one component is unavailable for another</li></ul>
+    </div>
+    <div class="card blue"><h3>Cold Tier: Persistent Store</h3>
+      <ul><li>Full accumulated memory in a <span class="b">durable external store</span></li><li>Never loaded entirely &mdash; queried on demand</li><li><span class="b">Vector DB</span> (Pinecone, Chroma): semantic similarity retrieval</li><li><span class="b">Relational DB</span> (PostgreSQL + pgvector): structured + semantic</li><li><span class="b">Knowledge graph</span> (Neo4j): entity-relationship queries</li><li><span class="b">File system</span> (CLAUDE.md): human-inspectable, version-controlled</li></ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.6em"><h3>The Retrieval Bridge</h3>
+    <p><span class="g">Query-time</span>: search cold tier before each model call. <span class="g">Proactive</span>: predict what memories will be needed from conversation trajectory. <span class="g">Model-directed</span>: agent calls <code>search_memory()</code> during reasoning (MemGPT pattern). <span class="g">Writeback</span>: new facts learned during conversation are persisted to cold tier at session end or explicitly via <code>save_memory()</code>.</p>
+  </div>
+  <div class="slide-footer">agent-memory / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">EPISODIC</span><h2>Episodic Memory in Depth</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple"><h3>What Episodic Memory Captures</h3>
+      <ul><li><span class="p">Temporal grounding</span>: when it happened (timestamp + session position)</li><li><span class="p">Context</span>: user's goal, active task, project state</li><li><span class="p">Events</span>: sequence of actions, tool calls, errors encountered</li><li><span class="p">Outcome</span>: success/failure, user satisfaction</li><li><span class="p">Causal links</span>: what caused this &rarr; what it caused</li><li><span class="p">Lessons</span>: general principles derived from the experience</li></ul>
+    </div>
+    <div class="card amber"><h3>Event Boundary Detection</h3>
+      <ul><li>A 50-turn debug session is <span class="a">one episode</span>, not fifty</li><li><span class="a">Topic shift</span>: "OK, let's move on to authentication"</li><li><span class="a">Task completion</span>: "Tests pass. What's next?"</li><li><span class="a">Time gap</span>: significant pause suggests natural boundary</li><li><span class="a">LLM segmentation</span>: model segments conversation into episodes at session end</li></ul>
+    </div>
+  </div>
+  <div class="card green" style="margin-top:.6em"><h3>Episodic Retrieval</h3>
+    <p>Composite scoring: <code>score = &alpha;&middot;semantic_similarity + &beta;&middot;recency_decay + &gamma;&middot;context_overlap + &delta;&middot;outcome_relevance</code>. Unlike standard RAG, episodic retrieval must weight <span class="g">temporal relevance</span> (recent but not always), <span class="g">situational similarity</span> (same file, same error type), and <span class="g">causal chains</span> (this bug was caused by last week's migration).</p>
+  </div>
+  <div class="slide-footer">agent-memory / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SEMANTIC</span><h2>Semantic Memory in Depth</h2></div>
+  <div class="cols cols-2">
+    <div class="card green"><h3>From Episodes to Knowledge</h3>
+      <ul><li>Episodic: <em>"On March 28, user corrected my semicolon use"</em></li><li>Semantic: <em>"User's JavaScript style omits semicolons"</em></li><li>Abstraction via <span class="g">consolidation</span>: recurring patterns &rarr; general facts</li><li>Manual ("remember I prefer tabs"), automatic (background extraction), or model-driven (proactive persistence)</li></ul>
+    </div>
+    <div class="card blue"><h3>Fact Lifecycle</h3>
+      <ul><li><span class="b">Observation</span>: new fact, low confidence, single source</li><li><span class="b">Confirmation</span>: seen again &rarr; confidence increases</li><li><span class="b">Update</span>: new info supersedes old (PostgreSQL 16 &rarr; 17)</li><li><span class="b">Contradiction</span>: conflicting facts &rarr; resolve by recency</li><li><span class="b">Decay</span>: unconfirmed facts deprioritised over time</li><li><span class="b">Retirement</span>: explicitly invalidated or unsupported</li></ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.6em"><h3>The Episodic-Semantic Bridge</h3>
+    <p>Every semantic fact links back to supporting episodes. Every episode links to derived facts. This enables: <span class="p">evidence-based reasoning</span> ("I know this because..."), <span class="p">confidence calibration</span> (many episodes = high trust), <span class="p">cascading updates</span> (corrected episode &rarr; re-evaluate derived facts), and <span class="p">active learning</span> ("I recorded that you use PostgreSQL 16 &mdash; still accurate?").</p>
+  </div>
+  <div class="slide-footer">agent-memory / 06</div>
+</section>
+
+<section>
   <div class="slide-hdr"><span class="tag">SHORT-TERM</span><h2>Conversation Buffer and Sliding Window</h2></div>
   <div class="cols cols-2">
     <div class="card amber"><h3>Conversation Buffer</h3>
@@ -108,7 +156,7 @@
       <ul><li>Keep only the last <span class="p">N messages</span> (or N tokens)</li><li>Older messages are dropped</li><li>Fixed context usage &mdash; never exceeds budget</li><li><span class="r">Problem</span>: loses information from early conversation</li><li>Model may contradict earlier statements</li><li>Works for <span class="g">casual chat</span>; bad for complex tasks</li></ul>
     </div>
   </div>
-  <div class="slide-footer">agent-memory / 04</div>
+  <div class="slide-footer">agent-memory / 07</div>
 </section>
 
 <section>
@@ -121,7 +169,7 @@
       <ul><li><span class="g">Pro</span>: retains key information in compact form</li><li><span class="g">Pro</span>: bounded context usage</li><li><span class="r">Con</span>: information loss (details discarded)</li><li><span class="r">Con</span>: summarisation cost (LLM call per summary)</li><li><span class="r">Con</span>: summary errors compound over time</li></ul>
     </div>
   </div>
-  <div class="slide-footer">agent-memory / 05</div>
+  <div class="slide-footer">agent-memory / 08</div>
 </section>
 
 <section>
@@ -137,7 +185,7 @@
   <div class="card purple" style="margin-top:.6em"><h3>Retrieval Strategies</h3>
     <p><span class="p">Recency</span>: prefer recent memories. <span class="p">Relevance</span>: semantic similarity to current query. <span class="p">Importance</span>: score memories by significance (corrections &gt; casual remarks). Most systems combine all three: <code>score = α·recency + β·relevance + γ·importance</code>.</p>
   </div>
-  <div class="slide-footer">agent-memory / 06</div>
+  <div class="slide-footer">agent-memory / 09</div>
 </section>
 
 <section>
@@ -159,7 +207,7 @@
       </table>
     </div>
   </div>
-  <div class="slide-footer">agent-memory / 07</div>
+  <div class="slide-footer">agent-memory / 10</div>
 </section>
 
 <section>
@@ -172,7 +220,7 @@
       <ul><li><span class="g">Deduplication</span>: merge near-duplicate memories</li><li><span class="g">Contradiction resolution</span>: newer information overrides older</li><li><span class="g">Abstraction</span>: generalise episodic → semantic ("user corrected me 3 times about API version" → "user's project uses API v3")</li><li><span class="g">Decay</span>: reduce importance of memories not accessed recently</li><li><span class="g">Periodic review</span>: LLM reviews and cleans up memory store</li></ul>
     </div>
   </div>
-  <div class="slide-footer">agent-memory / 08</div>
+  <div class="slide-footer">agent-memory / 11</div>
 </section>
 
 <section>
@@ -188,7 +236,7 @@
     </ul>
     <p style="margin-top:.4em">The model <span class="g">controls its own memory</span> &mdash; deciding what to remember, what to search for, and what to forget. This is more flexible than application-controlled memory but requires the model to have good memory management skills.</p>
   </div>
-  <div class="slide-footer">agent-memory / 09</div>
+  <div class="slide-footer">agent-memory / 12</div>
 </section>
 
 <section>
@@ -204,7 +252,7 @@
       <ul><li>Standalone memory services</li><li>Automatic memory extraction</li><li>Cross-session, multi-user</li><li>API-based integration</li><li>Built-in consolidation</li></ul>
     </div>
   </div>
-  <div class="slide-footer">agent-memory / 10</div>
+  <div class="slide-footer">agent-memory / 13</div>
 </section>
 
 <section>
@@ -217,7 +265,7 @@
       <ul><li><span class="a">Start simple</span>: conversation buffer first, add complexity as needed</li><li><span class="a">Memory budget</span>: cap tokens allocated to retrieved memories</li><li><span class="a">Freshness</span>: prefer recent memories for fast-changing information</li><li><span class="a">Transparency</span>: show users what the agent remembers</li><li><span class="a">Graceful degradation</span>: agent should work without memory (just less well)</li></ul>
     </div>
   </div>
-  <div class="slide-footer">agent-memory / 11</div>
+  <div class="slide-footer">agent-memory / 14</div>
 </section>
 
 <section>
@@ -230,7 +278,7 @@
       <ul><li>Start with <span class="g">conversation buffer</span>; add summary for longer sessions</li><li>Add <span class="g">vector store memory</span> for cross-session personalisation</li><li>Combine recency + relevance + importance for retrieval scoring</li><li>Give users control over their memory (view, edit, delete)</li><li>MemGPT-style self-managed memory is powerful but requires capable models</li></ul>
     </div>
   </div>
-  <div class="slide-footer">agent-memory / 12</div>
+  <div class="slide-footer">agent-memory / 15</div>
 </section>
 
 </div></div>

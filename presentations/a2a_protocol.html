@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent-to-Agent (A2A) Protocol | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Agent-to-Agent Protocol</h1>
+  <p class="subtitle">An Open Standard for Inter-Agent Communication</p>
+  <div>
+    <span class="pill amber">A2A</span>
+    <span class="pill green">interoperability</span>
+    <span class="pill purple">multi-agent</span>
+    <span class="pill blue">Google</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">a2a-protocol / 01</div>
+</section>
+
+<!-- SLIDE 2: The Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>Agent Isolation</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Before A2A</h3>
+      <ul>
+        <li>Agents from different vendors <span class="r">cannot communicate</span></li>
+        <li>N platforms &times; N platforms = <span class="r">N&sup2; custom integrations</span></li>
+        <li>No standard for agent discovery or capability advertisement</li>
+        <li>No protocol for long-running task delegation</li>
+        <li>Each agent is an intelligent island</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>With A2A</h3>
+      <ul>
+        <li>Any agent can discover and communicate with <span class="g">any other agent</span></li>
+        <li>Each agent implements <span class="g">one A2A endpoint</span></li>
+        <li>Agent Cards advertise capabilities at well-known URIs</li>
+        <li>Tasks, streaming, and push notifications built in</li>
+        <li>Like USB for agent interoperability</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Scope</h3>
+    <p>Announced by Google April 2025. Contributed to <span class="b">Linux Foundation</span>. Version 1.0 reached March 2026. <span class="b">150+ supporting organizations</span> including Google, Microsoft, AWS, Salesforce, SAP, ServiceNow, LangChain.</p>
+  </div>
+  <div class="slide-footer">a2a-protocol / 02</div>
+</section>
+
+<!-- SLIDE 3: Three Actors -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Three Actors</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>User</h3>
+      <ul>
+        <li>Human operator or automated service</li>
+        <li>Initiates requests through a client agent</li>
+        <li>Interacts via chat, API, voice, etc.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Client Agent (A2A Client)</h3>
+      <ul>
+        <li>Initiates communication <span class="g">on behalf of user</span></li>
+        <li>Discovers remote agents via Agent Cards</li>
+        <li>Sends tasks, monitors progress, collects results</li>
+        <li>Typically the orchestrator in multi-agent systems</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Remote Agent (A2A Server)</h3>
+      <ul>
+        <li>Exposes HTTP endpoint implementing A2A</li>
+        <li><span class="p">Opaque</span> to the client &mdash; internal workings hidden</li>
+        <li>Receives tasks, processes them, returns results</li>
+        <li>Can itself act as client to other agents</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 100" width="750" style="margin-top:.7em">
+    <rect x="10" y="20" width="140" height="60" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="80" y="45" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">User</text>
+    <text x="80" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">human / service</text>
+    <rect x="240" y="20" width="180" height="60" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="330" y="45" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">Client Agent</text>
+    <text x="330" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">orchestrator</text>
+    <rect x="530" y="20" width="180" height="60" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="620" y="45" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">Remote Agent</text>
+    <text x="620" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">opaque specialist</text>
+    <line x1="150" y1="50" x2="240" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <line x1="420" y1="50" x2="530" y2="50" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="475" y="42" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">A2A</text>
+    <defs><marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="slide-footer">a2a-protocol / 03</div>
+</section>
+
+<!-- SLIDE 4: Core Data Model -->
+<section>
+  <div class="slide-hdr"><span class="tag">DATA MODEL</span><h2>Five Core Objects</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Agent Card</h3>
+      <p>JSON metadata &ldquo;business card&rdquo; describing identity, capabilities, skills, endpoint, and auth requirements.</p>
+    </div>
+    <div class="card green">
+      <h3>Task</h3>
+      <p>Stateful unit of work with unique ID. Progresses through defined lifecycle: submitted &rarr; working &rarr; completed.</p>
+    </div>
+    <div class="card purple">
+      <h3>Message</h3>
+      <p>Single communication turn. Role is <span class="p">&ldquo;user&rdquo;</span> (client) or <span class="p">&ldquo;agent&rdquo;</span> (server). Contains one or more Parts.</p>
+    </div>
+    <div class="card blue">
+      <h3>Part</h3>
+      <p>Smallest content unit. Holds exactly one type: <span class="b">text</span>, <span class="b">file</span> (inline or URI), or <span class="b">data</span> (structured JSON).</p>
+    </div>
+    <div class="card red">
+      <h3>Artifact</h3>
+      <p>Tangible output from the remote agent &mdash; documents, images, structured data. Supports <span class="r">incremental streaming</span>.</p>
+    </div>
+    <div class="card amber">
+      <h3>Context</h3>
+      <p>Server-generated <code>contextId</code> grouping related Tasks into a conversational thread for multi-turn interactions.</p>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 04</div>
+</section>
+
+<!-- SLIDE 5: Agent Card Detail -->
+<section>
+  <div class="slide-hdr"><span class="tag">DISCOVERY</span><h2>Agent Card</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <ul>
+        <li>Published at <code>/.well-known/agent-card.json</code> (RFC 8615)</li>
+        <li>Identity: <span class="a">name</span>, description, version, provider, icon</li>
+        <li>Service endpoint: <span class="g">url</span> for A2A requests</li>
+        <li>Capabilities: streaming, push notifications, extended card</li>
+        <li>Skills: ID, name, description, tags, examples, input/output MIME types</li>
+        <li>Security: schemes aligned with <span class="p">OpenAPI spec</span></li>
+        <li><span class="b">Signature</span> field for authenticity verification (v0.3+)</li>
+        <li>Caching via <code>Cache-Control</code>, <code>ETag</code>, conditional requests</li>
+      </ul>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Discovery Strategies</h3>
+        <p><span class="g">Well-Known URI</span> &mdash; HTTP GET to standardized path. <span class="g">Curated Registries</span> &mdash; searchable catalogs. <span class="g">Direct Config</span> &mdash; hardcoded URLs.</p>
+      </div>
+    </div>
+    <div>
+      <pre><code>{
+  "name": "Expense Analyzer",
+  "description": "Analyzes expense
+    reports for compliance",
+  "url": "https://agents.example
+    .com/expense",
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": true
+  },
+  "skills": [{
+    "id": "expense_review",
+    "name": "Expense Review",
+    "inputModes": [
+      "text/plain",
+      "application/pdf"
+    ],
+    "outputModes": [
+      "application/json"
+    ]
+  }],
+  "securitySchemes": [{
+    "type": "oauth2"
+  }]
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 05</div>
+</section>
+
+<!-- SLIDE 6: Task Lifecycle -->
+<section>
+  <div class="slide-hdr"><span class="tag">LIFECYCLE</span><h2>Task States</h2></div>
+  <table>
+    <tr><th>State</th><th>Description</th><th>Terminal?</th></tr>
+    <tr><td><span class="a">submitted</span></td><td>Task received by server, not yet processing</td><td>No</td></tr>
+    <tr><td><span class="b">working</span></td><td>Server actively processing the task</td><td>No</td></tr>
+    <tr><td><span class="p">input-required</span></td><td>Server needs additional input from client</td><td>No</td></tr>
+    <tr><td><span class="g">completed</span></td><td>Task finished successfully</td><td>Yes</td></tr>
+    <tr><td><span class="r">failed</span></td><td>Task terminated due to error</td><td>Yes</td></tr>
+    <tr><td style="color:var(--muted)">canceled</td><td>Client requested cancellation</td><td>Yes</td></tr>
+    <tr><td style="color:var(--muted)">rejected</td><td>Server declined the task</td><td>Yes</td></tr>
+    <tr><td style="color:var(--muted)">auth-required</td><td>Additional authentication needed</td><td>No</td></tr>
+  </table>
+  <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.6em">
+    <rect x="10" y="25" width="100" height="40" rx="6" fill="none" stroke="#f5a623" stroke-width="1.2"/>
+    <text x="60" y="50" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">submitted</text>
+    <rect x="160" y="25" width="100" height="40" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.2"/>
+    <text x="210" y="50" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">working</text>
+    <rect x="310" y="25" width="130" height="40" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="375" y="50" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">input-required</text>
+    <rect x="500" y="25" width="110" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="555" y="50" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">completed</text>
+    <rect x="660" y="25" width="90" height="40" rx="6" fill="none" stroke="#f87171" stroke-width="1.2"/>
+    <text x="705" y="50" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">failed</text>
+    <line x1="110" y1="45" x2="160" y2="45" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowT)"/>
+    <line x1="260" y1="45" x2="310" y2="45" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowT)"/>
+    <line x1="440" y1="45" x2="500" y2="45" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowT)"/>
+    <path d="M375,65 Q375,80 210,80 Q210,65 210,65" fill="none" stroke="#8888a8" stroke-width="1" marker-end="url(#arrowT)"/>
+    <text x="290" y="88" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">multi-turn loop</text>
+    <defs><marker id="arrowT" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="slide-footer">a2a-protocol / 06</div>
+</section>
+
+<!-- SLIDE 7: Multi-Turn Interaction -->
+<section>
+  <div class="slide-hdr"><span class="tag">PATTERN</span><h2>Multi-Turn Interaction</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card purple">
+        <h3>The input-required Pattern</h3>
+        <ul>
+          <li>Client sends initial message via <code>message/send</code></li>
+          <li>Server returns task in <span class="p">input-required</span> state with a question</li>
+          <li>Client sends follow-up referencing same <code>taskId</code> and <code>contextId</code></li>
+          <li>Server continues &mdash; may repeat cycle or transition to <span class="g">completed</span></li>
+          <li>Supports collaborative task completion</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Example Scenarios</h3>
+        <ul>
+          <li>Travel agent asks for date preferences</li>
+          <li>Finance agent requests transaction approval</li>
+          <li>Research agent presents findings, asks direction</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 260 320" width="240">
+        <rect x="20" y="5" width="90" height="30" rx="5" fill="none" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="65" y="25" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Client</text>
+        <rect x="150" y="5" width="90" height="30" rx="5" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="195" y="25" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Server</text>
+        <line x1="65" y1="35" x2="65" y2="310" stroke="#4ecb8d" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="195" y1="35" x2="195" y2="310" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="65" y1="60" x2="195" y2="60" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowS2)"/>
+        <text x="130" y="55" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="8">message/send</text>
+        <line x1="195" y1="100" x2="65" y2="100" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowS2)"/>
+        <text x="130" y="95" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="8">input-required</text>
+        <line x1="65" y1="140" x2="195" y2="140" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowS2)"/>
+        <text x="130" y="135" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="8">follow-up msg</text>
+        <line x1="195" y1="180" x2="65" y2="180" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowS2)"/>
+        <text x="130" y="175" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="8">input-required</text>
+        <line x1="65" y1="220" x2="195" y2="220" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowS2)"/>
+        <text x="130" y="215" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="8">final input</text>
+        <line x1="195" y1="260" x2="65" y2="260" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowS2)"/>
+        <text x="130" y="255" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">completed + artifacts</text>
+        <defs><marker id="arrowS2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="currentColor" stroke-width="1"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 07</div>
+</section>
+
+<!-- SLIDE 8: Communication Patterns -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRANSPORT</span><h2>Three Communication Patterns</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Request/Response</h3>
+      <ul>
+        <li><code>message/send</code> &mdash; synchronous</li>
+        <li><span class="a">Blocking</span>: holds connection until terminal state</li>
+        <li><span class="a">Non-blocking</span>: <code>returnImmediately: true</code>, then poll via <code>tasks/get</code></li>
+        <li>Best for quick tasks completing in seconds</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Streaming (SSE)</h3>
+      <ul>
+        <li><code>message/stream</code> &mdash; Server-Sent Events</li>
+        <li><span class="g">TaskStatusUpdateEvent</span> &mdash; state transitions</li>
+        <li><span class="g">TaskArtifactUpdateEvent</span> &mdash; incremental output</li>
+        <li><code>append</code> and <code>lastChunk</code> flags</li>
+        <li>Best for interactive progress display</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Push Notifications</h3>
+      <ul>
+        <li>Webhooks via <code>pushNotificationConfig/create</code></li>
+        <li>Server POSTs <span class="p">StreamResponse</span> payloads to client URL</li>
+        <li>Auth via Bearer tokens or mTLS</li>
+        <li>Best for <span class="p">long-running tasks</span> (hours/days)</li>
+        <li>No persistent connection needed</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 08</div>
+</section>
+
+<!-- SLIDE 9: JSON-RPC Methods -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROTOCOL</span><h2>JSON-RPC 2.0 Methods</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Message Operations</h3>
+        <ul>
+          <li><code>message/send</code> &mdash; send message, get Task response</li>
+          <li><code>message/stream</code> &mdash; send message, get SSE stream</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Task Management</h3>
+        <ul>
+          <li><code>tasks/get</code> &mdash; retrieve task state + optional history</li>
+          <li><code>tasks/list</code> &mdash; paginated listing with filters</li>
+          <li><code>tasks/cancel</code> &mdash; request cancellation</li>
+          <li><code>tasks/subscribe</code> &mdash; SSE stream for existing task</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Push Notification Config</h3>
+        <ul>
+          <li><code>tasks/pushNotificationConfig/create</code></li>
+          <li><code>tasks/pushNotificationConfig/get</code></li>
+          <li><code>tasks/pushNotificationConfig/list</code></li>
+          <li><code>tasks/pushNotificationConfig/delete</code></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <pre><code>// Request
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "message/send",
+  "params": {
+    "message": {
+      "role": "user",
+      "parts": [{
+        "kind": "text",
+        "text": "Analyze Q1 sales"
+      }],
+      "messageId": "msg-001"
+    }
+  }
+}
+
+// Response
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "id": "task-42",
+    "contextId": "ctx-7",
+    "status": {
+      "state": "completed"
+    },
+    "artifacts": [{
+      "artifactId": "art-1",
+      "name": "analysis",
+      "parts": [{
+        "kind": "text",
+        "text": "Q1 revenue..."
+      }]
+    }],
+    "kind": "task"
+  }
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 09</div>
+</section>
+
+<!-- SLIDE 10: Transport Bindings -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRANSPORT</span><h2>Three Protocol Bindings</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>JSON-RPC over HTTP</h3>
+      <ul>
+        <li>Primary binding &mdash; all methods via <span class="a">HTTP POST</span></li>
+        <li><code>application/json</code> content type</li>
+        <li>JSON-RPC 2.0 request/response envelope</li>
+        <li>SSE for streaming responses</li>
+        <li>Widest compatibility</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>HTTP/REST</h3>
+      <ul>
+        <li>Alternative RESTful mapping</li>
+        <li><code>POST /messages</code> &mdash; send</li>
+        <li><code>GET /tasks/{id}</code> &mdash; retrieve</li>
+        <li><code>POST /tasks/{id}/cancel</code></li>
+        <li>Familiar to REST API developers</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>gRPC (v0.3+)</h3>
+      <ul>
+        <li>Service definition maps ops to RPCs</li>
+        <li>gRPC server streaming for SSE equivalents</li>
+        <li>Service parameters via <span class="p">gRPC metadata</span></li>
+        <li>High-throughput, low-latency scenarios</li>
+        <li>Polyglot enterprise environments</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Service Parameters</h3>
+    <p><code>A2A-Version</code> header &mdash; protocol version (e.g., &ldquo;1.0&rdquo;). <code>A2A-Extensions</code> header &mdash; comma-separated extension URIs the client supports.</p>
+  </div>
+  <div class="slide-footer">a2a-protocol / 10</div>
+</section>
+
+<!-- SLIDE 11: Security Model -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>Authentication &amp; Authorization</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <tr><th>Scheme</th><th>Use Case</th></tr>
+        <tr><td><span class="a">API Key</span></td><td>Server-to-server in trusted environments</td></tr>
+        <tr><td><span class="g">HTTP Auth</span></td><td>Basic or Bearer (JWT) &mdash; most common</td></tr>
+        <tr><td><span class="p">OAuth 2.0</span></td><td>Enterprise with delegated, scoped access</td></tr>
+        <tr><td><span class="b">OpenID Connect</span></td><td>Identity federation across orgs</td></tr>
+        <tr><td><span class="r">Mutual TLS</span></td><td>High-security certificate-based auth</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Key Principles</h3>
+        <ul>
+          <li>Credentials at <span class="b">HTTP transport layer</span>, never in JSON-RPC payload</li>
+          <li>Agents treated as standard <span class="b">enterprise applications</span></li>
+          <li>Out-of-band credential acquisition</li>
+          <li>Agent Card declares security requirements</li>
+          <li>Aligned with <span class="a">OpenAPI</span> security scheme spec</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.6em">
+        <h3>Authorization Levels</h3>
+        <ul>
+          <li><span class="r">Skill-based</span> &mdash; OAuth scopes per skill</li>
+          <li><span class="r">Resource-level</span> &mdash; backend access gating</li>
+          <li><span class="r">Identity-based</span> &mdash; per-client policies</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 11</div>
+</section>
+
+<!-- SLIDE 12: Agent Card Signing & Transport Security -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>Transport &amp; Card Integrity</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Transport Security</h3>
+      <ul>
+        <li><span class="g">HTTPS mandatory</span> in production</li>
+        <li>TLS 1.2+ with strong cipher suites</li>
+        <li>Certificate verification against trusted CAs</li>
+        <li>HTTP error responses: <code>401</code> (missing/invalid creds), <code>403</code> (insufficient permissions)</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Agent Card Signing (v0.3+)</h3>
+      <ul>
+        <li><span class="p">signature</span> field for authenticity verification</li>
+        <li>Canonicalized JSON for deterministic signing</li>
+        <li>Prevents tampering during transit or registry storage</li>
+        <li>Clients verify before trusting card contents</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.8em">
+    <h3>Enterprise Recommendations</h3>
+    <ul>
+      <li><span class="a">API Management</span> integration for externally exposed agents &mdash; centralized rate limiting, quotas, policy enforcement</li>
+      <li><span class="b">OpenTelemetry</span> with W3C Trace Context for distributed tracing across agent interactions</li>
+      <li>Comprehensive <span class="g">audit logging</span> with taskId, contextId, and correlation IDs</li>
+      <li>Regulatory compliance awareness: GDPR, CCPA, HIPAA</li>
+    </ul>
+  </div>
+  <div class="slide-footer">a2a-protocol / 12</div>
+</section>
+
+<!-- SLIDE 13: A2A vs MCP -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>A2A vs MCP &mdash; Complementary Protocols</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>MCP (Model Context Protocol)</h3>
+      <ul>
+        <li><span class="a">Vertical</span> &mdash; agent reaches down to tools and data</li>
+        <li>Stateless tool calls</li>
+        <li>Tool manifests for discovery</li>
+        <li>One agent &harr; many tools</li>
+        <li>Anthropic origin, now Linux Foundation</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>A2A (Agent-to-Agent)</h3>
+      <ul>
+        <li><span class="g">Horizontal</span> &mdash; agent talks to peer agents</li>
+        <li>Stateful tasks with lifecycle</li>
+        <li>Agent Cards for discovery</li>
+        <li>Agent &harr; agent (opaque delegation)</li>
+        <li>Google origin, now Linux Foundation</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 800 180" width="750" style="margin-top:.5em">
+    <rect x="300" y="10" width="200" height="45" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="400" y="38" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">Orchestrator Agent</text>
+    <rect x="80" y="80" width="160" height="40" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="160" y="105" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Specialist Agent A</text>
+    <rect x="550" y="80" width="160" height="40" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="630" y="105" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Specialist Agent B</text>
+    <rect x="40" y="145" width="90" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="85" y="164" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MCP Tool</text>
+    <rect x="170" y="145" width="90" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="215" y="164" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MCP Tool</text>
+    <rect x="520" y="145" width="90" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="565" y="164" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MCP Tool</text>
+    <rect x="650" y="145" width="90" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
+    <text x="695" y="164" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MCP Tool</text>
+    <line x1="340" y1="55" x2="200" y2="80" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowC)"/>
+    <line x1="460" y1="55" x2="600" y2="80" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowC)"/>
+    <text x="250" y="63" fill="#f5a623" font-family="JetBrains Mono" font-size="9">A2A</text>
+    <text x="540" y="63" fill="#f5a623" font-family="JetBrains Mono" font-size="9">A2A</text>
+    <line x1="120" y1="120" x2="100" y2="145" stroke="#4ecb8d" stroke-width="1" marker-end="url(#arrowC)"/>
+    <line x1="190" y1="120" x2="210" y2="145" stroke="#4ecb8d" stroke-width="1" marker-end="url(#arrowC)"/>
+    <line x1="600" y1="120" x2="580" y2="145" stroke="#4ecb8d" stroke-width="1" marker-end="url(#arrowC)"/>
+    <line x1="660" y1="120" x2="680" y2="145" stroke="#4ecb8d" stroke-width="1" marker-end="url(#arrowC)"/>
+    <text x="100" y="137" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">MCP</text>
+    <text x="580" y="137" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">MCP</text>
+    <defs><marker id="arrowC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="currentColor" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="slide-footer">a2a-protocol / 13</div>
+</section>
+
+<!-- SLIDE 14: Ecosystem & Adoption -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>Adoption &amp; Supporters</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Cloud Platforms</h3>
+        <ul>
+          <li><span class="a">Google Cloud</span> &mdash; ADK, Vertex AI Agent Engine, Cloud Run</li>
+          <li><span class="b">Microsoft Azure</span> &mdash; AI Foundry, Copilot Studio</li>
+          <li><span class="g">AWS</span> &mdash; Bedrock AgentCore native A2A support</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Enterprise Software</h3>
+        <ul>
+          <li>Salesforce (Agentforce)</li>
+          <li>SAP (Joule, Business AI)</li>
+          <li>ServiceNow, Workday, Intuit</li>
+          <li>Atlassian, Box, MongoDB, PayPal</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Frameworks &amp; SDKs</h3>
+        <ul>
+          <li>LangChain / LangGraph</li>
+          <li>CrewAI, Google ADK</li>
+          <li>5 official SDKs: <span class="p">Python, Go, JS, Java, .NET</span></li>
+          <li>A2A Inspector &amp; Protocol TCK</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Governance</h3>
+        <ul>
+          <li><span class="b">Linux Foundation</span> open-source project</li>
+          <li>IBM&rsquo;s ACP <span class="b">merged into A2A</span> (Aug 2025)</li>
+          <li>Technical Steering Committee: Google, Microsoft, AWS, Cisco, Salesforce, ServiceNow, SAP, IBM</li>
+          <li>150+ supporting organizations</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 14</div>
+</section>
+
+<!-- SLIDE 15: Enterprise Use Cases -->
+<section>
+  <div class="slide-hdr"><span class="tag">USE CASES</span><h2>Enterprise Scenarios</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Multi-Vendor Agent Orchestration</h3>
+      <p>Salesforce customer agents, ServiceNow IT agents, custom LangChain finance agents, and Workday HR agents &mdash; all coordinated by a single orchestrator via A2A. &ldquo;Onboard a contractor, set up their laptop, create a PO&rdquo; flows through HR &rarr; IT &rarr; procurement seamlessly.</p>
+    </div>
+    <div class="card green">
+      <h3>Travel &amp; Expense Management</h3>
+      <p>User requests a business trip. Orchestrator delegates via A2A to: <span class="g">travel booking agent</span> (flights/hotels), <span class="a">finance agent</span> (policy compliance), <span class="p">payment agent</span> (transactions), <span class="b">currency agent</span> (conversions). Multi-turn interactions handle preferences and approvals.</p>
+    </div>
+    <div class="card purple">
+      <h3>Supply Chain Optimization</h3>
+      <p>Sales forecasting agent detects demand increase. Notifies supply chain planning agent via A2A, which coordinates with inventory, logistics, and supplier agents to optimize stock levels &mdash; <span class="p">no human intervention or custom APIs</span>.</p>
+    </div>
+    <div class="card blue">
+      <h3>Collaborative Research</h3>
+      <p>Research orchestrator breaks investigation into parallel workstreams. Delegates literature review, data analysis, and competitive landscape to specialists. Collects results via <span class="b">push notifications</span> over hours/days, then synthesizes into a report.</p>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 15</div>
+</section>
+
+<!-- SLIDE 16: Protocol Evolution -->
+<section>
+  <div class="slide-hdr"><span class="tag">HISTORY</span><h2>Protocol Evolution</h2></div>
+  <table>
+    <tr><th>Version</th><th>Date</th><th>Key Features</th></tr>
+    <tr><td><span class="a">0.1</span></td><td>April 2025</td><td>Initial specification with core concepts: Agent Cards, Tasks, Messages, Parts, Artifacts</td></tr>
+    <tr><td><span class="g">0.2</span></td><td>May&ndash;June 2025</td><td>Standardized authentication aligned with OpenAPI; stateless interaction support</td></tr>
+    <tr><td><span class="p">0.3</span></td><td>July 2025</td><td>gRPC binding; Agent Card signing; well-known path changed to <code>agent-card.json</code></td></tr>
+    <tr><td><span class="b">1.0</span></td><td>March 2026</td><td>Production-ready release; extended Agent Card in capabilities object; full SDK coverage</td></tr>
+  </table>
+  <div class="card amber" style="margin-top:.8em">
+    <h3>Five Design Principles</h3>
+    <ul>
+      <li><span class="a">Embrace agentic capabilities</span> &mdash; natural collaboration without shared memory or tools</li>
+      <li><span class="g">Build on existing standards</span> &mdash; HTTP, SSE, JSON-RPC, gRPC (no proprietary transports)</li>
+      <li><span class="p">Secure by default</span> &mdash; enterprise-grade auth from day one</li>
+      <li><span class="b">Long-running task support</span> &mdash; sub-second to multi-day workflows</li>
+      <li><span class="r">Modality agnostic</span> &mdash; text, audio, video, and file streaming are first-class</li>
+    </ul>
+  </div>
+  <div class="slide-footer">a2a-protocol / 16</div>
+</section>
+
+<!-- SLIDE 17: Streaming Deep Dive -->
+<section>
+  <div class="slide-hdr"><span class="tag">DEEP DIVE</span><h2>SSE Streaming</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card green">
+        <h3>How It Works</h3>
+        <ul>
+          <li>Client sends <code>message/stream</code></li>
+          <li>Server responds with <span class="g">text/event-stream</span></li>
+          <li>Each event is a <code>StreamResponse</code> wrapper</li>
+          <li>Contains one of: task, message, statusUpdate, artifactUpdate</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Artifact Streaming</h3>
+        <ul>
+          <li><code>append: false</code> &mdash; replace previous content</li>
+          <li><code>append: true</code> &mdash; append to previous content</li>
+          <li><code>lastChunk: true</code> &mdash; final piece of artifact</li>
+          <li>Enables real-time display of generated output</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <pre><code>// Status update event
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "taskId": "task-42",
+    "status": {
+      "state": "working",
+      "timestamp": "2026-04-..."
+    },
+    "kind": "status-update"
+  }
+}
+
+// Artifact chunk
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "taskId": "task-42",
+    "artifact": {
+      "artifactId": "art-1",
+      "parts": [{
+        "kind": "text",
+        "text": "Section 1..."
+      }]
+    },
+    "append": false,
+    "lastChunk": false,
+    "kind": "artifact-update"
+  }
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 17</div>
+</section>
+
+<!-- SLIDE 18: Error Handling -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROTOCOL</span><h2>Error Handling</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <table>
+        <tr><th>Error Code</th><th>Meaning</th></tr>
+        <tr><td><code>TaskNotFoundError</code></td><td>Referenced task does not exist</td></tr>
+        <tr><td><code>TaskNotCancelableError</code></td><td>Task in non-cancelable state</td></tr>
+        <tr><td><code>PushNotificationNotSupportedError</code></td><td>Server lacks push capability</td></tr>
+        <tr><td><code>UnsupportedOperationError</code></td><td>Method not implemented</td></tr>
+        <tr><td><code>ContentTypeNotSupportedError</code></td><td>MIME type not accepted</td></tr>
+        <tr><td><code>InvalidAgentResponseError</code></td><td>Malformed agent response</td></tr>
+        <tr><td><code>VersionNotSupportedError</code></td><td>Protocol version mismatch</td></tr>
+        <tr><td><code>ExtensionSupportRequiredError</code></td><td>Required extension missing</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>Error Response Format</h3>
+        <p>Standard JSON-RPC 2.0 error object with <code>code</code>, <code>message</code>, and optional <code>data</code> field. Clients should handle errors gracefully and provide actionable feedback to the user or calling agent.</p>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>HTTP-Level Errors</h3>
+        <ul>
+          <li><code>401 Unauthorized</code> &mdash; missing/invalid credentials; includes <code>WWW-Authenticate</code> header</li>
+          <li><code>403 Forbidden</code> &mdash; valid credentials but insufficient permissions</li>
+          <li><code>404 Not Found</code> &mdash; invalid endpoint</li>
+          <li><code>429 Too Many Requests</code> &mdash; rate limit exceeded</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">a2a-protocol / 18</div>
+</section>
+
+<!-- SLIDE 19: REST Binding Reference -->
+<section>
+  <div class="slide-hdr"><span class="tag">REFERENCE</span><h2>HTTP/REST Endpoint Mapping</h2></div>
+  <table>
+    <tr><th>Endpoint</th><th>Method</th><th>Operation</th></tr>
+    <tr><td><code>/messages</code></td><td>POST</td><td>Send message (request/response)</td></tr>
+    <tr><td><code>/messages/stream</code></td><td>POST</td><td>Send message (SSE streaming)</td></tr>
+    <tr><td><code>/tasks/{taskId}</code></td><td>GET</td><td>Retrieve task state and history</td></tr>
+    <tr><td><code>/tasks</code></td><td>GET</td><td>List tasks with pagination and filters</td></tr>
+    <tr><td><code>/tasks/{taskId}/cancel</code></td><td>POST</td><td>Request task cancellation</td></tr>
+    <tr><td><code>/tasks/{taskId}/subscribe</code></td><td>GET</td><td>Subscribe to task updates (SSE)</td></tr>
+    <tr><td><code>/tasks/{taskId}/pushConfigs</code></td><td>POST / GET</td><td>Create / List webhook configs</td></tr>
+    <tr><td><code>/tasks/{taskId}/pushConfigs/{id}</code></td><td>GET / DELETE</td><td>Get / Delete webhook config</td></tr>
+    <tr><td><code>/.well-known/agent-card.json</code></td><td>GET</td><td>Public Agent Card (discovery)</td></tr>
+    <tr><td><code>/extendedAgentCard</code></td><td>GET</td><td>Authenticated extended Agent Card</td></tr>
+  </table>
+  <div class="card amber" style="margin-top:.8em">
+    <h3>Pagination</h3>
+    <p><code>tasks/list</code> supports cursor-based pagination via <code>pageToken</code>. Filter by <code>contextId</code>, <code>status</code>, and timestamps. Results ordered by creation time.</p>
+  </div>
+  <div class="slide-footer">a2a-protocol / 19</div>
+</section>
+
+<!-- SLIDE 20: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>What A2A Provides</h3>
+      <ul>
+        <li><span class="a">Universal interoperability</span> between agents regardless of vendor or framework</li>
+        <li>Agent Cards for <span class="g">capability discovery</span></li>
+        <li>Stateful tasks with full <span class="p">lifecycle management</span></li>
+        <li>Three communication patterns: sync, streaming, push</li>
+        <li>Enterprise-grade security from day one</li>
+        <li>Modality-agnostic: text, audio, video, files</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The Complete Stack</h3>
+      <ul>
+        <li><span class="g">MCP</span> = how agents access tools (vertical)</li>
+        <li><span class="a">A2A</span> = how agents talk to each other (horizontal)</li>
+        <li>Together: complete interoperability layer for agentic AI</li>
+        <li>Both under <span class="b">Linux Foundation</span> governance</li>
+        <li>150+ organizations, all major clouds, v1.0 production-ready</li>
+        <li>The HTTP of multi-agent systems</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Bottom Line</h3>
+    <p>A2A fills the critical gap between agents in the same way that MCP fills the gap between agents and tools. As multi-agent systems move from prototypes to production, A2A &mdash; built on familiar web standards, governed by the Linux Foundation, and backed by every major cloud and enterprise platform &mdash; is positioned to become the standard protocol for inter-agent communication.</p>
+  </div>
+  <div class="slide-footer">a2a-protocol / 20</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

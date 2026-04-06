@@ -68,7 +68,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Topic | Format |
 | --- | --- |
 | Embedding Models and Vector Search | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/embedding_models_and_vector_search.html) · [MD](articles/embedding_models_and_vector_search.md) |
-| MCP Gateways: Centralized Proxy Architecture for the Model Context Protocol Ecosystem | [MD](articles/mcp_gateways.md) |
+| MCP Gateways: Centralized Proxy Architecture for the Model Context Protocol Ecosystem | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mcp_gateways.html) · [MD](articles/mcp_gateways.md) |
 | Model Context Protocol (MCP): A Universal Interface for LLM Tool Integration | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/model_context_protocol.html) · [MD](articles/model_context_protocol.md) |
 | The Open-Weights LLM Landscape | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/open_weights_llm_landscape.html) · [MD](articles/open_weights_llm_landscape.md) |
 | Retrieval-Augmented Generation (RAG) | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/retrieval_augmented_generation.html) · [MD](articles/retrieval_augmented_generation.md) |

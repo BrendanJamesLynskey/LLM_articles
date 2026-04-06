@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP Gateways | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>MCP Gateways</h1>
+  <p class="subtitle">Centralized Proxy Architecture for the Model Context Protocol Ecosystem</p>
+  <div>
+    <span class="pill amber">MCP</span>
+    <span class="pill green">gateway</span>
+    <span class="pill purple">security</span>
+    <span class="pill blue">enterprise</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">mcp-gateways / 01</div>
+</section>
+
+<!-- SLIDE 2: The Problem -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>Why MCP Gateways Are Needed</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Direct Connection at Scale</h3>
+      <ul>
+        <li>20 agents &times; 30 servers = <span class="r">600 connections</span></li>
+        <li>Each needs separate auth, credentials, monitoring</li>
+        <li>Adding a server means updating every agent</li>
+        <li>Rotating a credential means touching every client</li>
+        <li>No single place to answer &ldquo;who calls what, how often?&rdquo;</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>With a Gateway</h3>
+      <ul>
+        <li>Agents connect to <span class="g">one endpoint</span></li>
+        <li>Gateway manages all upstream servers</li>
+        <li>Centralized auth, rate limits, audit logging</li>
+        <li>Unified tool catalog with access control</li>
+        <li>Add/remove servers without touching clients</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card amber">
+      <h3>Security Gap</h3>
+      <p>MCP spec left auth, rate limiting, audit logging to implementations. Most servers omit them. A gateway provides a <span class="a">single enforcement point</span>.</p>
+    </div>
+    <div class="card blue">
+      <h3>Context Window Problem</h3>
+      <p>Naive aggregation of all tools wastes <span class="b">30&ndash;50% of context tokens</span> on tool definitions. Gateways curate and filter the tool catalog per user/task.</p>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 02</div>
+</section>
+
+<!-- SLIDE 3: Architecture Diagram -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Centralized Reverse Proxy</h2></div>
+  <svg class="diagram" viewBox="0 0 850 260" width="800">
+    <!-- Clients -->
+    <rect x="10" y="20" width="140" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="80" y="45" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Agent A</text>
+    <rect x="10" y="80" width="140" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="80" y="105" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Agent B</text>
+    <rect x="10" y="140" width="140" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="80" y="165" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Agent C</text>
+    <!-- Gateway -->
+    <rect x="280" y="40" width="200" height="140" rx="10" fill="none" stroke="#f5a623" stroke-width="2"/>
+    <text x="380" y="75" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="16" font-weight="700">MCP Gateway</text>
+    <text x="380" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Auth &bull; Rate Limit &bull; Audit</text>
+    <text x="380" y="115" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Tool Registry &bull; Routing</text>
+    <text x="380" y="130" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Credential Vault &bull; Caching</text>
+    <text x="380" y="145" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Transport Bridge &bull; Tracing</text>
+    <!-- Servers -->
+    <rect x="610" y="10" width="160" height="36" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="690" y="33" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">GitHub MCP Server</text>
+    <rect x="610" y="60" width="160" height="36" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="690" y="83" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">Database MCP Server</text>
+    <rect x="610" y="110" width="160" height="36" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="690" y="133" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">Slack MCP Server</text>
+    <rect x="610" y="160" width="160" height="36" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="690" y="183" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">Filesystem MCP Server</text>
+    <!-- Arrows: clients to gateway -->
+    <line x1="150" y1="40" x2="280" y2="80" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowG)"/>
+    <line x1="150" y1="100" x2="280" y2="110" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowG)"/>
+    <line x1="150" y1="160" x2="280" y2="140" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowG)"/>
+    <!-- Arrows: gateway to servers -->
+    <line x1="480" y1="80" x2="610" y2="28" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowG)"/>
+    <line x1="480" y1="95" x2="610" y2="78" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowG)"/>
+    <line x1="480" y1="120" x2="610" y2="128" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowG)"/>
+    <line x1="480" y1="140" x2="610" y2="178" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowG)"/>
+    <!-- Labels -->
+    <text x="210" y="75" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Streamable HTTP</text>
+    <text x="545" y="65" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">stdio / HTTP</text>
+    <text x="380" y="215" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">Clients see ONE endpoint with unified tool catalog</text>
+    <defs><marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="currentColor" stroke-width="1"/></marker></defs>
+  </svg>
+  <div class="card green" style="margin-top:.3em">
+    <h3>Pattern Used By</h3>
+    <p>Microsoft MCP Gateway, Docker MCP Gateway, IBM ContextForge, Traefik Hub, Kong, agentgateway, and the majority of commercial offerings.</p>
+  </div>
+  <div class="slide-footer">mcp-gateways / 03</div>
+</section>
+
+<!-- SLIDE 4: Architecture Patterns -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Five Architecture Patterns</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Centralized Reverse Proxy</h3>
+      <ul>
+        <li>Single gateway all clients connect to</li>
+        <li>Aggregates tool catalogs from all servers</li>
+        <li>Most common pattern</li>
+        <li>Microsoft, Docker, IBM, Traefik, Kong</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Sidecar Proxy</h3>
+      <ul>
+        <li>Lightweight proxy per MCP server</li>
+        <li>Natural for <span class="g">Kubernetes</span> environments</li>
+        <li>Isolation: misconfigured proxy affects one server</li>
+        <li>Kuadrant (Red Hat / Envoy-based)</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Mesh</h3>
+      <ul>
+        <li>Sidecar + inter-gateway communication</li>
+        <li>Analogous to a <span class="p">service mesh</span></li>
+        <li>Cross-server discovery and tracing</li>
+        <li>agentgateway (Linux Foundation, Rust)</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Micro-MCP</h3>
+      <ul>
+        <li>Decompose large servers into <span class="b">single-purpose</span> servers</li>
+        <li>One tool per server, composed behind gateway</li>
+        <li>Granular scaling and fault isolation</li>
+        <li>Inspired by microservices</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Dual-Plane</h3>
+      <ul>
+        <li><span class="r">Data plane</span>: runtime request routing with session affinity</li>
+        <li><span class="r">Control plane</span>: lifecycle management via REST APIs</li>
+        <li>Mirrors Kubernetes networking</li>
+        <li>Microsoft MCP Gateway</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 04</div>
+</section>
+
+<!-- SLIDE 5: Protocol-Level Mechanics -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROTOCOL</span><h2>JSON-RPC Message Interception</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>How It Works</h3>
+        <ul>
+          <li>Gateway parses every JSON-RPC 2.0 message</li>
+          <li>Inspects <span class="a">method</span>, <span class="g">tool name</span>, and <span class="p">arguments</span></li>
+          <li>Applies routing, authorization, and logging decisions</li>
+          <li>Automatically permits <code>initialize</code> and <code>notifications/initialized</code></li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>List Response Filtering</h3>
+        <ul>
+          <li>Intercepts <code>tools/list</code> responses from upstream</li>
+          <li>Filters tools based on client identity</li>
+          <li>Developers see dev tools; analysts see analytics tools</li>
+          <li>Improves security <span class="g">and</span> reduces context bloat</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <pre><code># Traefik Hub policy example
+policies:
+  - match:
+      Equals(`mcp.method`,
+        `tools/call`) &&
+      Equals(`mcp.params.name`,
+        `get_weather`) &&
+      Contains(`jwt.groups`,
+        `weather-users`)
+    action: allow
+
+  - match:
+      Equals(`mcp.method`,
+        `tools/call`) &&
+      Prefix(`mcp.params.name`,
+        `admin_`) &&
+      !Contains(`jwt.groups`,
+        `admin`)
+    action: deny
+
+defaultAction: deny</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 05</div>
+</section>
+
+<!-- SLIDE 6: Transport Bridging -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRANSPORT</span><h2>Transport Bridging</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>stdio</h3>
+      <ul>
+        <li>Local servers as child processes</li>
+        <li>JSON-RPC over stdin/stdout</li>
+        <li>Zero network overhead</li>
+        <li>Inherently local only</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>HTTP+SSE (deprecated)</h3>
+      <ul>
+        <li>POST for client &rarr; server</li>
+        <li>SSE for server &rarr; client</li>
+        <li>Two separate connections</li>
+        <li>Still widely deployed</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Streamable HTTP</h3>
+      <ul>
+        <li>Standard remote transport (June 2025)</li>
+        <li>POST with optional SSE response</li>
+        <li>GET for server-initiated notifications</li>
+        <li><code>Mcp-Session-Id</code> header for sessions</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Gateway as Transport Translator</h3>
+    <p>A critical gateway function is converting <span class="a">stdio-based local servers</span> into remotely accessible <span class="g">Streamable HTTP endpoints</span>. The gateway spawns the server as a child process, wraps stdin/stdout with JSON-RPC framing, and exposes it over HTTP. This makes <span class="b">any existing MCP server</span> available to remote agents without code changes. Docker MCP Gateway launches servers in containers, communicates via stdio internally, and exposes them through its gateway endpoint.</p>
+  </div>
+  <div class="slide-footer">mcp-gateways / 06</div>
+</section>
+
+<!-- SLIDE 7: Session Management -->
+<section>
+  <div class="slide-hdr"><span class="tag">PROTOCOL</span><h2>Session Management</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>The Challenge</h3>
+      <ul>
+        <li>MCP is <span class="r">stateful</span> &mdash; unlike REST APIs</li>
+        <li>Initialization handshake establishes capabilities</li>
+        <li>Tool calls depend on session context</li>
+        <li>All requests in a session must route to the <span class="r">same server instance</span></li>
+        <li>Standard HTTP load balancers cannot handle this</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Gateway Solutions</h3>
+      <ul>
+        <li><span class="a">Microsoft</span>: Kubernetes StatefulSets + headless services for session-aware routing</li>
+        <li><span class="g">Traefik Hub</span>: HRW consistent hashing &mdash; deterministic client-to-server routing by IP, automatic failover</li>
+        <li><span class="p">Envoy AI Gateway</span>: Full Streamable HTTP with <code>Last-Event-ID</code> reconnection and multiplexed streams</li>
+        <li>Gateway manages session lifecycle: expiry detection, state cleanup, reconnection</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 07</div>
+</section>
+
+<!-- SLIDE 8: Tool Registry & Aggregation -->
+<section>
+  <div class="slide-hdr"><span class="tag">DISCOVERY</span><h2>Tool Registry &amp; Aggregation</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Dynamic Registration</h3>
+        <ul>
+          <li>Gateway maintains live registry via periodic <code>tools/list</code></li>
+          <li>Refreshes on <code>notifications/tools/list_changed</code></li>
+          <li>Cached aggregation (e.g., 60s TTL) with notification-based invalidation</li>
+          <li><span class="r">Never</span> cache <code>tools/call</code> &mdash; side-effecting operations</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Namespace Conflict Resolution</h3>
+        <ul>
+          <li>Two servers both expose <code>create_issue</code></li>
+          <li>Gateway auto-prefixes: <code>github_create_issue</code>, <code>jira_create_issue</code></li>
+          <li>Stacklok allows custom prefix names</li>
+          <li>Microsoft routes via Tool Gateway Router</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Context Window Optimization</h3>
+        <ul>
+          <li><span class="a">Selective exposure</span>: cherry-pick tools per user/team</li>
+          <li><span class="g">Progressive disclosure</span>: show categories first, reveal specific tools on demand (AIRIS claims 97% token reduction)</li>
+          <li><span class="p">Meta-tool abstraction</span>: LLM writes code to orchestrate tools in sandbox (50%+ token savings)</li>
+          <li><span class="b">Profile-based filtering</span>: Docker uses <code>--profile</code> flag to control tool access</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 08</div>
+</section>
+
+<!-- SLIDE 9: Authentication & Authorization -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>Authentication &amp; Authorization</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card red">
+        <h3>The Multi-Hop Challenge</h3>
+        <p>User &rarr; AI Host &rarr; MCP Client &rarr; Gateway &rarr; MCP Server &rarr; Downstream API. Each hop raises authorization questions. The gateway provides a <span class="r">single enforcement point</span>.</p>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Kuadrant Three-Layer Auth</h3>
+        <ul>
+          <li><span class="a">Layer 1</span>: Identity-based tool filtering &mdash; validate OAuth2 token, extract roles, create signed JWT &ldquo;wristband&rdquo; with allowed tools</li>
+          <li><span class="g">Layer 2</span>: Token Exchange (RFC 8693) &mdash; swap broad token for narrowly-scoped per-server token</li>
+          <li><span class="p">Layer 3</span>: Vault Integration &mdash; fetch PATs/API keys from HashiCorp Vault per user per server</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3>Credential Vaulting</h3>
+        <ul>
+          <li>Raw credentials <span class="r">never reach</span> the client or LLM</li>
+          <li>Gateway injects credentials at execution time</li>
+          <li>Agents receive only scoped, time-limited tokens</li>
+          <li>Prevents credential leakage via prompts or logs</li>
+          <li>Peta: &ldquo;1Password for AI Agents&rdquo;</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Sequence-Aware Authorization</h3>
+        <ul>
+          <li>Individual actions may be authorized&hellip;</li>
+          <li>&hellip;but <span class="b">chained together</span> by a compromised agent, they become attacks</li>
+          <li>Read file + send email = data exfiltration</li>
+          <li>Gateway evaluates accumulated operation sequence</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 09</div>
+</section>
+
+<!-- SLIDE 10: Security Threats -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>Threats &amp; Gateway Defenses</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Prompt Injection at the Gateway</h3>
+      <ul>
+        <li>Malicious instructions in tool outputs hijack the LLM</li>
+        <li>Lasso Gateway: plugin-based guardrails</li>
+        <li><span class="r">Presidio plugin</span>: PII detection and masking</li>
+        <li><span class="r">Injection detection</span>: analyzes prompts and outputs</li>
+        <li><span class="r">Secret masking</span>: 12 built-in patterns for API keys</li>
+        <li>Sanitize tool outputs <span class="a">before</span> they reach the model</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Tool Poisoning</h3>
+      <ul>
+        <li><span class="p">Direct tampering</span>: modified tool descriptions with hidden instructions</li>
+        <li><span class="p">Shadowing</span>: malicious tool mimicking a legitimate name</li>
+        <li><span class="p">Rug pulls</span>: normal during eval, malicious later</li>
+        <li>Gateway defense: registration approval workflows, signed version-locked tool definitions</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card amber" style="margin-top:.8em">
+    <h3>Triple-Gate Security Pattern</h3>
+    <ul>
+      <li><span class="a">Gate 1</span> &mdash; Client &harr; LLM: prompt injection filtering, PII detection, input sanitization</li>
+      <li><span class="g">Gate 2</span> &mdash; LLM &harr; MCP Server: tool authorization, parameter validation, argument sanitization (the gateway&rsquo;s natural position)</li>
+      <li><span class="p">Gate 3</span> &mdash; MCP Server &harr; External API: rate limiting, auth enforcement, response filtering</li>
+    </ul>
+  </div>
+  <div class="slide-footer">mcp-gateways / 10</div>
+</section>
+
+<!-- SLIDE 11: Observability -->
+<section>
+  <div class="slide-hdr"><span class="tag">OBSERVABILITY</span><h2>Logging, Tracing &amp; Metrics</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Centralized Logging</h3>
+      <ul>
+        <li>Single point for all MCP interactions</li>
+        <li>Structured fields: <code>mcp.method</code>, <code>mcp.session.id</code>, <code>mcp.target</code>, <code>mcp.resource.name</code></li>
+        <li>Integrates with ELK, Prometheus, Grafana</li>
+        <li>EU AI Act compliance: tamper-proof audit trails</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Distributed Tracing</h3>
+      <ul>
+        <li><span class="g">OpenTelemetry</span> with W3C Trace Context</li>
+        <li>Parent span: agent request</li>
+        <li>Child spans: each tool call</li>
+        <li>Grandchild spans: downstream API calls</li>
+        <li>End-to-end visibility: prompt &rarr; reasoning &rarr; tools</li>
+        <li>Traefik: <code>mcp.client.operation.duration</code> histograms</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Key Metrics</h3>
+      <ul>
+        <li><span class="a">Tool invocation count</span> by server and tool</li>
+        <li><span class="g">Latency</span>: p50, p95, p99 per tool</li>
+        <li><span class="r">Error rates</span> with failure mode labels</li>
+        <li><span class="b">Token usage</span>: input/output per call</li>
+        <li><span class="p">Session metrics</span>: active count, duration, errors</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 11</div>
+</section>
+
+<!-- SLIDE 12: Rate Limiting & Performance -->
+<section>
+  <div class="slide-hdr"><span class="tag">PERFORMANCE</span><h2>Rate Limiting &amp; Caching</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Multi-Dimensional Rate Limiting</h3>
+      <ul>
+        <li><span class="a">Per-user</span>: prevent monopolization</li>
+        <li><span class="g">Per-tool</span>: respect downstream API limits</li>
+        <li><span class="p">Per-team</span>: fair resource allocation</li>
+        <li><span class="b">Per-agent</span>: constrain autonomous agents</li>
+        <li>In-memory enforcement: sub-millisecond overhead</li>
+        <li>Zapier: 80/hr, 160/day, 300/month reflecting external constraints</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Layered Caching</h3>
+      <ul>
+        <li><span class="g">In-memory</span>: fast per-instance cache for tool lists</li>
+        <li><span class="g">Distributed</span>: Redis/Memcached for multi-instance</li>
+        <li><span class="g">TTL-based</span>: time-to-live expiration</li>
+        <li><span class="g">Notification-based</span>: refresh on server change signals</li>
+        <li>Safe to cache: <code>tools/list</code>, <code>resources/list</code>, <code>prompts/list</code></li>
+        <li><span class="r">Never cache</span>: <code>tools/call</code> (side effects!)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Load Balancing &amp; Resilience</h3>
+    <p>Round-robin, least-connections, or consistent-hashing with <span class="b">session affinity</span>. Circuit breakers detect unhealthy servers. Retry logic with restrictions on side-effecting operations. Kong: health checks + circuit breakers + session-aware balancing.</p>
+  </div>
+  <div class="slide-footer">mcp-gateways / 12</div>
+</section>
+
+<!-- SLIDE 13: Multi-Tenant -->
+<section>
+  <div class="slide-hdr"><span class="tag">ENTERPRISE</span><h2>Multi-Tenant Deployments</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Tenant Isolation</h3>
+      <ul>
+        <li>Per-tenant credentials and session state</li>
+        <li>Team/project segregation (IBM ContextForge)</li>
+        <li>Role-based access control per tenant</li>
+        <li>Per-tenant visibility rules</li>
+        <li>Blast radius containment</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Virtual Servers &amp; Profiles</h3>
+      <ul>
+        <li>Stacklok: Kubernetes CRDs &mdash; <code>MCPGroup</code>, <code>MCPServer</code>, <code>VirtualMCPServer</code></li>
+        <li>Cherry-pick tools per team with access policies</li>
+        <li>Docker: <code>--profile</code> flag for tool access control</li>
+        <li>Curated tool surface per use case</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Per-Tenant Observability</h3>
+      <ul>
+        <li>Every metric and trace tagged with tenant ID</li>
+        <li>Per-tenant dashboards and cost allocation</li>
+        <li>Teams see their own usage; ops sees global view</li>
+        <li>Compliance reporting by organizational unit</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 13</div>
+</section>
+
+<!-- SLIDE 14: vs API Gateways -->
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARISON</span><h2>MCP Gateway vs API Gateway</h2></div>
+  <table>
+    <tr><th>Aspect</th><th>Traditional API Gateway</th><th>MCP Gateway</th></tr>
+    <tr><td>Session model</td><td>Stateless HTTP request/response</td><td><span class="a">Stateful</span> sessions with context across calls</td></tr>
+    <tr><td>Discovery</td><td>Route to known endpoints</td><td><span class="g">Aggregate tool catalogs</span>, resolve conflicts, filter by auth</td></tr>
+    <tr><td>Communication</td><td>Unidirectional (client &rarr; server)</td><td><span class="p">Bidirectional</span> (server push, notifications, sampling)</td></tr>
+    <tr><td>Protocol awareness</td><td>URL-based routing</td><td><span class="b">JSON-RPC body parsing</span> &mdash; method, tool, arguments</td></tr>
+    <tr><td>Context management</td><td>Not applicable</td><td><span class="r">Context-window aware</span> &mdash; token budgets, tool filtering</td></tr>
+    <tr><td>Load balancing</td><td>Round-robin, least-connections</td><td>Session-affinity required (StatefulSets, HRW hashing)</td></tr>
+  </table>
+  <div class="card blue" style="margin-top:.6em">
+    <h3>Can You Adapt an Existing API Gateway?</h3>
+    <p>Kong (AI MCP Proxy plugin), Traefik Hub, and Apache APISIX have added MCP support. Basic proxying works, but deep features (session management, tool aggregation, context-window optimization) require <span class="b">significant MCP-specific code</span> regardless of starting point.</p>
+  </div>
+  <div class="slide-footer">mcp-gateways / 14</div>
+</section>
+
+<!-- SLIDE 15: Implementation Landscape — Open Source -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>Open-Source Implementations</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3>Microsoft MCP Gateway</h3>
+        <p>Dual-plane architecture (data + control), K8s StatefulSets, session-aware routing, Tool Gateway Router.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Docker MCP Gateway</h3>
+        <p>Servers in isolated containers, on-demand launch, runtime credential injection, security via container runtime.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em">
+        <h3>IBM ContextForge</h3>
+        <p>Apache 2.0, 3,500+ stars. Federates MCP + A2A + REST/gRPC. Multi-tenant governance.</p>
+      </div>
+      <div class="card blue" style="margin-top:.5em">
+        <h3>agentgateway (Linux Foundation)</h3>
+        <p>Rust, high-performance. MCP + A2A + LLM routing. JWT, RBAC, OTel tracing.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card red">
+        <h3>Lasso MCP Gateway</h3>
+        <p>Security-focused. Presidio PII detection, prompt injection detection, secret masking plugins. ELK/Prometheus integration.</p>
+      </div>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>Envoy AI Gateway</h3>
+        <p>Go-based MCP proxy on Envoy stack. Session management, stream multiplexing, Envoy networking.</p>
+      </div>
+      <div class="card green" style="margin-top:.5em">
+        <h3>Stacklok Virtual MCP Server</h3>
+        <p>K8s CRDs (MCPGroup, MCPServer, VirtualMCPServer). Tool cherry-picking, OAuth 2.1, per-tool scopes.</p>
+      </div>
+      <div class="card purple" style="margin-top:.5em">
+        <h3>Also Notable</h3>
+        <p>Kuadrant (Envoy + Istio, 3-layer auth), Pomerium (per-tool access), Gate22 (RBAC control plane), MCP Mesh (OTel), Open Edison (exfiltration prevention).</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 15</div>
+</section>
+
+<!-- SLIDE 16: Implementation Landscape — Commercial -->
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>Commercial Platforms</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Infrastructure Vendors</h3>
+      <ul>
+        <li><span class="a">Kong</span> (Gateway 3.12+): AI MCP Proxy plugin translates MCP &harr; HTTP</li>
+        <li><span class="a">Traefik Hub</span>: JSON-RPC policy, HRW balancing, OTel</li>
+        <li><span class="a">Cloudflare</span>: MCP portals via Cloudflare One with DLP scanning</li>
+        <li><span class="a">AWS AgentCore</span>: managed gateway for Bedrock agents</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>MCP-Native Platforms</h3>
+      <ul>
+        <li><span class="g">Zapier</span>: 8,000+ apps, 30,000+ actions as MCP tools</li>
+        <li><span class="g">Peta</span>: encrypted vault, zero-trust, human-in-the-loop approvals</li>
+        <li><span class="g">MintMCP</span>: SOC 2 Type II, healthcare &amp; financial focus</li>
+        <li><span class="g">Webrix</span>: SSO, RBAC, audit trails</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Convergence Trend</h3>
+      <ul>
+        <li>API gateway vendors <span class="p">adding MCP support</span></li>
+        <li>MCP-native projects <span class="p">building from scratch</span></li>
+        <li>Both approaches meeting in the middle</li>
+        <li>40+ total implementations and growing</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 16</div>
+</section>
+
+<!-- SLIDE 17: MCP 2026 Roadmap -->
+<section>
+  <div class="slide-hdr"><span class="tag">ROADMAP</span><h2>MCP 2026 Specification Roadmap</h2></div>
+  <table>
+    <tr><th>Timeline</th><th>Feature</th><th>Gateway Impact</th></tr>
+    <tr><td><span class="a">Q2 2026</span></td><td>Enterprise-Managed Auth (full OAuth 2.1 + PKCE, SAML/OIDC)</td><td>Reduces gateway auth burden; requires more sophisticated token management</td></tr>
+    <tr><td><span class="g">2026</span></td><td>Gateway and Proxy Patterns in spec</td><td>Standardizes proxy semantics: authorization propagation, session forwarding, message modification</td></tr>
+    <tr><td><span class="p">Q3 2026</span></td><td>A2A Protocol Coordination</td><td>Gateways become unified agentic infrastructure (tools + agents) &mdash; agentgateway and ContextForge already support both</td></tr>
+    <tr><td><span class="b">Q4 2026</span></td><td>MCP Registry</td><td>Curated, verified server directory with security audits &mdash; gateways integrate for trusted discovery</td></tr>
+  </table>
+  <div class="slide-footer">mcp-gateways / 17</div>
+</section>
+
+<!-- SLIDE 18: Open Challenges -->
+<section>
+  <div class="slide-hdr"><span class="tag">CHALLENGES</span><h2>Open Challenges</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Performance Overhead</h3>
+      <ul>
+        <li>Every request adds latency</li>
+        <li>Simple policy: sub-millisecond</li>
+        <li>Token exchange + Vault + PII scan: <span class="r">meaningful latency</span></li>
+        <li>Compounds over dozens of sequential tool calls</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Specification Gaps</h3>
+      <ul>
+        <li>MCP spec does not formally define gateway behavior</li>
+        <li>Each gateway implements its own proxy semantics</li>
+        <li>Client behavior varies behind different gateways</li>
+        <li>Migration between gateways is nontrivial</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Context Window Tension</h3>
+      <ul>
+        <li>Comprehensive tools vs. context budget</li>
+        <li>Progressive disclosure adds complexity</li>
+        <li>No protocol mechanism for budget constraints</li>
+        <li>No standard for clients to request tool subsets</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Debugging Complexity</h3>
+      <ul>
+        <li>Failures can originate in client, gateway, server, or downstream</li>
+        <li>Tracing helps but gateway debug tools are immature</li>
+        <li>Traefik returns HTTP 403 &mdash; Claude Desktop sees broken session</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Configuration Portability</h3>
+      <ul>
+        <li>Every gateway has its own config format</li>
+        <li>K8s CRDs, YAML, JSON, web consoles</li>
+        <li>No standard for &ldquo;this group gets these tools at this rate&rdquo;</li>
+        <li>MCP roadmap mentions portability as a goal</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 18</div>
+</section>
+
+<!-- SLIDE 19: Practical Guidance -->
+<section>
+  <div class="slide-hdr"><span class="tag">GUIDANCE</span><h2>Deployment Recommendations</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Start Early</h3>
+      <ul>
+        <li>Implement a gateway <span class="a">before</span> production deployment</li>
+        <li>Retrofitting is substantially harder</li>
+        <li>Centralize credentials and audit logging from day one</li>
+        <li>Architect for multi-tenancy even with a single team</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Choose Wisely</h3>
+      <ul>
+        <li>Match security model to regulatory requirements</li>
+        <li>Existing API gateway? Consider MCP plugin (Kong, Traefik)</li>
+        <li>Greenfield? Purpose-built may be worth it</li>
+        <li>Kubernetes? Stacklok CRDs or Microsoft dual-plane</li>
+        <li>Security-first? Lasso, Peta, or Kuadrant</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-gateways / 19</div>
+</section>
+
+<!-- SLIDE 20: Conclusion -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>Key Takeaways</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>What MCP Gateways Provide</h3>
+      <ul>
+        <li><span class="a">Centralized security</span>: auth, credential vaulting, prompt injection defense</li>
+        <li><span class="g">Unified tool catalog</span>: aggregation, conflict resolution, context optimization</li>
+        <li><span class="p">Enterprise observability</span>: OTel tracing, structured logging, compliance audit trails</li>
+        <li><span class="b">Operational efficiency</span>: rate limiting, caching, load balancing, transport bridging</li>
+        <li><span class="r">Multi-tenancy</span>: isolation, RBAC, per-tenant visibility</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The Landscape</h3>
+      <ul>
+        <li><span class="g">40+ implementations</span> across open-source and commercial</li>
+        <li>API vendors extending (Kong, Traefik, Envoy) and MCP-native building from scratch</li>
+        <li>MCP spec catching up: gateway patterns, enterprise auth, registry planned for 2026</li>
+        <li>Just as microservices needed API gateways, <span class="a">MCP servers need MCP Gateways</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Bottom Line</h3>
+    <p>MCP Gateways represent the natural maturation of the MCP ecosystem from developer-scale experimentation to enterprise-scale production. They provide the security, observability, and governance infrastructure that production agent deployments require &mdash; implement one early, centralize from the start, and choose a gateway whose security model matches your regulatory requirements.</p>
+  </div>
+  <div class="slide-footer">mcp-gateways / 20</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP Server Deployment | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  svg.diagram{display:block;margin:0 auto;overflow:visible}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>MCP Server Deployment</h1>
+  <p class="subtitle">From Local Development to Production Infrastructure</p>
+  <div>
+    <span class="pill amber">deployment</span>
+    <span class="pill green">containers</span>
+    <span class="pill purple">orchestration</span>
+    <span class="pill blue">observability</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">mcp-server-deployment / 01</div>
+</section>
+
+<!-- SLIDE 2: Why Deployment Matters -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why Deployment Matters</h2></div>
+  <p>The MCP specification defines a clean protocol for LLM&ndash;tool integration &mdash; but shipping a production-grade MCP server requires solving an entirely separate set of engineering problems.</p>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card red">
+      <h3>The Gap</h3>
+      <ul>
+        <li>Protocol spec says nothing about <span class="r">how to run</span> servers</li>
+        <li>No standard packaging, deployment, or lifecycle model</li>
+        <li>Security, scaling, and monitoring are left to implementers</li>
+        <li>Most tutorials stop at <span class="r">&ldquo;npx runs locally&rdquo;</span></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Production Reality</h3>
+      <ul>
+        <li>Teams need <span class="g">multi-user</span> access to shared servers</li>
+        <li>Servers must survive restarts, handle load, and report health</li>
+        <li>Credentials must be managed securely at scale</li>
+        <li>Deployment must be <span class="g">repeatable and auditable</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Key Insight</h3>
+    <p><span class="b">Building an MCP server</span> is the easy part. <span class="b">Operating it</span> &mdash; reliably, securely, at scale &mdash; is where most of the engineering effort lives.</p>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 02</div>
+</section>
+
+<!-- SLIDE 3: Deployment Models Overview -->
+<section>
+  <div class="slide-hdr"><span class="tag">MODELS</span><h2>Deployment Models Overview</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Transport</th>
+        <th>Latency</th>
+        <th>Scaling</th>
+        <th>Complexity</th>
+        <th>Best For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Local stdio</span></td>
+        <td>stdin/stdout</td>
+        <td>&lt;1 ms</td>
+        <td>Single user</td>
+        <td>Minimal</td>
+        <td>Dev, desktop apps</td>
+      </tr>
+      <tr>
+        <td><span class="g">Local HTTP</span></td>
+        <td>SSE / Streamable HTTP</td>
+        <td>1&ndash;5 ms</td>
+        <td>Single machine</td>
+        <td>Low</td>
+        <td>Local multi-client</td>
+      </tr>
+      <tr>
+        <td><span class="p">Container</span></td>
+        <td>HTTP behind proxy</td>
+        <td>5&ndash;20 ms</td>
+        <td>Horizontal</td>
+        <td>Medium</td>
+        <td>Team / staging</td>
+      </tr>
+      <tr>
+        <td><span class="b">Serverless</span></td>
+        <td>Streamable HTTP</td>
+        <td>50&ndash;500 ms*</td>
+        <td>Auto</td>
+        <td>Medium&ndash;High</td>
+        <td>Burst traffic, SaaS</td>
+      </tr>
+      <tr>
+        <td><span class="r">Remote SaaS</span></td>
+        <td>Streamable HTTP + OAuth</td>
+        <td>20&ndash;100 ms</td>
+        <td>Provider-managed</td>
+        <td>Low (consumer)</td>
+        <td>Third-party integrations</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.4em;font-size:.48em;color:var(--muted)">* Serverless latency includes cold-start penalty; warm invocations approach container-level performance.</p>
+  <div class="slide-footer">mcp-server-deployment / 03</div>
+</section>
+
+<!-- SLIDE 4: Local stdio Model -->
+<section>
+  <div class="slide-hdr"><span class="tag">LOCAL</span><h2>The stdio Deployment Model</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The simplest deployment: the <span class="a">host application</span> spawns the MCP server as a child process and communicates over <span class="a">stdin/stdout</span> using JSON-RPC.</p>
+      <div class="card amber" style="margin-top:.5em">
+        <h3>How It Works</h3>
+        <ul>
+          <li>Host reads <code>claude_desktop_config.json</code> or equivalent</li>
+          <li>Spawns each server via <code>command</code> + <code>args</code></li>
+          <li>Injects <code>env</code> variables (API keys, tokens)</li>
+          <li>Server lifecycle is <span class="a">tied to host process</span></li>
+          <li>One server instance per host &mdash; no sharing</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.5em">
+        <h3>Limitations</h3>
+        <ul>
+          <li>Cannot share a server across multiple clients</li>
+          <li>No network access &mdash; local filesystem only</li>
+          <li>Secrets stored in plaintext JSON config files</li>
+          <li>No health checks, metrics, or restart policies</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <p style="font-size:.5em;color:var(--muted);margin-bottom:.3em">Claude Desktop config example:</p>
+      <pre><code>{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/dev/projects"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxx"
+      }
+    }
+  }
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 04</div>
+</section>
+
+<!-- SLIDE 5: Containerized Deployment -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONTAINERS</span><h2>Containerized Deployment</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card purple">
+        <h3>Docker Pattern</h3>
+        <ul>
+          <li>Package MCP server + runtime in a <span class="p">Docker image</span></li>
+          <li>Expose HTTP endpoint (SSE or Streamable HTTP)</li>
+          <li>Use <code>mcp-proxy</code> or <code>supergateway</code> to bridge stdio &rarr; HTTP</li>
+          <li>Mount secrets via Docker Secrets or env injection</li>
+          <li>Health checks via <code>HEALTHCHECK</code> directive</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.6em">
+        <h3>Kubernetes Pattern</h3>
+        <ul>
+          <li>Deploy as a <span class="b">Deployment</span> with readiness/liveness probes</li>
+          <li>Service mesh for mTLS between clients and servers</li>
+          <li>Horizontal Pod Autoscaler for load-based scaling</li>
+          <li>ConfigMaps for tool configuration, Secrets for credentials</li>
+          <li>Rolling updates with zero-downtime deploys</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <p style="font-size:.5em;color:var(--muted);margin-bottom:.3em">Dockerfile with stdio-to-HTTP bridge:</p>
+      <pre><code>FROM node:22-slim
+WORKDIR /app
+RUN npm install -g @modelcontextprotocol/server-github \
+    supergateway
+
+ENV GITHUB_PERSONAL_ACCESS_TOKEN=""
+
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+CMD ["supergateway", \
+     "--stdio", "mcp-server-github", \
+     "--port", "8080"]</code></pre>
+      <p style="font-size:.5em;color:var(--muted);margin-bottom:.3em;margin-top:.6em">Docker Compose for multi-server stack:</p>
+      <pre><code>services:
+  github-mcp:
+    build: ./servers/github
+    ports: ["8081:8080"]
+    secrets: [github_token]
+  postgres-mcp:
+    build: ./servers/postgres
+    ports: ["8082:8080"]
+    secrets: [db_connection_string]
+secrets:
+  github_token:
+    environment: "GITHUB_TOKEN"
+  db_connection_string:
+    environment: "DATABASE_URL"</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 05</div>
+</section>
+
+<!-- SLIDE 6: Serverless & Cloud Deployment -->
+<section>
+  <div class="slide-hdr"><span class="tag">SERVERLESS</span><h2>Serverless &amp; Cloud Deployment</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>AWS Lambda</h3>
+      <ul>
+        <li>Streamable HTTP via <span class="a">Function URLs</span></li>
+        <li>Cold starts: 200&ndash;800 ms (Node.js)</li>
+        <li>Stateless &mdash; no persistent connections</li>
+        <li>Use DynamoDB for session state</li>
+        <li>Pay-per-invocation cost model</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Cloud Run / Fargate</h3>
+      <ul>
+        <li>Container-native &mdash; <span class="g">SSE supported</span></li>
+        <li>Min instances = 1 eliminates cold starts</li>
+        <li>Scale to zero for cost optimization</li>
+        <li>Long-lived connections up to 60 min</li>
+        <li>Best balance of serverless + flexibility</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Challenges</h3>
+      <ul>
+        <li><span class="r">Cold starts</span> break interactive UX</li>
+        <li>SSE requires long-lived connections &mdash; conflicts with request-based billing</li>
+        <li>Session affinity hard to guarantee</li>
+        <li>Timeout limits (Lambda: 15 min max)</li>
+        <li>No stdio &mdash; HTTP transport required</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Recommendation</h3>
+    <p><span class="b">Cloud Run</span> or <span class="b">AWS Fargate</span> with min-instance=1 is the pragmatic serverless choice for MCP servers. Pure Lambda works for <span class="b">Streamable HTTP</span> (stateless request/response), but SSE-based servers need persistent compute.</p>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 06</div>
+</section>
+
+<!-- SLIDE 7: Transport Layer -->
+<section>
+  <div class="slide-hdr"><span class="tag">TRANSPORT</span><h2>Transport Layer Evolution</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>stdio</h3>
+      <ul>
+        <li>Original transport &mdash; still the default for local</li>
+        <li>JSON-RPC over stdin/stdout</li>
+        <li>Zero network overhead</li>
+        <li>Cannot cross machine boundaries</li>
+        <li><span class="a">Status: Stable, not deprecated</span></li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>HTTP + SSE (Legacy)</h3>
+      <ul>
+        <li>Added for remote servers in early MCP</li>
+        <li>Two endpoints: POST for requests, GET for SSE stream</li>
+        <li><span class="r">Deprecated in spec 2025-03-26</span></li>
+        <li>Difficult to proxy, load-balance, and resume</li>
+        <li>Still supported in backward-compat mode</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Streamable HTTP</h3>
+      <ul>
+        <li><span class="g">New standard</span> replacing SSE transport</li>
+        <li>Single POST endpoint; optional SSE upgrade</li>
+        <li>Stateless by default, sessions opt-in via <code>Mcp-Session-Id</code></li>
+        <li>Works with standard HTTP infra (CDNs, load balancers)</li>
+        <li>Resumability via <code>Last-Event-ID</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card purple" style="margin-top:.8em">
+    <h3>Bridging Tools</h3>
+    <p><span class="p">supergateway</span> &mdash; wraps stdio servers in SSE or Streamable HTTP. <span class="p">mcp-proxy</span> &mdash; bidirectional stdio &harr; SSE bridge. <span class="p">mcp-remote</span> &mdash; connects local stdio clients to remote HTTP servers with OAuth support.</p>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 07</div>
+</section>
+
+<!-- SLIDE 8: Configuration & Discovery -->
+<section>
+  <div class="slide-hdr"><span class="tag">CONFIG</span><h2>Configuration &amp; Discovery</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>JSON Configuration Files</h3>
+        <ul>
+          <li>Claude Desktop: <code>claude_desktop_config.json</code></li>
+          <li>Cursor: <code>.cursor/mcp.json</code> (project) or global config</li>
+          <li>VS Code: <code>.vscode/mcp.json</code> with input variable support</li>
+          <li>Format varies by host &mdash; <span class="a">no universal standard yet</span></li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>MCP Registry &amp; Discovery</h3>
+        <ul>
+          <li><span class="g">Well-known URI</span>: <code>/.well-known/mcp.json</code> for server metadata</li>
+          <li>MCP Registry: centralized directory of published servers</li>
+          <li>DNS-SD and mDNS for local network discovery</li>
+          <li>OAuth 2.1 metadata at <code>/.well-known/oauth-authorization-server</code></li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Environment Variables</h3>
+        <ul>
+          <li>Secrets injected at runtime via <code>env</code> block</li>
+          <li>Supports <code>${input:variable}</code> syntax in VS Code for prompted input</li>
+          <li>Production: use vault references, not literals</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <p style="font-size:.5em;color:var(--muted);margin-bottom:.3em">VS Code mcp.json with inputs:</p>
+      <pre><code>{
+  "inputs": [
+    {
+      "id": "github-token",
+      "type": "promptString",
+      "description": "GitHub PAT",
+      "password": true
+    }
+  ],
+  "servers": {
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN":
+          "${input:github-token}"
+      }
+    }
+  }
+}</code></pre>
+      <p style="font-size:.5em;color:var(--muted);margin-bottom:.3em;margin-top:.6em">Well-known discovery endpoint:</p>
+      <pre><code>GET /.well-known/mcp.json
+{
+  "name": "acme-server",
+  "version": "1.2.0",
+  "transport": "streamable-http",
+  "endpoint": "/mcp",
+  "auth": "oauth2",
+  "tools": ["query_db", "run_report"]
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 08</div>
+</section>
+
+<!-- SLIDE 9: Architecture Diagram -->
+<section>
+  <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Deployment Topology</h2></div>
+  <svg class="diagram" viewBox="0 0 1100 560" width="1050" height="530">
+    <!-- Dev Laptop -->
+    <rect x="20" y="30" width="280" height="200" rx="12" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
+    <text x="160" y="58" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700">Dev Laptop</text>
+    <rect x="40" y="75" width="110" height="36" rx="6" fill="#181824" stroke="#2a2a3a"/>
+    <text x="95" y="98" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="11">Claude Desktop</text>
+    <rect x="165" y="75" width="115" height="36" rx="6" fill="#181824" stroke="#2a2a3a"/>
+    <text x="222" y="98" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="11">Cursor / VS Code</text>
+    <rect x="40" y="130" width="240" height="36" rx="6" fill="#181824" stroke="#4ecb8d"/>
+    <text x="160" y="153" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">stdio MCP servers (npx/uvx)</text>
+    <rect x="40" y="178" width="240" height="36" rx="6" fill="#181824" stroke="#a78bfa"/>
+    <text x="160" y="201" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">mcp-proxy / supergateway</text>
+    <!-- Arrow: Dev to Staging -->
+    <line x1="300" y1="150" x2="390" y2="270" stroke="#f5a623" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="325" y="195" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10" transform="rotate(30 325 195)">HTTP/SSE</text>
+    <!-- Staging -->
+    <rect x="390" y="200" width="300" height="210" rx="12" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
+    <text x="540" y="228" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="16" font-weight="700">Staging (Docker Compose)</text>
+    <rect x="410" y="245" width="130" height="32" rx="6" fill="#181824" stroke="#60a5fa"/>
+    <text x="475" y="266" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">github-mcp :8081</text>
+    <rect x="550" y="245" width="125" height="32" rx="6" fill="#181824" stroke="#60a5fa"/>
+    <text x="612" y="266" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">db-mcp :8082</text>
+    <rect x="410" y="290" width="130" height="32" rx="6" fill="#181824" stroke="#60a5fa"/>
+    <text x="475" y="311" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">slack-mcp :8083</text>
+    <rect x="550" y="290" width="125" height="32" rx="6" fill="#181824" stroke="#60a5fa"/>
+    <text x="612" y="311" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">search-mcp :8084</text>
+    <rect x="410" y="340" width="265" height="32" rx="6" fill="#181824" stroke="#f5a623"/>
+    <text x="542" y="361" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">Nginx reverse proxy + TLS</text>
+    <rect x="410" y="380" width="265" height="18" rx="4" fill="#181824" stroke="#4ecb8d"/>
+    <text x="542" y="393" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Docker network (isolated)</text>
+    <!-- Arrow: Staging to Prod -->
+    <line x1="690" y1="305" x2="770" y2="305" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="730" y="295" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10">promote</text>
+    <!-- Production K8s -->
+    <rect x="770" y="100" width="310" height="400" rx="12" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
+    <text x="925" y="128" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="16" font-weight="700">Production (Kubernetes)</text>
+    <rect x="790" y="145" width="270" height="30" rx="6" fill="#181824" stroke="#f5a623"/>
+    <text x="925" y="165" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">Ingress Controller + OAuth Gateway</text>
+    <rect x="790" y="190" width="130" height="55" rx="6" fill="#181824" stroke="#60a5fa"/>
+    <text x="855" y="210" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">github-mcp</text>
+    <text x="855" y="232" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">3 replicas</text>
+    <rect x="930" y="190" width="130" height="55" rx="6" fill="#181824" stroke="#60a5fa"/>
+    <text x="995" y="210" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">db-mcp</text>
+    <text x="995" y="232" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">2 replicas</text>
+    <rect x="790" y="258" width="130" height="55" rx="6" fill="#181824" stroke="#60a5fa"/>
+    <text x="855" y="278" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">slack-mcp</text>
+    <text x="855" y="300" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">2 replicas</text>
+    <rect x="930" y="258" width="130" height="55" rx="6" fill="#181824" stroke="#60a5fa"/>
+    <text x="995" y="278" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">search-mcp</text>
+    <text x="995" y="300" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">4 replicas</text>
+    <rect x="790" y="328" width="270" height="28" rx="6" fill="#181824" stroke="#a78bfa"/>
+    <text x="925" y="347" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">HPA + Pod Disruption Budgets</text>
+    <rect x="790" y="368" width="270" height="28" rx="6" fill="#181824" stroke="#f87171"/>
+    <text x="925" y="387" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="10">Vault secrets + Network Policies</text>
+    <rect x="790" y="408" width="270" height="28" rx="6" fill="#181824" stroke="#4ecb8d"/>
+    <text x="925" y="427" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">OpenTelemetry Collector</text>
+    <rect x="790" y="448" width="270" height="28" rx="6" fill="#181824" stroke="#f5a623"/>
+    <text x="925" y="467" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">Service Mesh (mTLS)</text>
+    <!-- Arrow marker -->
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#f5a623"/>
+      </marker>
+    </defs>
+    <!-- Dev to remote SaaS -->
+    <line x1="160" y1="230" x2="160" y2="490" stroke="#f87171" stroke-width="1.5" stroke-dasharray="6 3"/>
+    <rect x="40" y="490" width="240" height="40" rx="8" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
+    <text x="160" y="515" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="11">Remote SaaS MCP (3rd party)</text>
+    <text x="160" y="480" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">OAuth 2.1 + Streamable HTTP</text>
+  </svg>
+  <div class="slide-footer">mcp-server-deployment / 09</div>
+</section>
+
+<!-- SLIDE 10: Lifecycle Management -->
+<section>
+  <div class="slide-hdr"><span class="tag">LIFECYCLE</span><h2>Server Lifecycle Management</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Startup &amp; Initialization</h3>
+      <ul>
+        <li><span class="g">initialize</span> handshake: client sends capabilities, server responds with tool list</li>
+        <li>Server must be ready before accepting tool calls</li>
+        <li>Pre-warm connections to databases, APIs on startup</li>
+        <li>Readiness probe should gate traffic until init completes</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Health Checks</h3>
+      <ul>
+        <li><span class="a">Liveness</span>: is the process alive? (restart if not)</li>
+        <li><span class="a">Readiness</span>: can it serve requests? (remove from LB if not)</li>
+        <li>MCP <code>ping</code> method as native health check</li>
+        <li>Include downstream dependency checks (DB, API reachability)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card blue">
+      <h3>Graceful Shutdown</h3>
+      <ul>
+        <li>Handle <code>SIGTERM</code> &mdash; stop accepting new requests</li>
+        <li>Drain in-flight tool calls (configurable timeout)</li>
+        <li>Close database connections, flush logs</li>
+        <li>K8s <code>preStop</code> hook for connection draining</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Rolling Updates</h3>
+      <ul>
+        <li><span class="p">maxSurge</span> / <span class="p">maxUnavailable</span> for zero-downtime</li>
+        <li>Version negotiation during MCP initialize handshake</li>
+        <li>Canary deployments: route 5% of traffic to new version</li>
+        <li>Automated rollback on error-rate spike</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 10</div>
+</section>
+
+<!-- SLIDE 11: Security -->
+<section>
+  <div class="slide-hdr"><span class="tag">SECURITY</span><h2>Security in Production</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card red">
+        <h3>Credential Management</h3>
+        <ul>
+          <li><span class="r">Never</span> store secrets in config JSON or env files in repos</li>
+          <li>Use <span class="a">HashiCorp Vault</span>, AWS Secrets Manager, or K8s Secrets</li>
+          <li>Rotate credentials automatically; short-lived tokens preferred</li>
+          <li>OAuth 2.1 for remote servers &mdash; no long-lived API keys</li>
+          <li>MCP spec mandates credential isolation between servers</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Network Isolation</h3>
+        <ul>
+          <li>Run MCP servers in <span class="a">private subnets</span> &mdash; no public endpoints</li>
+          <li>K8s NetworkPolicies: whitelist only known client pods</li>
+          <li>mTLS between all services via service mesh</li>
+          <li>Egress filtering &mdash; servers can only reach approved APIs</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Sandboxing</h3>
+        <ul>
+          <li>Containers run as <span class="p">non-root</span> with read-only filesystem</li>
+          <li>seccomp and AppArmor profiles to restrict syscalls</li>
+          <li>Resource limits (CPU, memory) to prevent abuse</li>
+          <li>No privilege escalation: <code>allowPrivilegeEscalation: false</code></li>
+          <li>Filesystem servers: bind-mount only approved directories</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Least Privilege</h3>
+        <ul>
+          <li>Each server gets <span class="g">minimal permissions</span> for its function</li>
+          <li>Database servers: read-only access unless writes are required</li>
+          <li>GitHub servers: scope tokens to specific repos</li>
+          <li>Audit all tool invocations &mdash; log caller, tool, args, result</li>
+          <li>Human-in-the-loop for destructive operations</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 11</div>
+</section>
+
+<!-- SLIDE 12: Scaling & HA -->
+<section>
+  <div class="slide-hdr"><span class="tag">SCALING</span><h2>Scaling &amp; High Availability</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card blue">
+        <h3>Horizontal Scaling</h3>
+        <ul>
+          <li>MCP servers should be <span class="b">stateless</span> where possible</li>
+          <li>Kubernetes HPA scales on CPU, memory, or custom metrics</li>
+          <li>Target: &lt;200 ms p99 latency per tool call</li>
+          <li>Scale separately per server type (DB server needs fewer replicas than search)</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>Session Affinity</h3>
+        <ul>
+          <li>Streamable HTTP <code>Mcp-Session-Id</code> header ties client to session</li>
+          <li>Sticky sessions via load balancer cookie or header hash</li>
+          <li>Session state in Redis/DynamoDB for multi-replica setups</li>
+          <li>Stateless mode: no session required for simple tool calls</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3>Load Balancing</h3>
+        <ul>
+          <li>L7 load balancer for HTTP transport</li>
+          <li>SSE connections: use least-connections algorithm</li>
+          <li>Connection draining on scale-down events</li>
+          <li>Circuit breakers per downstream dependency</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>Connection Pooling</h3>
+        <ul>
+          <li>Pool DB connections across concurrent tool calls</li>
+          <li>HTTP keep-alive to downstream APIs</li>
+          <li>Connection limits prevent resource exhaustion</li>
+          <li><span class="p">MCP gateway</span> pattern: single entry point multiplexes to N servers</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 12</div>
+</section>
+
+<!-- SLIDE 13: Monitoring & Observability -->
+<section>
+  <div class="slide-hdr"><span class="tag">OBSERVABILITY</span><h2>Monitoring &amp; Observability</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Metrics</h3>
+      <ul>
+        <li><span class="a">Tool call rate</span> &mdash; calls/sec per tool, per server</li>
+        <li><span class="a">Latency histograms</span> &mdash; p50, p95, p99 per tool</li>
+        <li>Error rate &mdash; 4xx vs 5xx breakdown</li>
+        <li>Active connections / sessions</li>
+        <li>Resource usage: CPU, memory, FD count</li>
+        <li>Export via Prometheus or OTLP</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Distributed Tracing</h3>
+      <ul>
+        <li><span class="g">OpenTelemetry</span> spans from client &rarr; server &rarr; downstream</li>
+        <li>Trace ID propagation through MCP request headers</li>
+        <li>Correlate LLM inference with tool execution</li>
+        <li>Identify slow tools, bottleneck dependencies</li>
+        <li>Visualize in Jaeger, Grafana Tempo, or Datadog</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Alerting &amp; Logging</h3>
+      <ul>
+        <li>Structured JSON logs with request IDs</li>
+        <li>Alert on: error rate &gt; 1%, latency p99 &gt; 2s, pod restarts</li>
+        <li>Log all tool invocations for <span class="p">audit trail</span></li>
+        <li>Centralize in ELK, Loki, or CloudWatch</li>
+        <li>Dashboards per server: health, throughput, errors</li>
+      </ul>
+    </div>
+  </div>
+  <pre><code># OpenTelemetry configuration for MCP server (env vars)
+OTEL_SERVICE_NAME=github-mcp-server
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+OTEL_TRACES_SAMPLER=parentbased_traceidratio
+OTEL_TRACES_SAMPLER_ARG=0.1
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment=production,service.version=1.2.0</code></pre>
+  <div class="slide-footer">mcp-server-deployment / 13</div>
+</section>
+
+<!-- SLIDE 14: Development Workflow -->
+<section>
+  <div class="slide-hdr"><span class="tag">WORKFLOW</span><h2>Development Workflow</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green">
+        <h3>Local Development</h3>
+        <ul>
+          <li><span class="g">npx / uvx</span> for instant server execution &mdash; no install</li>
+          <li><code>npx @modelcontextprotocol/server-github</code></li>
+          <li><code>uvx mcp-server-sqlite --db-path ./test.db</code></li>
+          <li>Hot reload with <code>--watch</code> or nodemon</li>
+          <li>TypeScript SDK: <code>@modelcontextprotocol/sdk</code></li>
+          <li>Python SDK: <code>mcp[cli]</code></li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.6em">
+        <h3>MCP Inspector</h3>
+        <ul>
+          <li>Official debugging tool: <code>npx @modelcontextprotocol/inspector</code></li>
+          <li>Web UI to browse tools, resources, prompts</li>
+          <li>Send test calls, inspect JSON-RPC messages</li>
+          <li>Validate server compliance before deployment</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3>Testing Strategy</h3>
+        <ul>
+          <li><span class="b">Unit tests</span>: test tool handlers in isolation</li>
+          <li><span class="b">Integration tests</span>: spin up server, send JSON-RPC, assert responses</li>
+          <li><span class="b">Contract tests</span>: validate against MCP schema</li>
+          <li>Use in-memory transport for fast test execution</li>
+          <li>Mock downstream APIs for deterministic results</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.6em">
+        <h3>CI/CD Pipeline</h3>
+        <ul>
+          <li>Lint &rarr; type-check &rarr; unit test &rarr; build image</li>
+          <li>Integration test against containerized server</li>
+          <li>MCP Inspector validation in CI</li>
+          <li>Push image to registry, tag with git SHA</li>
+          <li>Deploy to staging &rarr; smoke test &rarr; promote to prod</li>
+          <li><span class="p">GitOps</span>: ArgoCD / Flux watches image tags</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 14</div>
+</section>
+
+<!-- SLIDE 15: Production Patterns -->
+<section>
+  <div class="slide-hdr"><span class="tag">PATTERNS</span><h2>Production Deployment Patterns</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Single-Org Internal</h3>
+      <ul>
+        <li>All MCP servers on <span class="a">private infrastructure</span></li>
+        <li>Internal container registry (ECR, GCR, Harbor)</li>
+        <li>Network-level access control &mdash; VPN or service mesh</li>
+        <li>Centralized secret management via Vault</li>
+        <li>Shared observability stack (Grafana + Prometheus)</li>
+        <li>Teams own their servers, platform team owns infra</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Multi-Tenant SaaS</h3>
+      <ul>
+        <li>Serve <span class="g">multiple customers</span> from shared servers</li>
+        <li>Tenant isolation via OAuth scopes + request context</li>
+        <li>Rate limiting per tenant, per tool</li>
+        <li>Data isolation: tenant-scoped queries only</li>
+        <li>Noisy-neighbor mitigation with resource quotas</li>
+        <li>Compliance: SOC 2, data residency controls</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Hybrid Local + Remote</h3>
+      <ul>
+        <li>Sensitive tools run <span class="p">locally via stdio</span> (filesystem, DB)</li>
+        <li>Shared tools run <span class="p">remotely via HTTP</span> (search, analytics)</li>
+        <li>MCP gateway aggregates both into single interface</li>
+        <li><code>mcp-remote</code> bridges local clients to remote servers</li>
+        <li>Best of both: security for sensitive data, scale for shared tools</li>
+        <li>Most common pattern in enterprise adoption</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card blue" style="margin-top:.8em">
+    <h3>Emerging: MCP Gateway as Infrastructure Layer</h3>
+    <p>Products like <span class="b">Cloudflare MCP Gateway</span>, <span class="b">Toolhouse</span>, and <span class="b">MCP Hub</span> are creating a new infrastructure category &mdash; a managed proxy layer that handles auth, rate limiting, caching, and routing for fleets of MCP servers, analogous to an API gateway for REST services.</p>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 15</div>
+</section>
+
+<!-- SLIDE 16: Fleet Management -->
+<section>
+  <div class="slide-hdr"><span class="tag">FLEET</span><h2>Fleet Management &amp; Orchestration</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber">
+        <h3>Server Registry</h3>
+        <ul>
+          <li>Internal catalog of all deployed MCP servers</li>
+          <li>Metadata: owner, version, capabilities, SLA tier</li>
+          <li>Automated discovery via <code>/.well-known/mcp.json</code></li>
+          <li>Client auto-configuration from registry</li>
+          <li>Deprecation tracking and migration paths</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.6em">
+        <h3>Orchestration Tools</h3>
+        <ul>
+          <li><span class="g">Helm charts</span> for standardized K8s deployment</li>
+          <li>Terraform modules for cloud infrastructure</li>
+          <li>Pulumi for infrastructure-as-code with type safety</li>
+          <li>ArgoCD ApplicationSets for multi-server GitOps</li>
+          <li>Shared base chart: common health, metrics, security</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3>Automated Deployment</h3>
+        <ul>
+          <li>Image build triggers on git push to <code>main</code></li>
+          <li>Progressive delivery: canary &rarr; 10% &rarr; 50% &rarr; 100%</li>
+          <li>Automated rollback on health check failure</li>
+          <li>Feature flags for new tool activation</li>
+          <li>Blue/green for major version upgrades</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.6em">
+        <h3>Governance</h3>
+        <ul>
+          <li><span class="r">Approval workflows</span> for new server deployments</li>
+          <li>Security scanning of server images (Trivy, Snyk)</li>
+          <li>Policy-as-code: OPA/Gatekeeper for deployment rules</li>
+          <li>Cost allocation per server, per team</li>
+          <li>Compliance audit trail for all tool invocations</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 16</div>
+</section>
+
+<!-- SLIDE 17: Common Pitfalls -->
+<section>
+  <div class="slide-hdr"><span class="tag">PITFALLS</span><h2>Common Deployment Pitfalls</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Pitfall</th>
+        <th>Impact</th>
+        <th>Mitigation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="r">Secrets in config files</span></td>
+        <td>Credential exposure in repos or logs</td>
+        <td>Use vault injection; never commit <code>.env</code> or config with tokens</td>
+      </tr>
+      <tr>
+        <td><span class="r">No health checks</span></td>
+        <td>Zombie servers serving errors silently</td>
+        <td>Implement liveness + readiness probes; use MCP <code>ping</code></td>
+      </tr>
+      <tr>
+        <td><span class="r">Running as root</span></td>
+        <td>Container escape, privilege escalation</td>
+        <td>Non-root user, read-only FS, seccomp profiles</td>
+      </tr>
+      <tr>
+        <td><span class="r">No resource limits</span></td>
+        <td>Single server starves cluster</td>
+        <td>Set CPU/memory requests and limits; use LimitRanges</td>
+      </tr>
+      <tr>
+        <td><span class="r">Ignoring transport deprecation</span></td>
+        <td>SSE servers stop working with new clients</td>
+        <td>Migrate to Streamable HTTP; use bridge tools during transition</td>
+      </tr>
+      <tr>
+        <td><span class="r">No graceful shutdown</span></td>
+        <td>In-flight tool calls dropped on deploy</td>
+        <td>Handle <code>SIGTERM</code>; drain connections; use preStop hooks</td>
+      </tr>
+      <tr>
+        <td><span class="r">Monolithic server</span></td>
+        <td>All tools coupled; one failure breaks everything</td>
+        <td>One server per domain; independent scaling and deployment</td>
+      </tr>
+      <tr>
+        <td><span class="r">No rate limiting</span></td>
+        <td>Runaway agent loops exhaust downstream APIs</td>
+        <td>Per-tool rate limits; circuit breakers; cost caps</td>
+      </tr>
+      <tr>
+        <td><span class="r">Stateful assumptions</span></td>
+        <td>Breaks when load-balanced across replicas</td>
+        <td>Externalize state to Redis/DB; use session affinity headers</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">mcp-server-deployment / 17</div>
+</section>
+
+<!-- SLIDE 18: Summary & Recommendations -->
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Recommendations</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Start Here</h3>
+      <ul>
+        <li>Begin with <span class="g">stdio locally</span> for development and testing</li>
+        <li>Use <span class="g">MCP Inspector</span> to validate before deploying</li>
+        <li>Containerize early &mdash; Dockerfile from day one</li>
+        <li>Adopt <span class="g">Streamable HTTP</span> transport for any remote deployment</li>
+        <li>One server per bounded context &mdash; keep servers small and focused</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Production Checklist</h3>
+      <ul>
+        <li>Health checks (liveness + readiness probes)</li>
+        <li>Graceful shutdown with connection draining</li>
+        <li>Secrets via vault, never in config files</li>
+        <li>Non-root containers with resource limits</li>
+        <li>OpenTelemetry for traces, metrics, and logs</li>
+        <li>Rate limiting and circuit breakers per tool</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card purple">
+      <h3>Scale Gradually</h3>
+      <ul>
+        <li><span class="p">Phase 1</span>: Docker Compose for team staging</li>
+        <li><span class="p">Phase 2</span>: Kubernetes with Helm for production</li>
+        <li><span class="p">Phase 3</span>: MCP gateway for fleet management</li>
+        <li>Do not over-engineer &mdash; most teams need 3&ndash;5 servers, not 50</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Watch the Ecosystem</h3>
+      <ul>
+        <li><span class="b">MCP Registry</span> standardizing discovery and metadata</li>
+        <li><span class="b">OAuth 2.1</span> becoming default auth for remote servers</li>
+        <li>Gateway products (Cloudflare, Toolhouse) maturing rapidly</li>
+        <li>Expect a &ldquo;Kubernetes for MCP&rdquo; orchestration layer to emerge</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card red" style="margin-top:.8em">
+    <h3>Key Takeaway</h3>
+    <p>MCP server deployment is converging toward <span class="r">standard cloud-native patterns</span> &mdash; containers, service meshes, observability, and GitOps. The protocol is new, but the operational playbook is well-established. Teams that treat MCP servers as <span class="r">first-class microservices</span> from the start will avoid the most common pitfalls.</p>
+  </div>
+  <div class="slide-footer">mcp-server-deployment / 18</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,center:false,transition:'fade',transitionSpeed:'fast',margin:0.02,width:1280,height:900});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body></html>

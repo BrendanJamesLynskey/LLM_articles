@@ -12,6 +12,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | --- | --- |
 | Attention Mechanism Innovations | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/attention_mechanism_innovations.html) · [MD](articles/attention_mechanism_innovations.md) |
 | Context Window Scaling | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/context_window_scaling.html) · [MD](articles/context_window_scaling.md) |
+| Diffusion Language Models | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/diffusion_language_models.html) · [MD](articles/diffusion_language_models.md) |
 | Mixture Of Experts | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mixture_of_experts.html) · [MD](articles/mixture_of_experts.md) |
 | Positional Encodings | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/positional_encodings.html) · [MD](articles/positional_encodings.md) |
 | Post Transformer Models | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/post_transformer_models.html) · [MD](articles/post_transformer_models.md) |
@@ -31,16 +32,20 @@ A collection of technical articles exploring the systems behind modern large lan
 | Mixed Precision Arithmetic | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mixed_precision_arithmetic.html) · [MD](articles/mixed_precision_arithmetic.md) |
 | Non-Deterministic Output in Ollama | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/ollama_nondeterminism.html) · [MD](articles/ollama_nondeterminism.md) |
 | Paged Attention | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/paged_attention.html) · [MD](articles/paged_attention.md) |
+| Prompt Caching: Reducing Redundant Computation in LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/prompt_caching.html) · [MD](articles/prompt_caching.md) |
 | Quantization For Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/quantization_for_inference.html) · [MD](articles/quantization_for_inference.md) |
 | Speculative Decoding: Accelerating LLM Inference with Draft Models | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/speculative_decoding.html) · [MD](articles/speculative_decoding.md) |
+| Triton: GPU Kernel Programming for Machine Learning | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/triton_kernel_programming.html) · [MD](articles/triton_kernel_programming.md) |
 
 ### Training
 
 | Topic | Format |
 | --- | --- |
+| Direct Preference Optimization and GRPO | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/dpo_and_grpo.html) · [MD](articles/dpo_and_grpo.md) |
 | Distributed Training | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/distributed_training.html) · [MD](articles/distributed_training.md) |
 | Llm Training Stages | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/llm_training_stages.html) · [MD](articles/llm_training_stages.md) |
 | LoRA and Parameter-Efficient Fine-Tuning | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/lora_and_peft.html) · [MD](articles/lora_and_peft.md) |
+| Model Merging: TIES, DARE, and Model Soups | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/model_merging.html) · [MD](articles/model_merging.md) |
 | Prompt Engineering | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/prompt_engineering.html) · [MD](articles/prompt_engineering.md) |
 | Rlhf And Alignment | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/rlhf_and_alignment.html) · [MD](articles/rlhf_and_alignment.md) |
 | Structured Output and Constrained Decoding | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/structured_output_and_constrained_decoding.html) · [MD](articles/structured_output_and_constrained_decoding.md) |
@@ -58,8 +63,11 @@ A collection of technical articles exploring the systems behind modern large lan
 | Groq's Architecture for LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/groq_architecture.html) · [MD](articles/groq_architecture.md) |
 | Intel Gaudi Architecture: Habana Labs' AI Accelerator | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/intel_gaudi_architecture.html) · [MD](articles/intel_gaudi_architecture.md) |
 | Multi Model Multi Agent Hardware | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/multi_model_multi_agent_hardware.html) · [MD](articles/multi_model_multi_agent_hardware.md) |
+| NVIDIA Blackwell GB200 NVL72: A Rack-Scale Computer for Trillion-Parameter Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/nvidia_blackwell_gb200.html) · [MD](articles/nvidia_blackwell_gb200.md) |
 | NVIDIA DGX Spark: A Desktop AI Supercomputer for Agents and Local Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/nvidia_dgx_spark.html) · [MD](articles/nvidia_dgx_spark.md) |
+| NVLink and NVSwitch: Building the Scale-Up Fabric for AI | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/nvlink_nvswitch_fabric.html) · [MD](articles/nvlink_nvswitch_fabric.md) |
 | Power and Thermal Management for GPU-Based LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/power_and_thermal_management.html) · [MD](articles/power_and_thermal_management.md) |
+| RDMA and InfiniBand for AI Training Clusters | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/rdma_infiniband_for_ai.html) · [MD](articles/rdma_infiniband_for_ai.md) |
 | SambaNova's SN40L Architecture: Dataflow Processing for LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/sambanova_architecture.html) · [MD](articles/sambanova_architecture.md) |
 | Tenstorrent Architecture: RISC-V AI Accelerators and the Open Hardware Bet | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/tenstorrent_architecture.html) · [MD](articles/tenstorrent_architecture.md) |
 
@@ -68,6 +76,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Topic | Format |
 | --- | --- |
 | Embedding Models and Vector Search | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/embedding_models_and_vector_search.html) · [MD](articles/embedding_models_and_vector_search.md) |
+| LLM Observability: Tracing, Evaluation, and Production Monitoring | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/llm_observability.html) · [MD](articles/llm_observability.md) |
 | MCP Gateways: Centralized Proxy Architecture for the Model Context Protocol Ecosystem | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mcp_gateways.html) · [MD](articles/mcp_gateways.md) |
 | Deployment and Management of MCP Servers: From Local Development to Production Infrastructure | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mcp_server_deployment.html) · [MD](articles/mcp_server_deployment.md) |
 | Model Context Protocol (MCP): A Universal Interface for LLM Tool Integration | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/model_context_protocol.html) · [MD](articles/model_context_protocol.md) |
@@ -80,6 +89,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Topic | Format |
 | --- | --- |
 | AI Agent Security: Threat Models, Defenses, and Deployment Patterns | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/agent_security.html) · [MD](articles/agent_security.md) |
+| Confidential Computing for AI: Trusted Execution for LLMs | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/confidential_computing_for_ai.html) · [MD](articles/confidential_computing_for_ai.md) |
 | LLM Security: Threats, Vulnerabilities, and Defenses | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/llm_security.html) · [MD](articles/llm_security.md) |
 | MCP Security: Threat Models, Attack Vectors, and Hardening Strategies for the Model Context Protocol | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mcp_security.html) · [MD](articles/mcp_security.md) |
 | OAuth 2.1 for AI Applications: Securing the Agent-Tool Interface | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/oauth_for_ai.html) · [MD](articles/oauth_for_ai.md) |

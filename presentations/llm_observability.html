@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Observability | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>LLM Observability</h1>
+  <p class="subtitle">Tracing, Evaluation, and Production Monitoring</p>
+  <div>
+    <span class="pill amber">tracing</span>
+    <span class="pill green">eval</span>
+    <span class="pill purple">drift</span>
+    <span class="pill blue">opentelemetry</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">llm-observability / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why Conventional APM Falls Short</h2></div>
+  <p>Standard service monitoring tracks request rate, error rate, latency, resource utilization. None of those tell you whether the LLM&rsquo;s output was <span class="r">correct, helpful, safe, or hallucinated</span>.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red"><h3>Failure Modes APM Misses</h3><ul><li>200 OK with confidently-stated falsehood</li><li>Helpful response with wrong tone</li><li>Unsolicited PII leak from prompt</li><li>Successful jailbreak by adversarial input</li><li>Refusal of legitimate request</li><li>Wrong tool called or skipped</li></ul></div>
+    <div class="card green"><h3>What LLM Observability Adds</h3><ul><li>Trace: full prompt, response, tools, params</li><li>Evaluation: quality scoring of outputs</li><li>Drift detection: behavior change over time</li><li>Cost attribution: who&rsquo;s burning tokens</li><li>Prompt versioning: rollback on regression</li></ul></div>
+  </div>
+  <div class="slide-footer">llm-observability / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TRACE</span><h2>The LLM Trace</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber"><h3>Captured Per Trace</h3><ul><li>System prompt + user message + history</li><li>Model identifier, parameters, sampling config</li><li>Tool calls (args + results)</li><li>Internal reasoning (if exposed)</li><li>Final response shown to user</li><li>Latency breakdown (prefill, decode, tools)</li><li>Token counts: input, output, cached, total</li><li>Cost in dollars</li><li>User feedback signals</li></ul></div>
+    </div>
+    <div>
+      <pre><code>{
+  "trace_id": "abc123",
+  "user_id": "u_456",
+  "model": "claude-opus-4-6",
+  "input_tokens": 4200,
+  "cached_tokens": 3800,
+  "output_tokens": 280,
+  "latency_ms": {
+    "prefill": 120,
+    "decode": 740,
+    "tools": 310
+  },
+  "cost_usd": 0.0182,
+  "tool_calls": [...],
+  "feedback": {
+    "thumbs": "up"
+  }
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">llm-observability / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OTEL</span><h2>OpenTelemetry GenAI Conventions</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>Standard Attributes</h3><ul><li><code>gen_ai.system</code></li><li><code>gen_ai.request.model</code></li><li><code>gen_ai.usage.input_tokens</code></li><li><code>gen_ai.usage.output_tokens</code></li><li><code>gen_ai.response.finish_reason</code></li><li><code>gen_ai.prompt</code> / <code>gen_ai.completion</code></li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>Why It Matters</h3><ul><li>Vendor-neutral data model</li><li>Switch backends without re-instrumentation</li><li>Multiple platforms accept OTel traces</li><li>Integrates with non-LLM service traces</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Sampling Strategies</h3><ul><li><span class="p">Head-based</span>: decide at trace start</li><li><span class="p">Tail-based</span>: decide based on outcome</li><li><span class="p">Adaptive</span>: adjust by traffic level</li><li>Common: 100% errors/slow, 10% normal, 100% feedback-flagged</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Storage</h3><ul><li>Trace volumes can hit GB/day</li><li>Prompts/responses dominate size</li><li>Compression + sampling essential</li><li>Retention typically 30&ndash;90 days</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">llm-observability / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">EVAL</span><h2>Continuous Evaluation</h2></div>
+  <p>Tests run in CI before deployment. <span class="a">Evaluation runs continuously in production</span> &mdash; sampling traffic, scoring outputs, dashboarding quality.</p>
+  <div class="cols cols-3" style="margin-top:.6em">
+    <div class="card amber"><h3>Heuristic Checks</h3><ul><li>Format compliance (JSON parses?)</li><li>Required fields present</li><li>Forbidden content absent</li><li>Length within range</li><li>Citations present</li><li>Cheap, deterministic, free</li></ul></div>
+    <div class="card green"><h3>LLM-as-Judge</h3><ul><li>Stronger LLM scores weaker LLM</li><li>Rubric-driven scoring</li><li>Reasoning + score</li><li>Calibrate vs human ratings</li><li>Most scalable approach</li></ul></div>
+    <div class="card purple"><h3>Human Annotation</h3><ul><li>Gold standard for highest stakes</li><li>Implicit feedback (clicks, retries)</li><li>Explicit thumbs/ratings</li><li>Annotation queues for high-priority traces</li></ul></div>
+  </div>
+  <div class="slide-footer">llm-observability / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DRIFT</span><h2>Drift Detection</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Why LLMs Drift</h3><ul><li>Provider model updates (silent)</li><li>Prompt template changes</li><li>Input distribution shift over time</li><li>Context bloat in long conversations</li><li>Tool ecosystem changes</li></ul></div>
+    <div class="card green"><h3>Detection Approaches</h3><ul><li>Threshold alerts on quality metrics</li><li>CUSUM and Bayesian change-point detection</li><li>Distributional comparison (length, topics, formats)</li><li>Per-user-segment monitoring</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>What Doesn&rsquo;t Drift</h3><p>Latency, error rate, throughput &mdash; the things APM tracks. The thing that drifts is <span class="b">quality</span>, and you only see that if you&rsquo;re measuring it.</p></div>
+  <div class="slide-footer">llm-observability / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PROMPT</span><h2>Prompts &amp; Versions as First-Class Artifacts</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Prompt Registry</h3><ul><li>Every version stored with timestamps</li><li>Diff history for each change</li><li>Each LLM call attributed to prompt version</li><li>One-click rollback</li><li>A/B test variants in production</li></ul></div>
+    <div class="card green"><h3>Model Pinning</h3><ul><li>Pin to specific version (e.g. <code>claude-opus-4-6</code>)</li><li>Test before upgrading to new versions</li><li>Compare metrics across versions during eval</li><li>Most teams pin and explicitly upgrade</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Why It Matters</h3><p>Prompt changes are the most common cause of LLM application regressions. Being able to attribute a quality drop to a specific prompt change is essential for fast diagnosis. Treating prompts as code-equivalent artifacts is non-negotiable in mature deployments.</p></div>
+  <div class="slide-footer">llm-observability / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TOOLS</span><h2>The Tool Landscape</h2></div>
+  <table>
+    <thead><tr><th>Tool</th><th>Type</th><th>Strengths</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">LangSmith</span></td><td>Specialized</td><td>Deep LangChain/Graph integration</td></tr>
+      <tr><td><span class="g">Langfuse</span></td><td>Specialized OSS</td><td>Self-hostable, broad SDK support</td></tr>
+      <tr><td>Arize Phoenix</td><td>Specialized OSS</td><td>Strong eval tooling</td></tr>
+      <tr><td>Helicone</td><td>Proxy-based</td><td>Zero code changes</td></tr>
+      <tr><td>W&amp;B Weave</td><td>Specialized</td><td>Bridges experiments and prod</td></tr>
+      <tr><td><span class="p">Datadog GenAI</span></td><td>APM extension</td><td>Integration with broader Datadog stack</td></tr>
+      <tr><td>SigNoz / Jaeger</td><td>OTel-native OSS</td><td>Standards-first</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">llm-observability / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">COST</span><h2>Cost Tracking &amp; Privacy</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Cost Observability</h3><ul><li>LLM API costs can dwarf other infra</li><li>Per-feature attribution</li><li>Per-user attribution</li><li>Trend analysis (linear vs runaway)</li><li>Outlier detection: 100&times; normal requests</li></ul></div>
+    <div class="card red"><h3>Privacy Concerns</h3><ul><li>Traces capture every conversation &mdash; PII goldmine</li><li>Automatic redaction (names, emails, cards)</li><li>Tokenization for regulated data</li><li>RBAC + audit logging</li><li>Geographic data residency</li><li>Retention policies</li></ul></div>
+  </div>
+  <div class="slide-footer">llm-observability / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Practitioner&rsquo;s Lesson</h2></div>
+  <div class="card amber"><h3>What Works</h3><ul><li>Start instrumenting from day one</li><li>OpenTelemetry as the data backbone</li><li>Heuristic checks first, LLM-as-judge second, humans last</li><li>Treat prompts as versioned code artifacts</li><li>Monitor quality metrics like you monitor latency</li><li>Track cost at the per-feature granularity</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Pitfall</h3><p>Retrofitting observability onto an LLM application that has been running blind for months is much more expensive than building it in from the start. The organizations that operate LLM apps with rigor will out-compete the ones perpetually surprised by silent quality regressions and angry users.</p></div>
+  <div class="slide-footer">llm-observability / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

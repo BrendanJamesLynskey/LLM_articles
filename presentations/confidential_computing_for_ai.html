@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confidential Computing for AI | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Confidential Computing for AI</h1>
+  <p class="subtitle">Trusted Execution for LLM Workloads</p>
+  <div>
+    <span class="pill amber">tee</span>
+    <span class="pill green">tdx</span>
+    <span class="pill purple">sev-snp</span>
+    <span class="pill blue">attestation</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">confidential-ai / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>Why Trust Is the Bottleneck</h2></div>
+  <p>Sending data to a hosted LLM means trusting the provider, the cloud, the hypervisor, the OS, the serving software, and the GPUs. For most workloads this is fine. <span class="r">For some it isn&rsquo;t.</span></p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red"><h3>Workloads That Can&rsquo;t Trust</h3><ul><li>Healthcare (HIPAA)</li><li>Finance (PCI, SOX)</li><li>Legal (attorney-client privilege)</li><li>Defense / classified</li><li>Trade secrets / IP</li></ul></div>
+    <div class="card green"><h3>What Confidential Computing Promises</h3><ul><li>Cryptographic confidentiality &mdash; not contractual</li><li>No one can read the data &mdash; not even the provider&rsquo;s root user</li><li>Verifiable via remote attestation</li><li>Use frontier models on sensitive data</li></ul></div>
+  </div>
+  <div class="slide-footer">confidential-ai / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TEE</span><h2>Trusted Execution Environments</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>Hardware Guarantees</h3><ul><li>Code outside cannot read TEE memory</li><li>TEE memory is encrypted in RAM</li><li>Code inside cannot be modified by outside</li><li>CPU cryptographically attests to running code</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>Why Hardware Matters</h3><ul><li>OS, hypervisor, container runtime can all be bypassed by sufficient privilege</li><li>TEE is designed so even root can&rsquo;t peek</li><li>Physical attacks limited too &mdash; memory is encrypted</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Implementations</h3><ul><li><span class="p">Intel SGX</span> &mdash; original, app-level, side-channel issues</li><li><span class="p">Intel TDX</span> &mdash; VM-level, dominant for AI</li><li><span class="p">AMD SEV-SNP</span> &mdash; AMD&rsquo;s VM-level equivalent</li><li><span class="p">ARM CCA</span> &mdash; ARMv9 server-class</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">confidential-ai / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ATTEST</span><h2>Remote Attestation</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber"><h3>The Protocol</h3><ol><li>User opens TLS to TEE</li><li>TEE generates signed measurement of running code + fresh public key</li><li>User verifies measurement against expected values</li><li>User verifies signature with vendor PKI</li><li>User establishes session key with verified TEE</li><li>User transmits sensitive data over encrypted session</li></ol></div>
+      <div class="card green" style="margin-top:.6em"><h3>What You Verify</h3><ul><li>Right code is running</li><li>Genuine hardware (not simulator)</li><li>Both performed every connection</li></ul></div>
+    </div>
+    <div>
+      <div class="card blue"><h3>Trust Anchors</h3><ul><li>CPU vendor root certificate</li><li>Vendor attestation service</li><li>Public measurement registry</li><li>Optional third-party verifier</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">confidential-ai / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">GPU</span><h2>The GPU Problem</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Why CPU TEEs Aren&rsquo;t Enough</h3><ul><li>AI inference happens on the GPU</li><li>Model weights, KV cache, activations live in GPU memory</li><li>Naive deployment exposes everything to GPU</li><li>Encryption stops at PCIe bus</li><li><span class="r">Fatal flaw for confidential AI</span></li></ul></div>
+    <div class="card green"><h3>NVIDIA Confidential Computing</h3><ul><li>First on Hopper H100 (2023)</li><li>Encrypted PCIe transfers</li><li>Encrypted HBM memory</li><li>GPU-side attestation</li><li>Secure firmware boot</li><li>Extends TEE boundary to include GPU</li></ul></div>
+  </div>
+  <div class="slide-footer">confidential-ai / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PERF</span><h2>Performance Cost</h2></div>
+  <table>
+    <thead><tr><th>Generation</th><th>Inference Overhead</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Hopper H100</span></td><td>5&ndash;15%</td><td>First-gen GPU CC, room for improvement</td></tr>
+      <tr><td>H200</td><td>4&ndash;12%</td><td>Marginal refinement</td></tr>
+      <tr><td><span class="g">Blackwell B200</span></td><td>1&ndash;3%</td><td>Major reduction, near-free for most workloads</td></tr>
+      <tr><td>Rubin (planned)</td><td>&lt;1%</td><td>Confidential mode default</td></tr>
+    </tbody>
+  </table>
+  <div class="card blue" style="margin-top:.8em"><h3>The Tradeoff</h3><p>A few percent latency for cryptographic confidentiality is a good deal for sensitive workloads. The cost has dropped enough that <span class="b">there is little reason not to enable it</span> for any deployment that handles regulated data.</p></div>
+  <div class="slide-footer">confidential-ai / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DEPLOY</span><h2>The Trust Model</h2></div>
+  <div class="cols cols-2">
+    <div class="card green"><h3>You Trust</h3><ul><li>CPU and GPU vendors (Intel/AMD/NVIDIA)</li><li>Vendor attestation infrastructure</li><li>The code you approved to run inside the TEE</li><li>The OS, boot loader, inference server inside the TEE</li></ul></div>
+    <div class="card red"><h3>You Don&rsquo;t Trust</h3><ul><li>Cloud provider employees</li><li>Hypervisor or host OS</li><li>Anyone with physical datacenter access</li><li>Other tenants on the same hardware</li><li>Network operators between you and the TEE</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Significance</h3><p>The trusted computing base shrinks dramatically. Instead of trusting the entire cloud provider&rsquo;s organizational security, you trust a small set of hardware vendors and a verified software image.</p></div>
+  <div class="slide-footer">confidential-ai / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PROVIDERS</span><h2>Cloud Provider Offerings</h2></div>
+  <table>
+    <thead><tr><th>Provider</th><th>CPU TEE</th><th>GPU Support</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Azure</span></td><td>Intel TDX</td><td>H100, H200</td><td>Most mature offering</td></tr>
+      <tr><td>Google Cloud</td><td>Intel TDX, AMD SEV-SNP</td><td>NVIDIA GPUs via Confidential Space</td><td>Vertex AI integration</td></tr>
+      <tr><td>AWS</td><td>Nitro Enclaves</td><td>L40S (G6e); broader rollout pending</td><td>Slower to GPU support</td></tr>
+      <tr><td>Oracle / IBM</td><td>Various</td><td>Limited</td><td>Niche enterprise</td></tr>
+      <tr><td><span class="p">Apple PCC</span></td><td>Custom Apple Silicon</td><td>Apple Silicon GPU</td><td>First mass-consumer deployment</td></tr>
+      <tr><td>Edgeless / Phala</td><td>TDX</td><td>NVIDIA CC</td><td>Dedicated confidential AI services</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">confidential-ai / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITS</span><h2>Side Channels &amp; Vendor Trust</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Side-Channel Attacks</h3><ul><li>SGX has long history of vulnerabilities (Foreshadow, ZombieLoad)</li><li>TDX/SEV-SNP newer, less studied</li><li>GPU-side surface poorly understood</li><li>Slow, expensive, not scalable for most attackers</li></ul></div>
+    <div class="card amber"><h3>Vendor Trust</h3><ul><li>Must trust silicon vendor implementation</li><li>No independent verification of silicon</li><li>Compromised vendor &rarr; broken story</li><li>Mitigation: choose carefully, monitor disclosures</li></ul></div>
+  </div>
+  <div class="card purple" style="margin-top:.8em"><h3>Code Trustworthiness</h3><p>Attestation verifies the right code is running. The user must still trust that the code is correctly implemented and benign. A buggy inference server inside a TEE that logs prompts to a file is just as compromising as a non-confidential one. <span class="p">Keep TEE-resident code small and auditable.</span></p></div>
+  <div class="slide-footer">confidential-ai / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Bridge Between Power and Privacy</h2></div>
+  <div class="card amber"><h3>Why It Matters</h3><ul><li>Frontier LLMs are too large for on-prem deployment</li><li>Without confidential computing, sensitive workloads were excluded entirely</li><li>With it, regulated data can use cloud frontier models with cryptographic guarantees</li><li>Production-ready in 2025, with mature commercial offerings</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Lesson</h3><p>Most LLM use does not require confidential computing &mdash; the trust model of standard cloud APIs is acceptable. But for healthcare, finance, legal, defense, and other regulated workloads, it is increasingly the answer. The tooling is good enough to deploy, the compliance story is improving, and the performance overhead has dropped to a few percent. <span class="b">Worth knowing about even if you don&rsquo;t need it today.</span></p></div>
+  <div class="slide-footer">confidential-ai / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

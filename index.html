@@ -335,8 +335,8 @@
       Each article includes an interactive slide presentation.
     </p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">75</div><div class="stat-label">ARTICLES</div></div>
-      <div class="stat"><div class="stat-num">75</div><div class="stat-label">PRESENTATIONS</div></div>
+      <div class="stat"><div class="stat-num">85</div><div class="stat-label">ARTICLES</div></div>
+      <div class="stat"><div class="stat-num">85</div><div class="stat-label">PRESENTATIONS</div></div>
       <div class="stat"><div class="stat-num">9</div><div class="stat-label">CATEGORIES</div></div>
     </div>
   </header>
@@ -366,7 +366,7 @@
     <div class="category-header">
       <span class="cat-icon icon-architecture">Architecture</span>
       <h2>Architecture</h2>
-      <span class="cat-count">6 articles</span>
+      <span class="cat-count">7 articles</span>
     </div>
     <div class="articles-grid">
       <div class="article-card" data-cat="architecture" data-title="Attention Mechanism Innovations">
@@ -376,6 +376,10 @@
       <div class="article-card" data-cat="architecture" data-title="Context Window Scaling">
         <div class="article-info"><span class="category cat-architecture">ARCHITECTURE</span><h3>Context Window Scaling</h3><p class="desc">Techniques for extending context from 4K to 1M+ tokens: RoPE scaling, sparse attention, Ring Attention, and RAG.</p></div>
         <div class="article-links"><a href="presentations/context_window_scaling.html" class="link-slides">Slides</a><a href="articles/context_window_scaling.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="architecture" data-title="Diffusion Language Models">
+        <div class="article-info"><span class="category cat-architecture">ARCHITECTURE</span><h3>Diffusion Language Models</h3><p class="desc">Discrete denoising for parallel text generation: SEDD, Mercury, hybrid AR-diffusion, and the speed-vs-quality tradeoff against autoregression.</p></div>
+        <div class="article-links"><a href="presentations/diffusion_language_models.html" class="link-slides">Slides</a><a href="articles/diffusion_language_models.md" class="link-md">MD</a></div>
       </div>
       <div class="article-card" data-cat="architecture" data-title="Mixture of Experts">
         <div class="article-info"><span class="category cat-architecture">ARCHITECTURE</span><h3>Mixture of Experts</h3><p class="desc">Sparse MoE layers, routing mechanisms, load balancing, and expert specialization in models like Mixtral and DeepSeek.</p></div>
@@ -401,7 +405,7 @@
     <div class="category-header">
       <span class="cat-icon icon-inference">Inference</span>
       <h2>Inference</h2>
-      <span class="cat-count">12 articles</span>
+      <span class="cat-count">14 articles</span>
     </div>
     <div class="articles-grid">
       <div class="article-card" data-cat="inference" data-title="Attention–FFN Disaggregation">
@@ -440,6 +444,10 @@
         <div class="article-info"><span class="category cat-inference">INFERENCE</span><h3>PagedAttention</h3><p class="desc">Virtual memory for KV caches: block tables, copy-on-write, prefix caching, vLLM, and the vAttention alternative.</p></div>
         <div class="article-links"><a href="presentations/paged_attention.html" class="link-slides">Slides</a><a href="articles/paged_attention.md" class="link-md">MD</a></div>
       </div>
+      <div class="article-card" data-cat="inference" data-title="Prompt Caching">
+        <div class="article-info"><span class="category cat-inference">INFERENCE</span><h3>Prompt Caching</h3><p class="desc">KV cache reuse for repeated prefixes: 50-90% input cost reduction, trie-based indexing, provider implementations, and cache-friendly prompt design.</p></div>
+        <div class="article-links"><a href="presentations/prompt_caching.html" class="link-slides">Slides</a><a href="articles/prompt_caching.md" class="link-md">MD</a></div>
+      </div>
       <div class="article-card" data-cat="inference" data-title="Quantization for Inference">
         <div class="article-info"><span class="category cat-inference">INFERENCE</span><h3>Quantization for Inference</h3><p class="desc">GPTQ, AWQ, FP8, QAT, QLoRA, and mixed-precision strategies for reducing model size and improving throughput.</p></div>
         <div class="article-links"><a href="presentations/quantization_for_inference.html" class="link-slides">Slides</a><a href="articles/quantization_for_inference.md" class="link-md">MD</a></div>
@@ -452,6 +460,10 @@
         <div class="article-info"><span class="category cat-inference">INFERENCE</span><h3>Structured Output and Constrained Decoding</h3><p class="desc">JSON mode, CFG/PDA-guided masking, FSM approaches, Outlines, token healing, function calling, and framework support.</p></div>
         <div class="article-links"><a href="presentations/structured_output_and_constrained_decoding.html" class="link-slides">Slides</a><a href="articles/structured_output_and_constrained_decoding.md" class="link-md">MD</a></div>
       </div>
+      <div class="article-card" data-cat="inference" data-title="Triton Kernel Programming">
+        <div class="article-info"><span class="category cat-inference">INFERENCE</span><h3>Triton: GPU Kernel Programming for ML</h3><p class="desc">Block-level Python DSL for high-performance GPU kernels: FlashAttention, Mamba, Liger, torch.compile, and the productivity case against raw CUDA.</p></div>
+        <div class="article-links"><a href="presentations/triton_kernel_programming.html" class="link-slides">Slides</a><a href="articles/triton_kernel_programming.md" class="link-md">MD</a></div>
+      </div>
     </div>
   </div>
 
@@ -460,9 +472,13 @@
     <div class="category-header">
       <span class="cat-icon icon-training">Training</span>
       <h2>Training</h2>
-      <span class="cat-count">5 articles</span>
+      <span class="cat-count">7 articles</span>
     </div>
     <div class="articles-grid">
+      <div class="article-card" data-cat="training" data-title="Direct Preference Optimization and GRPO">
+        <div class="article-info"><span class="category cat-training">TRAINING</span><h3>DPO and GRPO</h3><p class="desc">The post-PPO era of LLM alignment: Direct Preference Optimization, Group Relative Policy Optimization, and the simplification trajectory of RLHF.</p></div>
+        <div class="article-links"><a href="presentations/dpo_and_grpo.html" class="link-slides">Slides</a><a href="articles/dpo_and_grpo.md" class="link-md">MD</a></div>
+      </div>
       <div class="article-card" data-cat="training" data-title="Distributed Training">
         <div class="article-info"><span class="category cat-training">TRAINING</span><h3>Distributed Training</h3><p class="desc">Data, tensor, pipeline, and expert parallelism. ZeRO, FSDP, 3D parallelism, and fault tolerance.</p></div>
         <div class="article-links"><a href="presentations/distributed_training.html" class="link-slides">Slides</a><a href="articles/distributed_training.md" class="link-md">MD</a></div>
@@ -474,6 +490,10 @@
       <div class="article-card" data-cat="training" data-title="LoRA and Parameter-Efficient Fine-Tuning">
         <div class="article-info"><span class="category cat-training">TRAINING</span><h3>LoRA and Parameter-Efficient Fine-Tuning</h3><p class="desc">Low-rank adaptation, QLoRA, DoRA, IA3, prefix tuning, adapters, multi-LoRA serving, and adapter merging.</p></div>
         <div class="article-links"><a href="presentations/lora_and_peft.html" class="link-slides">Slides</a><a href="articles/lora_and_peft.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="training" data-title="Model Merging">
+        <div class="article-info"><span class="category cat-training">TRAINING</span><h3>Model Merging: TIES, DARE, Model Soups</h3><p class="desc">Combining trained LLMs through weight arithmetic: task vectors, sign election, random sparsification, mergekit, and the open-source merge ecosystem.</p></div>
+        <div class="article-links"><a href="presentations/model_merging.html" class="link-slides">Slides</a><a href="articles/model_merging.md" class="link-md">MD</a></div>
       </div>
       <div class="article-card" data-cat="training" data-title="Ring Attention and Sequence Parallelism">
         <div class="article-info"><span class="category cat-training">TRAINING</span><h3>Ring Attention and Sequence Parallelism</h3><p class="desc">Distributing long sequences across GPUs: Ring Attention, DeepSpeed Ulysses, hybrid USP, and context parallelism.</p></div>
@@ -491,7 +511,7 @@
     <div class="category-header">
       <span class="cat-icon icon-hardware">Hardware</span>
       <h2>Hardware</h2>
-      <span class="cat-count">13 articles</span>
+      <span class="cat-count">16 articles</span>
     </div>
     <div class="articles-grid">
       <div class="article-card" data-cat="hardware" data-title="AMD Instinct MI300X">
@@ -530,13 +550,25 @@
         <div class="article-info"><span class="category cat-hardware">HARDWARE</span><h3>Multi-Model Multi-Agent Hardware</h3><p class="desc">VRAM budgeting, GPU topology, model swapping, quantisation strategy, and practical configurations for multi-agent pipelines.</p></div>
         <div class="article-links"><a href="presentations/multi_model_multi_agent_hardware.html" class="link-slides">Slides</a><a href="articles/multi_model_multi_agent_hardware.md" class="link-md">MD</a></div>
       </div>
+      <div class="article-card" data-cat="hardware" data-title="NVIDIA Blackwell GB200 NVL72">
+        <div class="article-info"><span class="category cat-hardware">HARDWARE</span><h3>NVIDIA Blackwell GB200 NVL72</h3><p class="desc">Rack-scale 72-GPU NVLink domain, 13.5 TB HBM3e, 130 TB/s bisection, FP4 tensor cores, and the shift from server to rack as the unit of AI deployment.</p></div>
+        <div class="article-links"><a href="presentations/nvidia_blackwell_gb200.html" class="link-slides">Slides</a><a href="articles/nvidia_blackwell_gb200.md" class="link-md">MD</a></div>
+      </div>
       <div class="article-card" data-cat="hardware" data-title="NVIDIA DGX Spark">
         <div class="article-info"><span class="category cat-hardware">HARDWARE</span><h3>NVIDIA DGX Spark</h3><p class="desc">GB10 Grace Blackwell Superchip, 128GB unified memory, multi-node clustering, NemoClaw agent toolkit, and desktop-to-datacenter portability.</p></div>
         <div class="article-links"><a href="presentations/nvidia_dgx_spark.html" class="link-slides">Slides</a><a href="articles/nvidia_dgx_spark.md" class="link-md">MD</a></div>
       </div>
+      <div class="article-card" data-cat="hardware" data-title="NVLink and NVSwitch Fabric">
+        <div class="article-info"><span class="category cat-hardware">HARDWARE</span><h3>NVLink and NVSwitch Fabric</h3><p class="desc">Five generations of NVLink, NVSwitch crossbar topology, SHARP in-network reduction, NCCL collectives, and the scale-up domain that defines GPU servers.</p></div>
+        <div class="article-links"><a href="presentations/nvlink_nvswitch_fabric.html" class="link-slides">Slides</a><a href="articles/nvlink_nvswitch_fabric.md" class="link-md">MD</a></div>
+      </div>
       <div class="article-card" data-cat="hardware" data-title="Power and Thermal Management">
         <div class="article-info"><span class="category cat-hardware">HARDWARE</span><h3>Power and Thermal Management</h3><p class="desc">Cooling strategies, power delivery, DVFS, monitoring, and energy efficiency for GPU clusters.</p></div>
         <div class="article-links"><a href="presentations/power_and_thermal_management.html" class="link-slides">Slides</a><a href="articles/power_and_thermal_management.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="hardware" data-title="RDMA and InfiniBand for AI">
+        <div class="article-info"><span class="category cat-hardware">HARDWARE</span><h3>RDMA and InfiniBand for AI</h3><p class="desc">Kernel-bypass networking for AI clusters: verbs, queue pairs, lossless fabrics, GPUDirect RDMA, RoCE convergence, and Spectrum-X Ethernet.</p></div>
+        <div class="article-links"><a href="presentations/rdma_infiniband_for_ai.html" class="link-slides">Slides</a><a href="articles/rdma_infiniband_for_ai.md" class="link-md">MD</a></div>
       </div>
       <div class="article-card" data-cat="hardware" data-title="SambaNova's SN40L Architecture">
         <div class="article-info"><span class="category cat-hardware">HARDWARE</span><h3>SambaNova's SN40L Architecture</h3><p class="desc">Reconfigurable Dataflow Architecture, three-tier memory, SambaFlow compiler, Composition of Experts, and DataScale systems.</p></div>
@@ -554,7 +586,7 @@
     <div class="category-header">
       <span class="cat-icon icon-practical">Practical</span>
       <h2>Practical</h2>
-      <span class="cat-count">9 articles</span>
+      <span class="cat-count">10 articles</span>
     </div>
     <div class="articles-grid">
       <div class="article-card" data-cat="practical" data-title="Embedding Models and Vector Search">
@@ -564,6 +596,10 @@
       <div class="article-card" data-cat="practical" data-title="Evaluation and Benchmarks">
         <div class="article-info"><span class="category cat-practical">PRACTICAL</span><h3>Evaluation and Benchmarks</h3><p class="desc">MMLU, HumanEval, Chatbot Arena, LLM-as-judge, data contamination, and designing robust evaluations.</p></div>
         <div class="article-links"><a href="presentations/evaluation_and_benchmarks.html" class="link-slides">Slides</a><a href="articles/evaluation_and_benchmarks.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="practical" data-title="LLM Observability">
+        <div class="article-info"><span class="category cat-practical">PRACTICAL</span><h3>LLM Observability</h3><p class="desc">Tracing, evaluation, drift detection, prompt versioning, and cost tracking for production LLM applications. OpenTelemetry GenAI conventions and the tool landscape.</p></div>
+        <div class="article-links"><a href="presentations/llm_observability.html" class="link-slides">Slides</a><a href="articles/llm_observability.md" class="link-md">MD</a></div>
       </div>
       <div class="article-card" data-cat="practical" data-title="MCP Gateways">
         <div class="article-info"><span class="category cat-practical">PRACTICAL</span><h3>MCP Gateways</h3><p class="desc">Centralized proxy architecture for MCP at scale: tool aggregation, credential vaulting, session management, observability, and the 40+ implementation landscape.</p></div>
@@ -601,12 +637,16 @@
     <div class="category-header">
       <span class="cat-icon icon-security">Security</span>
       <h2>Security</h2>
-      <span class="cat-count">5 articles</span>
+      <span class="cat-count">6 articles</span>
     </div>
     <div class="articles-grid">
       <div class="article-card" data-cat="security" data-title="Agent Security">
         <div class="article-info"><span class="category cat-security">SECURITY</span><h3>Agent Security</h3><p class="desc">Sandboxing, permission models, tool use risks, confused deputy attacks, multi-agent trust boundaries, credential management, and defense architectures.</p></div>
         <div class="article-links"><a href="presentations/agent_security.html" class="link-slides">Slides</a><a href="articles/agent_security.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="security" data-title="Confidential Computing for AI">
+        <div class="article-info"><span class="category cat-security">SECURITY</span><h3>Confidential Computing for AI</h3><p class="desc">Hardware TEEs for LLM workloads: Intel TDX, AMD SEV-SNP, NVIDIA Confidential Computing on Hopper/Blackwell, remote attestation, and Apple Private Cloud Compute.</p></div>
+        <div class="article-links"><a href="presentations/confidential_computing_for_ai.html" class="link-slides">Slides</a><a href="articles/confidential_computing_for_ai.md" class="link-md">MD</a></div>
       </div>
       <div class="article-card" data-cat="security" data-title="LLM Security">
         <div class="article-info"><span class="category cat-security">SECURITY</span><h3>LLM Security</h3><p class="desc">Prompt injection, jailbreaking, data poisoning, model theft, information leakage, guardrails, red teaming, and the OWASP Top 10 for LLMs.</p></div>

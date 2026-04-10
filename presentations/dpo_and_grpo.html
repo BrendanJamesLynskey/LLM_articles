@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DPO &amp; GRPO | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>DPO &amp; GRPO</h1>
+  <p class="subtitle">The Post-PPO Era of LLM Alignment</p>
+  <div>
+    <span class="pill amber">dpo</span>
+    <span class="pill green">grpo</span>
+    <span class="pill purple">rlhf</span>
+    <span class="pill blue">alignment</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">dpo-grpo / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The PPO Era and Its Pain</h2></div>
+  <p>For three years &ldquo;RLHF&rdquo; was synonymous with PPO. The pipeline worked but was complicated, expensive, and finicky. Few teams outside the big labs could afford it.</p>
+  <div class="cols cols-3" style="margin-top:.8em">
+    <div class="card red"><h3>Reward Model</h3><ul><li>Train an LLM to score responses</li><li>Bradley-Terry loss on preference pairs</li><li>Overfits, leaks, hacks</li><li>Reward hacking by the policy</li></ul></div>
+    <div class="card amber"><h3>PPO Loop</h3><ul><li>4&times; model copies in memory</li><li>Policy + reference + RM + value fn</li><li>10&ndash;30&times; SFT compute cost</li><li>~12 hyperparameters to tune</li></ul></div>
+    <div class="card purple"><h3>Outcome</h3><ul><li>Worked &mdash; produced ChatGPT, Claude</li><li>But high barrier to entry</li><li>Most teams stuck with SFT</li><li>Pent-up demand for simpler methods</li></ul></div>
+  </div>
+  <div class="slide-footer">dpo-grpo / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DPO</span><h2>Direct Preference Optimization</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>Key Insight</h3><p>The optimal RLHF policy has a closed form in terms of the reference policy and the reward function. Invert it: <span class="a">any policy implies a reward function</span>. So you can optimize the policy directly on preference data &mdash; no reward model needed.</p></div>
+      <div class="card green" style="margin-top:.6em"><h3>Loss</h3><p style="font-family:JetBrains Mono,monospace;font-size:.5em">L = -log &sigma;(&beta; &middot; [log&pi;(y_c|x)/&pi;_ref(y_c|x) &minus; log&pi;(y_r|x)/&pi;_ref(y_r|x)])</p><p>Increase log-ratio for chosen, decrease for rejected.</p></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>What Disappears</h3><ul><li>No reward model</li><li>No value function</li><li>No on-policy rollouts</li><li>No PPO clipping</li><li>Just supervised training on pairs</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>What You Get</h3><ul><li>~300 lines of code</li><li>Stable training</li><li>Single hyperparameter (&beta;)</li><li>Quality competitive with PPO</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">dpo-grpo / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">VARIANTS</span><h2>The DPO Family</h2></div>
+  <table>
+    <thead><tr><th>Method</th><th>Tweak</th><th>When to Use</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">DPO</span></td><td>Original loss</td><td>Default for preference data</td></tr>
+      <tr><td>IPO</td><td>Identity loss instead of log-sigmoid</td><td>Noisy preferences, overfitting</td></tr>
+      <tr><td><span class="g">KTO</span></td><td>Unpaired good/bad labels</td><td>No paired comparisons available</td></tr>
+      <tr><td>SimPO</td><td>Removes reference policy</td><td>Simpler, sometimes better</td></tr>
+      <tr><td>ORPO</td><td>Combines preference + SFT loss</td><td>Single-stage training</td></tr>
+      <tr><td><span class="p">DPO + SFT reg</span></td><td>Adds SFT loss on chosen</td><td>Prevents chosen suppression</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:.5em;color:var(--muted);margin-top:.5em">As of 2025, DPO+SFT-reg dominates production preference fine-tuning of open-source models.</p>
+  <div class="slide-footer">dpo-grpo / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITS</span><h2>Where DPO Falls Short</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Offline Only</h3><ul><li>Learns from fixed preference dataset</li><li>Cannot explore new responses</li><li>Limited to support of training data</li><li>Misses opportunities outside distribution</li></ul></div>
+    <div class="card amber"><h3>Wrong Signal for Reasoning</h3><ul><li>Math/code have <span class="a">verifiable rewards</span></li><li>Preference pairs discard information</li><li>Just tell the model the answer is right</li><li>DPO under-uses this</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Gap GRPO Filled</h3><p>For reasoning tasks &mdash; math, code, theorem proving &mdash; you don&rsquo;t need a learned reward model and you don&rsquo;t need preference pairs. You need an on-policy method that can explore and an objective scorer for the rollouts. That&rsquo;s GRPO.</p></div>
+  <div class="slide-footer">dpo-grpo / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">GRPO</span><h2>Group Relative Policy Optimization</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>The Setting</h3><ul><li>Tasks with verifiable rewards</li><li>Math problems with known answers</li><li>Code with unit tests</li><li>Logical reasoning with verifiers</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>The Procedure</h3><ul><li>Sample <span class="g">G</span> responses per prompt (8&ndash;64)</li><li>Score each with verifier (0/1 or partial)</li><li>Compute advantage relative to group mean</li><li>Update policy &mdash; up if above-average, down if below</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Loss</h3><p style="font-family:JetBrains Mono,monospace;font-size:.5em">L = &minus;E[ratio &middot; A &minus; &beta; &middot; KL]<br><br>A = (r &minus; mean<sub>group</sub>) / std<sub>group</sub></p></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Innovations vs PPO</h3><ul><li>No value function (group mean = baseline)</li><li>No reward model (verifier instead)</li><li>Group-normalized advantage</li><li>~2&times; less memory than PPO</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">dpo-grpo / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DEEPSEEK</span><h2>The DeepSeek-R1 Moment</h2></div>
+  <p>DeepSeek-R1 demonstrated that GRPO with binary correctness reward could elicit complex reasoning behaviors &mdash; chain-of-thought, self-correction, multi-path exploration &mdash; with no explicit supervision of the reasoning process itself.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card amber"><h3>What Surprised People</h3><ul><li>No labeled CoT data needed</li><li>Reasoning emerged from outcome reward alone</li><li>Process reward models <span class="a">underperformed</span> outcome-only</li><li>Recipe is shockingly simple</li></ul></div>
+    <div class="card green"><h3>The Recipe</h3><ul><li>Collect math + code problems with verifiable answers</li><li>Run GRPO with binary reward</li><li>Mix in some general SFT for stability</li><li>Iterate</li></ul></div>
+  </div>
+  <div class="slide-footer">dpo-grpo / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">COMPARE</span><h2>PPO vs DPO vs GRPO</h2></div>
+  <table>
+    <thead><tr><th>Property</th><th>PPO</th><th>DPO</th><th>GRPO</th></tr></thead>
+    <tbody>
+      <tr><td>Reward source</td><td>Learned RM</td><td><span class="g">Preference pairs</span></td><td>Verifier</td></tr>
+      <tr><td>Value function</td><td>Yes</td><td>No</td><td>No (group mean)</td></tr>
+      <tr><td>On-policy sampling</td><td>Yes</td><td><span class="g">No</span></td><td>Yes</td></tr>
+      <tr><td>Memory cost</td><td>~5&times; SFT</td><td><span class="g">~2&times; SFT</span></td><td>~2&times; SFT</td></tr>
+      <tr><td>Compute cost</td><td>10&ndash;30&times; SFT</td><td><span class="g">~1.5&times; SFT</span></td><td>~10&times; SFT</td></tr>
+      <tr><td>Hyperparameters</td><td>~12</td><td><span class="g">1&ndash;2</span></td><td>3&ndash;5</td></tr>
+      <tr><td>Best for</td><td>Any task</td><td>Preference data</td><td>Verifiable reasoning</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">dpo-grpo / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">RECIPES</span><h2>Practical Recipes</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>For Chat / Instruction</h3><ul><li>Use <span class="a">DPO</span> (or SimPO/ORPO)</li><li>Preference data: UltraFeedback, HelpSteer</li><li>Tools: TRL, OpenRLHF, Axolotl</li><li>Add SFT regularization</li></ul></div>
+    <div class="card green"><h3>For Reasoning / Code</h3><ul><li>Use <span class="g">GRPO</span></li><li>Verifiable tasks: math, coding, theorem proving</li><li>Tools: TRL, verl, OpenRLHF</li><li>Sample G=8&ndash;32 per prompt</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card purple"><h3>For Safety</h3><ul><li>DPO with safety expert preferences</li><li>Some teams use full PPO for highest stakes</li><li>Constitutional AI variants</li></ul></div>
+    <div class="card blue"><h3>For Agents</h3><ul><li>GRPO with task success reward</li><li>Auxiliary SFT for tool format compliance</li><li>Long horizons need credit assignment</li></ul></div>
+  </div>
+  <div class="slide-footer">dpo-grpo / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>The Bigger Picture</h2></div>
+  <div class="card amber"><h3>The Pattern</h3><ul><li>PPO &rarr; DPO: kill the reward model</li><li>DPO &rarr; GRPO: keep on-policy, kill the value function</li><li>Each transition removed moving parts and reduced cost</li><li>Yet quality has held or improved at every step</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Lesson</h3><p>The methods that win in practice are usually the simplest ones that achieve the desired result. LLM alignment is, at its core, simpler than the early RLHF infrastructure suggested. Once the right loss function is found, much of the complexity falls away. <span class="b">Further simplifications are likely still ahead.</span></p></div>
+  <div class="slide-footer">dpo-grpo / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

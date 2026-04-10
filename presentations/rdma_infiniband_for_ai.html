@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDMA &amp; InfiniBand for AI | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>RDMA &amp; InfiniBand</h1>
+  <p class="subtitle">The Scale-Out Network for AI Training Clusters</p>
+  <div>
+    <span class="pill amber">rdma</span>
+    <span class="pill green">infiniband</span>
+    <span class="pill purple">roce</span>
+    <span class="pill blue">nccl</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">rdma-ib / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why RDMA Matters for AI</h2></div>
+  <p>Frontier training jobs run on tens of thousands of GPUs. A single gradient sync moves ~20 GB across the fabric every few hundred milliseconds. <span class="a">Network performance determines scaling efficiency</span> &mdash; not GPU FLOPs.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red"><h3>Conventional TCP/IP</h3><ul><li>Kernel processes every packet</li><li>10&ndash;50 &micro;s round-trip</li><li>CPU-heavy at high BW</li><li>Drops on congestion &mdash; retry storms</li></ul></div>
+    <div class="card green"><h3>RDMA</h3><ul><li>NIC writes directly to remote memory</li><li><span class="g">1&ndash;2 &micro;s round-trip</span></li><li>Zero CPU involvement on data path</li><li>Lossless fabric &mdash; no drops by design</li></ul></div>
+  </div>
+  <div class="slide-footer">rdma-ib / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">VERBS</span><h2>RDMA Programming Model</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>Verbs</h3><ul><li><code>SEND</code>/<code>RECV</code> &mdash; two-sided messaging</li><li><code>WRITE</code> &mdash; one-sided remote write</li><li><code>READ</code> &mdash; one-sided remote read</li><li><code>ATOMIC</code> &mdash; CAS, fetch-and-add on remote memory</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>Queue Pairs</h3><ul><li>Send queue + receive queue per connection</li><li>Hundreds of QPs per node typical</li><li>NCCL pipelines work across many QPs</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Memory Registration</h3><ul><li>Application registers memory regions with NIC</li><li>NIC reads/writes directly via DMA</li><li>No copies, no kernel involvement</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Completion Queues</h3><ul><li>Hardware queue for completion events</li><li>Polling or interrupt-driven consumption</li><li>Zero-copy data delivery</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">rdma-ib / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">FABRIC</span><h2>InfiniBand: The Lossless Fabric</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Lossless by Design</h3><ul><li>Credit-based flow control</li><li>Sender stops if receiver has no credits</li><li>No drops &rarr; no retransmission needed</li><li>Predictable tail latency</li></ul></div>
+    <div class="card green"><h3>Centrally Managed</h3><ul><li>Subnet Manager (SM) computes routes</li><li>Pushes routing tables to all switches</li><li>Single deterministic path per pair</li><li>Sub-second SM failover</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card purple"><h3>Topology</h3><ul><li>Fat-tree (Clos network) dominant</li><li>1:1 or 2:1 oversubscription typical</li><li>Dragonfly for 10k+ GPU clusters</li></ul></div>
+    <div class="card red"><h3>Fabric Health</h3><ul><li>Bit-error-rate degradation common</li><li>UFM monitoring critical</li><li>Misconfigured PFC &rarr; head-of-line blocking</li></ul></div>
+  </div>
+  <div class="slide-footer">rdma-ib / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">RoCE</span><h2>RDMA over Converged Ethernet</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>Why RoCE</h3><ul><li>Use standard Ethernet switches</li><li>No vendor lock-in</li><li>Integrate with broader datacenter fabric</li><li>Lower hardware cost</li></ul></div>
+      <div class="card red" style="margin-top:.6em"><h3>The Lossy Problem</h3><ul><li>Ethernet drops under congestion natively</li><li>Need <span class="r">PFC + ECN</span> to fake lossless</li><li>Misconfig &rarr; deadlocks, head-of-line blocking</li><li>Operationally trickier than IB</li></ul></div>
+    </div>
+    <div>
+      <div class="card green"><h3>Spectrum-X</h3><ul><li>NVIDIA&rsquo;s AI-optimized Ethernet platform</li><li>Adaptive routing &amp; packet spraying</li><li>Telemetry-driven congestion control</li><li>SuperNIC complements switches</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Adoption</h3><ul><li>Hyperscalers moving RoCE for new clusters</li><li>Neoclouds tend to stay IB</li><li>Roughly equivalent perf when tuned</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">rdma-ib / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">NCCL</span><h2>NCCL on RDMA Fabrics</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber"><h3>What NCCL Does</h3><ul><li>Topology discovery at startup</li><li>Opens hundreds of QPs per pair</li><li>Selects ring/tree algorithms per collective</li><li>Pipelines transfers across QPs</li><li>Hierarchical: NVLink intra-node, IB inter-node</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>Tunables</h3><ul><li>Channel count</li><li>Protocol selection (Simple/LL/LL128)</li><li>Buffer sizes</li><li>Adaptive routing on/off</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>GPUDirect RDMA</h3><ul><li>NIC reads/writes GPU memory directly</li><li>Bypass CPU memory entirely</li><li>Latency 5 &micro;s &rarr; 1.5 &micro;s</li><li>BW efficiency 60% &rarr; 90%</li><li>Requires GPU+NIC same PCIe root</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">rdma-ib / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SPEEDS</span><h2>InfiniBand &amp; RoCE Generations</h2></div>
+  <table>
+    <thead><tr><th>Gen</th><th>BW</th><th>Generation</th><th>Common Cluster</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">EDR</span></td><td>100 Gbps</td><td>~2014</td><td>Legacy A100</td></tr>
+      <tr><td>HDR</td><td>200 Gbps</td><td>~2018</td><td>Early H100</td></tr>
+      <tr><td><span class="g">NDR</span></td><td>400 Gbps</td><td>~2022</td><td>Standard H100/H200</td></tr>
+      <tr><td>XDR</td><td>800 Gbps</td><td>2025</td><td>Blackwell era</td></tr>
+      <tr><td><span class="p">GDR</span></td><td>1.6 Tbps</td><td>2027 (planned)</td><td>Rubin</td></tr>
+    </tbody>
+  </table>
+  <div class="card blue" style="margin-top:.6em"><h3>The Scale Gap</h3><p>NVLink 5 within an NVL72 rack provides <span class="b">1.8 TB/s per GPU</span> &mdash; ~18&times; the per-GPU bandwidth of XDR IB. This is exactly why intra-rack stays NVLink and only cross-rack uses RDMA.</p></div>
+  <div class="slide-footer">rdma-ib / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OPS</span><h2>Operational Realities</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Failure Modes</h3><ul><li>Degraded links pass traffic but with elevated BER</li><li>Manifest as mysterious slowdowns</li><li>PFC misconfig &rarr; head-of-line blocking</li><li>SM failover causes brief routing inconsistency</li></ul></div>
+    <div class="card amber"><h3>Monitoring</h3><ul><li>NVIDIA UFM for IB</li><li>Per-link error counters in Prometheus</li><li>Alerting on rising error rates</li><li>BER, congestion, retransmits as KPIs</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card purple"><h3>Topology-Aware Scheduling</h3><ul><li>Place job GPUs close in fabric topology</li><li>SLURM, Volcano, Kueue all aware</li><li>Same leaf switch or 1 spine hop</li><li>Avoids contention with other jobs</li></ul></div>
+    <div class="card green"><h3>Cost</h3><ul><li>1k-GPU IB fabric: $5&ndash;10M</li><li>RoCE 30&ndash;50% cheaper for equivalent BW</li><li>Hyperscalers move to RoCE; neoclouds stay IB</li></ul></div>
+  </div>
+  <div class="slide-footer">rdma-ib / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">FUTURE</span><h2>Optical &amp; the Next Decade</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Co-Packaged Optics</h3><ul><li>Optical engines on switch ASIC package</li><li>Broadcom, NVIDIA, Marvell all developing</li><li>Targets 1.6 Tbps and beyond</li><li>First deployments 2026&ndash;2027</li></ul></div>
+    <div class="card green"><h3>Silicon Photonics</h3><ul><li>Ayar Labs, Lightmatter, Lightelligence</li><li>Replace electrical NVLink with optical equivalents</li><li>Tens of meters at lower power than copper</li><li>Could blur rack boundary entirely</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Long-Term Direction</h3><p>The boundary between scale-up (NVLink) and scale-out (IB/RoCE) is dissolving. NVLink-NW already extends the coherent domain across racks. Optical interconnects will push it further, eventually allowing <span class="b">datacenter-aisle coherent compute fabrics</span>.</p></div>
+  <div class="slide-footer">rdma-ib / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>The Network Is the Computer</h2></div>
+  <div class="card amber"><h3>What Matters</h3><ul><li>RDMA bypasses kernel for &micro;s-scale latency &amp; CPU-free transfers</li><li>InfiniBand is the mature lossless fabric; RoCE catches up via PFC/ECN tuning</li><li>NCCL hides everything but exposes tunables for the brave</li><li>GPUDirect RDMA is non-negotiable for serious AI clusters</li><li>Network failures are the leading cause of training job slowdowns at scale</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Lesson</h3><p>The network is rarely the bottleneck when it works well, but when it doesn&rsquo;t, no amount of GPU horsepower compensates. Investment in fabric monitoring, topology-aware scheduling, and NCCL tuning pays dividends that often dwarf algorithmic gains.</p></div>
+  <div class="slide-footer">rdma-ib / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Caching | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Prompt Caching</h1>
+  <p class="subtitle">Reducing Redundant Computation in LLM Inference</p>
+  <div>
+    <span class="pill amber">caching</span>
+    <span class="pill green">kv cache</span>
+    <span class="pill purple">prefill</span>
+    <span class="pill blue">cost</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">prompt-caching / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The Redundancy Problem</h2></div>
+  <p>A surprising amount of LLM compute is wasted re-processing text the model has already seen. A coding agent re-reads the same 50k-token system prompt every turn. A document Q&amp;A tool re-processes the same 100-page contract for every question.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red"><h3>Cost Without Caching</h3><ul><li>Every request runs full <span class="r">prefill</span></li><li>Prefill = O(N&sup2;) attention + O(N&middot;d) projections</li><li>For 50k-token prompt + 200-token output, prefill is ~95% of compute</li><li>Time-to-first-token grows linearly with prefix</li></ul></div>
+    <div class="card green"><h3>Cost With Caching</h3><ul><li>Cached prefill is reused</li><li>Only suffix tokens incur compute</li><li>Time-to-first-token drops to constant</li><li>Provider charges 10&ndash;50% of normal input</li></ul></div>
+  </div>
+  <div class="slide-footer">prompt-caching / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">MECH</span><h2>How It Works</h2></div>
+  <p>The KV cache produced during prefill is exactly the data needed to skip prefill on subsequent requests. If prompt = P + S and the cache for P exists, only S needs computing.</p>
+  <div class="cols cols-3" style="margin-top:.8em">
+    <div class="card amber"><h3>1. First Request</h3><ul><li>Run full prefill on P</li><li>Save resulting KV cache</li><li>Cache key = hash(P) or trie path</li><li>Index for future lookup</li></ul></div>
+    <div class="card green"><h3>2. Subsequent Request</h3><ul><li>Lookup prefix in cache</li><li>Find longest cached prefix matching</li><li>Load cached KV into GPU</li><li>Skip prefill for matched portion</li></ul></div>
+    <div class="card purple"><h3>3. Continue</h3><ul><li>Run prefill for new tail</li><li>Decode normally</li><li>Optionally extend cache with new tail</li><li>Tail becomes prefix for next request</li></ul></div>
+  </div>
+  <div class="slide-footer">prompt-caching / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">GRANULARITY</span><h2>Cache Indexing Strategies</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>Exact Prefix Match</h3><ul><li>Hash entire prefix</li><li>Hit only on identical prefix</li><li>Simple, low overhead</li><li>Brittle to small variations</li></ul></div>
+    <div class="card green"><h3>Page-Level Match</h3><ul><li>KV cache split into 16&ndash;128 token blocks</li><li>Match per block</li><li>Integrates with PagedAttention</li><li>Used by vLLM</li></ul></div>
+    <div class="card purple"><h3>Trie / Radix</h3><ul><li>Token-level prefix tree</li><li>Branching for divergent suffixes</li><li>Highest hit rates</li><li>Used by SGLang RadixAttention</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Cache Hit Rate Wins</h3><p>SGLang reports cache hit rates above 95% on benchmark workloads with trie-based indexing &mdash; vs ~60% with naive exact-match. The choice of indexing strategy is one of the largest single factors in caching effectiveness.</p></div>
+  <div class="slide-footer">prompt-caching / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PROVIDERS</span><h2>Provider Implementations</h2></div>
+  <table>
+    <thead><tr><th>Provider</th><th>Trigger</th><th>Discount</th><th>TTL</th><th>Granularity</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Anthropic</span></td><td>Explicit <code>cache_control</code></td><td>90% off cached input</td><td>5 min / 1 hr</td><td>Up to 4 breakpoints</td></tr>
+      <tr><td><span class="g">OpenAI</span></td><td>Automatic</td><td>50% off cached input</td><td>~5&ndash;10 min</td><td>Auto-detected</td></tr>
+      <tr><td><span class="p">Google Gemini</span></td><td>Explicit cached content object</td><td>~75% off</td><td>1 hr default, configurable</td><td>Whole-content</td></tr>
+      <tr><td>vLLM (self-host)</td><td>Automatic</td><td>Free (compute only)</td><td>Until evicted</td><td>Page or trie</td></tr>
+      <tr><td>SGLang (self-host)</td><td>Automatic</td><td>Free</td><td>Until evicted</td><td>RadixAttention trie</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:.5em;color:var(--muted);margin-top:.5em">Anthropic charges 25% premium on cache writes; reads are 10% of normal input. Break-even after 2 reads.</p>
+  <div class="slide-footer">prompt-caching / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DESIGN</span><h2>Cache-Friendly Prompt Structure</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Order matters. Cacheable content must come <span class="a">first</span>; variable content must come <span class="r">last</span>. Reordering breaks cache reuse.</p>
+      <div class="card green" style="margin-top:.6em"><h3>Good Pattern</h3><pre><code>&lt;system prompt&gt;        &lt;-- cache
+&lt;tool definitions&gt;     &lt;-- cache
+&lt;knowledge base&gt;       &lt;-- cache
+&lt;conversation history&gt; &lt;-- cache
+&lt;user&rsquo;s new message&gt;   &lt;-- variable</code></pre></div>
+    </div>
+    <div>
+      <div class="card red"><h3>Bad Pattern</h3><pre><code>&lt;system prompt&gt;
+&lt;user&rsquo;s new message&gt;   &lt;-- variable, kills cache
+&lt;tool definitions&gt;
+&lt;knowledge base&gt;</code></pre></div>
+      <div class="card amber" style="margin-top:.6em"><h3>Anthropic API Example</h3><pre><code>{
+  "system": [
+    {"type": "text", "text": "You are..."},
+    {"type": "text", "text": "Tools: ...",
+     "cache_control": {"type": "ephemeral"}}
+  ],
+  "messages": [...]
+}</code></pre></div>
+    </div>
+  </div>
+  <div class="slide-footer">prompt-caching / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ECONOMICS</span><h2>Cost Impact</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Coding Agent Example</h3><ul><li>System + tools: 50k tokens</li><li>User query: 5k tokens</li><li>Without caching: 55k input/turn</li><li>With caching (Anthropic):<br>50k&times;0.10 + 5k&times;1.0 = 10k effective</li><li><span class="a">~80% cost reduction</span></li></ul></div>
+    <div class="card green"><h3>Document Q&amp;A Example</h3><ul><li>Document: 100k tokens</li><li>20 questions, 500 tokens each</li><li>Without caching: 20&times;100.5k = 2.01M input</li><li>With caching: 100k + 20&times;500.5k = 110k effective (after 1st)</li><li><span class="g">~95% cost reduction</span></li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Where It Doesn&rsquo;t Help</h3><p>Translation, ad-hoc summarization, unique-document Q&amp;A &mdash; workloads where every prompt is novel. Caching depends on prompt repetition; without repetition, there is nothing to cache.</p></div>
+  <div class="slide-footer">prompt-caching / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">EVICTION</span><h2>Memory Pressure &amp; Eviction</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>The Constraint</h3><ul><li>Cached KV consumes precious GPU memory</li><li>~5 MB per 1k tokens for large models</li><li>Memory often binding constraint on serving</li><li>Tradeoff: cache capacity vs concurrent users</li></ul></div>
+    <div class="card green"><h3>Eviction Policies</h3><ul><li><span class="g">LRU</span> &mdash; standard default</li><li>LFU for skewed access</li><li>Length-aware (longer prefixes more valuable)</li><li>Reuse-prediction-based</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card purple"><h3>Spillover Tiers</h3><ul><li>GPU HBM &mdash; ~0 latency overhead on hit</li><li>CPU memory &mdash; +1&ndash;5 ms per hit</li><li>NVMe &mdash; +20&ndash;100 ms per hit</li><li>Useful for graceful degradation</li></ul></div>
+    <div class="card red"><h3>Invalidation Triggers</h3><ul><li>Model version changes</li><li>Tokenizer updates</li><li>Hardware migration</li><li>TTL expiration</li></ul></div>
+  </div>
+  <div class="slide-footer">prompt-caching / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ADVANCED</span><h2>Advanced Topics</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>Cache Warming</h3><ul><li>Send dummy request to populate</li><li>Amortize write cost</li><li>Useful before traffic spikes</li><li>Common pattern for known prefixes</li></ul></div>
+    <div class="card green"><h3>Cross-Tenant Caching</h3><ul><li>Tempting compute savings</li><li><span class="r">Information leakage risk</span></li><li>Most providers disable</li><li>Per-tenant isolation default</li></ul></div>
+    <div class="card purple"><h3>Distributed Cache</h3><ul><li>Prefix-aware load balancing</li><li>Same prefix routes to same GPU</li><li>Higher hit rates at cost of routing complexity</li><li>Used by major hyperscalers</li></ul></div>
+  </div>
+  <div class="slide-footer">prompt-caching / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>The Bottom Line</h2></div>
+  <div class="card amber"><h3>Why It&rsquo;s Important</h3><ul><li>50&ndash;90% cost reduction on cached portions</li><li>Time-to-first-token drops dramatically</li><li>One of the largest single optimizations available</li><li>Requires no model changes</li><li>Available across all major providers and frameworks</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Checklist</h3><p>1. Structure prompts with stable content first.<br>2. Opt into caching via API parameters where required.<br>3. Measure cache hit rate &mdash; expect &gt;80% for repetitive workloads.<br>4. Watch out for invisible cache busters (timestamps, random IDs in early prompt).</p></div>
+  <div class="slide-footer">prompt-caching / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

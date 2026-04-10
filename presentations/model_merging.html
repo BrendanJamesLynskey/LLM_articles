@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Merging | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Model Merging</h1>
+  <p class="subtitle">TIES, DARE, and the Art of Combining Trained LLMs</p>
+  <div>
+    <span class="pill amber">merging</span>
+    <span class="pill green">ties</span>
+    <span class="pill purple">dare</span>
+    <span class="pill blue">mergekit</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">model-merging / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The Surprising Observation</h2></div>
+  <p>Take two fine-tunes of the same base model. Average their weights. The result is often <span class="a">as good as either parent</span>, sometimes better &mdash; with no retraining and no labeled data.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card amber"><h3>Why This Should Not Work</h3><ul><li>Neural network weights are high-dimensional</li><li>Random points in weight space are noise</li><li>Averaging two random nets &rarr; garbage</li></ul></div>
+    <div class="card green"><h3>Why It Actually Works</h3><ul><li>Fine-tunes share a base &mdash; nearby in weight space</li><li><span class="g">Linear mode connectivity</span> holds</li><li>Both fine-tunes live in the same low-loss basin</li><li>Averaging stays inside the basin</li></ul></div>
+  </div>
+  <div class="slide-footer">model-merging / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORK</span><h2>Task Vectors</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>Definition</h3><p style="font-family:JetBrains Mono,monospace;font-size:.55em;text-align:center">&tau;<sub>task</sub> = &theta;<sub>finetuned</sub> &minus; &theta;<sub>base</sub></p><p>The displacement that fine-tuning introduced. Captures everything learned during fine-tuning.</p></div>
+      <div class="card green" style="margin-top:.6em"><h3>Operations</h3><ul><li><span class="g">Negation</span>: subtract to unlearn a task</li><li>Addition: combine multiple tasks</li><li>Scaling: dampen or amplify a task</li><li>Sign election: resolve conflicts</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Most Methods Are Operations on Task Vectors</h3><ul><li>Naive averaging = uniform task vector sum</li><li>Task Arithmetic = weighted task vector sum</li><li>TIES = sparsified, sign-aligned sum</li><li>DARE = randomly sparsified sum</li><li>Most differences are how to handle <span class="r">conflicts</span></li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">model-merging / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">METHODS</span><h2>Method Comparison</h2></div>
+  <table>
+    <thead><tr><th>Method</th><th>Idea</th><th>Conflict Handling</th><th>Best For</th></tr></thead>
+    <tbody>
+      <tr><td>Linear Avg</td><td>Uniform mean</td><td>None</td><td>Random-seed siblings</td></tr>
+      <tr><td><span class="a">Model Soups</span></td><td>Greedy avg of best subset</td><td>None</td><td>Same-task fine-tunes</td></tr>
+      <tr><td>Task Arithmetic</td><td>Weighted task vector sum</td><td>Manual coefficients</td><td>Related tasks</td></tr>
+      <tr><td><span class="g">TIES</span></td><td>Trim + Elect Sign + Merge</td><td><span class="g">Sign election</span></td><td>Diverse tasks</td></tr>
+      <tr><td>DARE</td><td>Random drop + rescale</td><td>Sparsification</td><td>Pre-step before TIES</td></tr>
+      <tr><td><span class="p">DARE-TIES</span></td><td>DARE then TIES</td><td>Both</td><td><span class="p">Default for production</span></td></tr>
+      <tr><td>SLERP</td><td>Spherical interpolation</td><td>2-model only</td><td>Pairs of related fine-tunes</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">model-merging / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TIES</span><h2>TIES-Merging</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>1. Trim</h3><ul><li>Keep top-k% of params by magnitude</li><li>Zero out the rest</li><li>Typically 20&ndash;40%</li><li>Discards noisy small changes</li></ul></div>
+    <div class="card green"><h3>2. Elect Sign</h3><ul><li>For each param, vote on sign</li><li>Largest magnitude wins</li><li>Disagreeing vectors get zeroed at that param</li><li>The key conflict resolution step</li></ul></div>
+    <div class="card purple"><h3>3. Disjoint Merge</h3><ul><li>Average remaining sign-aligned values</li><li>Add to base model</li><li>Result: cleanly merged task vector</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Why It Helps</h3><p>Naive averaging cancels out conflicting weights (&ldquo;0.5 + &minus;0.3 = 0.1&rdquo; loses both signals). TIES picks one sign per parameter and discards dissent. <span class="b">Conflicts are resolved, not averaged through.</span></p></div>
+  <div class="slide-footer">model-merging / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DARE</span><h2>DARE: Drop And Rescale</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>The Procedure</h3><ul><li>Randomly zero out fraction <code>p</code> of task vector params</li><li>Typical p = 0.7&ndash;0.99</li><li>Rescale survivors by 1/(1&minus;p)</li><li>Like dropout for task vectors</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>The Surprise</h3><ul><li>Dropping <span class="g">99%</span> often has minimal impact</li><li>Fine-tuning info is heavily redundant</li><li>A sparse skeleton suffices for the task</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>DARE + TIES</h3><ul><li>Apply DARE first (sparsify)</li><li>Then TIES (sign-elect, merge)</li><li>Currently the dominant production recipe</li><li>Hundreds of merged models on Hugging Face use this</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Why It Works</h3><p>Fine-tuning produces highly correlated weight updates. Most can be removed without losing the underlying behavior &mdash; you just need a small representative subset.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer">model-merging / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TOOLING</span><h2>mergekit</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <p>The dominant open-source tool for model merging. Created by Charles Goddard in 2023. Supports all major methods, plus exotic operations like layer-wise interpolation and Frankenmerging.</p>
+      <div class="card amber" style="margin-top:.5em"><h3>Features</h3><ul><li>Linear, Task Arithmetic, TIES, DARE, SLERP and more</li><li>YAML config interface</li><li>Output in standard HF format</li><li>Layer-wise weights (different per depth)</li><li>Frankenmerging (interleave layers from different models)</li></ul></div>
+    </div>
+    <div>
+      <pre><code>models:
+  - model: NousResearch/Hermes-2
+    parameters:
+      density: 0.5
+      weight: 0.5
+  - model: HuggingFaceH4/zephyr
+    parameters:
+      density: 0.5
+      weight: 0.5
+merge_method: dare_ties
+base_model: mistralai/Mistral-7B-v0.1
+parameters:
+  int8_mask: true
+dtype: bfloat16</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">model-merging / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PRACTICE</span><h2>When It Works</h2></div>
+  <div class="cols cols-2">
+    <div class="card green"><h3>It Helps When</h3><ul><li>Constituent models share a <span class="g">base</span></li><li>Tasks are complementary, not conflicting</li><li>Fine-tunes are mild, not extreme</li><li>You have a way to evaluate the merge</li></ul></div>
+    <div class="card red"><h3>It Doesn&rsquo;t When</h3><ul><li>Models from different architectural lineages</li><li>Tasks in genuine conflict (safety vs helpfulness)</li><li>Heavy retraining moved models too far</li><li>Benchmarks don&rsquo;t reflect actual use case</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Open LLM Leaderboard Era</h3><p>For most of 2024, the leaderboard was dominated by merges. Real improvements were genuine; some were benchmark overfitting. v2 leaderboard added more diverse evals and de-emphasized opaque merges. Merging is still common but no longer dominates.</p></div>
+  <div class="slide-footer">model-merging / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">THEORY</span><h2>Practice Ahead of Theory</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>What We Know</h3><ul><li>The methods empirically work</li><li>Linear mode connectivity holds for fine-tunes</li><li>DARE-TIES with density 0.5 is a strong default</li><li>Same-base requirement is real</li></ul></div>
+    <div class="card purple"><h3>What We Don&rsquo;t</h3><ul><li>Why mode connectivity holds</li><li>Predicting merge quality in advance</li><li>Whether better methods are still possible</li><li>Relationship to ensembling, distillation</li></ul></div>
+  </div>
+  <div class="slide-footer">model-merging / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Why It Matters</h2></div>
+  <div class="card amber"><h3>The Value Proposition</h3><ul><li>Combine capabilities of multiple parents</li><li>No retraining, no labeled data, no GPU compute</li><li>Minutes of CPU work to produce a new model</li><li>Compositional &mdash; every Hugging Face fine-tune is a potential ingredient</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Bigger Picture</h3><p>Model merging demonstrates how much &ldquo;free&rdquo; capability is sitting in the open-source ecosystem, waiting to be combined. Network effects: every quality fine-tune released adds value to every other one through possible merges. <span class="b">A genuine advantage of the open-source ecosystem over closed alternatives.</span></p></div>
+  <div class="slide-footer">model-merging / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

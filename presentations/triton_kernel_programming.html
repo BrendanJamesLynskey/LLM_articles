@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triton: GPU Kernel Programming for ML | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Triton</h1>
+  <p class="subtitle">GPU Kernel Programming for Machine Learning</p>
+  <div>
+    <span class="pill amber">triton</span>
+    <span class="pill green">kernels</span>
+    <span class="pill purple">cuda</span>
+    <span class="pill blue">compiler</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">triton / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The Kernel Bottleneck</h2></div>
+  <p>For most of CUDA&rsquo;s history, writing high-performance GPU kernels needed deep expertise: thread blocks, shared memory, register pressure, coalescing, bank conflicts. The gap between expert and naive CUDA was routinely <span class="a">10&times;</span>.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red"><h3>The Old World</h3><ul><li>CUDA C++ for serious kernels</li><li>CUTLASS templates &mdash; tens of thousands of LoC</li><li>Months to write a new fused operation</li><li>Researchers blocked on CUDA expertise</li></ul></div>
+    <div class="card green"><h3>What Triton Offers</h3><ul><li>Python-embedded DSL</li><li><span class="g">Block-level</span> programming model</li><li>Compiler handles most low-level details</li><li>50 lines of Python &asymp; CUTLASS matmul perf</li></ul></div>
+  </div>
+  <div class="slide-footer">triton / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">MODEL</span><h2>Block-Level Programming</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>No threads. No shared memory. No warp shuffles. The programmer writes code that operates on <span class="a">tiles</span> of data. The compiler handles the rest.</p>
+      <div class="card amber" style="margin-top:.5em"><h3>What You Specify</h3><ul><li><code>BLOCK_SIZE</code> for each tile dimension</li><li>Per-instance grid identifier</li><li>Load/store offsets within the block</li><li>The actual math</li></ul></div>
+      <div class="card green" style="margin-top:.5em"><h3>What Compiler Decides</h3><ul><li>Threads per block, warps per SM</li><li>Shared memory layout</li><li>Pipelining and double-buffering</li><li>Tensor core dispatch</li><li>Coalescing</li></ul></div>
+    </div>
+    <div>
+      <p style="font-size:.5em;color:var(--muted);margin-bottom:.3em">Vector add in Triton:</p>
+      <pre><code>@triton.jit
+def add_kernel(x_ptr, y_ptr, out_ptr, n,
+               BLOCK_SIZE: tl.constexpr):
+    pid = tl.program_id(axis=0)
+    block_start = pid * BLOCK_SIZE
+    offsets = block_start + tl.arange(0, BLOCK_SIZE)
+    mask = offsets &lt; n
+    x = tl.load(x_ptr + offsets, mask=mask)
+    y = tl.load(y_ptr + offsets, mask=mask)
+    tl.store(out_ptr + offsets, x + y, mask=mask)</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">triton / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">COMPILER</span><h2>What the Compiler Does</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>Memory Optimizations</h3><ul><li>Coalescing analysis</li><li>Auto shared-mem allocation</li><li>Bank conflict avoidance</li><li>Async copies on Hopper</li></ul></div>
+    <div class="card green"><h3>Compute Optimizations</h3><ul><li>Software pipelining</li><li>Tensor core dispatch</li><li>Layout transformations</li><li>Register vs shared promotion</li></ul></div>
+    <div class="card purple"><h3>Backend</h3><ul><li>Emits PTX (NVIDIA)</li><li>LLVM IR (AMD ROCm)</li><li>Experimental Intel/Apple</li><li>MLIR-based since 2024</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Pitch</h3><p>For most kernels, the gap between expert CUDA and Triton is single-digit percent, while the gap between naive CUDA and Triton is huge. Triton captures most expert optimizations <span class="b">automatically</span>.</p></div>
+  <div class="slide-footer">triton / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">EXAMPLE</span><h2>Matmul in Triton</h2></div>
+  <div class="cols cols-4060">
+    <div>
+      <div class="card amber"><h3>Notable Features</h3><ul><li>Operates on <code>(BLOCK_M, BLOCK_K)</code> and <code>(BLOCK_K, BLOCK_N)</code> tiles</li><li><code>tl.dot</code> emits tensor core mma</li><li>Loop is auto-pipelined by compiler</li><li>Accumulator stays in registers across iterations</li><li>Within ~10% of CUTLASS performance</li><li><span class="a">~50 lines</span> vs thousands for CUTLASS</li></ul></div>
+    </div>
+    <div>
+      <pre><code>@triton.jit
+def matmul(a_ptr, b_ptr, c_ptr, M, N, K,
+           sa_m, sa_k, sb_k, sb_n, sc_m, sc_n,
+           BM: tl.constexpr, BN: tl.constexpr,
+           BK: tl.constexpr):
+  pm = tl.program_id(0)
+  pn = tl.program_id(1)
+  offs_m = pm * BM + tl.arange(0, BM)
+  offs_n = pn * BN + tl.arange(0, BN)
+  offs_k = tl.arange(0, BK)
+  a_p = a_ptr + offs_m[:,None]*sa_m + offs_k[None,:]*sa_k
+  b_p = b_ptr + offs_k[:,None]*sb_k + offs_n[None,:]*sb_n
+  acc = tl.zeros((BM, BN), dtype=tl.float32)
+  for k in range(0, K, BK):
+    a = tl.load(a_p)
+    b = tl.load(b_p)
+    acc += tl.dot(a, b)
+    a_p += BK * sa_k
+    b_p += BK * sb_k
+  c_p = c_ptr + offs_m[:,None]*sc_m + offs_n[None,:]*sc_n
+  tl.store(c_p, acc)</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">triton / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PRODUCTION</span><h2>Triton in the Wild</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>FlashAttention Variants</h3><ul><li>Tri Dao&rsquo;s Triton FA reference</li><li>Sliding-window attention (Mistral)</li><li><span class="a">PagedAttention</span> for vLLM</li><li>Ring Attention for long context</li></ul></div>
+    <div class="card green"><h3>Mamba &amp; SSMs</h3><ul><li>Selective scan kernel in Triton</li><li>Custom prefix-scan</li><li>No CUDA library equivalent</li><li>Triton enabled the architecture</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card purple"><h3>Liger Kernel</h3><ul><li>Fused RMSNorm, RoPE, SwiGLU, CE loss</li><li>~5,000 LoC Triton</li><li><span class="p">60% memory reduction</span> for training</li><li>20% throughput improvement</li></ul></div>
+    <div class="card blue"><h3>torch.compile</h3><ul><li>Triton is the default codegen backend</li><li>Fuses ops into compound kernels</li><li>1.5&ndash;2&times; throughput in eager-vs-compile</li><li>Users benefit transparently</li></ul></div>
+  </div>
+  <div class="slide-footer">triton / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PERF</span><h2>Performance vs CUDA</h2></div>
+  <table>
+    <thead><tr><th>Workload</th><th>Triton vs CUDA</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Dense matmul, Hopper</td><td>~90&ndash;95%</td><td>CUTLASS still wins by ~10% on big shapes</td></tr>
+      <tr><td><span class="g">Layer norm, RMSNorm</span></td><td>~95&ndash;100%</td><td>Equivalent to cuDNN</td></tr>
+      <tr><td>FlashAttention</td><td>~90&ndash;95%</td><td>Within margin of official CUDA FA</td></tr>
+      <tr><td>Custom fused ops</td><td><span class="a">100&ndash;130%</span></td><td>Often beats hand-rolled CUDA</td></tr>
+      <tr><td>Mamba selective scan</td><td>&mdash;</td><td>No CUDA equivalent exists</td></tr>
+      <tr><td>FP8 / FP4 kernels</td><td>~80&ndash;90%</td><td>Gap closes as compiler matures</td></tr>
+    </tbody>
+  </table>
+  <div class="card blue" style="margin-top:.6em"><h3>Practical Lesson</h3><p>For new kernels, Triton is almost always the right starting point. Only drop to CUDA when you need the last 5&ndash;10% on a heavily-used kernel and you have the engineering budget.</p></div>
+  <div class="slide-footer">triton / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITS</span><h2>Where Triton Falls Short</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Bleeding-Edge HW Features</h3><ul><li>TMA on Hopper (still maturing)</li><li>Warp specialization patterns</li><li>FP4 tensor cores on Blackwell</li><li>Compiler catches up but with a lag</li></ul></div>
+    <div class="card amber"><h3>Irregular Patterns</h3><ul><li>Sparse / ragged tensors awkward</li><li>Data-dependent control flow tricky</li><li>Dynamic shapes still rough</li><li>Better in CUDA for these</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card purple"><h3>JIT Compile Time</h3><ul><li>Several seconds first-call overhead</li><li>Cache helps but invalidation is messy</li><li>Annoying for short scripts</li></ul></div>
+    <div class="card green"><h3>Hardware Quirks</h3><ul><li>Same source, different perf NVIDIA vs AMD</li><li>Tuning still needed cross-vendor</li><li>Portability is structural, not perf-equivalent</li></ul></div>
+  </div>
+  <div class="slide-footer">triton / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ECOSYSTEM</span><h2>The Triton Ecosystem</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>Compiler &amp; Backends</h3><ul><li>Triton-MLIR (official)</li><li>NVIDIA via PTX</li><li>AMD via ROCm</li><li>Intel/Apple experimental</li></ul></div>
+    <div class="card green"><h3>Kernel Libraries</h3><ul><li>Liger Kernel</li><li>Unsloth</li><li>xFormers Triton kernels</li><li>vLLM internal kernels</li></ul></div>
+    <div class="card purple"><h3>Tooling</h3><ul><li>Autotune for block sizes</li><li>Triton-IR visualizer</li><li>Numerical correctness harness</li><li>PyTorch autograd integration</li></ul></div>
+  </div>
+  <div class="slide-footer">triton / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Why Triton Won the Researcher Mindshare</h2></div>
+  <div class="card amber"><h3>The Pitch</h3><ul><li><span class="a">10&times; less code</span> than equivalent CUDA</li><li>Within a few percent of expert CUDA performance</li><li>Cross-vendor portability without source changes</li><li>Compiler improves over time &mdash; old kernels get faster</li><li>Transparent benefit through <code>torch.compile</code></li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Lesson</h3><p>If you find yourself wanting to write a custom GPU kernel for an ML workload, <span class="b">start with Triton</span>. Only drop to CUDA when you have a specific reason. The productivity gain is enormous, and the resulting code is dramatically more maintainable.</p></div>
+  <div class="slide-footer">triton / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

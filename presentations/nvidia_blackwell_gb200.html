@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVIDIA Blackwell GB200 NVL72 | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>NVIDIA Blackwell GB200 NVL72</h1>
+  <p class="subtitle">A Rack-Scale Computer for Trillion-Parameter Inference</p>
+  <div>
+    <span class="pill amber">blackwell</span>
+    <span class="pill green">nvl72</span>
+    <span class="pill purple">rack-scale</span>
+    <span class="pill blue">inference</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">blackwell-gb200 / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>From Server to Rack</h2></div>
+  <p>Blackwell&rsquo;s headline is not the chip &mdash; it is the rack. The GB200 NVL72 fuses 36 Grace CPUs and 72 Blackwell GPUs into one liquid-cooled cabinet that NVIDIA calls &ldquo;one giant GPU.&rdquo;</p>
+  <div class="cols cols-3" style="margin-top:.8em">
+    <div class="card amber"><h3>Compute</h3><ul><li>72 Blackwell GPUs</li><li>~1.4 EFLOPS FP4</li><li>720 PFLOPS FP8</li><li>208B transistors / GPU</li></ul></div>
+    <div class="card green"><h3>Memory</h3><ul><li>13.5 TB HBM3e</li><li>17 TB Grace LPDDR5X</li><li>30 TB unified coherent</li><li>192 GB per GPU</li></ul></div>
+    <div class="card purple"><h3>Interconnect</h3><ul><li>NVLink 5 @ 1.8 TB/s/GPU</li><li>130 TB/s bisection</li><li>72-GPU NVLink domain</li><li>Liquid cooled, 120 kW rack</li></ul></div>
+  </div>
+  <div class="slide-footer">blackwell-gb200 / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CHIP</span><h2>The Blackwell GPU</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>Dual-Die Package</h3><ul><li>Two reticle-limit dies on TSMC 4NP</li><li>10 TB/s NV-HBI die-to-die link</li><li>Presented as <span class="a">single logical GPU</span></li><li>208B transistors total &mdash; 2.6&times; H100</li><li>8 stacks HBM3e &rarr; 192 GB, 8 TB/s</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>2nd-Gen Transformer Engine</h3><ul><li>Native <span class="g">FP4</span> tensor cores</li><li>2&times; throughput vs FP8</li><li>Per-block scaling and selective promotion</li><li>FP4 weights, BF16/FP8 attention common pattern</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Decompression Engine</h3><ul><li>Hardware decompression of GPTQ/AWQ/NVFP4</li><li>Streamed decode from HBM &rarr; tensor cores</li><li>2:4 structured sparsity acceleration</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Throughput Highlights</h3><ul><li>~20 PFLOPS FP8 dense</li><li>~40 PFLOPS FP4 dense</li><li>1,200 W per GPU TDP</li><li>Liquid cooling required</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">blackwell-gb200 / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUPERCHIP</span><h2>The GB200 Superchip</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber"><h3>Grace + 2&times; Blackwell</h3><ul><li>72-core ARM Neoverse V2 CPU</li><li>480 GB LPDDR5X &mdash; coherent with GPU memory</li><li>900 GB/s NVLink-C2C between CPU and GPUs</li><li>Single shared address space</li><li>~2,700 W per module total</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>Coherent Memory Implications</h3><ul><li>1.5T-parameter model fits in CPU+GPU memory of one module</li><li>Transparent KV-cache spillover to LPDDR5X</li><li>Kernels deref CPU memory directly &mdash; no DMA bookkeeping</li></ul></div>
+    </div>
+    <div>
+      <div class="card red"><h3>Power &amp; Cooling</h3><ul><li>~2.7 kW per module</li><li>Direct-to-chip cold plates</li><li>Coolant: 25&deg;C in / 35&deg;C out</li><li>Air cooling not feasible</li></ul></div>
+      <div class="card purple" style="margin-top:.6em"><h3>Module Density</h3><ul><li>2 GB200 modules per compute tray</li><li>18 trays per NVL72 rack</li><li>120 kW per rack peak</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">blackwell-gb200 / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">RACK</span><h2>NVL72 Topology</h2></div>
+  <table>
+    <thead><tr><th>Property</th><th>DGX H100 (8&times;)</th><th>NVL72 (72&times;)</th><th>Ratio</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">GPUs in NVLink domain</span></td><td>8</td><td>72</td><td>9&times;</td></tr>
+      <tr><td>Aggregate HBM</td><td>640 GB</td><td>13.5 TB</td><td>21&times;</td></tr>
+      <tr><td>NVLink BW per GPU</td><td>900 GB/s</td><td>1.8 TB/s</td><td>2&times;</td></tr>
+      <tr><td>Bisection BW</td><td>3.6 TB/s</td><td>130 TB/s</td><td>36&times;</td></tr>
+      <tr><td>FP8 throughput (rack)</td><td>~32 PFLOPS</td><td>~720 PFLOPS</td><td>22&times;</td></tr>
+      <tr><td>Power</td><td>~10 kW</td><td>~120 kW</td><td>12&times;</td></tr>
+      <tr><td>Cooling</td><td>Air</td><td>Liquid</td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+  <div class="card blue" style="margin-top:.8em"><h3>The Big Idea</h3><p>NVL72 raises the NVLink scale-up domain from <span class="b">8 GPUs to 72 GPUs</span>. Tensor parallelism at TP=72 stays on full-speed NVLink &mdash; no InfiniBand cliff.</p></div>
+  <div class="slide-footer">blackwell-gb200 / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PROGRAMMING</span><h2>One Giant GPU</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>What &ldquo;One GPU&rdquo; Means</h3><ul><li>72 GPUs presented as a uniform TP group</li><li>Any pair of GPUs at full NVLink BW</li><li>NCCL all-reduce ~90% efficient at TP=72</li><li>Megatron-Core auto-tunes for NVL72 topology</li></ul></div>
+    <div class="card green"><h3>Memory Aggregation</h3><ul><li>1.8T-param model in FP8 fits in 1.8 TB HBM</li><li>Leaves <span class="g">11+ TB</span> for KV cache &amp; activations</li><li>Multi-million-token contexts feasible</li><li>Thousands of concurrent sessions per rack</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card purple"><h3>Disaggregated Inference</h3><ul><li>Prefill pool + decode pool in same NVLink domain</li><li>KV transfer over NVLink, not InfiniBand</li><li>Cost of cache shuttling now negligible</li></ul></div>
+    <div class="card red"><h3>Pipeline Bubble Elimination</h3><ul><li>TP=72 obsoletes pipeline parallelism</li><li>~25% better hardware utilization on 1T models</li><li>Bubble overhead drops to near-zero</li></ul></div>
+  </div>
+  <div class="slide-footer">blackwell-gb200 / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">INFERENCE</span><h2>30&times; Faster Inference Claim</h2></div>
+  <p>NVIDIA quotes ~30&times; inference throughput improvement vs H100 cluster of equivalent GPU count for trillion-parameter models. Where does that come from?</p>
+  <table style="margin-top:.6em">
+    <thead><tr><th>Source of speedup</th><th>Multiplier</th><th>Mechanism</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">FP4 vs FP8</span></td><td>~2.5&times;</td><td>2nd-gen Transformer Engine</td></tr>
+      <tr><td><span class="g">Tensor core throughput</span></td><td>~2&times;</td><td>Larger SM, faster mma</td></tr>
+      <tr><td><span class="p">NVLink-only TP</span></td><td>~6&times;</td><td>No InfiniBand cliff at TP&gt;8</td></tr>
+      <tr><td><strong>Combined</strong></td><td><strong>~30&times;</strong></td><td>Best case</td></tr>
+      <tr><td>Real-world typical</td><td>8&ndash;15&times;</td><td>Workload dependent</td></tr>
+    </tbody>
+  </table>
+  <div class="card blue" style="margin-top:.6em"><h3>Where the Win Is Largest</h3><p>Models too large for an 8-GPU NVLink domain. Below ~100B params, an H100 node is competitive. Above ~500B, NVL72 has no real peer.</p></div>
+  <div class="slide-footer">blackwell-gb200 / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TRAINING</span><h2>Training at Rack Scale</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>3D Parallelism Collapse</h3><ul><li>Old: TP within node, PP across nodes, DP across cluster</li><li>New: TP&times;PP up to <span class="a">72 within one rack</span></li><li>Pipeline bubble overhead drops to near-zero</li><li>~25% better hardware utilization</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>Cross-Rack Scaling</h3><ul><li>800 GB/s top-of-rack uplink</li><li>InfiniBand or Spectrum-X between racks</li><li>Megatron-Core auto-detects topology</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Hierarchy</h3><ul><li><span class="p">130 TB/s</span> NVLink within rack</li><li><span class="b">~few TB/s</span> InfiniBand between racks</li><li>Slower Ethernet between datacenters</li></ul></div>
+      <div class="card red" style="margin-top:.6em"><h3>Practical Topologies</h3><ul><li>Hyperscalers building 16-rack and 32-rack pods</li><li>Foundation models trained in single pod</li><li>Multi-pod for 10T+ parameter targets</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">blackwell-gb200 / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">FACILITIES</span><h2>Power, Cooling, Datacenter</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Power Density</h3><ul><li><span class="r">120 kW/rack</span> &mdash; 10&times; standard datacenter density</li><li>Most existing facilities cannot host without retrofit</li><li>Hyperscalers building purpose-built facilities</li><li>MS Wisconsin, Meta Louisiana, xAI Memphis Colossus</li></ul></div>
+    <div class="card blue"><h3>Cooling Stack</h3><ul><li>Direct-to-chip cold plates</li><li>Rear-door heat exchangers or in-rack CDUs</li><li>Supply ~25&ndash;30&deg;C, return ~45&deg;C</li><li>Closed-loop with secondary chilled-water loop</li></ul></div>
+  </div>
+  <div class="card amber" style="margin-top:.8em"><h3>Cluster Scaling</h3><p>1,000-GPU H100 cluster &mdash; 40 air racks @ 30 kW &mdash; 1.2 MW. 1,000-GPU NVL72 cluster &mdash; 14 racks @ 120 kW &mdash; 1.7 MW. The Blackwell cluster delivers ~5&times; FP8 throughput at 1.4&times; the power.</p></div>
+  <div class="slide-footer">blackwell-gb200 / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SOFTWARE</span><h2>Software Stack &amp; Adoption</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>CUDA &amp; Libraries</h3><ul><li>CUDA 12.5+ supports Blackwell natively</li><li>cuBLAS, cuDNN, CUTLASS extended for FP4</li><li>NCCL topology-aware for NVL72</li><li>Dual-die abstraction is transparent to drivers</li></ul></div>
+    <div class="card green"><h3>Inference Frameworks</h3><ul><li><span class="g">TensorRT-LLM</span> &mdash; reference for FP4</li><li>vLLM &mdash; Blackwell support landed 2024</li><li>SGLang, LMDeploy follow</li><li>Calibration tools for FP8&rarr;FP4 conversion</li></ul></div>
+    <div class="card purple"><h3>Training</h3><ul><li>PyTorch 2.5+ Blackwell support</li><li>Megatron-Core NVL72-aware</li><li>JAX/XLA via Pallas</li><li>DeepSpeed ZeRO-3 fully supported</li></ul></div>
+  </div>
+  <div class="slide-footer">blackwell-gb200 / 10</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OUTLOOK</span><h2>From Server to Rack to Aisle</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>What Changed</h3><ul><li>The rack is now the unit of AI deployment</li><li>NVLink domain grows 9&times;</li><li>HBM aggregate grows 21&times;</li><li>Pipeline parallelism becomes optional</li></ul></div>
+    <div class="card green"><h3>What&rsquo;s Next: Rubin (2026)</h3><ul><li>144-GPU rack designs</li><li>1.6 TB HBM4 per GPU</li><li>NVLink 6 @ 200 GB/s/port</li><li>576-GPU NVLink domain on roadmap</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Big Picture</h3><p>AI infrastructure is starting to look like mainframe procurement: long lead times, custom datacenter builds, multi-year capacity commitments. The era of off-the-shelf servers for inference clusters is ending; the era of <span class="b">pre-integrated rack-scale AI computers</span> has begun.</p></div>
+  <div class="slide-footer">blackwell-gb200 / 11</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

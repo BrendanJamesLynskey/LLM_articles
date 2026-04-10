@@ -13,6 +13,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Attention Mechanism Innovations | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/attention_mechanism_innovations.html) · [MD](articles/attention_mechanism_innovations.md) |
 | Context Window Scaling | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/context_window_scaling.html) · [MD](articles/context_window_scaling.md) |
 | Diffusion Language Models | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/diffusion_language_models.html) · [MD](articles/diffusion_language_models.md) |
+| Mixture of Depth and Adaptive Compute | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mixture_of_depth.html) · [MD](articles/mixture_of_depth.md) |
 | Mixture Of Experts | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mixture_of_experts.html) · [MD](articles/mixture_of_experts.md) |
 | Positional Encodings | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/positional_encodings.html) · [MD](articles/positional_encodings.md) |
 | Post Transformer Models | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/post_transformer_models.html) · [MD](articles/post_transformer_models.md) |
@@ -24,12 +25,14 @@ A collection of technical articles exploring the systems behind modern large lan
 | --- | --- |
 | Attention–FFN Disaggregation: Why the Future of LLM Inference Splits the Transformer in Two | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/attention_ffn_disaggregation.html) · [MD](articles/attention_ffn_disaggregation.md) |
 | Batching Report | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/batching_report.html) · [MD](articles/batching_report.md) |
+| CUDA Graphs and Kernel Fusion | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/cuda_graphs_and_kernel_fusion.html) · [MD](articles/cuda_graphs_and_kernel_fusion.md) |
 | Distributed LLM Inference on Systems of Small GPU Chips | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/distributed_llm_inference_report.html) · [MD](articles/distributed_llm_inference_report.md) |
 | Flash Attention | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/flash_attention.html) · [MD](articles/flash_attention.md) |
 | Inference Serving Frameworks: From Model to Production Endpoint | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/inference_serving_frameworks.html) · [MD](articles/inference_serving_frameworks.md) |
 | Kv Cache Optimization | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/kv_cache_optimization.html) · [MD](articles/kv_cache_optimization.md) |
 | Memory Hierarchy and Offloading for LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/memory_hierarchy_and_offloading.html) · [MD](articles/memory_hierarchy_and_offloading.md) |
 | Mixed Precision Arithmetic | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mixed_precision_arithmetic.html) · [MD](articles/mixed_precision_arithmetic.md) |
+| ML Compiler Stacks: XLA, MLIR, IREE, TVM | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/ml_compiler_stacks.html) · [MD](articles/ml_compiler_stacks.md) |
 | Non-Deterministic Output in Ollama | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/ollama_nondeterminism.html) · [MD](articles/ollama_nondeterminism.md) |
 | Paged Attention | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/paged_attention.html) · [MD](articles/paged_attention.md) |
 | Prompt Caching: Reducing Redundant Computation in LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/prompt_caching.html) · [MD](articles/prompt_caching.md) |
@@ -43,6 +46,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | --- | --- |
 | Direct Preference Optimization and GRPO | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/dpo_and_grpo.html) · [MD](articles/dpo_and_grpo.md) |
 | Distributed Training | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/distributed_training.html) · [MD](articles/distributed_training.md) |
+| Federated Learning for LLMs | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/federated_learning_for_llms.html) · [MD](articles/federated_learning_for_llms.md) |
 | Llm Training Stages | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/llm_training_stages.html) · [MD](articles/llm_training_stages.md) |
 | LoRA and Parameter-Efficient Fine-Tuning | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/lora_and_peft.html) · [MD](articles/lora_and_peft.md) |
 | Model Merging: TIES, DARE, and Model Soups | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/model_merging.html) · [MD](articles/model_merging.md) |
@@ -61,11 +65,13 @@ A collection of technical articles exploring the systems behind modern large lan
 | Google TPU Architecture: Custom Silicon for Transformer Workloads | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/google_tpu_architecture.html) · [MD](articles/google_tpu_architecture.md) |
 | GPU Power Variability in LLM Training and Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/gpu_power_variability.html) · [MD](articles/gpu_power_variability.md) |
 | Groq's Architecture for LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/groq_architecture.html) · [MD](articles/groq_architecture.md) |
+| HBM Memory Architecture: The Hidden Bottleneck of LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/hbm_memory_architecture.html) · [MD](articles/hbm_memory_architecture.md) |
 | Intel Gaudi Architecture: Habana Labs' AI Accelerator | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/intel_gaudi_architecture.html) · [MD](articles/intel_gaudi_architecture.md) |
 | Multi Model Multi Agent Hardware | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/multi_model_multi_agent_hardware.html) · [MD](articles/multi_model_multi_agent_hardware.md) |
 | NVIDIA Blackwell GB200 NVL72: A Rack-Scale Computer for Trillion-Parameter Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/nvidia_blackwell_gb200.html) · [MD](articles/nvidia_blackwell_gb200.md) |
 | NVIDIA DGX Spark: A Desktop AI Supercomputer for Agents and Local Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/nvidia_dgx_spark.html) · [MD](articles/nvidia_dgx_spark.md) |
 | NVLink and NVSwitch: Building the Scale-Up Fabric for AI | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/nvlink_nvswitch_fabric.html) · [MD](articles/nvlink_nvswitch_fabric.md) |
+| Photonic AI Accelerators: Computing with Light | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/photonic_ai_accelerators.html) · [MD](articles/photonic_ai_accelerators.md) |
 | Power and Thermal Management for GPU-Based LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/power_and_thermal_management.html) · [MD](articles/power_and_thermal_management.md) |
 | RDMA and InfiniBand for AI Training Clusters | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/rdma_infiniband_for_ai.html) · [MD](articles/rdma_infiniband_for_ai.md) |
 | SambaNova's SN40L Architecture: Dataflow Processing for LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/sambanova_architecture.html) · [MD](articles/sambanova_architecture.md) |
@@ -75,8 +81,10 @@ A collection of technical articles exploring the systems behind modern large lan
 
 | Topic | Format |
 | --- | --- |
+| The Chinese Open-Source LLM Ecosystem: DeepSeek, Qwen, GLM, Yi | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/chinese_open_source_llm_ecosystem.html) · [MD](articles/chinese_open_source_llm_ecosystem.md) |
 | Embedding Models and Vector Search | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/embedding_models_and_vector_search.html) · [MD](articles/embedding_models_and_vector_search.md) |
 | LLM Observability: Tracing, Evaluation, and Production Monitoring | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/llm_observability.html) · [MD](articles/llm_observability.md) |
+| Mechanistic Interpretability: Reverse-Engineering Neural Networks | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mechanistic_interpretability.html) · [MD](articles/mechanistic_interpretability.md) |
 | MCP Gateways: Centralized Proxy Architecture for the Model Context Protocol Ecosystem | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mcp_gateways.html) · [MD](articles/mcp_gateways.md) |
 | Deployment and Management of MCP Servers: From Local Development to Production Infrastructure | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mcp_server_deployment.html) · [MD](articles/mcp_server_deployment.md) |
 | Model Context Protocol (MCP): A Universal Interface for LLM Tool Integration | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/model_context_protocol.html) · [MD](articles/model_context_protocol.md) |
@@ -89,6 +97,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Topic | Format |
 | --- | --- |
 | AI Agent Security: Threat Models, Defenses, and Deployment Patterns | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/agent_security.html) · [MD](articles/agent_security.md) |
+| AI Watermarking and Content Provenance | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/ai_watermarking_and_provenance.html) · [MD](articles/ai_watermarking_and_provenance.md) |
 | Confidential Computing for AI: Trusted Execution for LLMs | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/confidential_computing_for_ai.html) · [MD](articles/confidential_computing_for_ai.md) |
 | LLM Security: Threats, Vulnerabilities, and Defenses | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/llm_security.html) · [MD](articles/llm_security.md) |
 | MCP Security: Threat Models, Attack Vectors, and Hardening Strategies for the Model Context Protocol | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/mcp_security.html) · [MD](articles/mcp_security.md) |
@@ -128,6 +137,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | Topic | Format |
 | --- | --- |
 | AI API Design Patterns | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/ai_api_design.html) · [MD](articles/ai_api_design.md) |
+| AI Datacenter Design: Power, Cooling, Networking, and the Grid | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/ai_datacenter_design.html) · [MD](articles/ai_datacenter_design.md) |
 | Capacity Planning for LLM Infrastructure | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/capacity_planning.html) · [MD](articles/capacity_planning.md) |
 | Carbon Footprint and Sustainability in AI | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/carbon_footprint_and_sustainability.html) · [MD](articles/carbon_footprint_and_sustainability.md) |
 | Edge and Mobile LLM Deployment | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/edge_and_mobile_deployment.html) · [MD](articles/edge_and_mobile_deployment.md) |

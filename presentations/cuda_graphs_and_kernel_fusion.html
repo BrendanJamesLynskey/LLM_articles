@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CUDA Graphs &amp; Kernel Fusion | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>CUDA Graphs &amp; Kernel Fusion</h1>
+  <p class="subtitle">Squeezing Performance from the Decode Loop</p>
+  <div>
+    <span class="pill amber">cuda graphs</span>
+    <span class="pill green">fusion</span>
+    <span class="pill purple">decode</span>
+    <span class="pill blue">latency</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">cuda-graphs / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The Decode Overhead Problem</h2></div>
+  <p>LLM decode runs the entire model for one token. The compute density is very low, and per-launch overheads add a constant cost that dominates at small batch sizes.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red"><h3>Per-Launch Cost</h3><ul><li>CPU dispatch: a few &micro;s</li><li>PCIe transmission</li><li>GPU command processor setup</li><li>5&ndash;50 &micro;s overhead per kernel</li></ul></div>
+    <div class="card amber"><h3>Per-Token Reality</h3><ul><li>500&ndash;1000 kernel launches per token</li><li>10&ndash;50 ms of pure overhead</li><li>Comparable to actual compute time</li><li>Eats your latency budget</li></ul></div>
+  </div>
+  <div class="slide-footer">cuda-graphs / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">GRAPHS</span><h2>What CUDA Graphs Are</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>The Mechanism</h3><ol><li>Capture sequence of operations once</li><li>Instantiate the graph</li><li>Replay with single launch call</li></ol><p>Per-replay cost is one API call instead of hundreds.</p></div>
+      <div class="card green" style="margin-top:.6em"><h3>The Speedup</h3><ul><li>5&ndash;10&times; lower per-step CPU overhead</li><li>20&ndash;40% lower per-token latency in low-batch decode</li><li>Free win for repeated workloads</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Capture Modes</h3><ul><li><span class="p">Stream capture</span>: put stream into capture mode, run code as normal &mdash; easiest</li><li><span class="p">Explicit construction</span>: build graph node-by-node &mdash; more powerful, more code</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Available Since</h3><p>CUDA 10 (2018). Mature, well-supported across all modern GPUs.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer">cuda-graphs / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CHALLENGE</span><h2>Why Inference Makes It Hard</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Dynamic Properties</h3><ul><li>Variable sequence lengths</li><li>Continuous batching changes batch size</li><li>KV cache grows by 1 per step</li><li>Each shape needs its own graph</li></ul></div>
+    <div class="card green"><h3>The Workaround</h3><ul><li>Capture multiple graphs &mdash; one per common shape</li><li>Batch sizes 1, 2, 4, 8, 16, 32, 64</li><li>Pad requests up to nearest captured size</li><li>Trade some wasted compute for dispatch overhead savings</li></ul></div>
+  </div>
+  <div class="slide-footer">cuda-graphs / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">FUSION</span><h2>Kernel Fusion</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>The Idea</h3><ul><li>Combine multiple small kernels into one larger kernel</li><li>Single launch instead of many</li><li>Intermediate values stay in registers/shared memory</li><li>Eliminates memory round-trips</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>Classic Examples</h3><ul><li>LayerNorm + linear projection</li><li>Attention + softmax + output projection (FlashAttention)</li><li>FFN gate + up + activation + down</li><li>RMSNorm + residual</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Static vs Dynamic</h3><ul><li><span class="p">Static</span>: compile-time fusion (TensorRT, ONNX RT)</li><li><span class="p">Dynamic</span>: JIT fusion (torch.compile, XLA)</li><li>Both common in production</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>The Triton Path</h3><p>Most modern fused kernels are written in Triton. The compiler-driven block-level model makes fusion natural and the resulting kernels are competitive with hand-CUDA.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer">cuda-graphs / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">RECIPE</span><h2>The Standard Inference Stack</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>1. Library GEMMs</h3><ul><li>cuBLAS / CUTLASS for largest matmuls</li><li>Hand-tuned for the hardware</li><li>Last few % matter at scale</li></ul></div>
+    <div class="card green"><h3>2. Triton Fused Kernels</h3><ul><li>Everything else</li><li>Aggressive fusion of small ops</li><li>FlashAttention, RMSNorm, RoPE, etc.</li></ul></div>
+    <div class="card purple"><h3>3. CUDA Graphs</h3><ul><li>Amortize dispatch overhead</li><li>Per-batch-size graphs captured at startup</li><li>Single replay per token</li></ul></div>
+  </div>
+  <div class="slide-footer">cuda-graphs / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">FRAMEWORKS</span><h2>Real-World Deployments</h2></div>
+  <table>
+    <thead><tr><th>Framework</th><th>CUDA Graphs</th><th>Fusion Strategy</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">vLLM</span></td><td>Per-batch-size, captured at startup</td><td>Triton kernels for attention &amp; ops</td></tr>
+      <tr><td><span class="g">TensorRT-LLM</span></td><td>Internal graphs over compiled engine</td><td>Static fusion at compile time</td></tr>
+      <tr><td><span class="b">SGLang</span></td><td>Selective &mdash; pattern-specific</td><td>Triton + RadixAttention</td></tr>
+      <tr><td>TGI</td><td>Yes for static paths</td><td>Mix of Triton and CUDA</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">cuda-graphs / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PITFALLS</span><h2>Common Bugs</h2></div>
+  <div class="cols cols-3">
+    <div class="card red"><h3>Capture-Replay Mismatch</h3><ul><li>Stream capture records pointers</li><li>Pointers updated between replays cause wrong results</li><li>Use placeholder + node parameter updates</li></ul></div>
+    <div class="card amber"><h3>Over-Capture</h3><ul><li>Including host computation in graph</li><li>Including host synchronization</li><li>Defeats the entire purpose</li></ul></div>
+    <div class="card purple"><h3>Bad Fusion</h3><ul><li>Fusing memory-bound and compute-bound kernels</li><li>Register pressure causing spills</li><li>Worse than the unfused version</li></ul></div>
+  </div>
+  <div class="slide-footer">cuda-graphs / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ADJACENT</span><h2>Beyond Graphs &amp; Fusion</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Complementary Techniques</h3><ul><li><span class="a">Persistent kernels</span> &mdash; run for entire workload, no per-step overhead</li><li><span class="a">Speculative decoding</span> &mdash; reduce step count</li><li><span class="a">Continuous batching</span> &mdash; amortize over many requests</li></ul></div>
+    <div class="card green"><h3>The Trend</h3><ul><li>Algorithmic optimizations becoming dominant</li><li>Kernel-level work mostly done</li><li>Inference engine differentiation moving up the stack</li></ul></div>
+  </div>
+  <div class="slide-footer">cuda-graphs / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Table Stakes</h2></div>
+  <div class="card amber"><h3>What&rsquo;s True in 2026</h3><ul><li>CUDA Graphs and kernel fusion are standard in every serious inference framework</li><li>Together they often deliver 1.5&ndash;3&times; throughput vs unoptimized</li><li>Cost nothing in model quality</li><li>The big wins are captured; remaining gains are algorithmic</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Lesson</h3><p>Use a framework that supports both natively (vLLM, TensorRT-LLM, SGLang). Trust the defaults. The optimization decisions that matter at the application level are about <span class="b">batching, caching, and request scheduling</span> &mdash; not kernel-level concerns. Those are solved at the framework layer, and that&rsquo;s where they should stay.</p></div>
+  <div class="slide-footer">cuda-graphs / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

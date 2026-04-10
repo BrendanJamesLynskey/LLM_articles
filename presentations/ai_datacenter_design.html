@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Datacenter Design | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>AI Datacenter Design</h1>
+  <p class="subtitle">Power, Cooling, Networking, and the Grid</p>
+  <div>
+    <span class="pill amber">datacenter</span>
+    <span class="pill green">power</span>
+    <span class="pill purple">liquid cooling</span>
+    <span class="pill blue">grid</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">ai-datacenter / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SCALE</span><h2>The Numbers Are Insane</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>Per-Rack Power</h3><ul><li>2015 cloud rack: 10 kW</li><li>2024 NVL72 rack: <span class="a">120 kW</span></li><li>2026 Rubin rack: ~200 kW</li><li>Custom designs: 300&ndash;500 kW</li></ul></div>
+    <div class="card green"><h3>Per-Site Power</h3><ul><li>Old datacenter: 10&ndash;50 MW</li><li>Modern AI site: <span class="g">1 GW</span></li><li>Stargate target: 5 GW+</li><li>Comparable to small nuclear plants</li></ul></div>
+    <div class="card purple"><h3>Investment</h3><ul><li>$500B+ committed by hyperscalers</li><li>Multi-year build cycles</li><li>Largest physical infra category in tech</li></ul></div>
+  </div>
+  <div class="slide-footer">ai-datacenter / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">POWER</span><h2>Power Delivery</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>The Infrastructure</h3><ul><li>Connect to 115 kV+ grid</li><li>Multiple transformer stages</li><li>Busways instead of cables (current limits)</li><li>Multi-MW UPS + diesel generators</li><li>Battery storage growing</li></ul></div>
+    <div class="card red"><h3>The Reliability Need</h3><ul><li>Training jobs run for weeks/months</li><li>Single power loss = millions in lost work</li><li>UPS sized for several minutes</li><li>Generators for indefinite operation</li></ul></div>
+  </div>
+  <div class="slide-footer">ai-datacenter / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">GRID</span><h2>The Interconnection Bottleneck</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card red"><h3>The New Constraint</h3><ul><li>Building a 1 GW datacenter needs 1 GW of new utility capacity</li><li>New transmission, substations, generation</li><li>Process takes years</li><li>Now the gating factor on construction</li></ul></div>
+    </div>
+    <div>
+      <div class="card amber"><h3>Where Sites Cluster</h3><ul><li>Texas (cheap power, available)</li><li>Virginia (existing fiber)</li><li>Pacific NW (hydroelectric)</li><li>Arizona (cheap land)</li><li>Northern Europe (cool, renewable)</li><li>Middle East (solar + capital)</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">ai-datacenter / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SOURCE</span><h2>Power Sourcing</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>Renewable PPAs</h3><ul><li>Microsoft, Google, Meta, Amazon all committed</li><li>Variable supply, constant demand mismatch</li><li>Storage too expensive</li><li>Grid mix in practice</li></ul></div>
+    <div class="card green"><h3>Nuclear Renaissance</h3><ul><li>MS + Constellation: restart Three Mile Island</li><li>Small modular reactor PPAs</li><li>Baseload renewable for AI</li><li>Most credible clean baseload</li></ul></div>
+    <div class="card red"><h3>The Tension</h3><ul><li>AI may force gas generation</li><li>Climate goals strained</li><li>Or: catalyzes clean buildout</li><li>Outcome uncertain</li></ul></div>
+  </div>
+  <div class="slide-footer">ai-datacenter / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">COOLING</span><h2>Liquid Cooling Approaches</h2></div>
+  <table>
+    <thead><tr><th>Approach</th><th>Capacity</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Rear-Door Heat Exchanger</span></td><td>30&ndash;50 kW/rack</td><td>Transitional &mdash; existing air servers at higher density</td></tr>
+      <tr><td><span class="g">Direct-to-Chip (DLC)</span></td><td>100+ kW/rack</td><td>NVL72 standard, mature supply chain</td></tr>
+      <tr><td><span class="p">Immersion</span></td><td>200+ kW/rack</td><td>Highest density, messier maintenance</td></tr>
+    </tbody>
+  </table>
+  <div class="card red" style="margin-top:.8em"><h3>Why Air Cooling Fails</h3><p>To remove 120 kW from one rack you&rsquo;d need gale-force airflow at very low temperatures. Fan power consumption defeats itself. Air is limited to ~25&ndash;30 kW/rack with aggressive engineering. <span class="r">Below modern AI rack densities.</span></p></div>
+  <div class="slide-footer">ai-datacenter / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">WATER</span><h2>Water Consumption</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>The Cost</h3><ul><li>1 GW datacenter consumes millions of gallons/day</li><li>Comparable to a small city</li><li>Mostly evaporative cooling tower makeup</li><li>Becoming controversial in dry regions</li></ul></div>
+    <div class="card amber"><h3>Mitigations</h3><ul><li>Dry cooling (more electricity, less water)</li><li>Wastewater reuse</li><li>Direct air rejection</li><li>Heat reuse in district heating (Europe)</li></ul></div>
+  </div>
+  <div class="slide-footer">ai-datacenter / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">NETWORK</span><h2>Networking the Cluster</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Intra-Datacenter</h3><ul><li>InfiniBand or RoCE</li><li>400 Gbps/GPU current</li><li>800 Gbps/GPU next gen</li><li>Petabit-per-second aggregate</li><li>5&ndash;10% of total facility power</li></ul></div>
+    <div class="card green"><h3>Inter-Datacenter</h3><ul><li>Dedicated long-haul fiber</li><li>Multi-Tbps links between sites</li><li>Latency limits parallelism strategies</li><li>Most training still single-site</li></ul></div>
+  </div>
+  <div class="slide-footer">ai-datacenter / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">BUILDING</span><h2>The Physical Plant</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>Structure</h3><ul><li>Floor loads 4&ndash;5 tons per rack</li><li>Thicker concrete, more steel</li><li>Retrofitting old datacenters often impractical</li><li>1 GW site = campus, not building</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>Modular Designs</h3><ul><li>Prefabricated modules</li><li>Faster build, incremental expansion</li><li>OpenAI Stargate concept</li></ul></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Site Selection Factors</h3><ul><li>Power availability</li><li>Water availability</li><li>Network connectivity</li><li>Climate</li><li>Land cost</li><li>Tax incentives</li><li>Latency to users (inference)</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">ai-datacenter / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>The New Industrial Reality</h2></div>
+  <div class="card amber"><h3>What&rsquo;s True</h3><ul><li>AI datacenters are a discrete shift in computing infrastructure</li><li>Power, cooling, networking, grid interactions all newly constrained</li><li>Investment is enormous; timelines are compressed</li><li>Geopolitically and environmentally consequential</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Lesson</h3><p>For most users, the relevance of datacenter design is indirect &mdash; capacity and cost flow through the cloud. For those building infrastructure, the details determine viability. <span class="b">Decisions being made about AI datacenter construction over the next several years will shape the practical limits of what AI can do</span> &mdash; and what it costs the rest of the world to make it happen.</p></div>
+  <div class="slide-footer">ai-datacenter / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

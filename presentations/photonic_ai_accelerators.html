@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photonic AI Accelerators | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Photonic AI Accelerators</h1>
+  <p class="subtitle">Computing with Light</p>
+  <div>
+    <span class="pill amber">photonics</span>
+    <span class="pill green">silicon</span>
+    <span class="pill purple">interferometers</span>
+    <span class="pill blue">energy</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">photonic-ai / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why Compute With Light</h2></div>
+  <p>Every commercial AI accelerator today moves electrons through transistors. A small but well-funded set of companies is building accelerators that compute with light instead.</p>
+  <div class="cols cols-3" style="margin-top:.8em">
+    <div class="card amber"><h3>Energy</h3><ul><li>No resistive heating in waveguides</li><li>Optical interconnect &lt;1 pJ/bit</li><li>Electrical 5&ndash;10 pJ/bit</li><li>5&ndash;10&times; energy advantage</li></ul></div>
+    <div class="card green"><h3>Parallelism</h3><ul><li>Multiple wavelengths in same waveguide (WDM)</li><li>Native parallel data paths</li><li>Matrix mul through interference</li></ul></div>
+    <div class="card purple"><h3>Speed</h3><ul><li>Light-speed data movement</li><li>Distance-independent latency</li><li>Picosecond compute through interferometers</li></ul></div>
+  </div>
+  <div class="slide-footer">photonic-ai / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PHYSICS</span><h2>Photonic Matrix Multiplication</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>The Mechanism</h3><ul><li>Encode vector as amplitudes of N wavelengths or N waveguides</li><li>Pass through grid of <span class="a">Mach-Zehnder interferometers</span></li><li>MZIs implement arbitrary unitary transformations</li><li>Output detected by photodetector array</li><li>Whole computation in tens of picoseconds</li></ul></div>
+    </div>
+    <div>
+      <div class="card green"><h3>Topologies</h3><ul><li>Reck or Clements scheme for arbitrary N&times;N unitaries</li><li>Limited by chip area to ~64&times;64</li><li>Larger matrices via tiling</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>The Win</h3><p>Operation completes at the speed of light through the device, independent of matrix size up to the chip-area limit.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer">photonic-ai / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CHALLENGES</span><h2>The Catches</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Conversion Costs</h3><ul><li>Inputs come from electronic memory</li><li>DAC + modulator on input side</li><li>Photodetector + ADC on output side</li><li>Energy and latency at every E/O transition</li><li>Wins amortize on large operations only</li></ul></div>
+    <div class="card amber"><h3>Precision</h3><ul><li>Photonic compute is <span class="r">analog</span></li><li>6&ndash;8 bits effective precision typical</li><li>OK for inference (post-quantization)</li><li>Insufficient for training</li></ul></div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.6em">
+    <div class="card purple"><h3>Manufacturing</h3><ul><li>Silicon photonics processes much less mature than CMOS</li><li>Few foundries, lower yields</li><li>Hybrid integration with electronics is hard</li></ul></div>
+    <div class="card blue"><h3>Programming</h3><ul><li>No CUDA equivalent</li><li>Each vendor has its own toolchain</li><li>No portability between products</li></ul></div>
+  </div>
+  <div class="slide-footer">photonic-ai / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PLAYERS</span><h2>The Companies</h2></div>
+  <table>
+    <thead><tr><th>Company</th><th>Product</th><th>Approach</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Lightmatter</span></td><td>Envise (compute), Passage (interconnect)</td><td>MZI grids + electronic glue</td></tr>
+      <tr><td><span class="g">Lightelligence</span></td><td>PACE</td><td>64&times;64 photonic matmul, sub-ns latency</td></tr>
+      <tr><td><span class="b">Ayar Labs</span></td><td>TeraPHY chiplet</td><td>Optical I/O, <span class="b">no compute</span> &mdash; just data movement</td></tr>
+      <tr><td><span class="p">Q.ANT</span></td><td>Photonic processor</td><td>European alternative, very large matrices</td></tr>
+      <tr><td>PsiQuantum</td><td>Quantum (silicon photonics)</td><td>Manufacturing capability adjacent to AI</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">photonic-ai / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">FIT</span><h2>Where It Wins</h2></div>
+  <div class="cols cols-2">
+    <div class="card green"><h3>Good Fits</h3><ul><li>Large transformer inference (matmul-dominated)</li><li>Edge AI with strict power budgets</li><li>Optical interconnect for conventional accelerators</li><li>Recommendation systems with large embeddings</li></ul></div>
+    <div class="card red"><h3>Bad Fits</h3><ul><li>Training (precision)</li><li>Heavy control flow / branching</li><li>Small or sparse operations</li><li>Workloads with frequent E/O transitions</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Pragmatic Path</h3><p>Ayar Labs is the most likely first widespread success: it doesn&rsquo;t try to do compute in light, only data movement. That&rsquo;s a more conservative bet that fits naturally into the existing chip ecosystem &mdash; conventional electronic accelerators, faster optical interconnects.</p></div>
+  <div class="slide-footer">photonic-ai / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ECON</span><h2>The Energy Argument</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>The Demand Driver</h3><ul><li>AI inference may consume meaningful fractions of global electricity</li><li>Per-token cost is a growing economic and environmental concern</li><li>10&times; efficiency gain would be transformative</li><li>Photonics has a credible path</li></ul></div>
+    <div class="card green"><h3>The Wager</h3><ul><li>Maturity curve must catch electronics&rsquo; steady gains</li><li>Conversion overhead must drop</li><li>Manufacturing must scale</li><li>Programming model must converge</li></ul></div>
+  </div>
+  <div class="slide-footer">photonic-ai / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TIMELINE</span><h2>Realistic Trajectory</h2></div>
+  <table>
+    <thead><tr><th>Period</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">2026&ndash;2027</span></td><td>First commercial inference deployments. Niche.</td></tr>
+      <tr><td>2027&ndash;2029</td><td>Broader product lines. Optical interconnects (Ayar) become standard in high-end AI systems.</td></tr>
+      <tr><td><span class="g">2030+</span></td><td>Possible mainstream adoption if maturity catches up.</td></tr>
+      <tr><td>Pessimistic case</td><td>Photonic AI remains niche through the entire decade.</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">photonic-ai / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">WATCHERS</span><h2>Why Hyperscalers Care</h2></div>
+  <div class="card amber"><h3>The Investment</h3><ul><li>Google has acquired multiple silicon photonics teams</li><li>Microsoft has internal photonic computing research</li><li>Meta investing in optical interconnects for datacenters</li><li>AWS believed to have a quiet photonic strategy</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Bet</h3><p>AI workloads are growing faster than Moore&rsquo;s Law. Conventional electronic improvements are not keeping pace. If a 10&times; efficiency improvement is possible from any direction, the hyperscalers want to be in position to exploit it. Photonics is one of the few credible paths.</p></div>
+  <div class="slide-footer">photonic-ai / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Worth Watching</h2></div>
+  <div class="card amber"><h3>What&rsquo;s Real</h3><ul><li>Physics is genuine; energy advantages are large</li><li>First products are shipping in limited volumes</li><li>Optical interconnect path is the most likely first mainstream success</li><li>Programming model is the largest non-physics barrier</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Lesson</h3><p>For most teams, photonic accelerators are not deployable today and not worth investing in software portability for. For research teams and frontier infrastructure builders, worth tracking. The first product to deliver on the energy promise at competitive pricing will <span class="b">reshape inference economics</span>.</p></div>
+  <div class="slide-footer">photonic-ai / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

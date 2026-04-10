@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Watermarking &amp; Provenance | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>AI Watermarking &amp; Provenance</h1>
+  <p class="subtitle">Tracking the Origin of Generated Content</p>
+  <div>
+    <span class="pill amber">watermark</span>
+    <span class="pill green">c2pa</span>
+    <span class="pill purple">synthid</span>
+    <span class="pill blue">provenance</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">watermarking / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>The Authenticity Crisis</h2></div>
+  <p>By 2025, more than half of new text published online was AI-generated or modified. Image and video generation has scaled similarly. Detection-after-the-fact has lost the arms race.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red"><h3>Use Cases Demanding Solutions</h3><ul><li>Misinformation detection</li><li>Academic integrity</li><li>Training data hygiene (model collapse)</li><li>Legal &amp; contractual compliance</li><li>Copyright and attribution</li></ul></div>
+    <div class="card green"><h3>The Approach</h3><ul><li><span class="g">Watermarking</span>: embed signal during generation</li><li><span class="g">Provenance</span>: cryptographic metadata travels with content</li><li>Complementary, not competing</li></ul></div>
+  </div>
+  <div class="slide-footer">watermarking / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TEXT</span><h2>Text Watermarking: Kirchenbauer Scheme</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>The Mechanism</h3><ol><li>Pseudorandom function (seeded by previous tokens) splits vocab into &ldquo;green&rdquo; and &ldquo;red&rdquo; lists</li><li>Bias logits to prefer green tokens at sampling</li><li>Watermarked text has slight excess of green tokens</li><li>Detector knows the function, computes the fraction</li></ol></div>
+    </div>
+    <div>
+      <div class="card green"><h3>Properties</h3><ul><li>Detection is statistical &mdash; longer text = higher confidence</li><li>Hundreds of tokens needed for reliable detection</li><li>Cheap (just a logit modification)</li><li>No model changes required</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">watermarking / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SYNTHID</span><h2>Google SynthID-Text</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>The Technique</h3><ul><li>Tournament-style sampling at each step</li><li>Watermark function selects between candidates via pseudorandom score</li><li>More robust than simple logit biasing</li><li>Invisible to readers</li></ul></div>
+    <div class="card green"><h3>Deployment</h3><ul><li>Enabled by default in Gemini API</li><li>One of few production-scale watermarks</li><li>Detection key held by Google</li><li>API verification available</li></ul></div>
+  </div>
+  <div class="slide-footer">watermarking / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITS</span><h2>Why Text Watermarking Is Hard</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Fundamental Limits</h3><ul><li><span class="r">Paraphrasing</span> degrades watermarks</li><li><span class="r">Translation</span> destroys them</li><li><span class="r">Short outputs</span> insufficient signal</li><li>Self-hosted models can disable</li></ul></div>
+    <div class="card amber"><h3>The Multi-LLM Problem</h3><ul><li>Watermarking only catches content from cooperative models</li><li>Switch to non-watermarking model = bypass</li><li>Most effective at closed-API level</li><li>Least effective in open-source ecosystem</li></ul></div>
+  </div>
+  <div class="slide-footer">watermarking / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">IMAGES</span><h2>Image &amp; Video Watermarking</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>SynthID-Image</h3><ul><li>Pixel-level perturbations</li><li>Imperceptible to humans</li><li>Detected by trained classifier</li><li>Survives crop, resize, JPEG, color edits</li><li>Deployed in Imagen / Gemini</li></ul></div>
+    </div>
+    <div>
+      <div class="card green"><h3>Diffusion-Native Watermarks</h3><ul><li>Bias initial noise sampling</li><li><span class="g">Tree-Ring</span> watermark: circular pattern in frequency domain</li><li>Pattern propagates through diffusion</li><li>Harder to remove without retraining</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Audio &amp; Video</h3><p>Audio watermarking is mature (decades of work). Video adds temporal dimension on top of frame-level techniques.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer">watermarking / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">C2PA</span><h2>Content Provenance: C2PA</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>What C2PA Is</h3><ul><li>Cryptographically signed manifests attached to media</li><li>Coalition: Adobe, Microsoft, Intel, BBC, Sony, Truepic</li><li>Each tool adds its own signed manifest</li><li>Builds a chain of provenance</li></ul></div>
+    </div>
+    <div>
+      <div class="card green"><h3>Manifest Contents</h3><ul><li>Source (camera, AI model, editing tool)</li><li>History of modifications</li><li>Authenticity claims</li><li>Cryptographic signatures &mdash; tampering detectable</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>The Difference</h3><p>Watermarking = signal in the content itself. Provenance = metadata attached to the file. Complementary.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer">watermarking / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ADOPTION</span><h2>Where C2PA Lives</h2></div>
+  <table>
+    <thead><tr><th>Domain</th><th>Adopters</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Editing software</td><td>Adobe Photoshop, Lightroom</td><td>Production</td></tr>
+      <tr><td>Cameras</td><td>Leica, Sony, Nikon</td><td>Some models</td></tr>
+      <tr><td>AI image generators</td><td>Adobe Firefly</td><td>Production</td></tr>
+      <tr><td>Social platforms</td><td>Several signaling support</td><td>Limited</td></tr>
+      <tr><td>News publishers</td><td>Project Origin / BBC</td><td>Pilot</td></tr>
+    </tbody>
+  </table>
+  <div class="card red" style="margin-top:.6em"><h3>The Fundamental Limit</h3><p>C2PA is opt-in. Strip the manifest or use a non-supporting tool and it&rsquo;s gone. <span class="r">Provides strong guarantees when present, no information when absent.</span></p></div>
+  <div class="slide-footer">watermarking / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">REALITY</span><h2>The Adversarial Picture</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Determined Attackers Win</h3><ul><li>Watermark removal literature growing</li><li>Removing C2PA manifests is trivial</li><li>Not robust against sophisticated adversaries</li><li>Like DRM &mdash; doesn&rsquo;t stop piracy entirely</li></ul></div>
+    <div class="card green"><h3>Still Useful</h3><ul><li>Cooperative use cases work</li><li>Detection of accidental misattribution</li><li>Academic integrity in good-faith environments</li><li>Trust within controlled ecosystems</li></ul></div>
+  </div>
+  <div class="slide-footer">watermarking / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>Necessary But Not Sufficient</h2></div>
+  <div class="card amber"><h3>The Practical Recipe</h3><ul><li><span class="a">For content you create</span>: use the strongest available watermarking and provenance signals</li><li><span class="a">For content you consume</span>: treat as useful signals, not definitive proof</li><li><span class="a">For policies</span>: avoid depending on perfect detection</li><li><span class="a">For AI development</span>: default to watermarking; preserve C2PA metadata</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Bigger Picture</h3><p>Content authenticity in the age of AI requires technical signals + social norms + institutional structures together. Watermarking and provenance are necessary parts of the larger picture but cannot solve the problem alone. <span class="b">Building the rest of the picture is one of the most important challenges of AI deployment over the next several years.</span></p></div>
+  <div class="slide-footer">watermarking / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

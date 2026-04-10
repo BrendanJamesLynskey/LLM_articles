@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Federated Learning for LLMs | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Federated Learning for LLMs</h1>
+  <p class="subtitle">Training Across Organizational Boundaries</p>
+  <div>
+    <span class="pill amber">federated</span>
+    <span class="pill green">cross-silo</span>
+    <span class="pill purple">privacy</span>
+    <span class="pill blue">lora</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">federated-llm / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PROBLEM</span><h2>The Data-Sharing Wall</h2></div>
+  <p>Most LLM training assumes data lives in one place. Some valuable data simply <span class="r">cannot be centralized</span>: hospital records, bank transactions, classified data, trade secrets.</p>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card red"><h3>Use Cases Blocked</h3><ul><li>Hospital networks training medical LLMs</li><li>Banks training fraud models on combined data</li><li>Government agencies across classification levels</li><li>Pharma consortia for drug discovery</li></ul></div>
+    <div class="card green"><h3>What Federated Learning Promises</h3><ul><li>Train shared model across silos</li><li>Raw data never leaves the participant</li><li>Only model updates flow over network</li><li>Coordinator aggregates updates</li></ul></div>
+  </div>
+  <div class="slide-footer">federated-llm / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">FEDAVG</span><h2>The Basic Loop</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>FedAvg Procedure</h3><ol><li>Coordinator sends model weights to participants</li><li>Each participant trains locally for K steps</li><li>Each sends weight update back</li><li>Coordinator averages updates &mdash; weighted by data size</li><li>Repeat</li></ol></div>
+    </div>
+    <div>
+      <div class="card green"><h3>Cross-Device vs Cross-Silo</h3><ul><li><span class="g">Cross-device</span>: many small participants (phones)</li><li><span class="g">Cross-silo</span>: few large participants (orgs)</li><li><span class="a">LLMs are cross-silo</span></li><li>Each silo has its own GPU cluster</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">federated-llm / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SCALE</span><h2>Why It&rsquo;s Hard for LLMs</h2></div>
+  <table>
+    <thead><tr><th>Challenge</th><th>For Small Models</th><th>For LLMs</th></tr></thead>
+    <tbody>
+      <tr><td>Communication per round</td><td>MBs</td><td>140 GB (70B in fp16)</td></tr>
+      <tr><td>Total comm for full training</td><td>GBs</td><td><span class="r">PB-scale</span></td></tr>
+      <tr><td>Data heterogeneity impact</td><td>Mild</td><td>Severe (distributions diverge widely)</td></tr>
+      <tr><td>Compute heterogeneity</td><td>Significant</td><td>Self-selecting (small participants drop out)</td></tr>
+      <tr><td>Privacy of updates</td><td>Mild concern</td><td>Memorization is a major risk</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">federated-llm / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PRACTICAL</span><h2>Federated Fine-Tuning + LoRA</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <p>Pre-training is impractical for federation. <span class="a">Fine-tuning</span> is the right granularity. Combined with <span class="a">LoRA</span>, the communication shrinks dramatically.</p>
+      <div class="card green" style="margin-top:.5em"><h3>The Workflow</h3><ol><li>All participants start from public base model</li><li>Each fine-tunes locally for some steps</li><li>LoRA adapters sent to coordinator (100&ndash;1000&times; smaller than full weights)</li><li>Coordinator averages adapters</li><li>New global adapter, repeat</li></ol></div>
+    </div>
+    <div>
+      <div class="card amber"><h3>Communication Win</h3><ul><li>Full 70B fp16 update: 140 GB</li><li>LoRA r=16 update: ~50 MB</li><li><span class="a">~3000&times; reduction</span></li><li>Practical over modest network bandwidth</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Quality</h3><p>Federated LoRA fine-tuning typically reaches quality competitive with what would be achieved by centralized training on the pooled data.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer">federated-llm / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PRIVACY</span><h2>How Private Is It Really?</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Attacks on Updates</h3><ul><li><span class="r">Membership inference</span>: was X in the training set?</li><li><span class="r">Model inversion</span>: reconstruct examples from gradients</li><li><span class="r">Property inference</span>: deduce dataset properties</li><li>LLMs especially leak via memorization</li></ul></div>
+    <div class="card green"><h3>Defenses</h3><ul><li><span class="g">Differential privacy</span>: add noise to gradients (hurts quality)</li><li><span class="g">Secure aggregation</span>: cryptographic sum (hides individual updates)</li><li>Trusted execution environments</li><li>None are complete on their own</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>The Honest Framing</h3><p>Federated learning is &ldquo;more private than centralized training, less private than the marketing suggests.&rdquo; Raw data is protected by org boundaries; model updates leak limited statistical information. Real protection but not equivalent to never sharing.</p></div>
+  <div class="slide-footer">federated-llm / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">USE CASES</span><h2>Where It&rsquo;s Used</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber"><h3>Healthcare</h3><ul><li>Clinical notes across hospitals</li><li>HIPAA-compliant by design</li><li>NVIDIA FLARE deployments</li><li>MELLODDY pharma consortium</li><li>Owkin platform</li></ul></div>
+    <div class="card green"><h3>Financial</h3><ul><li>Cross-bank fraud detection</li><li>AML / KYC models</li><li>Mostly pilot stage</li><li>Bank consortia forming</li></ul></div>
+    <div class="card purple"><h3>Government</h3><ul><li>Cross-classification training</li><li>Inter-agency collaboration</li><li>Specifics not public</li><li>Active research investment</li></ul></div>
+  </div>
+  <div class="slide-footer">federated-llm / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TOOLS</span><h2>The Tooling</h2></div>
+  <table>
+    <thead><tr><th>Framework</th><th>Maintainer</th><th>LLM Support</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Flower</span></td><td>Open source</td><td>Strong PyTorch/HF integration, federated LoRA</td></tr>
+      <tr><td><span class="g">NVIDIA FLARE</span></td><td>NVIDIA</td><td>Production-grade, healthcare focus</td></tr>
+      <tr><td>OpenFL</td><td>Intel</td><td>Cross-silo, regulated industries</td></tr>
+      <tr><td>FedML</td><td>FedML Inc.</td><td>OSS + commercial offerings</td></tr>
+      <tr><td>Substra</td><td>Owkin</td><td>Healthcare research</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">federated-llm / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LIMITS</span><h2>What Federation Can&rsquo;t Do</h2></div>
+  <div class="cols cols-2">
+    <div class="card red"><h3>Hard Cases</h3><ul><li>Pre-training from scratch &mdash; too expensive</li><li>Very heterogeneous data distributions</li><li>Adversarial participants (Byzantine robustness needed)</li><li>Continual learning over time</li></ul></div>
+    <div class="card amber"><h3>Alternatives</h3><ul><li>Differential privacy on centralized data</li><li>Synthetic data generation</li><li>Confidential computing in TEEs</li><li>Homomorphic encryption (slow but airtight)</li></ul></div>
+  </div>
+  <div class="slide-footer">federated-llm / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SUMMARY</span><h2>A Niche but Important Tool</h2></div>
+  <div class="card amber"><h3>What&rsquo;s True</h3><ul><li>Federated LoRA fine-tuning is production-ready in 2026</li><li>Healthcare and pharma consortia have real deployments</li><li>Communication challenges solved for fine-tuning, not pre-training</li><li>Privacy guarantees are real but limited</li></ul></div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Lesson</h3><p>If you have data that <span class="b">cannot be centralized</span> but would benefit from being combined &mdash; use federated learning. If your data could be pooled centrally without legal or organizational obstacles, federation just adds complexity. It&rsquo;s a tool for a specific problem, not a general improvement over centralized training.</p></div>
+  <div class="slide-footer">federated-llm / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

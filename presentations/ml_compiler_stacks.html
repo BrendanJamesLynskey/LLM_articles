@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Compiler Stacks | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>ML Compiler Stacks</h1>
+  <p class="subtitle">XLA, MLIR, IREE, and TVM</p>
+  <div>
+    <span class="pill amber">xla</span>
+    <span class="pill green">mlir</span>
+    <span class="pill purple">iree</span>
+    <span class="pill blue">tvm</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">ml-compilers / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONTEXT</span><h2>Why ML Needs Its Own Compilers</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>The Information Gap</h3><ul><li>LLVM doesn&rsquo;t know what a matmul is</li><li>Tensor shapes available statically &mdash; useful for optimization</li><li>Hardware support for whole tensor ops (tensor cores)</li><li>Need IRs that preserve high-level semantics</li></ul></div>
+    <div class="card green"><h3>The Lowering Hierarchy</h3><ul><li>High level: matmul, conv, softmax</li><li>Mid level: loops, vectorization</li><li>Low level: PTX, AMDGPU IR, vector intrinsics</li><li>Optimize at each level where info is available</li></ul></div>
+  </div>
+  <div class="slide-footer">ml-compilers / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">XLA</span><h2>XLA: TPU&rsquo;s Compiler</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>What XLA Does</h3><ul><li>Operator fusion (the big win)</li><li>Memory layout selection</li><li>Buffer assignment / reuse</li><li>Algebraic simplification</li><li>Constant folding</li><li>Tensor core dispatch</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>HLO IR</h3><p>XLA&rsquo;s internal representation. High-level tensor operations with shapes. Most optimizations operate on HLO.</p></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>The TPU Connection</h3><ul><li>Only practical path to TPU</li><li>TPU hardware doesn&rsquo;t do CUDA-style programming</li><li>Tight coupling = high efficiency, less flexibility</li><li>Strategic for Google&rsquo;s AI strategy</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>On NVIDIA</h3><p>Often 10&ndash;30% slower than the best alternatives, but improving. Provides unified compiler across backends.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer">ml-compilers / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">MLIR</span><h2>MLIR: Compiler Infrastructure</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Not a Compiler &mdash; a Framework</h3><ul><li>Built by Chris Lattner (LLVM creator) at Google</li><li>Now part of LLVM</li><li>Define IRs at multiple abstraction levels</li><li>Mix levels in one program</li><li>Progressive lowering</li></ul></div>
+    <div class="card green"><h3>Dialects</h3><ul><li>Self-contained ops + types per abstraction level</li><li>linalg dialect (tensor ops)</li><li>affine dialect (loops)</li><li>vector, gpu, llvm, spirv dialects</li><li>Compose freely</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Why It&rsquo;s Foundational</h3><p>XLA, IREE, Triton, torch.compile, TF-XLA bridge &mdash; all use MLIR underneath. Solves the &ldquo;everyone has their own IR&rdquo; problem of the previous generation.</p></div>
+  <div class="slide-footer">ml-compilers / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STABLEHLO</span><h2>StableHLO: The Interchange Format</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>The Need</h3><ul><li>HLO is unstable across XLA versions</li><li>Frameworks need a stable target</li><li>Want one frontend &rarr; many backends</li></ul></div>
+    <div class="card green"><h3>Adoption</h3><ul><li>PyTorch supports as export target</li><li>TensorFlow supports natively</li><li>JAX supports as serialization format</li><li>ONNX has signaled cooperation</li><li>The de facto interchange format of 2026</li></ul></div>
+  </div>
+  <div class="slide-footer">ml-compilers / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">IREE</span><h2>IREE: The Universal Deployment Path</h2></div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3>What IREE Is</h3><ul><li>Open-source ML compiler + runtime</li><li>Targets CPUs, GPUs (CUDA, Vulkan, Metal), mobile NPUs</li><li>MLIR-based core</li><li>Frontend support: TF, PyTorch (torch-mlir), JAX</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>The Promise</h3><p>Write the model once, deploy anywhere with reasonable performance.</p></div>
+    </div>
+    <div>
+      <div class="card purple"><h3>Where It&rsquo;s Strong</h3><ul><li>Mobile and embedded deployment</li><li>Apple Silicon, AMD GPUs, Vulkan mobile GPUs</li><li>Recently pushing on transformer inference</li></ul></div>
+      <div class="card blue" style="margin-top:.6em"><h3>Where It&rsquo;s Weaker</h3><ul><li>Server NVIDIA &mdash; competes against TensorRT-LLM</li><li>Vendor-specific tooling still wins for max perf</li></ul></div>
+    </div>
+  </div>
+  <div class="slide-footer">ml-compilers / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TVM</span><h2>TVM: Auto-Scheduling Pioneer</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>The Distinguishing Feature</h3><ul><li>Auto-scheduler searches kernel implementation space</li><li>Empirical measurement picks the best</li><li>Slow compile, competitive output</li><li>First major project to demonstrate the approach</li></ul></div>
+    <div class="card red"><h3>Why It Hasn&rsquo;t Won</h3><ul><li>Slow compilation hurts iteration</li><li>Tunings don&rsquo;t always port across hardware generations</li><li>Multiple competing internal frontends</li><li>Overshadowed by vertically-integrated stacks</li></ul></div>
+  </div>
+  <div class="slide-footer">ml-compilers / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TORCH.COMPILE</span><h2>The User-Facing Compiler</h2></div>
+  <div class="cols cols-6040">
+    <div>
+      <div class="card amber"><h3>What It Does</h3><ul><li>Traces user&rsquo;s Python code to a graph</li><li>Compiles via Inductor (PyTorch&rsquo;s backend)</li><li>Generates Triton kernels for most ops</li><li>Falls back to cuBLAS/cuDNN for big GEMMs</li><li>Uses MLIR underneath for some paths</li></ul></div>
+      <div class="card green" style="margin-top:.6em"><h3>The Result</h3><ul><li>1.5&ndash;2&times; speedup typical for transformers</li><li>Single-line decorator</li><li>Most users never know about XLA or MLIR</li></ul></div>
+    </div>
+    <div>
+      <pre><code>@torch.compile
+def model_step(x):
+    return model(x)
+
+# Done. Compiler handles
+# fusion, codegen, dispatch.</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">ml-compilers / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SPECIALIZED</span><h2>Vendor Inference Compilers</h2></div>
+  <table>
+    <thead><tr><th>Tool</th><th>Vendor</th><th>Strength</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">TensorRT</span></td><td>NVIDIA</td><td>Most aggressive NVIDIA inference compiler</td></tr>
+      <tr><td><span class="a">TensorRT-LLM</span></td><td>NVIDIA</td><td>LLM-specific, FP4 support, tensor parallel</td></tr>
+      <tr><td><span class="g">OpenVINO</span></td><td>Intel</td><td>Intel CPU/GPU/NPU, AVX-512, AMX</td></tr>
+      <tr><td><span class="b">ONNX Runtime</span></td><td>Microsoft</td><td>Cross-platform via execution providers</td></tr>
+      <tr><td>CoreML</td><td>Apple</td><td>Apple Silicon optimization</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">ml-compilers / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONVERGE</span><h2>The 2026 Picture</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber"><h3>Convergence Patterns</h3><ul><li>MLIR as the underlying framework everywhere</li><li>Triton as the kernel language</li><li>StableHLO as interchange format</li><li>Per-framework JITs as user surface</li><li>Vendor compilers for max perf</li></ul></div>
+    <div class="card green"><h3>Pragmatic Stack</h3><ul><li>torch.compile for development</li><li>TensorRT-LLM for NVIDIA prod</li><li>OpenVINO for CPU/Intel fallback</li><li>MLIR custom passes for research</li></ul></div>
+  </div>
+  <div class="card blue" style="margin-top:.8em"><h3>Practitioner&rsquo;s Lesson</h3><p>For training: use your framework&rsquo;s JIT (torch.compile, jax.jit). For NVIDIA prod inference: TensorRT-LLM. For portable inference: IREE or ONNX RT. For custom kernels or research: MLIR + Triton. <span class="b">The choice of compiler stack is as consequential as the choice of model architecture.</span></p></div>
+  <div class="slide-footer">ml-compilers / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:false,controls:true,progress:true,center:false,transition:'fade'});</script>
+</body>
+</html>

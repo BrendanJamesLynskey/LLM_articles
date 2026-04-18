@@ -306,7 +306,38 @@ performance analyses this composition and the coupling to CPU,
 network, and storage that determines how a good model-serving layer
 does or does not translate into a good agent experience.
 
-## 11. Conclusion
+## 11. Abbreviations
+
+| Acronym | Expansion |
+|---|---|
+| API | Application Programming Interface |
+| BW | Bandwidth |
+| CPU | Central Processing Unit |
+| DRAM | Dynamic Random-Access Memory |
+| E2E | End-to-End (latency) |
+| FLOPs | Floating-Point Operations (per second) |
+| FP16 / BF16 / FP8 / INT4 | 16-bit / bfloat16 / 8-bit / 4-bit numeric formats for weights and activations |
+| GPU | Graphics Processing Unit |
+| HBM | High-Bandwidth Memory |
+| IDE | Integrated Development Environment |
+| ITL | Inter-Token Latency |
+| JSON | JavaScript Object Notation |
+| KV cache | Key / Value cache (attention intermediate state) |
+| LLM | Large Language Model |
+| MFU | Model FLOPs Utilization |
+| MLPerf | Machine Learning Performance (MLCommons benchmark suite) |
+| p50 / p95 / p99 / p99.9 | 50th / 95th / 99th / 99.9th percentile |
+| RAG | Retrieval-Augmented Generation |
+| RLHF | Reinforcement Learning from Human Feedback |
+| RPS | Requests Per Second |
+| SLA | Service-Level Agreement |
+| SSE | Server-Sent Events (streaming over HTTP) |
+| TP | Tensor Parallelism |
+| TPOT | Time Per Output Token |
+| TTFT | Time To First Token |
+| UX | User Experience |
+
+## 12. Conclusion
 
 A single "tokens per second" number is almost never the right answer
 to the question of how fast an inference system is. The useful answers

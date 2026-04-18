@@ -344,7 +344,38 @@ co-locating the tool or adding a hedge — has a smaller effect on p50
 but a large effect on the p99 tail, and therefore on how reliable the
 agent feels.
 
-## 10. Summary
+## 10. Abbreviations
+
+| Acronym | Expansion |
+|---|---|
+| A2A | Agent-to-Agent (inter-agent communication protocol) |
+| API | Application Programming Interface |
+| BPE | Byte-Pair Encoding (tokenisation scheme) |
+| CPU | Central Processing Unit |
+| DC | Datacenter |
+| DRAM | Dynamic Random-Access Memory |
+| E2E | End-to-End (latency) |
+| GPU | Graphics Processing Unit |
+| gRPC | gRPC Remote Procedure Call (Google-origin RPC framework) |
+| HBM | High-Bandwidth Memory |
+| HNSW | Hierarchical Navigable Small World (approximate-nearest-neighbour index) |
+| HTTP/2 | Hypertext Transfer Protocol, version 2 |
+| JSON | JavaScript Object Notation |
+| KV cache | Key / Value cache (attention intermediate state) |
+| LLM | Large Language Model |
+| MCP | Model Context Protocol |
+| NVMe | Non-Volatile Memory Express (SSD interface) |
+| OTel | OpenTelemetry (observability standard) |
+| p50 / p95 / p99 / p99.9 | 50th / 95th / 99th / 99.9th percentile latency |
+| RAG | Retrieval-Augmented Generation |
+| ReAct | Reason + Act (tool-using agent loop pattern) |
+| RTT | Round-Trip Time |
+| SLA | Service-Level Agreement |
+| TCP / TLS | Transmission Control Protocol / Transport Layer Security |
+| TPOT | Time Per Output Token |
+| TTFT | Time To First Token |
+
+## 11. Summary
 
 The performance of an agent is a composition of model-call performance,
 CPU orchestration overhead, network round-trips, and storage reads.

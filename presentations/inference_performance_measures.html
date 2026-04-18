@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inference Performance Measures | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Inference Performance Measures</h1>
+  <p class="subtitle">Beyond "tokens per second": TTFT, TPOT, interactivity, goodput, and the tails that actually matter.</p>
+  <div>
+    <span class="pill amber">TTFT</span>
+    <span class="pill green">TPOT</span>
+    <span class="pill purple">interactivity</span>
+    <span class="pill blue">goodput</span>
+    <span class="pill red">tails</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">inf-perf / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>Why one number is never enough</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>The scalar trap</h3>
+      <ul>
+        <li>"Tokens per second" hides batch size, concurrency, input length, and tail behaviour.</li>
+        <li>Two systems with identical peak tok/s can feel radically different to users.</li>
+        <li>Performance is at least <span class="a">two-dimensional</span>: per-user speed × concurrency.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>What we need to separate</h3>
+      <ul>
+        <li>User-facing latency vs operator-facing throughput.</li>
+        <li>Prefill vs decode — different phases, different bottlenecks.</li>
+        <li>Average behaviour vs tails (p50 vs p99 vs p99.9).</li>
+        <li>Idle benchmarks vs loaded production.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">BACKGROUND</span><h2>Two phases, two cost models</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Prefill</h3>
+      <ul>
+        <li>All input tokens processed in a single parallel forward pass.</li>
+        <li><span class="p">Compute-bound</span>; scales with prompt length.</li>
+        <li>4K-token prompt on H100: 50–200 ms depending on model / TP.</li>
+        <li>Target for <span class="a">TTFT</span> optimization.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Decode</h3>
+      <ul>
+        <li>Output tokens generated autoregressively, one at a time.</li>
+        <li><span class="b">Memory-bandwidth-bound</span>; weights reloaded per step.</li>
+        <li>Per-request decode rate is flat in batch size — until arithmetic intensity flips.</li>
+        <li>Target for <span class="a">TPOT / interactivity</span> optimization.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">USER-FACING</span><h2>TTFT: Time to First Token</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>What TTFT measures</h3>
+      <ul>
+        <li>Wall-clock from request submission to first response token on the wire.</li>
+        <li>Includes network ingress, admission queue, tokenization, prefill, first decode, egress framing.</li>
+        <li>The latency users feel <em>before anything happens</em>.</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Typical targets</h3>
+      <ul>
+        <li>Chat / streaming assistant: <span class="a">&lt; 500 ms</span>.</li>
+        <li>IDE autocomplete: <span class="r">&lt; 200 ms</span>.</li>
+        <li>Voice agent (first audio): <span class="r">&lt; 300 ms</span>.</li>
+        <li>p99 TTFT is dominated by queueing, not compute.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">USER-FACING</span><h2>TPOT, ITL, and interactivity</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>TPOT / inter-token latency</h3>
+      <ul>
+        <li><span class="g">TPOT</span> = average time between successive output tokens once streaming starts.</li>
+        <li><span class="g">ITL</span> = same quantity reported per step rather than averaged.</li>
+        <li>25 ms TPOT ≈ 40 tok/s — reads faster than most humans.</li>
+        <li>Rises with batch size — batching interference.</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Interactivity</h3>
+      <ul>
+        <li>Per-user tok/s <em>sustained under production concurrency</em>.</li>
+        <li>100 tok/s at batch=1 but 12 tok/s at batch=32 = poor interactivity.</li>
+        <li>TTFT is the <span class="a">intercept</span>; interactivity is the <span class="a">slope</span>.</li>
+        <li>Keep both low/steep — and hold them as load grows.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">USER-FACING</span><h2>End-to-end latency and jitter</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>End-to-end</h3>
+      <ul>
+        <li>E2E ≈ TTFT + (N − 1) × TPOT for an N-token response.</li>
+        <li>The right metric for non-streaming JSON APIs.</li>
+        <li>The only metric for an agent waiting to parse a tool-call argument.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Stream smoothness</h3>
+      <ul>
+        <li>Two systems, same TPOT: steady 40 ms cadence vs bursts of 8 then 320 ms pause.</li>
+        <li>Measure as <span class="a">std(ITL)</span> or P(ITL &gt; 200 ms) &lt; 1%.</li>
+        <li>Stall rate: fraction of requests with a mid-stream gap past SLA.</li>
+        <li>Preemption and batch re-composition are the usual culprits.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OPERATOR</span><h2>Throughput measures</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>RPS and tokens/sec</h3>
+      <ul>
+        <li>RPS is ambiguous alone — 50/50 request ≠ 100K/2K request.</li>
+        <li><span class="p">Input tokens/sec</span>: prefill throughput (long prompts, RAG).</li>
+        <li><span class="p">Output tokens/sec</span>: decode throughput (long generations, reasoning).</li>
+        <li>Report them <em>separately</em> — different bottlenecks, different fixes.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Goodput</h3>
+      <ul>
+        <li>Raw throughput counts every token, including the ones the user no longer wants.</li>
+        <li><span class="g">Goodput</span> = tokens delivered while the SLA was being met.</li>
+        <li>Bigger batches can double raw throughput and halve goodput.</li>
+        <li>Goodput is the operator metric that aligns with user experience.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OPERATOR</span><h2>Utilization — honest and dishonest</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>nvidia-smi lies</h3>
+      <ul>
+        <li>"GPU utilization" just reports whether <em>any</em> kernel is resident.</li>
+        <li>A decode loop saturating HBM can show 99% GPU util with 5% MFU.</li>
+        <li>It is a liveness signal, not an efficiency one.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Better signals</h3>
+      <ul>
+        <li><span class="b">MFU</span> — achieved / peak FLOPs. Prefill: 40–60%. Decode: 5–15%.</li>
+        <li><span class="b">HBM bandwidth utilization</span> — the right metric for decode. 60–85% in well-tuned stacks.</li>
+        <li>Concurrency distribution — matters as much as latency percentiles.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TAILS</span><h2>Percentiles and why p99.9 matters</h2></div>
+  <table>
+    <thead><tr><th>Percentile</th><th>What it captures</th><th>Who reads it</th></tr></thead>
+    <tbody>
+      <tr><td>p50</td><td>Typical happy path</td><td>Capacity sizing</td></tr>
+      <tr><td>p95</td><td>Bad-day experience</td><td>Most customer SLAs</td></tr>
+      <tr><td>p99</td><td>Near-worst-case</td><td>Tight interactive SLAs, voice agents</td></tr>
+      <tr><td>p99.9</td><td>Tail events that compound</td><td>Multi-step agents</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:1em">
+    <div class="card amber">
+      <h3>Agent tail amplification</h3>
+      <ul>
+        <li>10-step agent, per-step p99 of 2 s → P(any step ≥ p99) ≈ 10%.</li>
+        <li>Tighten <span class="a">p99.9</span>, not p50, if you run agents.</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3>Report context</h3>
+      <ul>
+        <li>"p99 = 800 ms" is meaningless alone.</li>
+        <li>Always cite window, load, and input-length distribution.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">BENCHMARKS</span><h2>MLPerf inference scenarios</h2></div>
+  <table>
+    <thead><tr><th>Scenario</th><th>What's measured</th><th>Real-world analog</th></tr></thead>
+    <tbody>
+      <tr><td>Single-stream</td><td>Latency of one request at a time</td><td>On-device use, floor TTFT/TPOT</td></tr>
+      <tr><td>Multi-stream</td><td>Worst-case latency across fixed streams</td><td>Voice, low-concurrency edge</td></tr>
+      <tr><td>Server</td><td>p99 latency at max sustainable Poisson arrival rate</td><td>Chat APIs, web-scale serving</td></tr>
+      <tr><td>Offline</td><td>Throughput with no latency target</td><td>Batch, embeddings, RLHF rollouts</td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:1em">
+    <div class="card red">
+      <h3>Reading vendor numbers</h3>
+      <ul>
+        <li>"10,000 tok/s MLPerf" without scenario = offline, probably.</li>
+        <li>Server scenario is the one that binds an SLA to capacity.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Emerging interactivity measures</h3>
+      <ul>
+        <li>tok/s/user at 99%-latency-bounded.</li>
+        <li>Explicit multi-axis reporting as benchmarks mature.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 10</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">REFERENCE</span><h2>Summary of measures</h2></div>
+  <table>
+    <thead><tr><th>Measure</th><th>Phase</th><th>Who cares</th><th>Typical target</th></tr></thead>
+    <tbody>
+      <tr><td>TTFT</td><td>Prefill</td><td>User</td><td>&lt; 500 ms chat, &lt; 200 ms autocomplete</td></tr>
+      <tr><td>TPOT / ITL</td><td>Decode</td><td>User</td><td>&lt; 50 ms (≥ 20 tok/s)</td></tr>
+      <tr><td>Interactivity</td><td>Decode under load</td><td>Both</td><td>≥ 20 tok/s/user at target load</td></tr>
+      <tr><td>End-to-end</td><td>Both</td><td>User, agents</td><td>Application-dependent</td></tr>
+      <tr><td>RPS</td><td>System</td><td>Operator</td><td>Max at goodput SLA</td></tr>
+      <tr><td>Goodput</td><td>Both</td><td>Everyone</td><td>≥ 80% of raw throughput</td></tr>
+      <tr><td>MFU / BW util</td><td>Each</td><td>Operator</td><td>40%+ prefill, 60%+ decode BW</td></tr>
+      <tr><td>p50/p95/p99</td><td>Both</td><td>SLA</td><td>Defined by SLA</td></tr>
+      <tr><td>Stream jitter</td><td>Decode</td><td>User</td><td>std(ITL) &lt; TPOT/2</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">inf-perf / 11</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PITFALLS</span><h2>Common mis-measurements</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>What to avoid</h3>
+      <ul>
+        <li>Benchmarking on an idle machine.</li>
+        <li>Using average latency instead of percentiles.</li>
+        <li>Conflating input and output token counts.</li>
+        <li>Reporting TTFT without p99.</li>
+        <li>Quoting single-user tok/s as "interactivity".</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>What to do instead</h3>
+      <ul>
+        <li>Measure at production concurrency.</li>
+        <li>Report p50, p95, p99 — and p99.9 for agents.</li>
+        <li>Separate prefill throughput from decode throughput.</li>
+        <li>Always pair latency with the load level.</li>
+        <li>Report tok/s/user sustained under N concurrent users.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 12</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>From per-call to end-to-end</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>What we've established</h3>
+      <ul>
+        <li>No scalar captures inference performance.</li>
+        <li>User-facing and operator-facing metrics are coupled but not equivalent.</li>
+        <li>Tails matter more than means — especially for agents.</li>
+        <li>Goodput is the metric that aligns everyone.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>What comes next</h3>
+      <ul>
+        <li>Each measure here is a <em>per-call</em> property of the serving layer.</li>
+        <li>An agent composes many such calls with tools, memory, and network in between.</li>
+        <li>See the companion article — <span class="b">Agentic Performance</span> — for how these measures compose and what couples to CPU, network, and storage.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">inf-perf / 13</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

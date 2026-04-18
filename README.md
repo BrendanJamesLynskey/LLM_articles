@@ -28,6 +28,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | CUDA Graphs and Kernel Fusion | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/cuda_graphs_and_kernel_fusion.html) · [MD](articles/cuda_graphs_and_kernel_fusion.md) |
 | Distributed LLM Inference on Systems of Small GPU Chips | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/distributed_llm_inference_report.html) · [MD](articles/distributed_llm_inference_report.md) |
 | Flash Attention | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/flash_attention.html) · [MD](articles/flash_attention.md) |
+| Inference Performance Measures: TTFT, TPOT, Interactivity, Goodput, and the Tails That Matter | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/inference_performance_measures.html) · [MD](articles/inference_performance_measures.md) |
 | Inference Serving Frameworks: From Model to Production Endpoint | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/inference_serving_frameworks.html) · [MD](articles/inference_serving_frameworks.md) |
 | Kv Cache Optimization | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/kv_cache_optimization.html) · [MD](articles/kv_cache_optimization.md) |
 | Memory Hierarchy and Offloading for LLM Inference | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/memory_hierarchy_and_offloading.html) · [MD](articles/memory_hierarchy_and_offloading.md) |
@@ -110,6 +111,7 @@ A collection of technical articles exploring the systems behind modern large lan
 | --- | --- |
 | Agent-to-Agent (A2A) Protocol: An Open Standard for Inter-Agent Communication | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/a2a_protocol.html) · [MD](articles/a2a_protocol.md) |
 | Agentic Architectures for LLMs | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/agentic_architectures.html) · [MD](articles/agentic_architectures.md) |
+| Agentic Performance: End-to-End Measures for Tool-Using LLM Systems | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/agentic_performance.html) · [MD](articles/agentic_performance.md) |
 | Agent Orchestration Frameworks | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/agent_frameworks.html) · [MD](articles/agent_frameworks.md) |
 | Browser and Computer Use Agents | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/browser_and_computer_agents.html) · [MD](articles/browser_and_computer_agents.md) |
 | Code Generation and Software Engineering Agents | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/code_generation_agents.html) · [MD](articles/code_generation_agents.md) |

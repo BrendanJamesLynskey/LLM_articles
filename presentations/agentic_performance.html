@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic Performance | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>Agentic Performance</h1>
+  <p class="subtitle">End-to-end latency for tool-using LLM systems: how per-call measures compose, and why the model is rarely the bottleneck.</p>
+  <div>
+    <span class="pill amber">end-to-end</span>
+    <span class="pill green">tail amplification</span>
+    <span class="pill purple">CPU / net / storage</span>
+    <span class="pill blue">task goodput</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">agent-perf / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>An agent is a latency pipeline</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>The loop</h3>
+      <ul>
+        <li>LLM call → parse → tool invocation → observation → LLM call → …</li>
+        <li>Each step is a round-trip with its own latency budget.</li>
+        <li>Final answer is emitted after N such steps.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>The sum</h3>
+      <p>T<sub>agent</sub> ≈ Σ<sub>steps</sub> ( T<sub>LLM</sub> + T<sub>tool</sub> + T<sub>orch</sub> + T<sub>memory</sub> )</p>
+      <ul>
+        <li>T<sub>LLM</sub> is well-studied and tracked.</li>
+        <li>T<sub>tool</sub>, T<sub>orch</sub>, T<sub>memory</sub> are where most agent time actually lives.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TAILS</span><h2>Tail amplification is the core problem</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Tails compound</h3>
+      <ul>
+        <li>Per-step p99 = 2 s. Agent trajectory = 8 steps.</li>
+        <li>P(any step ≥ p99) = 1 − 0.99<sup>8</sup> ≈ <span class="r">7.7%</span>.</li>
+        <li>About 1 run in 13 hits at least one p99 event.</li>
+        <li>End-to-end p99 ≠ 8 × per-step p99 — it lies between Σp50 and Σp99.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>What to optimize</h3>
+      <ul>
+        <li>Tighten <span class="a">p99.9</span> on per-step latency, not p50.</li>
+        <li>Cutting median TPOT improves the happy path.</li>
+        <li>Cutting p99.9 TTFT is what makes agents feel <em>reliable</em>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">ROUND-TRIPS</span><h2>Round-trip count beats per-hop speed</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Parallel tool calls</h3>
+      <ul>
+        <li>Model emits N independent tool calls; orchestrator fires them concurrently.</li>
+        <li>Supported by OpenAI parallel function calls and Anthropic parallel tool use.</li>
+        <li>Latency saving ≈ (N − 1) × T<sub>tool</sub>.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Speculative tool execution</h3>
+      <ul>
+        <li>Start running the most-likely tool while the model is still emitting the call.</li>
+        <li>If correct, result ready the moment parsing completes.</li>
+        <li>Safe only for idempotent reads.</li>
+        <li>Streaming tool-call arguments unlock the same idea cleanly.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CPU</span><h2>CPU coupling — the hidden budget</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Where the ms go</h3>
+      <ul>
+        <li>Tokenization of a 4K prompt: 10–40 ms.</li>
+        <li>Prompt assembly (system + tools + history + memory).</li>
+        <li>Response parsing (state-machine JSON extraction).</li>
+        <li>Orchestration framework overhead: 5–30 ms per step.</li>
+        <li>Serialization across process boundaries.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Tactics</h3>
+      <ul>
+        <li>Cache tokenized prefixes — system prompt, tool schemas.</li>
+        <li>Pre-compile templates; re-render only what changes.</li>
+        <li>Stream-parse tool calls as soon as each completes.</li>
+        <li>Pin orchestrator to same host as inference endpoint when latency &gt; scalability.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">NETWORK</span><h2>Network coupling — the speed of light floor</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>The physics</h3>
+      <ul>
+        <li>Intra-DC: 0.1–1 ms one-way.</li>
+        <li>Intra-region: 5–20 ms.</li>
+        <li>Inter-continent: 70–150 ms.</li>
+        <li>10-step agent × 1 inter-regional call each = <span class="r">~2 s</span> on network alone.</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3>Defenses</h3>
+      <ul>
+        <li>Co-locate agent with most-called tools and MCP servers.</li>
+        <li>Pool HTTP/2 / gRPC connections.</li>
+        <li><span class="b">Hedged requests</span> — collapse p99 of 2 draws toward p50 of 1.</li>
+        <li>Per-tool deadlines with "tool failed" fallback.</li>
+        <li>Fan out independent calls in parallel.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STORAGE</span><h2>Storage coupling — RAG, memory, KV cache</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Vector DB / RAG</h3>
+      <ul>
+        <li>HNSW top-k: 1–5 ms local, 5–20 ms remote, up to 100 ms cold.</li>
+        <li>Query re-embedding: 20–60 ms GPU, 100s of ms CPU.</li>
+        <li>Cache embeddings; batch when possible.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Prompt / KV cache</h3>
+      <ul>
+        <li>Long static system prompt → huge TTFT win from caching.</li>
+        <li>Requires session pinning across load-balancer replicas.</li>
+        <li>KV offload to CPU / NVMe → decode latency 10–100× worse. Not for interactive agents.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.9em">
+    <div class="card blue">
+      <h3>Agent memory</h3>
+      <ul>
+        <li>Local SQLite: ~1 ms. Remote doc store + vector search: ~50 ms.</li>
+        <li>12 steps × 30 ms memory read = <span class="b">360 ms</span> of pure memory latency per run.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Fixes</h3>
+      <ul>
+        <li>Read memory once per run when stable.</li>
+        <li>Pre-fetch memory in parallel with the LLM call.</li>
+        <li>Keep short-term context in-process.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">METRICS</span><h2>Agent-level interactivity measures</h2></div>
+  <table>
+    <thead><tr><th>Measure</th><th>Definition</th><th>Typical target</th></tr></thead>
+    <tbody>
+      <tr><td>Time to first user-visible output</td><td>Wall-clock to first token rendered to user (not tool)</td><td>&lt; 1 s chat, &lt; 2 s with reasoning</td></tr>
+      <tr><td>Time to final answer</td><td>End-to-end run latency</td><td>&lt; 10 s chat agents</td></tr>
+      <tr><td>Steps to completion</td><td>Number of tool/LLM round-trips</td><td>Minimize — linear in latency</td></tr>
+      <tr><td>Token budget per task</td><td>Total input + output across steps</td><td>Cost proxy</td></tr>
+      <tr><td>Task success rate at deadline</td><td>Success AND within wall-clock bound</td><td>Agent goodput</td></tr>
+      <tr><td>Interactive stall probability</td><td>P(any step exceeds stall threshold)</td><td>&lt; 1% voice, &lt; 5% chat</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer">agent-perf / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">METRIC</span><h2>Task goodput — the honest headline</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Definition</h3>
+      <ul>
+        <li>Successful tasks per unit time per dollar.</li>
+        <li>Or per unit GPU, per unit operator pain.</li>
+        <li>"Successful" means <em>correct</em> AND <em>within deadline</em>.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Why it's the right metric</h3>
+      <ul>
+        <li>Ties model quality + inference perf + tool quality + coupling costs into one number.</li>
+        <li>A brilliant but slow agent has low task goodput.</li>
+        <li>A fast but wrong agent has low task goodput too.</li>
+        <li>Aligns incentives across the whole stack.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">WORKED EXAMPLE</span><h2>An 8-step ReAct agent</h2></div>
+  <table>
+    <thead><tr><th>Component</th><th>p50</th><th>p99</th></tr></thead>
+    <tbody>
+      <tr><td>LLM call (TTFT + 200 decode)</td><td>400 ms</td><td>1.5 s</td></tr>
+      <tr><td>Tool call (HTTP RTT + server)</td><td>60 ms</td><td>400 ms</td></tr>
+      <tr><td>Orchestration CPU</td><td>25 ms</td><td>80 ms</td></tr>
+      <tr><td>Memory read (RAG)</td><td>30 ms</td><td>150 ms</td></tr>
+      <tr><td><strong>Per-step total</strong></td><td><strong>515 ms</strong></td><td><strong>2.13 s</strong></td></tr>
+    </tbody>
+  </table>
+  <div class="cols cols-2" style="margin-top:1em">
+    <div class="card blue">
+      <h3>End-to-end</h3>
+      <ul>
+        <li>E2E p50 ≈ 8 × 515 ms ≈ <span class="b">4.1 s</span>.</li>
+        <li>E2E p99 lies between Σp50 and Σp99 — simulate, don't add.</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Where to spend effort</h3>
+      <ul>
+        <li>LLM dominates p50 → spec decoding / smaller model cuts E2E to ~2.5 s.</li>
+        <li>Tool p99 dominates the tail → co-locate or hedge for reliability.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 10</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PROCESS</span><h2>Critical-path analysis</h2></div>
+  <div class="cols cols-2">
+    <div class="card purple">
+      <h3>Per step, measure</h3>
+      <ul>
+        <li>T<sub>LLM</sub> — TTFT + decode</li>
+        <li>T<sub>CPU</sub> — orchestration, parsing, tokenization</li>
+        <li>T<sub>net</sub> — tool-call network</li>
+        <li>T<sub>storage</sub> — memory / RAG / vector reads</li>
+        <li>T<sub>wait</sub> — blocked on external event</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Then rank and act</h3>
+      <ul>
+        <li>Optimize the dominant term first. Ignore the rest.</li>
+        <li>LangSmith / Langfuse / Arize Phoenix / OTel break this down automatically.</li>
+        <li>The critical path is rarely what you think before measuring.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">agent-perf / 11</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CONCLUSION</span><h2>Six rules for agent performance</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Measurement</h3>
+      <ul>
+        <li>Measure per-step latency broken down by component — not just the model call.</li>
+        <li>Care about p99 and p99.9, not means. Agents roll the dice each step.</li>
+        <li>Report task goodput as the headline — successful tasks per deadline per dollar.</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Architecture</h3>
+      <ul>
+        <li>Collapse round-trips: parallel tools, speculative execution, streaming arguments.</li>
+        <li>Co-locate with most-called tools and most-accessed storage; the speed of light is real.</li>
+        <li>Treat CPU orchestration as a first-class performance surface.</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:.55em;color:#b8b8d0;margin-top:1em">A fast inference engine is necessary but nowhere near sufficient for a fast agent. The coupling points around the model are where most of the latency — and most of the optimization opportunity — actually live.</p>
+  <div class="slide-footer">agent-perf / 12</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

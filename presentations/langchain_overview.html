@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangChain: Chains, Composability, and LCEL | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--cyan:#06b6d4;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.48em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--cyan);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card.cyan{border-left:3px solid var(--cyan)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.54em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.54em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--cyan);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}.c{color:var(--cyan);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}.pill.cyan{color:var(--cyan);border-color:var(--cyan)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.66em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(6,182,212,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(6,182,212,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(6,182,212,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>LangChain</h1>
+  <p class="subtitle">Chains, Composability, and LCEL</p>
+  <div>
+    <span class="pill cyan">LCEL</span>
+    <span class="pill amber">Runnables</span>
+    <span class="pill green">RAG</span>
+    <span class="pill purple">Tools</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">langchain-overview / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">OVERVIEW</span><h2>What LangChain Solves</h2></div>
+  <div class="cols cols-3">
+    <div class="card red">
+      <h3>Wrapper Problem</h3>
+      <ul>
+        <li>Every provider ships a different SDK</li>
+        <li>OpenAI, Anthropic, Gemini, Mistral, Bedrock, xAI, Ollama, vLLM ...</li>
+        <li>Rewriting adapters per team is waste</li>
+        <li><span class="c">Unify under BaseChatModel</span></li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Composition Problem</h3>
+      <ul>
+        <li>Real apps are pipelines, not single calls</li>
+        <li>Retrieve &rarr; rerank &rarr; prompt &rarr; model &rarr; parse</li>
+        <li>LCEL expresses pipelines as Runnables</li>
+        <li>Pipe operator <span class="a">|</span> binds them</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Integration Problem</h3>
+      <ul>
+        <li>~100s of model / vector-store / loader adapters</li>
+        <li>Pre-built so you don't write glue</li>
+        <li>Community packages move fast &mdash; pin versions</li>
+        <li>Swap an integration in one import</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">langchain-overview / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PACKAGES</span><h2>Package Layout</h2></div>
+  <table>
+    <tr><th>Package</th><th>Role</th><th>Stability</th></tr>
+    <tr><td class="mono">langchain-core</td><td>Runnables, messages, prompts, parsers, tools. No integrations.</td><td class="g">High</td></tr>
+    <tr><td class="mono">langchain</td><td>Legacy chain helpers. Some convenience classes still useful.</td><td class="a">Medium</td></tr>
+    <tr><td class="mono">langchain-community</td><td>Long-tail integrations without dedicated packages.</td><td class="r">Churn</td></tr>
+    <tr><td class="mono">langchain-openai / -anthropic / -google-genai / ...</td><td>Provider packages. Pin minors.</td><td class="a">Medium</td></tr>
+    <tr><td class="mono">langchain-chroma / -pinecone / -qdrant / ...</td><td>Vector-store packages.</td><td class="a">Medium</td></tr>
+    <tr><td class="mono">langchain-text-splitters</td><td>Chunkers for docs &amp; code.</td><td class="g">High</td></tr>
+    <tr><td class="mono">langgraph / deepagents / langsmith</td><td>Separate graph, deep-agent, tracing stacks.</td><td class="g">Evolving</td></tr>
+  </table>
+  <div class="slide-footer">langchain-overview / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LCEL</span><h2>The Runnable Protocol</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>Shape</h3>
+<pre><code class="language-python">class Runnable(Generic[Input, Output]):
+    def invoke(self, input, config=None) -> Output: ...
+    def stream(self, input, config=None) -> Iterator[Output]: ...
+    def batch(self, inputs, config=None) -> list[Output]: ...
+    async def ainvoke(...) -> Output: ...
+    async def astream(...) -> AsyncIterator[Output]: ...
+    async def abatch(...) -> list[Output]: ...</code></pre>
+    </div>
+    <div class="card green">
+      <h3>Who implements it</h3>
+      <ul>
+        <li>Chat models (<code>BaseChatModel</code>)</li>
+        <li>Prompts (<code>ChatPromptTemplate</code>)</li>
+        <li>Output parsers (<code>StrOutputParser</code>, <code>JsonOutputParser</code>)</li>
+        <li>Retrievers (<code>BaseRetriever</code>)</li>
+        <li>Tools (<code>BaseTool</code>)</li>
+        <li>Your own functions via <code>RunnableLambda</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">langchain-overview / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LCEL</span><h2>Composition with the Pipe Operator</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Basic chain</h3>
+<pre><code class="language-python">from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a concise writer."),
+    ("human", "Summarise: {paragraph}"),
+])
+model = ChatOpenAI(model="gpt-4o", temperature=0)
+
+chain = prompt | model | StrOutputParser()
+chain.invoke({"paragraph": "LangChain is ..."})</code></pre>
+    </div>
+    <div class="card purple">
+      <h3>Parallel branches &amp; lambdas</h3>
+<pre><code class="language-python">from langchain_core.runnables import RunnableParallel, RunnableLambda
+
+analysis = RunnableParallel(
+    summary   = summary_prompt   | model | StrOutputParser(),
+    sentiment = sentiment_prompt | model | StrOutputParser(),
+    keywords  = keywords_prompt  | model | StrOutputParser(),
+)
+
+pipe = RunnableLambda(fetch_docs) | analysis</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">langchain-overview / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">MODELS</span><h2>Chat Models, Tools, Structured Output</h2></div>
+  <div class="cols cols-2">
+    <div class="card blue">
+      <h3>Tool binding</h3>
+<pre><code class="language-python">from langchain_core.tools import tool
+
+@tool
+def get_weather(city: str) -> str:
+    """Weather for a city."""
+    ...
+
+agent_model = model.bind_tools([get_weather])
+reply = agent_model.invoke("Weather in Porto?")
+reply.tool_calls  # [{"name": "get_weather", ...}]</code></pre>
+    </div>
+    <div class="card green">
+      <h3>Structured output</h3>
+<pre><code class="language-python">from pydantic import BaseModel
+
+class Person(BaseModel):
+    name: str
+    age: int
+
+extractor = model.with_structured_output(Person)
+extractor.invoke("Alice is 32.")
+# -> Person(name="Alice", age=32)</code></pre>
+      <p><span class="c">Provider-native JSON modes</span> where available; retry parser as fallback.</p>
+    </div>
+  </div>
+  <div class="slide-footer">langchain-overview / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">RAG</span><h2>A Minimal RAG Chain</h2></div>
+  <div class="card cyan">
+<pre><code class="language-python">from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+
+retriever = Chroma(
+    collection_name="docs",
+    embedding_function=OpenAIEmbeddings(),
+).as_retriever(search_kwargs={"k": 8})
+
+def format_docs(docs):
+    return "\n\n".join(d.page_content for d in docs)
+
+prompt = ChatPromptTemplate.from_template("""
+Answer from the context. If unsure, say so.
+&lt;context&gt;{context}&lt;/context&gt;
+Question: {question}
+""")
+
+rag = (
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+    | prompt | model | StrOutputParser()
+)
+rag.invoke("What is PagedAttention?")</code></pre>
+  </div>
+  <p style="text-align:center;font-size:.5em;color:var(--muted);margin-top:.8em">Seven lines, production-shaped. Swap the retriever, swap the model &mdash; one import each.</p>
+  <div class="slide-footer">langchain-overview / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PRODUCTION</span><h2>Reliability and Observability</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Retries &amp; fallbacks</h3>
+<pre><code class="language-python">primary = ChatAnthropic(model="claude-sonnet-4-5")
+backup  = ChatOpenAI(model="gpt-4o")
+
+model = (
+    primary
+    .with_retry(stop_after_attempt=3)
+    .with_fallbacks([backup])
+)</code></pre>
+      <p>One-line transformation of an existing Runnable.</p>
+    </div>
+    <div class="card green">
+      <h3>Tracing</h3>
+<pre><code class="language-bash">export LANGSMITH_TRACING=true
+export LANGSMITH_API_KEY=lsv2_...
+export LANGSMITH_PROJECT=my-app</code></pre>
+      <p>Every chain run appears in LangSmith with token counts, latency, and full step inputs/outputs. Attach <code>tags</code> &amp; <code>metadata</code> to every <code>invoke</code> for post-hoc filtering.</p>
+    </div>
+  </div>
+  <div class="slide-footer">langchain-overview / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LEGACY</span><h2>LCEL vs Legacy Chain Classes</h2></div>
+  <table>
+    <tr><th>Legacy class</th><th>LCEL equivalent</th></tr>
+    <tr><td class="mono">LLMChain(prompt, llm)</td><td class="mono">prompt | llm | StrOutputParser()</td></tr>
+    <tr><td class="mono">SimpleSequentialChain([a, b])</td><td class="mono">a | b</td></tr>
+    <tr><td class="mono">RetrievalQA.from_chain_type(...)</td><td class="mono">{ctx: retriever | fmt, q: passthrough} | prompt | model | parser</td></tr>
+    <tr><td class="mono">ConversationalRetrievalChain</td><td class="mono">RunnableWithMessageHistory(rag_chain, ...)</td></tr>
+    <tr><td class="mono">AgentExecutor (any)</td><td><span class="c">LangGraph</span> &mdash; any agent with a loop</td></tr>
+  </table>
+  <p style="text-align:center;color:var(--muted);font-size:.55em;margin-top:.8em">Legacy classes still import. Greenfield code: LCEL everywhere, LangGraph for loops.</p>
+  <div class="slide-footer">langchain-overview / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TAKEAWAYS</span><h2>Production Playbook</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>Do</h3>
+      <ul>
+        <li>Build around <code>langchain-core</code> + dedicated provider packages</li>
+        <li>Use LCEL (<code>|</code>) for every pipeline</li>
+        <li>Use <code>.with_structured_output()</code> for structured data</li>
+        <li>Use LangGraph for any loop</li>
+        <li>Trace with LangSmith from day one</li>
+        <li>Tag &amp; metadata every <code>invoke</code></li>
+        <li>Pin integration versions</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>Don't</h3>
+      <ul>
+        <li>Start with legacy chain classes</li>
+        <li>Hide prompts inside helpers you can't edit</li>
+        <li>Build agent loops in LCEL (use LangGraph)</li>
+        <li>Import from <code>langchain-community</code> when a dedicated package exists</li>
+        <li>Skip tracing until "later"</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">langchain-overview / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

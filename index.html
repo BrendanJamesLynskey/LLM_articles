@@ -188,6 +188,7 @@
   .icon-practical    { background: rgba(96,165,250,.15); color: var(--blue); }
   .icon-security     { background: rgba(251,146,60,.15); color: var(--orange); }
   .icon-agents       { background: rgba(52,211,153,.15); color: #34d399; }
+  .icon-langchain    { background: rgba(6,182,212,.15); color: #06b6d4; }
   .icon-multimodal   { background: rgba(244,114,182,.15); color: #f472b6; }
   .icon-scaling      { background: rgba(250,204,21,.15); color: #facc15; }
 
@@ -239,6 +240,7 @@
   .cat-practical { background: rgba(96,165,250,.15); color: var(--blue); }
   .cat-security { background: rgba(251,146,60,.15); color: var(--orange); }
   .cat-agents { background: rgba(52,211,153,.15); color: #34d399; }
+  .cat-langchain { background: rgba(6,182,212,.15); color: #06b6d4; }
   .cat-multimodal { background: rgba(244,114,182,.15); color: #f472b6; }
   .cat-scaling { background: rgba(250,204,21,.15); color: #facc15; }
 
@@ -335,9 +337,9 @@
       Each article includes an interactive slide presentation.
     </p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">95</div><div class="stat-label">ARTICLES</div></div>
-      <div class="stat"><div class="stat-num">95</div><div class="stat-label">PRESENTATIONS</div></div>
-      <div class="stat"><div class="stat-num">9</div><div class="stat-label">CATEGORIES</div></div>
+      <div class="stat"><div class="stat-num">101</div><div class="stat-label">ARTICLES</div></div>
+      <div class="stat"><div class="stat-num">101</div><div class="stat-label">PRESENTATIONS</div></div>
+      <div class="stat"><div class="stat-num">10</div><div class="stat-label">CATEGORIES</div></div>
     </div>
   </header>
 
@@ -353,6 +355,7 @@
       <button class="filter-pill" data-cat="practical">Practical</button>
       <button class="filter-pill" data-cat="security">Security</button>
       <button class="filter-pill" data-cat="agents">Agents</button>
+      <button class="filter-pill" data-cat="langchain">LangChain</button>
       <button class="filter-pill" data-cat="multimodal">Multimodal</button>
       <button class="filter-pill" data-cat="scaling">Scaling</button>
     </div>
@@ -699,6 +702,41 @@
       <div class="article-card" data-cat="security" data-title="Prompt Injection">
         <div class="article-info"><span class="category cat-security">SECURITY</span><h3>Prompt Injection</h3><p class="desc">Direct and indirect injection, jailbreaks, GCG adversarial suffixes, data exfiltration, defense strategies, and why complete prevention may be impossible.</p></div>
         <div class="article-links"><a href="presentations/prompt_injection.html" class="link-slides">Slides</a><a href="articles/prompt_injection.md" class="link-md">MD</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LANGCHAIN & LANGGRAPH ── -->
+  <div class="category-section" data-section="langchain">
+    <div class="category-header">
+      <span class="cat-icon icon-langchain">LangChain</span>
+      <h2>LangChain &amp; LangGraph</h2>
+      <span class="cat-count">6 articles</span>
+    </div>
+    <div class="articles-grid">
+      <div class="article-card" data-cat="langchain" data-title="LangChain: Chains, Composability, and LCEL">
+        <div class="article-info"><span class="category cat-langchain">LANGCHAIN</span><h3>LangChain: Chains, Composability, and LCEL</h3><p class="desc">Runnable protocol, LCEL pipe operator, chat models, prompt templates, output parsers, retrievers, tools, package layout, and when to use LangChain vs alternatives.</p></div>
+        <div class="article-links"><a href="presentations/langchain_overview.html" class="link-slides">Slides</a><a href="articles/langchain_overview.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="langchain" data-title="LangGraph: Stateful Agent Graphs">
+        <div class="article-info"><span class="category cat-langchain">LANGCHAIN</span><h3>LangGraph: Stateful Agent Graphs</h3><p class="desc">StateGraph, nodes, edges, reducers, checkpointing, threads, human-in-the-loop, time travel, streaming modes, Send/Command, subgraphs, and multi-agent patterns.</p></div>
+        <div class="article-links"><a href="presentations/langgraph_overview.html" class="link-slides">Slides</a><a href="articles/langgraph_overview.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="langchain" data-title="LangGraph Deep Agents">
+        <div class="article-info"><span class="category cat-langchain">LANGCHAIN</span><h3>LangGraph Deep Agents</h3><p class="desc">Planner + sub-agents + virtual filesystem: the architecture behind Claude Code, Deep Research, and Manus, packaged as the deepagents library.</p></div>
+        <div class="article-links"><a href="presentations/langgraph_deep_agents.html" class="link-slides">Slides</a><a href="articles/langgraph_deep_agents.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="langchain" data-title="LangChain and LangGraph SDKs">
+        <div class="article-info"><span class="category cat-langchain">LANGCHAIN</span><h3>LangChain and LangGraph SDKs</h3><p class="desc">Python and TypeScript package layouts, LangGraph Server/Platform, the langgraph CLI, assistants, versioning, and cross-language parity.</p></div>
+        <div class="article-links"><a href="presentations/langchain_langgraph_sdks.html" class="link-slides">Slides</a><a href="articles/langchain_langgraph_sdks.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="langchain" data-title="Python Tutorial: RAG Agent with LangChain and LangGraph">
+        <div class="article-info"><span class="category cat-langchain">LANGCHAIN</span><h3>Python Tutorial: RAG Agent with LangChain + LangGraph</h3><p class="desc">Incremental end-to-end build: LCEL chain → retrieval → tools → LangGraph agent → threads → HITL → streaming → tracing, in ~150 lines.</p></div>
+        <div class="article-links"><a href="presentations/langchain_python_tutorial.html" class="link-slides">Slides</a><a href="articles/langchain_python_tutorial.md" class="link-md">MD</a></div>
+      </div>
+      <div class="article-card" data-cat="langchain" data-title="TypeScript Tutorial: LangChain.js and LangGraph.js">
+        <div class="article-info"><span class="category cat-langchain">LANGCHAIN</span><h3>TypeScript Tutorial: LangChain.js + LangGraph.js</h3><p class="desc">The same RAG agent in TypeScript: Zod schemas, Annotation.Root state, .pipe() composition, streamEvents, Next.js SSE integration.</p></div>
+        <div class="article-links"><a href="presentations/langchain_typescript_tutorial.html" class="link-slides">Slides</a><a href="articles/langchain_typescript_tutorial.md" class="link-md">MD</a></div>
       </div>
     </div>
   </div>

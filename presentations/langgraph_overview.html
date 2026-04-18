@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangGraph: Stateful Agent Graphs | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--cyan:#06b6d4;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.48em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--cyan);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card.cyan{border-left:3px solid var(--cyan)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.54em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.54em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--cyan);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}.c{color:var(--cyan);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}.pill.cyan{color:var(--cyan);border-color:var(--cyan)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.66em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+  pre.ascii{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;font-family:'JetBrains Mono',monospace;font-size:.42em;line-height:1.3;color:#cdd6f4;white-space:pre}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(6,182,212,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(6,182,212,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(6,182,212,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>LangGraph</h1>
+  <p class="subtitle">Stateful Agent Graphs &mdash; durable, streamable, human-in-the-loop</p>
+  <div>
+    <span class="pill cyan">StateGraph</span>
+    <span class="pill amber">checkpoints</span>
+    <span class="pill green">HITL</span>
+    <span class="pill purple">streaming</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">langgraph-overview / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">WHY</span><h2>Why a Graph</h2></div>
+  <div class="cols cols-2">
+    <div class="card red">
+      <h3>Agents are not chains</h3>
+      <ul>
+        <li>Chains are DAGs &mdash; fixed direction, no loops</li>
+        <li>Agents <span class="r">cycle</span>: call model, run tool, feed result back, repeat</li>
+        <li>Branching, retries, approvals, sub-agents</li>
+        <li>A pipeline abstraction can't express any of these cleanly</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>What you get for free</h3>
+      <ul>
+        <li><span class="g">Durable execution</span> &mdash; resume from last checkpoint</li>
+        <li><span class="g">Human-in-the-loop</span> &mdash; pause, approve, resume</li>
+        <li><span class="g">Time travel</span> &mdash; branch from any checkpoint</li>
+        <li><span class="g">Streaming</span> &mdash; tokens &amp; structured events</li>
+        <li><span class="g">Parallel fan-out</span> &mdash; <code>Send</code> API</li>
+        <li><span class="g">Subgraphs</span> &mdash; compose graphs</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">langgraph-overview / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">MODEL</span><h2>Mental Model</h2></div>
+  <pre class="ascii">        ┌─────────────────────────────────────────────────────────────┐
+        │                   STATE (TypedDict / Pydantic)              │
+        │   messages: Annotated[list, add_messages]                   │
+        │   plan: str                                                 │
+        │   current_step: int                                         │
+        └─────────────────────────────────────────────────────────────┘
+                ▲                      ▲                      ▲
+                │                      │                      │
+           ┌────┴────┐            ┌────┴────┐            ┌────┴────┐
+           │ planner │ ──────────▶│  agent  │ ──────────▶│  tools  │
+           └─────────┘            └─────────┘            └─────────┘
+                                        ▲                      │
+                                        └──────────────────────┘
+                                         (results feed back)</pre>
+  <p style="text-align:center;color:var(--muted);font-size:.52em;margin-top:.4em">State is the single source of truth. Nodes update it; edges route between nodes.</p>
+  <div class="slide-footer">langgraph-overview / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STATE</span><h2>State and Reducers</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>Declaration</h3>
+<pre><code class="language-python">from typing import Annotated, TypedDict
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]
+    scratchpad: dict
+    budget_remaining_usd: float</code></pre>
+    </div>
+    <div class="card amber">
+      <h3>Custom reducers</h3>
+<pre><code class="language-python">def merge_counters(old: dict, new: dict) -> dict:
+    return {**old, **{k: old.get(k, 0) + v for k, v in new.items()}}
+
+class State(TypedDict):
+    counters: Annotated[dict, merge_counters]</code></pre>
+      <p>Parallel nodes updating the same field go through the reducer &mdash; fan-out is safe.</p>
+    </div>
+  </div>
+  <div class="slide-footer">langgraph-overview / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">BUILD</span><h2>Minimal ReAct Agent</h2></div>
+  <div class="card cyan">
+<pre><code class="language-python">@tool
+def get_weather(city: str) -> str:
+    """Current weather for a city."""
+    return f"{city}: 18&deg;C, clear"
+
+tools = [get_weather]
+model = ChatOpenAI(model="gpt-4o").bind_tools(tools)
+tools_by_name = {t.name: t for t in tools}
+
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]
+
+def call_model(state): return {"messages": [model.invoke(state["messages"])]}
+
+def run_tools(state):
+    out = []
+    for call in state["messages"][-1].tool_calls:
+        result = tools_by_name[call["name"]].invoke(call["args"])
+        out.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
+    return {"messages": out}
+
+def should_continue(state):
+    return "run_tools" if state["messages"][-1].tool_calls else END
+
+graph = StateGraph(AgentState)
+graph.add_node("agent", call_model)
+graph.add_node("run_tools", run_tools)
+graph.add_edge(START, "agent")
+graph.add_conditional_edges("agent", should_continue, ["run_tools", END])
+graph.add_edge("run_tools", "agent")
+app = graph.compile()</code></pre>
+  </div>
+  <div class="slide-footer">langgraph-overview / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PERSIST</span><h2>Checkpointers &amp; Threads</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Backends</h3>
+      <table style="font-size:.8em">
+        <tr><th>Saver</th><th>Use case</th></tr>
+        <tr><td class="mono">MemorySaver</td><td>Notebooks, tests</td></tr>
+        <tr><td class="mono">SqliteSaver</td><td>Single-machine dev</td></tr>
+        <tr><td class="mono">PostgresSaver</td><td class="c">Production</td></tr>
+        <tr><td>Platform</td><td>Managed by LangGraph Platform</td></tr>
+      </table>
+    </div>
+    <div class="card purple">
+      <h3>Threads</h3>
+<pre><code class="language-python">app = graph.compile(checkpointer=PostgresSaver.from_conn_string(...))
+
+config = {"configurable": {"thread_id": "user-42"}}
+app.invoke({"messages": [HumanMessage("hi")]}, config)
+app.invoke({"messages": [HumanMessage("again")]}, config)
+# ^^ sees full history from the first call</code></pre>
+      <p><span class="c">Cross-thread memory</span> lives in a separate <code>Store</code> (user prefs, facts).</p>
+    </div>
+  </div>
+  <div class="slide-footer">langgraph-overview / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">HITL</span><h2>Human-in-the-Loop</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Static breakpoint</h3>
+<pre><code class="language-python">app = graph.compile(
+    checkpointer=checkpointer,
+    interrupt_before=["run_tools"],
+)
+# First invoke: runs up to run_tools, stops.
+app.invoke(input, config)
+# Approve &amp; resume:
+app.invoke(None, config)</code></pre>
+    </div>
+    <div class="card cyan">
+      <h3>Dynamic interrupt</h3>
+<pre><code class="language-python">from langgraph.types import interrupt, Command
+
+def confirm(state):
+    decision = interrupt({"action": state["proposed"]})
+    return {"approved": decision == "yes"}
+
+# Resume:
+app.invoke(Command(resume="yes"), config)</code></pre>
+      <p>State persists across the pause. Process crashes don't lose approvals-in-flight.</p>
+    </div>
+  </div>
+  <div class="slide-footer">langgraph-overview / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STREAM</span><h2>Streaming Modes</h2></div>
+  <table>
+    <tr><th>Mode</th><th>Emits</th><th>Typical use</th></tr>
+    <tr><td class="mono">values</td><td>Full state after each node</td><td>State-based UIs</td></tr>
+    <tr><td class="mono">updates</td><td>Per-node state <em>update</em></td><td>Default</td></tr>
+    <tr><td class="mono">messages</td><td>Token-level LLM chunks</td><td>Chat token streaming</td></tr>
+    <tr><td class="mono">custom</td><td>Events you write yourself</td><td>Progress / telemetry</td></tr>
+    <tr><td class="mono">debug</td><td>Everything</td><td>Developer tools</td></tr>
+    <tr><td class="mono">astream_events</td><td>Structured events (<code>on_llm_stream</code>, <code>on_tool_end</code>...)</td><td class="c">Production UIs</td></tr>
+  </table>
+  <pre style="margin-top:.8em"><code class="language-python">for mode, chunk in app.stream(input, config, stream_mode=["messages","updates"]):
+    ...</code></pre>
+  <div class="slide-footer">langgraph-overview / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">COMPOSE</span><h2>Subgraphs, Send, Command</h2></div>
+  <div class="cols cols-3">
+    <div class="card purple">
+      <h3>Subgraphs</h3>
+<pre><code class="language-python">research_app = research_graph.compile()
+
+parent = StateGraph(ParentState)
+parent.add_node("research", research_app)
+parent.add_node("writer", writer_node)
+parent.add_edge("research", "writer")</code></pre>
+      <p>Compiled graphs are Runnables; drop them in as nodes.</p>
+    </div>
+    <div class="card blue">
+      <h3>Send (fan-out)</h3>
+<pre><code class="language-python">from langgraph.types import Send
+
+def fan_out(state):
+    return [Send("research", {"query": q})
+            for q in state["subquestions"]]
+
+graph.add_conditional_edges("planner", fan_out, ["research"])</code></pre>
+    </div>
+    <div class="card green">
+      <h3>Command (state + route)</h3>
+<pre><code class="language-python">from langgraph.types import Command
+
+def supervisor(state):
+    return Command(
+        update={"handoff_reason": "needs_coding"},
+        goto="coder",
+    )</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">langgraph-overview / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">DEPLOY</span><h2>Deployment Options &amp; Conclusion</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>Three paths</h3>
+      <ul>
+        <li><span class="c">Embedded</span> &mdash; <code>app.invoke</code> inside FastAPI / Next.js / worker</li>
+        <li><span class="c">LangGraph Platform</span> &mdash; managed API, threads, HITL, streaming</li>
+        <li><span class="c">Self-hosted LangGraph Server</span> &mdash; same binary on your K8s</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>When to use LangGraph</h3>
+      <ul>
+        <li>Agent has a loop</li>
+        <li>Needs to pause for humans</li>
+        <li>Needs to survive restarts</li>
+        <li>Needs to branch</li>
+        <li>Needs multi-agent composition</li>
+      </ul>
+      <p><span class="a">Overkill for:</span> single-turn extraction, plain Q&amp;A RAG &mdash; LCEL is enough.</p>
+    </div>
+  </div>
+  <div class="slide-footer">langgraph-overview / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

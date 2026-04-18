@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangChain &amp; LangGraph SDKs | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--cyan:#06b6d4;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.46em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--cyan);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card.cyan{border-left:3px solid var(--cyan)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.52em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.52em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.52em}
+  .reveal table th{background:var(--bg3);color:var(--cyan);font-weight:600;padding:.4em .6em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.35em .6em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}.c{color:var(--cyan);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}.pill.cyan{color:var(--cyan);border-color:var(--cyan)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.66em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(6,182,212,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(6,182,212,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(6,182,212,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT</p>
+  <h1>LangChain &amp; LangGraph SDKs</h1>
+  <p class="subtitle">Python, TypeScript, the LangGraph Platform, and how the pieces fit together</p>
+  <div>
+    <span class="pill cyan">Python</span>
+    <span class="pill amber">TypeScript</span>
+    <span class="pill green">LangGraph Server</span>
+    <span class="pill purple">LangSmith</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">sdks / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PYTHON</span><h2>Python Package Map</h2></div>
+  <table>
+    <tr><th>Package</th><th>Role</th></tr>
+    <tr><td class="mono">langchain-core</td><td>Runnables, messages, prompts, tools, parsers. <span class="c">Stable core</span>.</td></tr>
+    <tr><td class="mono">langchain</td><td>Legacy chain helpers; some convenience retrievers.</td></tr>
+    <tr><td class="mono">langchain-community</td><td>Long-tail integrations without dedicated packages.</td></tr>
+    <tr><td class="mono">langchain-openai / -anthropic / -google-genai / -aws / -mistralai / -xai / -groq / -fireworks / -cohere / -ollama</td><td>Provider packages. Pin minors.</td></tr>
+    <tr><td class="mono">langchain-chroma / -pinecone / -qdrant / -weaviate / -milvus / -postgres / -mongodb / -redis / -elasticsearch</td><td>Vector-store packages.</td></tr>
+    <tr><td class="mono">langchain-text-splitters</td><td>Chunkers.</td></tr>
+    <tr><td class="mono">langgraph, langgraph-checkpoint-*, langgraph-sdk, langgraph-cli</td><td>Graph library + platform client + CLI.</td></tr>
+    <tr><td class="mono">deepagents, langmem</td><td>Deep Agents preset; long-term memory.</td></tr>
+    <tr><td class="mono">langsmith</td><td>Tracing / evaluation client.</td></tr>
+  </table>
+  <div class="slide-footer">sdks / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TS</span><h2>TypeScript Package Map</h2></div>
+  <table>
+    <tr><th>Package</th><th>Role</th></tr>
+    <tr><td class="mono">@langchain/core</td><td>Runnables, messages, prompts, tools, parsers.</td></tr>
+    <tr><td class="mono">@langchain/community</td><td>Long-tail integrations.</td></tr>
+    <tr><td class="mono">@langchain/openai / /anthropic / /google-genai / /aws / /mistralai / /cohere / /groq / /ollama</td><td>Provider packages.</td></tr>
+    <tr><td class="mono">@langchain/pinecone / /qdrant / /weaviate / /mongodb / /redis / /postgres</td><td>Vector-store packages.</td></tr>
+    <tr><td class="mono">@langchain/textsplitters</td><td>Chunkers.</td></tr>
+    <tr><td class="mono">@langchain/langgraph, /langgraph-checkpoint-*, /langgraph-sdk</td><td>Graph library + checkpointers + client.</td></tr>
+    <tr><td class="mono">langsmith</td><td>Tracing / evaluation (same package name on npm).</td></tr>
+  </table>
+  <p style="color:var(--muted);font-size:.52em;text-align:center;margin-top:.5em">TS parity with Python is high; TS typically trails 2-6 weeks on new features. Deep Agents preset is Python-only today.</p>
+  <div class="slide-footer">sdks / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PARITY</span><h2>Python vs TypeScript &mdash; Side by Side</h2></div>
+  <table>
+    <tr><th>Concept</th><th>Python</th><th>TypeScript</th></tr>
+    <tr><td>State declaration</td><td class="mono">TypedDict + Annotated</td><td class="mono">Annotation.Root({...})</td></tr>
+    <tr><td>Schema validation</td><td class="mono">Pydantic</td><td class="mono">Zod</td></tr>
+    <tr><td>Compose Runnables</td><td class="mono">a | b</td><td class="mono">a.pipe(b)</td></tr>
+    <tr><td>Tool definition</td><td class="mono">@tool decorator</td><td class="mono">tool(fn, {name, description, schema})</td></tr>
+    <tr><td>Stream</td><td class="mono">async for c in app.astream(...)</td><td class="mono">for await (const c of app.stream(...))</td></tr>
+    <tr><td>Structured events</td><td class="mono">app.astream_events(...)</td><td class="mono">app.streamEvents(...)</td></tr>
+    <tr><td>Interrupt / resume</td><td class="mono">interrupt(); Command(resume=...)</td><td class="mono">interrupt(); new Command({resume:...})</td></tr>
+    <tr><td>Prebuilt ReAct</td><td class="mono">create_react_agent(...)</td><td class="mono">createReactAgent(...)</td></tr>
+  </table>
+  <div class="slide-footer">sdks / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">LANGGRAPH</span><h2>LangGraph Server &amp; Platform</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>LangGraph Platform (hosted)</h3>
+      <ul>
+        <li>Push a graph &rarr; managed HTTPS API</li>
+        <li>Managed Postgres checkpointer + store</li>
+        <li>Thread + run APIs, SSE streaming</li>
+        <li>HITL endpoints</li>
+        <li>LangSmith tracing pre-wired</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>LangGraph Server (self-host)</h3>
+      <ul>
+        <li>Same binary as the platform</li>
+        <li>Same REST + SSE API</li>
+        <li>Bring your own Postgres</li>
+        <li>Run on K8s / ECS / Cloud Run / VM</li>
+        <li>Built with <code>langgraph build</code></li>
+      </ul>
+    </div>
+  </div>
+  <pre style="margin-top:.8em"><code class="language-bash"># Local dev with Studio UI + hot reload
+langgraph dev
+
+# Build production Docker image
+langgraph build -t my-agent
+
+# Deploy (platform or self-host)</code></pre>
+  <div class="slide-footer">sdks / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SERVER API</span><h2>LangGraph Server Endpoints</h2></div>
+  <table>
+    <tr><th>Endpoint</th><th>Purpose</th></tr>
+    <tr><td class="mono">POST /threads</td><td>Create a thread</td></tr>
+    <tr><td class="mono">GET /threads/{id}/state</td><td>Current thread state</td></tr>
+    <tr><td class="mono">POST /threads/{id}/runs</td><td>Start a run (optionally streaming)</td></tr>
+    <tr><td class="mono">POST /threads/{id}/runs/stream</td><td>SSE stream of events</td></tr>
+    <tr><td class="mono">POST /threads/{id}/runs/wait</td><td>Blocking wait for completion</td></tr>
+    <tr><td class="mono">POST /threads/{id}/history</td><td>Full checkpoint history</td></tr>
+    <tr><td class="mono">POST /runs / /runs/stream</td><td>Stateless runs (no thread)</td></tr>
+    <tr><td class="mono">GET/POST /assistants</td><td>Named, versioned graph configurations</td></tr>
+    <tr><td class="mono">GET/POST /store/items</td><td>Cross-thread (long-term) memory</td></tr>
+  </table>
+  <p style="color:var(--muted);font-size:.52em;text-align:center;margin-top:.6em">Client SDKs (<code>langgraph-sdk</code> Python / <code>@langchain/langgraph-sdk</code> TS) wrap these endpoints. <span class="c">Only needed in client apps</span> &mdash; graphs don't need them to call themselves.</p>
+  <div class="slide-footer">sdks / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">CLI</span><h2>LangGraph CLI Flow</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>langgraph.json manifest</h3>
+<pre><code class="language-json">{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./src/my_agent/graph.py:graph",
+    "research": "./src/my_agent/research.py:research_graph"
+  },
+  "env": ".env"
+}</code></pre>
+    </div>
+    <div class="card green">
+      <h3>Dev loop</h3>
+      <ol>
+        <li>Write your graph in Python/TS</li>
+        <li>Declare it in <code>langgraph.json</code></li>
+        <li><code>langgraph dev</code> &mdash; local server + Studio</li>
+        <li>Iterate with hot reload</li>
+        <li><code>langgraph build -t my-agent</code> &mdash; Docker</li>
+        <li>Deploy: managed platform <span class="c">or</span> your K8s</li>
+      </ol>
+    </div>
+  </div>
+  <div class="slide-footer">sdks / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PROFILES</span><h2>What to Install</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>RAG / chain</h3>
+<pre><code>langchain-core
+langchain-openai
+langchain-pinecone
+langchain-text-splitters
+langsmith</code></pre>
+    </div>
+    <div class="card green">
+      <h3>Agent with loop</h3>
+<pre><code>langchain-core
+langchain-anthropic
+langgraph
+langgraph-checkpoint-postgres
+langsmith</code></pre>
+    </div>
+    <div class="card purple">
+      <h3>Deep Agent</h3>
+<pre><code>deepagents
+langchain-anthropic
+langchain-tavily
+langsmith</code></pre>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.8em">
+    <div class="card cyan">
+      <h3>TS client of a deployed graph</h3>
+<pre><code>@langchain/langgraph-sdk
+langsmith</code></pre>
+    </div>
+    <div class="card blue">
+      <h3>Env vars</h3>
+<pre><code>LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=...
+LANGSMITH_PROJECT=...
+ANTHROPIC_API_KEY=...
+LANGGRAPH_API_URL=...</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">sdks / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">VERSIONING</span><h2>Stability &amp; Pinning</h2></div>
+  <div class="cols cols-2">
+    <div class="card green">
+      <h3>Core stability</h3>
+      <ul>
+        <li><code>langchain-core</code>, <code>langgraph</code>: <span class="g">conservatively versioned</span>, rare breaking changes</li>
+        <li>Integration packages: <span class="a">move fast</span> &mdash; provider SDKs change underneath</li>
+        <li>Pin minors in prod; let core float within a minor</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>pyproject.toml example</h3>
+<pre><code>[project]
+dependencies = [
+  "langchain-core&gt;=0.3,&lt;0.4",
+  "langchain-anthropic&gt;=0.3,&lt;0.4",
+  "langgraph&gt;=0.2,&lt;0.3",
+  "langgraph-checkpoint-postgres&gt;=2.0,&lt;3.0",
+  "langsmith&gt;=0.2,&lt;0.3",
+]</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">sdks / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TAKEAWAYS</span><h2>Summary</h2></div>
+  <div class="card cyan">
+    <h3>Discipline</h3>
+    <ol>
+      <li>Smallest set of packages that meets your needs &mdash; core + one provider + one vector store + LangSmith handles most apps</li>
+      <li>Add LangGraph when the agent grows a loop</li>
+      <li>Add <code>deepagents</code> when it grows a long horizon</li>
+      <li>Add <code>langgraph-sdk</code> only in client apps that consume a deployed server</li>
+      <li>Pin integration packages; let <code>-core</code> float within a minor</li>
+    </ol>
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:.55em;margin-top:.8em">Python leads ecosystem breadth &amp; presets. TS leads web/edge deployment. Choose the language your stack already lives in.</p>
+  <div class="slide-footer">sdks / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

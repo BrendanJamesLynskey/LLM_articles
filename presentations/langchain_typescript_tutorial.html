@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeScript Tutorial: LangChain.js + LangGraph.js | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--cyan:#06b6d4;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--cyan);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card.cyan{border-left:3px solid var(--cyan)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.52em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.52em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.54em}
+  .reveal table th{background:var(--bg3);color:var(--cyan);font-weight:600;padding:.4em .6em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.35em .6em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}.c{color:var(--cyan);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}.pill.cyan{color:var(--cyan);border-color:var(--cyan)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.66em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(6,182,212,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(6,182,212,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(6,182,212,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT &mdash; TUTORIAL</p>
+  <h1>TypeScript Tutorial</h1>
+  <p class="subtitle">LangChain.js + LangGraph.js &mdash; the same RAG agent, Node-native</p>
+  <div>
+    <span class="pill cyan">TS 5.x</span>
+    <span class="pill amber">Zod</span>
+    <span class="pill green">ESM</span>
+    <span class="pill purple">LangGraph.js</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">ts-tutorial / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SETUP</span><h2>Environment</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Install</h3>
+<pre><code class="language-bash">npm init -y
+npm install typescript tsx @types/node -D
+npm install @langchain/core
+npm install @langchain/anthropic @langchain/openai
+npm install @langchain/community chromadb
+npm install @langchain/langgraph \
+  @langchain/langgraph-checkpoint-sqlite
+npm install @langchain/tavily
+npm install langsmith zod dotenv</code></pre>
+    </div>
+    <div class="card green">
+      <h3>package.json + tsconfig</h3>
+<pre><code class="language-json">{
+  "type": "module",
+  "scripts": {
+    "dev": "tsx --env-file=.env",
+    "build": "tsc"
+  }
+}</code></pre>
+<pre><code class="language-bash"># tsconfig.json: target ES2022,
+# module NodeNext, moduleResolution NodeNext,
+# strict true, esModuleInterop true</code></pre>
+      <p>Use <code>.js</code> in relative imports from <code>.ts</code> files (TS ESM convention).</p>
+    </div>
+  </div>
+  <div class="slide-footer">ts-tutorial / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 1</span><h2>A Plain Chain</h2></div>
+  <div class="card cyan">
+<pre><code class="language-typescript">import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+
+const prompt = ChatPromptTemplate.fromMessages([
+  ["system", "You are a precise technical writer. Answer in under three sentences."],
+  ["human", "{question}"],
+]);
+const model = new ChatAnthropic({ model: "claude-sonnet-4-5", temperature: 0 });
+const chain = prompt.pipe(model).pipe(new StringOutputParser());
+
+console.log(await chain.invoke({ question: "What is PagedAttention?" }));</code></pre>
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:.52em;margin-top:.6em"><code>.pipe()</code> is the TS equivalent of Python's <code>|</code> &mdash; JS can't overload operators.</p>
+  <div class="slide-footer">ts-tutorial / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 2-3</span><h2>RAG + Tools</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>RAG</h3>
+<pre><code class="language-typescript">import { RunnableSequence, RunnablePassthrough } from "@langchain/core/runnables";
+
+const retriever = store.asRetriever({ k: 4 });
+const formatDocs = (docs) =&gt; docs.map(d =&gt; `[${d.metadata.source}]\n${d.pageContent}`).join("\n\n");
+
+const rag = RunnableSequence.from([
+  {
+    context: retriever.pipe(formatDocs),
+    question: new RunnablePassthrough(),
+  },
+  ragPrompt,
+  model,
+  new StringOutputParser(),
+]);</code></pre>
+    </div>
+    <div class="card green">
+      <h3>Tool with Zod</h3>
+<pre><code class="language-typescript">import { tool } from "@langchain/core/tools";
+import { z } from "zod";
+
+export const searchCorpus = tool(
+  async ({ query }: { query: string }) =&gt; {
+    const docs = await store.similaritySearch(query, 4);
+    return docs.map(d =&gt; `[${d.metadata.source}]\n${d.pageContent}`).join("\n\n");
+  },
+  {
+    name: "search_corpus",
+    description: "Search the local knowledge corpus.",
+    schema: z.object({ query: z.string() }),
+  },
+);</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">ts-tutorial / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 4</span><h2>LangGraph Agent</h2></div>
+  <div class="card cyan">
+<pre><code class="language-typescript">import { StateGraph, Annotation, END, START, messagesStateReducer } from "@langchain/langgraph";
+import { SystemMessage, ToolMessage, type BaseMessage } from "@langchain/core/messages";
+
+const SYSTEM = new SystemMessage("Prefer search_corpus; use search_web only if the corpus is insufficient. ...");
+const toolsByName = Object.fromEntries(TOOLS.map(t =&gt; [t.name, t]));
+const model = new ChatAnthropic({ model: "claude-sonnet-4-5", temperature: 0 }).bindTools(TOOLS);
+
+const State = Annotation.Root({
+  messages: Annotation&lt;BaseMessage[]&gt;({ reducer: messagesStateReducer, default: () =&gt; [] }),
+});
+
+async function callModel(state: typeof State.State) {
+  return { messages: [await model.invoke([SYSTEM, ...state.messages])] };
+}
+async function runTools(state: typeof State.State) {
+  const last = state.messages.at(-1) as any;
+  const out: ToolMessage[] = [];
+  for (const c of last.tool_calls ?? []) {
+    try {
+      const r = await toolsByName[c.name].invoke(c.args);
+      out.push(new ToolMessage({ content: String(r), tool_call_id: c.id }));
+    } catch (e) { out.push(new ToolMessage({ content: `ERROR: ${e}`, tool_call_id: c.id })); }
+  }
+  return { messages: out };
+}
+function route(state: typeof State.State) {
+  return (state.messages.at(-1) as any).tool_calls?.length ? "tools" : END;
+}
+
+export const graph = new StateGraph(State)
+  .addNode("agent", callModel).addNode("tools", runTools)
+  .addEdge(START, "agent")
+  .addConditionalEdges("agent", route, ["tools", END])
+  .addEdge("tools", "agent");
+export const app = graph.compile();</code></pre>
+  </div>
+  <div class="slide-footer">ts-tutorial / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 5</span><h2>Persistence + Multi-Turn</h2></div>
+  <div class="card cyan">
+<pre><code class="language-typescript">import { SqliteSaver } from "@langchain/langgraph-checkpoint-sqlite";
+
+const checkpointer = SqliteSaver.fromConnString("agent.sqlite");
+export const app = graph.compile({ checkpointer });
+
+const config = { configurable: { thread_id: "user-42" } };
+
+await app.invoke(
+  { messages: [new HumanMessage("What is FlashAttention?")] },
+  config,
+);
+await app.invoke(
+  { messages: [new HumanMessage("How does it compare to PagedAttention?")] },
+  config,
+);
+
+const state = await app.getState(config);
+console.log(state.values.messages.length, "messages so far");</code></pre>
+  </div>
+  <div class="slide-footer">ts-tutorial / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 6</span><h2>Human-in-the-Loop</h2></div>
+  <div class="card cyan">
+<pre><code class="language-typescript">import { interrupt, Command } from "@langchain/langgraph";
+
+const DESTRUCTIVE = new Set(["delete_document"]);
+
+async function approveDestructive(state: typeof State.State) {
+  const last = state.messages.at(-1) as any;
+  const destructive = (last.tool_calls ?? []).filter((c: any) =&gt; DESTRUCTIVE.has(c.name));
+  if (destructive.length === 0) return {};
+  const decision = interrupt({ prompt: "Approve destructive calls?", calls: destructive }) as string;
+  if (decision !== "approve") {
+    return { messages: destructive.map((c: any) =&gt;
+      new ToolMessage({ content: "User refused.", tool_call_id: c.id })) };
+  }
+  return {};
+}
+
+// Resume after approval:
+await app.invoke(new Command({ resume: "approve" }), config);</code></pre>
+  </div>
+  <p style="color:var(--muted);font-size:.52em;text-align:center">Mirror of the Python HITL pattern &mdash; identical semantics, idiomatic TS.</p>
+  <div class="slide-footer">ts-tutorial / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 7</span><h2>Streaming in Next.js</h2></div>
+  <div class="card cyan">
+<pre><code class="language-typescript">// app/api/chat/route.ts
+import { HumanMessage } from "@langchain/core/messages";
+import { app } from "@/server/hitlAgent";
+
+export async function POST(req: Request) {
+  const { thread_id, messages } = await req.json();
+  const config = { configurable: { thread_id } };
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      for await (const [tok] of app.stream(
+        { messages: messages.map((m: any) =&gt; new HumanMessage(m.content)) },
+        { ...config, streamMode: "messages" },
+      )) {
+        controller.enqueue(encoder.encode(
+          `data: ${JSON.stringify({ content: tok.content })}\n\n`));
+      }
+      controller.close();
+    },
+  });
+  return new Response(stream, { headers: { "Content-Type": "text/event-stream" } });
+}</code></pre>
+  </div>
+  <div class="slide-footer">ts-tutorial / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PARITY</span><h2>Python &harr; TypeScript Cheat Sheet</h2></div>
+  <table>
+    <tr><th>Concept</th><th>Python</th><th>TypeScript</th></tr>
+    <tr><td>Compose</td><td class="mono">a | b</td><td class="mono">a.pipe(b)</td></tr>
+    <tr><td>State</td><td class="mono">TypedDict + Annotated</td><td class="mono">Annotation.Root({...})</td></tr>
+    <tr><td>Tool</td><td class="mono">@tool</td><td class="mono">tool(fn, {schema: z...})</td></tr>
+    <tr><td>Schema</td><td class="mono">Pydantic</td><td class="mono">Zod</td></tr>
+    <tr><td>Structured output</td><td class="mono">.with_structured_output(Model)</td><td class="mono">.withStructuredOutput(zodSchema)</td></tr>
+    <tr><td>Bind tools</td><td class="mono">.bind_tools(tools)</td><td class="mono">.bindTools(tools)</td></tr>
+    <tr><td>Stream</td><td class="mono">async for c in app.astream(...)</td><td class="mono">for await (const c of app.stream(...))</td></tr>
+    <tr><td>Events</td><td class="mono">app.astream_events(...)</td><td class="mono">app.streamEvents(...)</td></tr>
+    <tr><td>Interrupt</td><td class="mono">interrupt(payload)</td><td class="mono">interrupt(payload)</td></tr>
+    <tr><td>Resume</td><td class="mono">Command(resume=...)</td><td class="mono">new Command({resume:...})</td></tr>
+    <tr><td>Checkpoint</td><td class="mono">SqliteSaver.from_conn_string(...)</td><td class="mono">SqliteSaver.fromConnString(...)</td></tr>
+  </table>
+  <div class="slide-footer">ts-tutorial / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">TAKEAWAYS</span><h2>Choose Your Language</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>Pick TypeScript when</h3>
+      <ul>
+        <li>Your backend is already Node / TS</li>
+        <li>You're deploying to edge runtimes (Cloudflare Workers, Vercel Edge, Deno Deploy)</li>
+        <li>You want one codebase shared with a Next/SvelteKit/Remix frontend</li>
+        <li>You prefer Zod to Pydantic</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Pick Python when</h3>
+      <ul>
+        <li>Your stack is Python already</li>
+        <li>You want Deep Agents preset (<code>deepagents</code> is Python-only today)</li>
+        <li>You want early access to new LangGraph features (~2-6 weeks ahead of TS)</li>
+        <li>Data/ML ecosystem integrations matter</li>
+      </ul>
+    </div>
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:.55em;margin-top:1em">Neither is wrong. The two SDKs are 95% interchangeable at the mental-model level &mdash; migrating either way is mechanical.</p>
+  <div class="slide-footer">ts-tutorial / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

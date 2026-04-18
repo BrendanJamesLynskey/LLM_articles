@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Tutorial: RAG Agent with LangChain + LangGraph | Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--cyan:#06b6d4;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
+  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
+  .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
+  .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
+  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
+  .reveal pre code{font-size:.46em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
+  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--cyan);padding:.15em .5em;border-radius:3px}
+  .slide-hdr h2{margin:0;font-size:1.0em}
+  .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
+  .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
+  .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
+  .card.cyan{border-left:3px solid var(--cyan)}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.52em;margin:0;color:#b8b8d0}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.52em;color:#b8b8d0;margin-bottom:.1em}
+  .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
+  .reveal table th{background:var(--bg3);color:var(--cyan);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
+  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}.c{color:var(--cyan);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
+  .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
+  .pill.red{color:var(--red);border-color:var(--red)}.pill.cyan{color:var(--cyan);border-color:var(--cyan)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .title-slide h1{font-size:2.0em}
+  .title-slide .subtitle{font-size:.66em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
+
+  .reveal .slides{overflow:visible !important}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(6,182,212,0.25) transparent}
+  .reveal .slides>section::-webkit-scrollbar{width:5px}
+  .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(6,182,212,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(6,182,212,0.5)}
+  .reveal{font-size:28px}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="title-slide">
+  <p class="meta" style="margin-bottom:.3em">TECHNICAL REPORT &mdash; TUTORIAL</p>
+  <h1>Python Tutorial</h1>
+  <p class="subtitle">Building a RAG Agent with LangChain + LangGraph &mdash; from LCEL to HITL in 150 lines</p>
+  <div>
+    <span class="pill cyan">LCEL</span>
+    <span class="pill amber">LangGraph</span>
+    <span class="pill green">RAG</span>
+    <span class="pill purple">HITL</span>
+  </div>
+  <p class="meta" style="margin-top:1.5em">April 2026</p>
+  <div class="slide-footer">py-tutorial / 01</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">SETUP</span><h2>Environment</h2></div>
+  <div class="cols cols-2">
+    <div class="card amber">
+      <h3>Install</h3>
+<pre><code class="language-bash">python -m venv .venv &amp;&amp; source .venv/bin/activate
+
+pip install \
+  langchain-core \
+  langchain-anthropic langchain-openai \
+  langchain-chroma langchain-text-splitters \
+  langchain-tavily \
+  langgraph langgraph-checkpoint-sqlite \
+  langsmith python-dotenv</code></pre>
+    </div>
+    <div class="card green">
+      <h3>.env</h3>
+<pre><code>ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+TAVILY_API_KEY=tvly-...
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=lsv2_...
+LANGSMITH_PROJECT=rag-agent-tutorial</code></pre>
+      <p>Put 3-4 <code>.txt</code> files in <code>docs/</code>.</p>
+    </div>
+  </div>
+  <div class="slide-footer">py-tutorial / 02</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 1</span><h2>A Plain Chain</h2></div>
+  <div class="card cyan">
+<pre><code class="language-python">from langchain_anthropic import ChatAnthropic
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a precise technical writer. Answer in under three sentences."),
+    ("human", "{question}"),
+])
+model  = ChatAnthropic(model="claude-sonnet-4-5", temperature=0)
+
+chain = prompt | model | StrOutputParser()
+
+print(chain.invoke({"question": "What is PagedAttention?"}))</code></pre>
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:.52em;margin-top:.6em">Pure LCEL. Three Runnables, one pipe.</p>
+  <div class="slide-footer">py-tutorial / 03</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 2</span><h2>Add Retrieval</h2></div>
+  <div class="card cyan">
+<pre><code class="language-python">from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.runnables import RunnablePassthrough
+
+store = Chroma(persist_directory="./chroma",
+               embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"))
+retriever = store.as_retriever(search_kwargs={"k": 4})
+
+def format_docs(docs):
+    return "\n\n---\n\n".join(f"[{d.metadata['source']}]\n{d.page_content}" for d in docs)
+
+rag_prompt = ChatPromptTemplate.from_template("""
+Answer from the context. Cite sources as [filename].
+&lt;context&gt;{context}&lt;/context&gt;
+Question: {question}
+""")
+
+rag = (
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+    | rag_prompt
+    | model
+    | StrOutputParser()
+)</code></pre>
+  </div>
+  <p style="color:var(--muted);font-size:.52em;text-align:center">Parallel <code>{context, question}</code> + sequential prompt &rarr; model &rarr; parser.</p>
+  <div class="slide-footer">py-tutorial / 04</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 3</span><h2>Add Tools</h2></div>
+  <div class="card cyan">
+<pre><code class="language-python">from langchain_core.tools import tool
+
+@tool
+def search_corpus(query: str) -&gt; str:
+    """Search the local knowledge corpus."""
+    docs = _store.similarity_search(query, k=4)
+    return "\n\n---\n\n".join(f"[{d.metadata['source']}]\n{d.page_content}" for d in docs)
+
+@tool
+def search_web(query: str) -&gt; str:
+    """Search the web. Use only when the corpus is insufficient."""
+    return "\n\n".join(f"[{h['url']}]\n{h['content']}" for h in _tavily.invoke(query))
+
+@tool
+def delete_document(source: str) -&gt; str:
+    """Permanently delete a document. Irreversible &mdash; require human approval."""
+    return f"Deleted {source}."</code></pre>
+  </div>
+  <p style="color:var(--muted);font-size:.52em;text-align:center">Destructive tool deliberately kept &mdash; drives the HITL step later.</p>
+  <div class="slide-footer">py-tutorial / 05</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 4</span><h2>LangGraph Agent</h2></div>
+  <div class="card cyan">
+<pre><code class="language-python">from typing import Annotated, TypedDict
+from langchain_core.messages import SystemMessage, ToolMessage
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+
+TOOLS = [search_corpus, search_web, delete_document]
+tools_by_name = {t.name: t for t in TOOLS}
+SYSTEM = SystemMessage(content="Prefer search_corpus; use search_web only when corpus is insufficient. ...")
+model = ChatAnthropic(model="claude-sonnet-4-5", temperature=0).bind_tools(TOOLS)
+
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]
+
+def call_model(state):
+    return {"messages": [model.invoke([SYSTEM, *state["messages"]])]}
+
+def run_tools(state):
+    out = []
+    for call in state["messages"][-1].tool_calls:
+        try: result = tools_by_name[call["name"]].invoke(call["args"])
+        except Exception as e: result = f"ERROR: {e}"
+        out.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
+    return {"messages": out}
+
+def route(state):
+    return "tools" if state["messages"][-1].tool_calls else END
+
+g = StateGraph(AgentState)
+g.add_node("agent", call_model); g.add_node("tools", run_tools)
+g.add_edge(START, "agent")
+g.add_conditional_edges("agent", route, ["tools", END])
+g.add_edge("tools", "agent")
+app = g.compile()</code></pre>
+  </div>
+  <div class="slide-footer">py-tutorial / 06</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 5</span><h2>Persistence &amp; Threads</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>Attach a checkpointer</h3>
+<pre><code class="language-python">from langgraph.checkpoint.sqlite import SqliteSaver
+checkpointer = SqliteSaver.from_conn_string("agent.sqlite")
+app = graph.compile(checkpointer=checkpointer)</code></pre>
+    </div>
+    <div class="card green">
+      <h3>Multi-turn via thread_id</h3>
+<pre><code class="language-python">config = {"configurable": {"thread_id": "user-42"}}
+app.invoke({"messages": [HumanMessage("What is FlashAttention?")]}, config)
+app.invoke({"messages": [HumanMessage("How does it compare to PagedAttention?")]}, config)
+# second call sees the full history
+# kill process, restart, invoke again &mdash; history intact
+for snap in app.get_state_history(config):
+    print(snap.config, snap.next)</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">py-tutorial / 07</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEP 6</span><h2>Human-in-the-Loop on Destructive Tools</h2></div>
+  <div class="card cyan">
+<pre><code class="language-python">from langgraph.types import interrupt, Command
+
+DESTRUCTIVE = {"delete_document"}
+
+def approve_destructive(state):
+    pending = state["messages"][-1].tool_calls
+    destructive = [c for c in pending if c["name"] in DESTRUCTIVE]
+    if not destructive:
+        return {}                                   # no-op, fall through
+    decision = interrupt({"prompt": "Approve these destructive calls?",
+                          "calls": destructive})
+    if decision != "approve":
+        return {"messages": [ToolMessage(content="User refused.",
+                                         tool_call_id=c["id"]) for c in destructive]}
+    return {}
+
+g.add_node("approve", approve_destructive)
+g.add_conditional_edges("agent", route, ["approve", END])
+g.add_edge("approve", "tools")
+# Resume after approval:
+app.invoke(Command(resume="approve"), config)</code></pre>
+  </div>
+  <p style="color:var(--muted);font-size:.52em;text-align:center">State persists across the pause &mdash; even if the process dies waiting for approval.</p>
+  <div class="slide-footer">py-tutorial / 08</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">STEPS 7-9</span><h2>Streaming, Resilience, Tracing</h2></div>
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3>Stream events</h3>
+<pre><code class="language-python">async for e in app.astream_events(input, config, version="v2"):
+    if e["event"] == "on_chat_model_stream":
+        print(e["data"]["chunk"].content, end="")
+    elif e["event"] == "on_tool_start":
+        print(f"\n[tool {e['name']}]")</code></pre>
+    </div>
+    <div class="card green">
+      <h3>Reliability</h3>
+<pre><code class="language-python">primary = ChatAnthropic(model="claude-sonnet-4-5")
+backup  = ChatOpenAI(model="gpt-4o")
+
+model = (primary
+    .with_retry(stop_after_attempt=3)
+    .with_fallbacks([backup]))</code></pre>
+    </div>
+    <div class="card purple">
+      <h3>Tagged tracing</h3>
+<pre><code class="language-python">config = {
+  "configurable": {"thread_id": tid},
+  "tags": ["prod", "rag-agent"],
+  "metadata": {
+    "user_id": user.id,
+    "feature_flag": "rag-v2",
+  },
+}</code></pre>
+    </div>
+  </div>
+  <div class="slide-footer">py-tutorial / 09</div>
+</section>
+
+<section>
+  <div class="slide-hdr"><span class="tag">PRODUCTION</span><h2>Layout &amp; Next Steps</h2></div>
+  <div class="cols cols-2">
+    <div class="card cyan">
+      <h3>Repo layout</h3>
+<pre><code>my_agent/
+  graph.py
+  tools/
+    corpus.py
+    web.py
+    admin.py
+  prompts/
+    system.md
+  config.py
+tests/
+  test_graph.py
+langgraph.json
+pyproject.toml</code></pre>
+    </div>
+    <div class="card green">
+      <h3>One-true-path</h3>
+      <ol>
+        <li>LCEL first &mdash; chain the pieces</li>
+        <li>LangGraph when the flow cycles</li>
+        <li>Checkpoint everything</li>
+        <li>HITL on destructive actions</li>
+        <li>Stream by default</li>
+        <li>Trace + tag every invoke</li>
+        <li>Promote to Deep Agents if horizon grows</li>
+        <li>Deploy via LangGraph Platform or self-host</li>
+      </ol>
+    </div>
+  </div>
+  <div class="slide-footer">py-tutorial / 10</div>
+</section>
+
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>Reveal.initialize({hash:true,slideNumber:'c/t',transition:'fade',center:false});</script>
+</body>
+</html>

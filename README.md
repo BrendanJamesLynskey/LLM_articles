@@ -105,6 +105,17 @@ A collection of technical articles exploring the systems behind modern large lan
 | OAuth 2.1 for AI Applications: Securing the Agent-Tool Interface | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/oauth_for_ai.html) · [MD](articles/oauth_for_ai.md) |
 | Prompt Injection: The Fundamental Vulnerability of Language Model Applications | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/prompt_injection.html) · [MD](articles/prompt_injection.md) |
 
+### LangChain & LangGraph
+
+| Topic | Format |
+| --- | --- |
+| LangChain: Chains, Composability, and LCEL | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/langchain_overview.html) · [MD](articles/langchain_overview.md) |
+| LangGraph: Stateful Agent Graphs | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/langgraph_overview.html) · [MD](articles/langgraph_overview.md) |
+| LangGraph Deep Agents | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/langgraph_deep_agents.html) · [MD](articles/langgraph_deep_agents.md) |
+| LangChain and LangGraph SDKs | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/langchain_langgraph_sdks.html) · [MD](articles/langchain_langgraph_sdks.md) |
+| Python Tutorial: Building a RAG Agent with LangChain and LangGraph | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/langchain_python_tutorial.html) · [MD](articles/langchain_python_tutorial.md) |
+| TypeScript Tutorial: LangChain.js and LangGraph.js | [Slides](https://brendanjameslynskey.github.io/LLM_articles/presentations/langchain_typescript_tutorial.html) · [MD](articles/langchain_typescript_tutorial.md) |
+
 ### Agents & Orchestration
 
 | Topic | Format |

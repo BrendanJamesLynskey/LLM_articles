@@ -181,7 +181,7 @@ at an average concurrency of 40.
 
 ## 5. Percentile Statistics and Their Pitfalls
 
-Means lie. A system that averages 500 ms TTFT might have a p99 of 6
+Means obscure the tail. A system that averages 500 ms TTFT might have a p99 of 6
 seconds — that 1% of requests is where the complaints come from.
 Production inference SLAs are written in percentiles, not averages.
 
@@ -284,7 +284,7 @@ pathological p99 because its scheduler admits long prefills greedily.
 
 **Reporting interactivity without concurrency.** Single-user tok/s is
 the easy number. Sustained tok/s per user under the concurrency the
-system is designed for is the honest one.
+system is designed for is the load-relevant one.
 
 ## 10. How These Measures Feed Agent Performance
 

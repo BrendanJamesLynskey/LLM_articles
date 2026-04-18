@@ -288,7 +288,7 @@ mysteriously pause.
 
 ### 7.1 Task Goodput
 
-The honest agent-level metric is **task goodput**: successful tasks
+The agent-level metric that captures the full picture is **task goodput**: successful tasks
 per unit time per dollar, or per unit GPU, where "successful" requires
 both correctness and meeting a wall-clock deadline. This is the metric
 that ties together model quality, inference performance, tool quality,
@@ -334,8 +334,8 @@ End-to-end p50 ≈ 8 × 515 ms ≈ 4.1 s. End-to-end p99 is *not* 8 × 2.13
 s; the right calculation treats each step's latency as an independent
 draw, and the sum's p99 lies between the sum of p50s and the sum of
 p99s — typically closer to the former but dragged toward the latter by
-tail coincidences. Simulation or measurement is the only honest way to
-get it.
+tail coincidences. Simulation or measurement is the only reliable way
+to get it.
 
 The dominant term is clearly `T_LLM`. Cutting it in half (via
 speculative decoding or a smaller model) moves the p50 from 4.1 s to

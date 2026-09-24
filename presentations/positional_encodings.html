@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -122,17 +122,17 @@
     <div>
       <svg class="diagram" viewBox="0 0 300 220" width="300" height="220">
         <!-- Axes -->
-        <line x1="40" y1="200" x2="280" y2="200" stroke="#2a2a3a" stroke-width="1.5"/>
-        <line x1="40" y1="20" x2="40" y2="200" stroke="#2a2a3a" stroke-width="1.5"/>
+        <line x1="40" y1="200" x2="280" y2="200" stroke="#294752" stroke-width="1.5"/>
+        <line x1="40" y1="20" x2="40" y2="200" stroke="#294752" stroke-width="1.5"/>
         <!-- High frequency sine -->
-        <path d="M50,110 Q65,50 80,110 Q95,170 110,110 Q125,50 140,110 Q155,170 170,110 Q185,50 200,110 Q215,170 230,110 Q245,50 260,110" fill="none" stroke="#f87171" stroke-width="2"/>
+        <path d="M50,110 Q65,50 80,110 Q95,170 110,110 Q125,50 140,110 Q155,170 170,110 Q185,50 200,110 Q215,170 230,110 Q245,50 260,110" fill="none" stroke="#ee876a" stroke-width="2"/>
         <!-- Low frequency sine -->
-        <path d="M50,110 Q120,30 190,110 Q260,190 270,110" fill="none" stroke="#4ecb8d" stroke-width="2"/>
+        <path d="M50,110 Q120,30 190,110 Q260,190 270,110" fill="none" stroke="#94cdb4" stroke-width="2"/>
         <!-- Labels -->
-        <text x="265" y="85" fill="#f87171" font-size="9" font-family="JetBrains Mono">high freq</text>
-        <text x="265" y="145" fill="#4ecb8d" font-size="9" font-family="JetBrains Mono">low freq</text>
-        <text x="160" y="218" fill="#8888a8" font-size="9" font-family="JetBrains Mono">Position</text>
-        <text x="10" y="115" fill="#8888a8" font-size="9" font-family="JetBrains Mono" transform="rotate(-90,10,115)">Value</text>
+        <text x="265" y="85" fill="#ee876a" font-size="9" font-family="JetBrains Mono">high freq</text>
+        <text x="265" y="145" fill="#94cdb4" font-size="9" font-family="JetBrains Mono">low freq</text>
+        <text x="160" y="218" fill="#829ca1" font-size="9" font-family="JetBrains Mono">Position</text>
+        <text x="10" y="115" fill="#829ca1" font-size="9" font-family="JetBrains Mono" transform="rotate(-90,10,115)">Value</text>
       </svg>
     </div>
   </div>
@@ -179,21 +179,21 @@
   </div>
   <p>Proposed by Su et al. (2021). Encodes position by <span class="a">rotating</span> query and key vectors so the dot product depends only on <span class="g">relative distance</span>.</p>
   <svg class="diagram" viewBox="0 0 750 110" width="750" height="110" style="margin-top:.4em;">
-    <rect x="10" y="25" width="130" height="55" rx="6" fill="#10101a" stroke="#2a2a3a"/>
-    <text x="75" y="48" fill="#e8e8f0" font-size="11" text-anchor="middle" font-family="DM Sans">Q, K vectors</text>
-    <text x="75" y="65" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">split into dim pairs</text>
-    <text x="170" y="57" fill="#f5a623" font-size="18" text-anchor="middle">&rarr;</text>
-    <rect x="200" y="25" width="160" height="55" rx="6" fill="#10101a" stroke="#f5a623"/>
-    <text x="280" y="48" fill="#f5a623" font-size="11" text-anchor="middle" font-family="DM Sans">2D Rotation</text>
-    <text x="280" y="65" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">&theta;_i = base^(-2i/d)</text>
-    <text x="390" y="57" fill="#f5a623" font-size="18" text-anchor="middle">&rarr;</text>
-    <rect x="420" y="25" width="130" height="55" rx="6" fill="#10101a" stroke="#4ecb8d"/>
-    <text x="485" y="48" fill="#4ecb8d" font-size="11" text-anchor="middle" font-family="DM Sans">Dot Product</text>
-    <text x="485" y="65" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">f(m &minus; n)</text>
-    <text x="580" y="57" fill="#4ecb8d" font-size="18" text-anchor="middle">&rarr;</text>
-    <rect x="610" y="25" width="130" height="55" rx="6" fill="#10101a" stroke="#a78bfa"/>
-    <text x="675" y="48" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="DM Sans">Relative Position</text>
-    <text x="675" y="65" fill="#a78bfa" font-size="9" text-anchor="middle" font-family="JetBrains Mono">no absolute info</text>
+    <rect x="10" y="25" width="130" height="55" rx="6" fill="#13272f" stroke="#294752"/>
+    <text x="75" y="48" fill="#eae5db" font-size="11" text-anchor="middle" font-family="DM Sans">Q, K vectors</text>
+    <text x="75" y="65" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">split into dim pairs</text>
+    <text x="170" y="57" fill="#e4c17d" font-size="18" text-anchor="middle">&rarr;</text>
+    <rect x="200" y="25" width="160" height="55" rx="6" fill="#13272f" stroke="#e4c17d"/>
+    <text x="280" y="48" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">2D Rotation</text>
+    <text x="280" y="65" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">&theta;_i = base^(-2i/d)</text>
+    <text x="390" y="57" fill="#e4c17d" font-size="18" text-anchor="middle">&rarr;</text>
+    <rect x="420" y="25" width="130" height="55" rx="6" fill="#13272f" stroke="#94cdb4"/>
+    <text x="485" y="48" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">Dot Product</text>
+    <text x="485" y="65" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">f(m &minus; n)</text>
+    <text x="580" y="57" fill="#94cdb4" font-size="18" text-anchor="middle">&rarr;</text>
+    <rect x="610" y="25" width="130" height="55" rx="6" fill="#13272f" stroke="#b7a5d9"/>
+    <text x="675" y="48" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="DM Sans">Relative Position</text>
+    <text x="675" y="65" fill="#b7a5d9" font-size="9" text-anchor="middle" font-family="JetBrains Mono">no absolute info</text>
   </svg>
   <div class="cols cols-2" style="margin-top:.6em;">
     <div class="card green">
@@ -259,20 +259,20 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 280 180" width="280" height="180">
-        <text x="140" y="18" fill="#8888a8" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Attention Bias per Head</text>
-        <rect x="30" y="30" width="45" height="35" rx="4" fill="#10101a" stroke="#a78bfa"/>
-        <text x="52" y="52" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="JetBrains Mono">0</text>
-        <rect x="85" y="30" width="45" height="35" rx="4" fill="#10101a" stroke="#a78bfa"/>
-        <text x="107" y="52" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="JetBrains Mono">-m</text>
-        <rect x="140" y="30" width="45" height="35" rx="4" fill="#10101a" stroke="#a78bfa"/>
-        <text x="162" y="52" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="JetBrains Mono">-2m</text>
-        <rect x="195" y="30" width="45" height="35" rx="4" fill="#10101a" stroke="#f87171"/>
-        <text x="217" y="52" fill="#f87171" font-size="11" text-anchor="middle" font-family="JetBrains Mono">-nm</text>
-        <text x="52" y="82" fill="#4ecb8d" font-size="8" text-anchor="middle" font-family="JetBrains Mono">nearby</text>
-        <text x="217" y="82" fill="#f87171" font-size="8" text-anchor="middle" font-family="JetBrains Mono">distant</text>
+        <text x="140" y="18" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Attention Bias per Head</text>
+        <rect x="30" y="30" width="45" height="35" rx="4" fill="#13272f" stroke="#b7a5d9"/>
+        <text x="52" y="52" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="JetBrains Mono">0</text>
+        <rect x="85" y="30" width="45" height="35" rx="4" fill="#13272f" stroke="#b7a5d9"/>
+        <text x="107" y="52" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="JetBrains Mono">-m</text>
+        <rect x="140" y="30" width="45" height="35" rx="4" fill="#13272f" stroke="#b7a5d9"/>
+        <text x="162" y="52" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="JetBrains Mono">-2m</text>
+        <rect x="195" y="30" width="45" height="35" rx="4" fill="#13272f" stroke="#ee876a"/>
+        <text x="217" y="52" fill="#ee876a" font-size="11" text-anchor="middle" font-family="JetBrains Mono">-nm</text>
+        <text x="52" y="82" fill="#94cdb4" font-size="8" text-anchor="middle" font-family="JetBrains Mono">nearby</text>
+        <text x="217" y="82" fill="#ee876a" font-size="8" text-anchor="middle" font-family="JetBrains Mono">distant</text>
         <!-- Downward slope line -->
-        <line x1="52" y1="100" x2="217" y2="155" stroke="#f87171" stroke-width="2" stroke-dasharray="4,3"/>
-        <text x="140" y="170" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">linear penalty &rarr; recency bias</text>
+        <line x1="52" y1="100" x2="217" y2="155" stroke="#ee876a" stroke-width="2" stroke-dasharray="4,3"/>
+        <text x="140" y="170" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">linear penalty &rarr; recency bias</text>
       </svg>
     </div>
   </div>
@@ -301,19 +301,19 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 280 200" width="280" height="200">
-        <line x1="40" y1="170" x2="260" y2="170" stroke="#2a2a3a" stroke-width="1.5"/>
-        <line x1="40" y1="170" x2="40" y2="20" stroke="#2a2a3a" stroke-width="1.5"/>
+        <line x1="40" y1="170" x2="260" y2="170" stroke="#294752" stroke-width="1.5"/>
+        <line x1="40" y1="170" x2="40" y2="20" stroke="#294752" stroke-width="1.5"/>
         <!-- Training region -->
-        <rect x="40" y="20" width="110" height="150" rx="0" fill="#4ecb8d" fill-opacity="0.08"/>
-        <line x1="150" y1="20" x2="150" y2="170" stroke="#4ecb8d" stroke-width="1" stroke-dasharray="4,3"/>
-        <text x="95" y="15" fill="#4ecb8d" font-size="9" text-anchor="middle" font-family="JetBrains Mono">trained</text>
+        <rect x="40" y="20" width="110" height="150" rx="0" fill="#94cdb4" fill-opacity="0.08"/>
+        <line x1="150" y1="20" x2="150" y2="170" stroke="#94cdb4" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="95" y="15" fill="#94cdb4" font-size="9" text-anchor="middle" font-family="JetBrains Mono">trained</text>
         <!-- OOD region -->
-        <rect x="150" y="20" width="110" height="150" rx="0" fill="#f87171" fill-opacity="0.08"/>
-        <text x="205" y="15" fill="#f87171" font-size="9" text-anchor="middle" font-family="JetBrains Mono">OOD</text>
+        <rect x="150" y="20" width="110" height="150" rx="0" fill="#ee876a" fill-opacity="0.08"/>
+        <text x="205" y="15" fill="#ee876a" font-size="9" text-anchor="middle" font-family="JetBrains Mono">OOD</text>
         <!-- Quality curve -->
-        <polyline points="50,40 70,42 90,43 110,44 130,46 150,50 170,80 190,120 210,150 230,162" fill="none" stroke="#f5a623" stroke-width="2.5"/>
-        <text x="260" y="35" fill="#8888a8" font-size="9" font-family="JetBrains Mono">Quality</text>
-        <text x="150" y="190" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">L &rarr; L&prime;</text>
+        <polyline points="50,40 70,42 90,43 110,44 130,46 150,50 170,80 190,120 210,150 230,162" fill="none" stroke="#e4c17d" stroke-width="2.5"/>
+        <text x="260" y="35" fill="#829ca1" font-size="9" font-family="JetBrains Mono">Quality</text>
+        <text x="150" y="190" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">L &rarr; L&prime;</text>
       </svg>
     </div>
   </div>
@@ -340,18 +340,18 @@
     <div>
       <svg class="diagram" viewBox="0 0 280 180" width="280" height="180">
         <!-- Original range -->
-        <rect x="30" y="30" width="220" height="30" rx="4" fill="none" stroke="#f87171"/>
-        <text x="140" y="50" fill="#f87171" font-size="10" text-anchor="middle" font-family="JetBrains Mono">0 &mdash;&mdash;&mdash; L &mdash;&mdash;&mdash; L&prime;</text>
-        <text x="260" y="25" fill="#f87171" font-size="8" font-family="JetBrains Mono">OOD</text>
+        <rect x="30" y="30" width="220" height="30" rx="4" fill="none" stroke="#ee876a"/>
+        <text x="140" y="50" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">0 &mdash;&mdash;&mdash; L &mdash;&mdash;&mdash; L&prime;</text>
+        <text x="260" y="25" fill="#ee876a" font-size="8" font-family="JetBrains Mono">OOD</text>
         <!-- Arrow down -->
-        <text x="140" y="80" fill="#f5a623" font-size="16" text-anchor="middle">&darr;</text>
-        <text x="200" y="82" fill="#8888a8" font-size="9" font-family="JetBrains Mono">compress</text>
+        <text x="140" y="80" fill="#e4c17d" font-size="16" text-anchor="middle">&darr;</text>
+        <text x="200" y="82" fill="#829ca1" font-size="9" font-family="JetBrains Mono">compress</text>
         <!-- Compressed range -->
-        <rect x="30" y="95" width="220" height="30" rx="4" fill="none" stroke="#4ecb8d"/>
-        <rect x="30" y="95" width="220" height="30" rx="4" fill="#4ecb8d" fill-opacity="0.1"/>
-        <text x="140" y="115" fill="#4ecb8d" font-size="10" text-anchor="middle" font-family="JetBrains Mono">0 &mdash; L&prime;/s = L &mdash;</text>
-        <text x="140" y="145" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">All positions within trained range</text>
-        <text x="140" y="165" fill="#f5a623" font-size="9" text-anchor="middle" font-family="DM Sans">but resolution reduced by factor s</text>
+        <rect x="30" y="95" width="220" height="30" rx="4" fill="none" stroke="#94cdb4"/>
+        <rect x="30" y="95" width="220" height="30" rx="4" fill="#94cdb4" fill-opacity="0.1"/>
+        <text x="140" y="115" fill="#94cdb4" font-size="10" text-anchor="middle" font-family="JetBrains Mono">0 &mdash; L&prime;/s = L &mdash;</text>
+        <text x="140" y="145" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">All positions within trained range</text>
+        <text x="140" y="165" fill="#e4c17d" font-size="9" text-anchor="middle" font-family="DM Sans">but resolution reduced by factor s</text>
       </svg>
     </div>
   </div>
@@ -433,41 +433,41 @@
   </div>
   <svg class="diagram" viewBox="0 0 800 260" width="800" height="260">
     <!-- PI -->
-    <rect x="10" y="20" width="170" height="80" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="95" y="48" fill="#f5a623" font-size="12" text-anchor="middle" font-family="Playfair Display" font-weight="700">Position Interp.</text>
-    <text x="95" y="68" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Uniform scaling</text>
-    <text x="95" y="82" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">~8&times; with fine-tune</text>
+    <rect x="10" y="20" width="170" height="80" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="95" y="48" fill="#e4c17d" font-size="12" text-anchor="middle" font-family="Playfair Display" font-weight="700">Position Interp.</text>
+    <text x="95" y="68" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Uniform scaling</text>
+    <text x="95" y="82" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">~8&times; with fine-tune</text>
     <!-- Arrow -->
-    <text x="210" y="65" fill="#f5a623" font-size="20" text-anchor="middle">&rarr;</text>
+    <text x="210" y="65" fill="#e4c17d" font-size="20" text-anchor="middle">&rarr;</text>
     <!-- NTK -->
-    <rect x="240" y="20" width="170" height="80" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="325" y="48" fill="#4ecb8d" font-size="12" text-anchor="middle" font-family="Playfair Display" font-weight="700">NTK-Aware</text>
-    <text x="325" y="68" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Non-uniform scaling</text>
-    <text x="325" y="82" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">No fine-tune needed</text>
+    <rect x="240" y="20" width="170" height="80" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="325" y="48" fill="#94cdb4" font-size="12" text-anchor="middle" font-family="Playfair Display" font-weight="700">NTK-Aware</text>
+    <text x="325" y="68" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Non-uniform scaling</text>
+    <text x="325" y="82" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">No fine-tune needed</text>
     <!-- Arrow -->
-    <text x="440" y="65" fill="#4ecb8d" font-size="20" text-anchor="middle">&rarr;</text>
+    <text x="440" y="65" fill="#94cdb4" font-size="20" text-anchor="middle">&rarr;</text>
     <!-- Dynamic NTK -->
-    <rect x="470" y="20" width="170" height="80" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="555" y="48" fill="#60a5fa" font-size="12" text-anchor="middle" font-family="Playfair Display" font-weight="700">Dynamic NTK</text>
-    <text x="555" y="68" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Adapts at runtime</text>
-    <text x="555" y="82" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Graceful scaling</text>
+    <rect x="470" y="20" width="170" height="80" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="555" y="48" fill="#8fbadc" font-size="12" text-anchor="middle" font-family="Playfair Display" font-weight="700">Dynamic NTK</text>
+    <text x="555" y="68" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Adapts at runtime</text>
+    <text x="555" y="82" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Graceful scaling</text>
     <!-- Arrow -->
-    <text x="670" y="65" fill="#60a5fa" font-size="20" text-anchor="middle">&rarr;</text>
+    <text x="670" y="65" fill="#8fbadc" font-size="20" text-anchor="middle">&rarr;</text>
     <!-- YaRN -->
-    <rect x="700" y="10" width="90" height="100" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
-    <text x="745" y="45" fill="#a78bfa" font-size="14" text-anchor="middle" font-family="Playfair Display" font-weight="700">YaRN</text>
-    <text x="745" y="65" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">NTK-by-parts</text>
-    <text x="745" y="78" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">+ temperature</text>
-    <text x="745" y="91" fill="#a78bfa" font-size="8" text-anchor="middle" font-family="JetBrains Mono">SOTA</text>
+    <rect x="700" y="10" width="90" height="100" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
+    <text x="745" y="45" fill="#b7a5d9" font-size="14" text-anchor="middle" font-family="Playfair Display" font-weight="700">YaRN</text>
+    <text x="745" y="65" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">NTK-by-parts</text>
+    <text x="745" y="78" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">+ temperature</text>
+    <text x="745" y="91" fill="#b7a5d9" font-size="8" text-anchor="middle" font-family="JetBrains Mono">SOTA</text>
     <!-- Bottom: Improvement axis -->
-    <line x1="50" y1="140" x2="750" y2="140" stroke="#2a2a3a" stroke-width="1"/>
-    <path d="M745,140 L755,140 L750,135 Z" fill="#2a2a3a"/>
-    <text x="400" y="158" fill="#8888a8" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Increasing sophistication &amp; quality &rarr;</text>
+    <line x1="50" y1="140" x2="750" y2="140" stroke="#294752" stroke-width="1"/>
+    <path d="M745,140 L755,140 L750,135 Z" fill="#294752"/>
+    <text x="400" y="158" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Increasing sophistication &amp; quality &rarr;</text>
     <!-- Key improvements listed -->
-    <text x="95" y="185" fill="#f5a623" font-size="9" text-anchor="middle" font-family="DM Sans">All dims scaled equally</text>
-    <text x="325" y="185" fill="#4ecb8d" font-size="9" text-anchor="middle" font-family="DM Sans">Per-frequency scaling</text>
-    <text x="555" y="185" fill="#60a5fa" font-size="9" text-anchor="middle" font-family="DM Sans">Length-adaptive</text>
-    <text x="745" y="185" fill="#a78bfa" font-size="9" text-anchor="middle" font-family="DM Sans">Dimension-aware</text>
+    <text x="95" y="185" fill="#e4c17d" font-size="9" text-anchor="middle" font-family="DM Sans">All dims scaled equally</text>
+    <text x="325" y="185" fill="#94cdb4" font-size="9" text-anchor="middle" font-family="DM Sans">Per-frequency scaling</text>
+    <text x="555" y="185" fill="#8fbadc" font-size="9" text-anchor="middle" font-family="DM Sans">Length-adaptive</text>
+    <text x="745" y="185" fill="#b7a5d9" font-size="9" text-anchor="middle" font-family="DM Sans">Dimension-aware</text>
   </svg>
   <div class="slide-footer">Positional Encodings</div>
 </section>
@@ -633,37 +633,37 @@
   </div>
   <svg class="diagram" viewBox="0 0 800 200" width="800" height="200">
     <!-- Timeline axis -->
-    <line x1="40" y1="100" x2="760" y2="100" stroke="#2a2a3a" stroke-width="2"/>
+    <line x1="40" y1="100" x2="760" y2="100" stroke="#294752" stroke-width="2"/>
     <!-- Nodes -->
-    <circle cx="80" cy="100" r="6" fill="#f87171"/>
-    <text x="80" y="78" fill="#f87171" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Sinusoidal</text>
-    <text x="80" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">Vaswani</text>
-    <text x="80" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2017</text>
+    <circle cx="80" cy="100" r="6" fill="#ee876a"/>
+    <text x="80" y="78" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Sinusoidal</text>
+    <text x="80" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Vaswani</text>
+    <text x="80" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2017</text>
 
-    <circle cx="200" cy="100" r="6" fill="#f87171"/>
-    <text x="200" y="78" fill="#f87171" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Learned</text>
-    <text x="200" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">BERT/GPT-2</text>
-    <text x="200" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2018-19</text>
+    <circle cx="200" cy="100" r="6" fill="#ee876a"/>
+    <text x="200" y="78" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Learned</text>
+    <text x="200" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">BERT/GPT-2</text>
+    <text x="200" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2018-19</text>
 
-    <circle cx="340" cy="100" r="7" fill="#f5a623"/>
-    <text x="340" y="78" fill="#f5a623" font-size="10" text-anchor="middle" font-family="JetBrains Mono">RoPE</text>
-    <text x="340" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">Su et al.</text>
-    <text x="340" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2021</text>
+    <circle cx="340" cy="100" r="7" fill="#e4c17d"/>
+    <text x="340" y="78" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="JetBrains Mono">RoPE</text>
+    <text x="340" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Su et al.</text>
+    <text x="340" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2021</text>
 
-    <circle cx="460" cy="100" r="6" fill="#a78bfa"/>
-    <text x="460" y="78" fill="#a78bfa" font-size="10" text-anchor="middle" font-family="JetBrains Mono">ALiBi</text>
-    <text x="460" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">Press et al.</text>
-    <text x="460" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2022</text>
+    <circle cx="460" cy="100" r="6" fill="#b7a5d9"/>
+    <text x="460" y="78" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="JetBrains Mono">ALiBi</text>
+    <text x="460" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Press et al.</text>
+    <text x="460" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2022</text>
 
-    <circle cx="580" cy="100" r="7" fill="#4ecb8d"/>
-    <text x="580" y="78" fill="#4ecb8d" font-size="10" text-anchor="middle" font-family="JetBrains Mono">PI / NTK</text>
-    <text x="580" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">Chen et al.</text>
-    <text x="580" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2023</text>
+    <circle cx="580" cy="100" r="7" fill="#94cdb4"/>
+    <text x="580" y="78" fill="#94cdb4" font-size="10" text-anchor="middle" font-family="JetBrains Mono">PI / NTK</text>
+    <text x="580" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Chen et al.</text>
+    <text x="580" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2023</text>
 
-    <circle cx="700" cy="100" r="8" fill="#60a5fa"/>
-    <text x="700" y="78" fill="#60a5fa" font-size="10" text-anchor="middle" font-family="JetBrains Mono">YaRN</text>
-    <text x="700" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">Peng et al.</text>
-    <text x="700" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2024</text>
+    <circle cx="700" cy="100" r="8" fill="#8fbadc"/>
+    <text x="700" y="78" fill="#8fbadc" font-size="10" text-anchor="middle" font-family="JetBrains Mono">YaRN</text>
+    <text x="700" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Peng et al.</text>
+    <text x="700" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2024</text>
   </svg>
   <div class="card amber" style="margin-top:.4em;">
     <h3>From Afterthought to Core Design Decision</h3>

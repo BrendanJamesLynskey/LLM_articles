@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -105,43 +105,43 @@
   <div class="slide-hdr"><span class="tag">03</span><h2>The Specialization Spectrum</h2></div>
   <svg class="diagram" viewBox="0 0 900 200" width="900">
     <defs>
-      <marker id="arr" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker>
+      <marker id="arr" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#829ca1"/></marker>
       <linearGradient id="specGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.3"/>
-        <stop offset="100%" stop-color="#f87171" stop-opacity="0.3"/>
+        <stop offset="0%" stop-color="#8fbadc" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#ee876a" stop-opacity="0.3"/>
       </linearGradient>
     </defs>
     <!-- Spectrum bar -->
-    <rect x="50" y="60" width="800" height="40" rx="8" fill="url(#specGrad)" stroke="#2a2a3a" stroke-width="1"/>
-    <line x1="50" y1="110" x2="850" y2="110" stroke="#8888a8" stroke-width="1" marker-end="url(#arr)"/>
-    <text x="50" y="130" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">Flexible</text>
-    <text x="815" y="130" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="10">Specialized</text>
+    <rect x="50" y="60" width="800" height="40" rx="8" fill="url(#specGrad)" stroke="#294752" stroke-width="1"/>
+    <line x1="50" y1="110" x2="850" y2="110" stroke="#829ca1" stroke-width="1" marker-end="url(#arr)"/>
+    <text x="50" y="130" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">Flexible</text>
+    <text x="815" y="130" fill="#ee876a" font-family="JetBrains Mono,monospace" font-size="10">Specialized</text>
     <!-- CPU -->
-    <rect x="80" y="30" width="70" height="24" rx="4" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.2"/>
-    <text x="115" y="46" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">CPU</text>
-    <line x1="115" y1="54" x2="115" y2="60" stroke="#60a5fa" stroke-width="1"/>
+    <rect x="80" y="30" width="70" height="24" rx="4" fill="#1a323b" stroke="#8fbadc" stroke-width="1.2"/>
+    <text x="115" y="46" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">CPU</text>
+    <line x1="115" y1="54" x2="115" y2="60" stroke="#8fbadc" stroke-width="1"/>
     <!-- GPU -->
-    <rect x="220" y="30" width="70" height="24" rx="4" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.2"/>
-    <text x="255" y="46" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">GPU</text>
-    <line x1="255" y1="54" x2="255" y2="60" stroke="#a78bfa" stroke-width="1"/>
+    <rect x="220" y="30" width="70" height="24" rx="4" fill="#1a323b" stroke="#b7a5d9" stroke-width="1.2"/>
+    <text x="255" y="46" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="10">GPU</text>
+    <line x1="255" y1="54" x2="255" y2="60" stroke="#b7a5d9" stroke-width="1"/>
     <!-- FPGA -->
-    <rect x="380" y="30" width="70" height="24" rx="4" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-    <text x="415" y="46" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">FPGA</text>
-    <line x1="415" y1="54" x2="415" y2="60" stroke="#4ecb8d" stroke-width="1"/>
+    <rect x="380" y="30" width="70" height="24" rx="4" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+    <text x="415" y="46" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">FPGA</text>
+    <line x1="415" y1="54" x2="415" y2="60" stroke="#94cdb4" stroke-width="1"/>
     <!-- TPU / Groq -->
-    <rect x="540" y="30" width="100" height="24" rx="4" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
-    <text x="590" y="46" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">TPU / Groq</text>
-    <line x1="590" y1="54" x2="590" y2="60" stroke="#f5a623" stroke-width="1"/>
+    <rect x="540" y="30" width="100" height="24" rx="4" fill="#1a323b" stroke="#e4c17d" stroke-width="1.2"/>
+    <text x="590" y="46" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="10">TPU / Groq</text>
+    <line x1="590" y1="54" x2="590" y2="60" stroke="#e4c17d" stroke-width="1"/>
     <!-- Sohu -->
-    <rect x="730" y="22" width="100" height="32" rx="4" fill="#1a1a2e" stroke="#f87171" stroke-width="2"/>
-    <text x="780" y="43" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">SOHU</text>
-    <line x1="780" y1="54" x2="780" y2="60" stroke="#f87171" stroke-width="1.5"/>
+    <rect x="730" y="22" width="100" height="32" rx="4" fill="#1a323b" stroke="#ee876a" stroke-width="2"/>
+    <text x="780" y="43" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">SOHU</text>
+    <line x1="780" y1="54" x2="780" y2="60" stroke="#ee876a" stroke-width="1.5"/>
     <!-- Labels below -->
-    <text x="115" y="155" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="9">Any workload</text>
-    <text x="255" y="155" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="9">Parallel compute</text>
-    <text x="415" y="155" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="9">Reconfigurable</text>
-    <text x="590" y="155" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="9">AI inference</text>
-    <text x="780" y="155" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="9" font-weight="600">Transformers only</text>
+    <text x="115" y="155" text-anchor="middle" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="9">Any workload</text>
+    <text x="255" y="155" text-anchor="middle" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="9">Parallel compute</text>
+    <text x="415" y="155" text-anchor="middle" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="9">Reconfigurable</text>
+    <text x="590" y="155" text-anchor="middle" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="9">AI inference</text>
+    <text x="780" y="155" text-anchor="middle" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="9" font-weight="600">Transformers only</text>
   </svg>
   <div class="cols cols-3" style="margin-top:.4em">
     <div class="card blue">
@@ -164,46 +164,46 @@
 <section>
   <div class="slide-hdr"><span class="tag">04</span><h2>What Gets Burned into Silicon</h2></div>
   <svg class="diagram" viewBox="0 0 800 320" width="800">
-    <defs><marker id="arr2" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
-    <text x="400" y="20" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="14" font-weight="700">Transformer Layer &rarr; Sohu Hardware Pipeline</text>
+    <defs><marker id="arr2" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#829ca1"/></marker></defs>
+    <text x="400" y="20" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="14" font-weight="700">Transformer Layer &rarr; Sohu Hardware Pipeline</text>
     <!-- Input -->
-    <rect x="20" y="45" width="120" height="40" rx="6" fill="#1a1a2e" stroke="#8888a8" stroke-width="1"/>
-    <text x="80" y="69" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="10">Input Tokens</text>
-    <line x1="140" y1="65" x2="170" y2="65" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+    <rect x="20" y="45" width="120" height="40" rx="6" fill="#1a323b" stroke="#829ca1" stroke-width="1"/>
+    <text x="80" y="69" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10">Input Tokens</text>
+    <line x1="140" y1="65" x2="170" y2="65" stroke="#829ca1" stroke-width="1" marker-end="url(#arr2)"/>
     <!-- QKV Projection -->
-    <rect x="170" y="40" width="120" height="50" rx="6" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="230" y="60" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">QKV Projection</text>
-    <text x="230" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Fixed matmul unit</text>
-    <line x1="290" y1="65" x2="320" y2="65" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+    <rect x="170" y="40" width="120" height="50" rx="6" fill="#1a323b" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="230" y="60" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="10">QKV Projection</text>
+    <text x="230" y="78" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">Fixed matmul unit</text>
+    <line x1="290" y1="65" x2="320" y2="65" stroke="#829ca1" stroke-width="1" marker-end="url(#arr2)"/>
     <!-- Attention -->
-    <rect x="320" y="40" width="140" height="50" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="390" y="60" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Attention + Softmax</text>
-    <text x="390" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Hardwired pipeline</text>
-    <line x1="460" y1="65" x2="490" y2="65" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+    <rect x="320" y="40" width="140" height="50" rx="6" fill="#1a323b" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="390" y="60" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Attention + Softmax</text>
+    <text x="390" y="78" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">Hardwired pipeline</text>
+    <line x1="460" y1="65" x2="490" y2="65" stroke="#829ca1" stroke-width="1" marker-end="url(#arr2)"/>
     <!-- LayerNorm -->
-    <rect x="490" y="40" width="110" height="50" rx="6" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="545" y="60" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">Layer Norm</text>
-    <text x="545" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Dedicated circuit</text>
-    <line x1="600" y1="65" x2="630" y2="65" stroke="#8888a8" stroke-width="1" marker-end="url(#arr2)"/>
+    <rect x="490" y="40" width="110" height="50" rx="6" fill="#1a323b" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="545" y="60" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="10">Layer Norm</text>
+    <text x="545" y="78" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">Dedicated circuit</text>
+    <line x1="600" y1="65" x2="630" y2="65" stroke="#829ca1" stroke-width="1" marker-end="url(#arr2)"/>
     <!-- FFN -->
-    <rect x="630" y="40" width="120" height="50" rx="6" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="690" y="60" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">FFN Layers</text>
-    <text x="690" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Fixed matmul unit</text>
+    <rect x="630" y="40" width="120" height="50" rx="6" fill="#1a323b" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="690" y="60" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">FFN Layers</text>
+    <text x="690" y="78" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">Fixed matmul unit</text>
     <!-- Residual arrow -->
-    <path d="M230,90 L230,120 L690,120 L690,90" fill="none" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
-    <text x="460" y="136" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="9">Residual connection (hardwired)</text>
+    <path d="M230,90 L230,120 L690,120 L690,90" fill="none" stroke="#ee876a" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="460" y="136" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono,monospace" font-size="9">Residual connection (hardwired)</text>
     <!-- GPU comparison below -->
-    <rect x="50" y="170" width="700" height="55" rx="6" fill="#0e0e18" stroke="#2a2a3a" stroke-width="1"/>
-    <text x="400" y="190" text-anchor="middle" fill="#8888a8" font-family="Playfair Display,serif" font-size="11">GPU Equivalent: Each Op Dispatched as Separate Kernel</text>
-    <text x="120" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Instr Decode</text>
-    <text x="240" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Warp Schedule</text>
-    <text x="380" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Cache Lookup</text>
-    <text x="520" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">CUDA Dispatch</text>
-    <text x="660" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9">Kernel Launch</text>
+    <rect x="50" y="170" width="700" height="55" rx="6" fill="#12252d" stroke="#294752" stroke-width="1"/>
+    <text x="400" y="190" text-anchor="middle" fill="#829ca1" font-family="Playfair Display,serif" font-size="11">GPU Equivalent: Each Op Dispatched as Separate Kernel</text>
+    <text x="120" y="212" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="9">Instr Decode</text>
+    <text x="240" y="212" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="9">Warp Schedule</text>
+    <text x="380" y="212" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="9">Cache Lookup</text>
+    <text x="520" y="212" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="9">CUDA Dispatch</text>
+    <text x="660" y="212" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="9">Kernel Launch</text>
     <!-- Sohu label -->
-    <rect x="50" y="250" width="700" height="45" rx="6" fill="#0e0e18" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="400" y="270" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="11">Sohu: Entire Transformer Layer is a Fixed Hardware Pipeline</text>
-    <text x="400" y="286" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">No instruction decode. No scheduling. No cache. No kernel launches.</text>
+    <rect x="50" y="250" width="700" height="45" rx="6" fill="#12252d" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="400" y="270" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display,serif" font-size="11">Sohu: Entire Transformer Layer is a Fixed Hardware Pipeline</text>
+    <text x="400" y="286" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9">No instruction decode. No scheduling. No cache. No kernel launches.</text>
   </svg>
   <div class="slide-footer">etched-sohu / 04</div>
 </section>
@@ -313,44 +313,44 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 280 320" width="280">
-        <rect x="10" y="10" width="260" height="300" rx="10" fill="none" stroke="#2a2a3a" stroke-width="1.5"/>
-        <text x="140" y="35" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Sohu 8-Chip Server</text>
+        <rect x="10" y="10" width="260" height="300" rx="10" fill="none" stroke="#294752" stroke-width="1.5"/>
+        <text x="140" y="35" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="12" font-weight="700">Sohu 8-Chip Server</text>
         <!-- Chip grid: 2x4 -->
-        <rect x="30" y="50" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="80" y="75" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 0</text>
-        <text x="80" y="93" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
-        <rect x="150" y="50" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="200" y="75" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 1</text>
-        <text x="200" y="93" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
-        <rect x="30" y="115" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="80" y="140" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 2</text>
-        <text x="80" y="158" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
-        <rect x="150" y="115" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="200" y="140" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 3</text>
-        <text x="200" y="158" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
-        <rect x="30" y="180" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="80" y="205" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 4</text>
-        <text x="80" y="223" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
-        <rect x="150" y="180" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="200" y="205" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 5</text>
-        <text x="200" y="223" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
-        <rect x="30" y="245" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="80" y="270" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 6</text>
-        <text x="80" y="288" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
-        <rect x="150" y="245" width="100" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="200" y="270" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Sohu 7</text>
-        <text x="200" y="288" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="30" y="50" width="100" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="80" y="75" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Sohu 0</text>
+        <text x="80" y="93" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="150" y="50" width="100" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="200" y="75" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Sohu 1</text>
+        <text x="200" y="93" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="30" y="115" width="100" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="80" y="140" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Sohu 2</text>
+        <text x="80" y="158" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="150" y="115" width="100" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="200" y="140" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Sohu 3</text>
+        <text x="200" y="158" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="30" y="180" width="100" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="80" y="205" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Sohu 4</text>
+        <text x="80" y="223" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="150" y="180" width="100" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="200" y="205" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Sohu 5</text>
+        <text x="200" y="223" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="30" y="245" width="100" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="80" y="270" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Sohu 6</text>
+        <text x="80" y="288" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
+        <rect x="150" y="245" width="100" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="200" y="270" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Sohu 7</text>
+        <text x="200" y="288" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">SRAM slice</text>
         <!-- Interconnect lines -->
-        <line x1="130" y1="77" x2="150" y2="77" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="130" y1="142" x2="150" y2="142" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="130" y1="207" x2="150" y2="207" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="130" y1="272" x2="150" y2="272" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="80" y1="105" x2="80" y2="115" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="200" y1="105" x2="200" y2="115" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="80" y1="170" x2="80" y2="180" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="200" y1="170" x2="200" y2="180" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="80" y1="235" x2="80" y2="245" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="200" y1="235" x2="200" y2="245" stroke="#f5a623" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="130" y1="77" x2="150" y2="77" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="130" y1="142" x2="150" y2="142" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="130" y1="207" x2="150" y2="207" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="130" y1="272" x2="150" y2="272" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="80" y1="105" x2="80" y2="115" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="200" y1="105" x2="200" y2="115" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="80" y1="170" x2="80" y2="180" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="200" y1="170" x2="200" y2="180" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="80" y1="235" x2="80" y2="245" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="200" y1="235" x2="200" y2="245" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3,2"/>
       </svg>
     </div>
   </div>
@@ -462,22 +462,22 @@
   <div class="cols cols-6040">
     <div>
       <svg class="diagram" viewBox="0 0 300 280" width="300">
-        <defs><marker id="arr3" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#8888a8"/></marker></defs>
-        <text x="150" y="20" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Sohu Software Pipeline</text>
-        <rect x="30" y="35" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1.2"/>
-        <text x="150" y="57" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">Standard Model (Llama, etc.)</text>
-        <line x1="150" y1="71" x2="150" y2="85" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
-        <rect x="30" y="85" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
-        <text x="150" y="107" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">Architecture Validation</text>
-        <line x1="150" y1="121" x2="150" y2="135" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
-        <rect x="30" y="135" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="150" y="157" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">8-Chip Partitioning</text>
-        <line x1="150" y1="171" x2="150" y2="185" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
-        <rect x="30" y="185" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.2"/>
-        <text x="150" y="207" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">Data Routing Config</text>
-        <line x1="150" y1="221" x2="150" y2="235" stroke="#8888a8" stroke-width="1" marker-end="url(#arr3)"/>
-        <rect x="30" y="235" width="240" height="36" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="150" y="257" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">Deploy to Sohu Hardware</text>
+        <defs><marker id="arr3" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#829ca1"/></marker></defs>
+        <text x="150" y="20" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="12" font-weight="700">Sohu Software Pipeline</text>
+        <rect x="30" y="35" width="240" height="36" rx="6" fill="#1a323b" stroke="#b7a5d9" stroke-width="1.2"/>
+        <text x="150" y="57" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="10">Standard Model (Llama, etc.)</text>
+        <line x1="150" y1="71" x2="150" y2="85" stroke="#829ca1" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="30" y="85" width="240" height="36" rx="6" fill="#1a323b" stroke="#e4c17d" stroke-width="1.2"/>
+        <text x="150" y="107" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="10">Architecture Validation</text>
+        <line x1="150" y1="121" x2="150" y2="135" stroke="#829ca1" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="30" y="135" width="240" height="36" rx="6" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="150" y="157" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">8-Chip Partitioning</text>
+        <line x1="150" y1="171" x2="150" y2="185" stroke="#829ca1" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="30" y="185" width="240" height="36" rx="6" fill="#1a323b" stroke="#8fbadc" stroke-width="1.2"/>
+        <text x="150" y="207" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">Data Routing Config</text>
+        <line x1="150" y1="221" x2="150" y2="235" stroke="#829ca1" stroke-width="1" marker-end="url(#arr3)"/>
+        <rect x="30" y="235" width="240" height="36" rx="6" fill="#1a323b" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="150" y="257" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">Deploy to Sohu Hardware</text>
       </svg>
     </div>
     <div>

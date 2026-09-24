@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px;letter-spacing:.04em}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -71,7 +71,7 @@
     <span class="pill purple">GQA / MQA</span>
     <span class="pill blue">Prefix Caching</span>
   </div>
-  <p style="font-size:.44em;color:#b8b8d0;max-width:700px;margin:0 auto .8em">Examining strategies for managing KV cache memory in production LLM inference &mdash; from architectural innovations to compression techniques and system-level memory management.</p>
+  <p style="font-size:.44em;color:#b9c9c7;max-width:700px;margin:0 auto .8em">Examining strategies for managing KV cache memory in production LLM inference &mdash; from architectural innovations to compression techniques and system-level memory management.</p>
   <div class="meta">February 2026 &bull; LLM Infrastructure</div>
   <div class="slide-footer">KV Cache Optimization &bull; 1 / 16</div>
 </section>
@@ -115,25 +115,25 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 340 280" width="340" height="280">
-        <rect x="20" y="30" width="60" height="220" rx="4" fill="#181824" stroke="#2a2a3a"/>
-        <rect x="20" y="220" width="60" height="30" rx="0" fill="#4ecb8d" opacity=".8"/>
-        <text x="50" y="240" text-anchor="middle" fill="#0a0a0f" font-size="11" font-weight="600">5GB</text>
-        <text x="50" y="268" text-anchor="middle" fill="#8888a8" font-size="10">BS=1</text>
+        <rect x="20" y="30" width="60" height="220" rx="4" fill="#172d36" stroke="#294752"/>
+        <rect x="20" y="220" width="60" height="30" rx="0" fill="#94cdb4" opacity=".8"/>
+        <text x="50" y="240" text-anchor="middle" fill="#0f2027" font-size="11" font-weight="600">5GB</text>
+        <text x="50" y="268" text-anchor="middle" fill="#829ca1" font-size="10">BS=1</text>
 
-        <rect x="110" y="30" width="60" height="220" rx="4" fill="#181824" stroke="#2a2a3a"/>
-        <rect x="110" y="110" width="60" height="140" rx="0" fill="#f5a623" opacity=".8"/>
-        <text x="140" y="186" text-anchor="middle" fill="#0a0a0f" font-size="11" font-weight="600">40GB</text>
-        <text x="140" y="268" text-anchor="middle" fill="#8888a8" font-size="10">BS=8</text>
+        <rect x="110" y="30" width="60" height="220" rx="4" fill="#172d36" stroke="#294752"/>
+        <rect x="110" y="110" width="60" height="140" rx="0" fill="#e4c17d" opacity=".8"/>
+        <text x="140" y="186" text-anchor="middle" fill="#0f2027" font-size="11" font-weight="600">40GB</text>
+        <text x="140" y="268" text-anchor="middle" fill="#829ca1" font-size="10">BS=8</text>
 
-        <rect x="200" y="30" width="60" height="220" rx="4" fill="#181824" stroke="#2a2a3a"/>
-        <rect x="200" y="30" width="60" height="220" rx="0" fill="#f87171" opacity=".8"/>
-        <text x="230" y="146" text-anchor="middle" fill="#0a0a0f" font-size="11" font-weight="600">160GB</text>
-        <text x="230" y="268" text-anchor="middle" fill="#8888a8" font-size="10">BS=32</text>
+        <rect x="200" y="30" width="60" height="220" rx="4" fill="#172d36" stroke="#294752"/>
+        <rect x="200" y="30" width="60" height="220" rx="0" fill="#ee876a" opacity=".8"/>
+        <text x="230" y="146" text-anchor="middle" fill="#0f2027" font-size="11" font-weight="600">160GB</text>
+        <text x="230" y="268" text-anchor="middle" fill="#829ca1" font-size="10">BS=32</text>
 
-        <line x1="290" y1="30" x2="290" y2="250" stroke="#2a2a3a" stroke-dasharray="4"/>
-        <text x="295" y="248" fill="#8888a8" font-size="9">0 GB</text>
-        <text x="295" y="38" fill="#8888a8" font-size="9">160 GB</text>
-        <text x="170" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">KV Cache @ 4K seq len</text>
+        <line x1="290" y1="30" x2="290" y2="250" stroke="#294752" stroke-dasharray="4"/>
+        <text x="295" y="248" fill="#829ca1" font-size="9">0 GB</text>
+        <text x="295" y="38" fill="#829ca1" font-size="9">160 GB</text>
+        <text x="170" y="18" text-anchor="middle" fill="#eae5db" font-size="12" font-weight="600">KV Cache @ 4K seq len</text>
       </svg>
     </div>
   </div>
@@ -155,28 +155,28 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 400 240" width="400" height="240">
-        <text x="200" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Pre-allocated vs. Actual Usage</text>
+        <text x="200" y="18" text-anchor="middle" fill="#eae5db" font-size="12" font-weight="600">Pre-allocated vs. Actual Usage</text>
         <!-- Allocated blocks -->
-        <rect x="20" y="35" width="360" height="35" rx="4" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
-        <rect x="20" y="35" width="120" height="35" rx="4" fill="#f87171" opacity=".4"/>
-        <text x="80" y="57" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">Used</text>
-        <text x="260" y="57" text-anchor="middle" fill="#8888a8" font-size="10">Wasted (~67%)</text>
-        <text x="10" y="57" text-anchor="end" fill="#8888a8" font-size="9">Seq A</text>
+        <rect x="20" y="35" width="360" height="35" rx="4" fill="#172d36" stroke="#ee876a" stroke-width="1.5"/>
+        <rect x="20" y="35" width="120" height="35" rx="4" fill="#ee876a" opacity=".4"/>
+        <text x="80" y="57" text-anchor="middle" fill="#ee876a" font-size="10" font-weight="600">Used</text>
+        <text x="260" y="57" text-anchor="middle" fill="#829ca1" font-size="10">Wasted (~67%)</text>
+        <text x="10" y="57" text-anchor="end" fill="#829ca1" font-size="9">Seq A</text>
 
-        <rect x="20" y="80" width="360" height="35" rx="4" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
-        <rect x="20" y="80" width="200" height="35" rx="4" fill="#f87171" opacity=".4"/>
-        <text x="110" y="102" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">Used</text>
-        <text x="310" y="102" text-anchor="middle" fill="#8888a8" font-size="10">Wasted (~44%)</text>
-        <text x="10" y="102" text-anchor="end" fill="#8888a8" font-size="9">Seq B</text>
+        <rect x="20" y="80" width="360" height="35" rx="4" fill="#172d36" stroke="#ee876a" stroke-width="1.5"/>
+        <rect x="20" y="80" width="200" height="35" rx="4" fill="#ee876a" opacity=".4"/>
+        <text x="110" y="102" text-anchor="middle" fill="#ee876a" font-size="10" font-weight="600">Used</text>
+        <text x="310" y="102" text-anchor="middle" fill="#829ca1" font-size="10">Wasted (~44%)</text>
+        <text x="10" y="102" text-anchor="end" fill="#829ca1" font-size="9">Seq B</text>
 
-        <rect x="20" y="125" width="360" height="35" rx="4" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
-        <rect x="20" y="125" width="80" height="35" rx="4" fill="#f87171" opacity=".4"/>
-        <text x="60" y="147" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">Used</text>
-        <text x="250" y="147" text-anchor="middle" fill="#8888a8" font-size="10">Wasted (~78%)</text>
-        <text x="10" y="147" text-anchor="end" fill="#8888a8" font-size="9">Seq C</text>
+        <rect x="20" y="125" width="360" height="35" rx="4" fill="#172d36" stroke="#ee876a" stroke-width="1.5"/>
+        <rect x="20" y="125" width="80" height="35" rx="4" fill="#ee876a" opacity=".4"/>
+        <text x="60" y="147" text-anchor="middle" fill="#ee876a" font-size="10" font-weight="600">Used</text>
+        <text x="250" y="147" text-anchor="middle" fill="#829ca1" font-size="10">Wasted (~78%)</text>
+        <text x="10" y="147" text-anchor="end" fill="#829ca1" font-size="9">Seq C</text>
 
-        <text x="200" y="195" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">Average waste: 60&ndash;80% of allocated memory</text>
-        <text x="200" y="215" text-anchor="middle" fill="#8888a8" font-size="10">Contiguous allocation for max_seq_len per sequence</text>
+        <text x="200" y="195" text-anchor="middle" fill="#ee876a" font-size="11" font-weight="600">Average waste: 60&ndash;80% of allocated memory</text>
+        <text x="200" y="215" text-anchor="middle" fill="#829ca1" font-size="10">Contiguous allocation for max_seq_len per sequence</text>
       </svg>
     </div>
   </div>
@@ -236,50 +236,50 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 420 250" width="420" height="250">
-        <text x="210" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Paged KV Cache Architecture</text>
+        <text x="210" y="18" text-anchor="middle" fill="#eae5db" font-size="12" font-weight="600">Paged KV Cache Architecture</text>
         <!-- Logical sequences -->
-        <text x="60" y="42" text-anchor="middle" fill="#f5a623" font-size="10" font-weight="600">Logical View</text>
-        <rect x="10" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".6" stroke="#f5a623"/>
-        <rect x="42" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".6" stroke="#f5a623"/>
-        <rect x="74" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".6" stroke="#f5a623"/>
-        <text x="55" y="66" text-anchor="middle" fill="#0a0a0f" font-size="9" font-weight="600">Seq A</text>
+        <text x="60" y="42" text-anchor="middle" fill="#e4c17d" font-size="10" font-weight="600">Logical View</text>
+        <rect x="10" y="50" width="30" height="24" rx="3" fill="#e4c17d" opacity=".6" stroke="#e4c17d"/>
+        <rect x="42" y="50" width="30" height="24" rx="3" fill="#e4c17d" opacity=".6" stroke="#e4c17d"/>
+        <rect x="74" y="50" width="30" height="24" rx="3" fill="#e4c17d" opacity=".6" stroke="#e4c17d"/>
+        <text x="55" y="66" text-anchor="middle" fill="#0f2027" font-size="9" font-weight="600">Seq A</text>
 
-        <rect x="10" y="82" width="30" height="24" rx="3" fill="#a78bfa" opacity=".6" stroke="#a78bfa"/>
-        <rect x="42" y="82" width="30" height="24" rx="3" fill="#a78bfa" opacity=".6" stroke="#a78bfa"/>
-        <text x="40" y="98" text-anchor="middle" fill="#0a0a0f" font-size="9" font-weight="600">Seq B</text>
+        <rect x="10" y="82" width="30" height="24" rx="3" fill="#b7a5d9" opacity=".6" stroke="#b7a5d9"/>
+        <rect x="42" y="82" width="30" height="24" rx="3" fill="#b7a5d9" opacity=".6" stroke="#b7a5d9"/>
+        <text x="40" y="98" text-anchor="middle" fill="#0f2027" font-size="9" font-weight="600">Seq B</text>
 
         <!-- Page Table -->
-        <rect x="140" y="45" width="80" height="70" rx="4" fill="#181824" stroke="#2a2a3a"/>
-        <text x="180" y="62" text-anchor="middle" fill="#4ecb8d" font-size="10" font-weight="600">Page Table</text>
-        <text x="180" y="78" text-anchor="middle" fill="#8888a8" font-size="8">logical &rarr; physical</text>
-        <text x="180" y="93" text-anchor="middle" fill="#8888a8" font-size="8">mapping per seq</text>
+        <rect x="140" y="45" width="80" height="70" rx="4" fill="#172d36" stroke="#294752"/>
+        <text x="180" y="62" text-anchor="middle" fill="#94cdb4" font-size="10" font-weight="600">Page Table</text>
+        <text x="180" y="78" text-anchor="middle" fill="#829ca1" font-size="8">logical &rarr; physical</text>
+        <text x="180" y="93" text-anchor="middle" fill="#829ca1" font-size="8">mapping per seq</text>
 
         <!-- Arrows -->
-        <line x1="106" y1="62" x2="138" y2="70" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arr)"/>
-        <line x1="74" y1="94" x2="138" y2="82" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="106" y1="62" x2="138" y2="70" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="74" y1="94" x2="138" y2="82" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#arr)"/>
 
         <!-- Physical pages -->
-        <text x="330" y="42" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600">Physical Memory</text>
-        <rect x="260" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".4" stroke="#f5a623"/>
-        <rect x="295" y="50" width="30" height="24" rx="3" fill="#a78bfa" opacity=".4" stroke="#a78bfa"/>
-        <rect x="330" y="50" width="30" height="24" rx="3" fill="#f5a623" opacity=".4" stroke="#f5a623"/>
-        <rect x="365" y="50" width="30" height="24" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/>
-        <rect x="260" y="80" width="30" height="24" rx="3" fill="#a78bfa" opacity=".4" stroke="#a78bfa"/>
-        <rect x="295" y="80" width="30" height="24" rx="3" fill="#f5a623" opacity=".4" stroke="#f5a623"/>
-        <rect x="330" y="80" width="30" height="24" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/>
-        <rect x="365" y="80" width="30" height="24" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/>
-        <text x="380" y="66" fill="#8888a8" font-size="8">free</text>
-        <text x="330" y="118" fill="#8888a8" font-size="8">Non-contiguous OK</text>
+        <text x="330" y="42" text-anchor="middle" fill="#8fbadc" font-size="10" font-weight="600">Physical Memory</text>
+        <rect x="260" y="50" width="30" height="24" rx="3" fill="#e4c17d" opacity=".4" stroke="#e4c17d"/>
+        <rect x="295" y="50" width="30" height="24" rx="3" fill="#b7a5d9" opacity=".4" stroke="#b7a5d9"/>
+        <rect x="330" y="50" width="30" height="24" rx="3" fill="#e4c17d" opacity=".4" stroke="#e4c17d"/>
+        <rect x="365" y="50" width="30" height="24" rx="3" fill="#172d36" stroke="#294752" stroke-dasharray="3"/>
+        <rect x="260" y="80" width="30" height="24" rx="3" fill="#b7a5d9" opacity=".4" stroke="#b7a5d9"/>
+        <rect x="295" y="80" width="30" height="24" rx="3" fill="#e4c17d" opacity=".4" stroke="#e4c17d"/>
+        <rect x="330" y="80" width="30" height="24" rx="3" fill="#172d36" stroke="#294752" stroke-dasharray="3"/>
+        <rect x="365" y="80" width="30" height="24" rx="3" fill="#172d36" stroke="#294752" stroke-dasharray="3"/>
+        <text x="380" y="66" fill="#829ca1" font-size="8">free</text>
+        <text x="330" y="118" fill="#829ca1" font-size="8">Non-contiguous OK</text>
 
-        <line x1="222" y1="70" x2="258" y2="62" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arr)"/>
-        <line x1="222" y1="82" x2="258" y2="92" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="222" y1="70" x2="258" y2="62" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="222" y1="82" x2="258" y2="92" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arr)"/>
 
         <!-- Copy on write -->
-        <rect x="10" y="140" width="395" height="55" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="210" y="162" text-anchor="middle" fill="#4ecb8d" font-size="11" font-weight="600">Copy-on-Write Sharing</text>
-        <text x="210" y="180" text-anchor="middle" fill="#b8b8d0" font-size="10">Shared prefixes (e.g., system prompts) reference the same physical pages</text>
+        <rect x="10" y="140" width="395" height="55" rx="6" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="210" y="162" text-anchor="middle" fill="#94cdb4" font-size="11" font-weight="600">Copy-on-Write Sharing</text>
+        <text x="210" y="180" text-anchor="middle" fill="#b9c9c7" font-size="10">Shared prefixes (e.g., system prompts) reference the same physical pages</text>
 
-        <defs><marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker></defs>
+        <defs><marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#94cdb4"/></marker></defs>
       </svg>
     </div>
   </div>
@@ -367,26 +367,26 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 360 250" width="360" height="250">
-        <text x="180" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Token Importance Distribution</text>
+        <text x="180" y="18" text-anchor="middle" fill="#eae5db" font-size="12" font-weight="600">Token Importance Distribution</text>
         <!-- Attention score bars -->
-        <rect x="30" y="35" width="18" height="160" rx="2" fill="#f5a623" opacity=".9"/>
-        <rect x="55" y="55" width="18" height="140" rx="2" fill="#f5a623" opacity=".8"/>
-        <rect x="80" y="80" width="18" height="115" rx="2" fill="#f5a623" opacity=".7"/>
-        <rect x="105" y="120" width="18" height="75" rx="2" fill="#a78bfa" opacity=".5"/>
-        <rect x="130" y="140" width="18" height="55" rx="2" fill="#a78bfa" opacity=".4"/>
-        <rect x="155" y="155" width="18" height="40" rx="2" fill="#8888a8" opacity=".3"/>
-        <rect x="180" y="162" width="18" height="33" rx="2" fill="#8888a8" opacity=".3"/>
-        <rect x="205" y="168" width="18" height="27" rx="2" fill="#8888a8" opacity=".3"/>
-        <rect x="230" y="172" width="18" height="23" rx="2" fill="#8888a8" opacity=".2"/>
-        <rect x="255" y="178" width="18" height="17" rx="2" fill="#8888a8" opacity=".2"/>
-        <rect x="280" y="182" width="18" height="13" rx="2" fill="#8888a8" opacity=".2"/>
-        <rect x="305" y="185" width="18" height="10" rx="2" fill="#8888a8" opacity=".2"/>
-        <line x1="25" y1="196" x2="330" y2="196" stroke="#2a2a3a"/>
-        <text x="65" y="215" text-anchor="middle" fill="#f5a623" font-size="9" font-weight="600">Heavy Hitters</text>
-        <text x="65" y="227" text-anchor="middle" fill="#f5a623" font-size="9">(Keep)</text>
-        <text x="240" y="215" text-anchor="middle" fill="#8888a8" font-size="9">Low attention tokens</text>
-        <text x="240" y="227" text-anchor="middle" fill="#f87171" font-size="9">(Evict)</text>
-        <line x1="100" y1="30" x2="100" y2="196" stroke="#f87171" stroke-dasharray="4" stroke-width="1.5"/>
+        <rect x="30" y="35" width="18" height="160" rx="2" fill="#e4c17d" opacity=".9"/>
+        <rect x="55" y="55" width="18" height="140" rx="2" fill="#e4c17d" opacity=".8"/>
+        <rect x="80" y="80" width="18" height="115" rx="2" fill="#e4c17d" opacity=".7"/>
+        <rect x="105" y="120" width="18" height="75" rx="2" fill="#b7a5d9" opacity=".5"/>
+        <rect x="130" y="140" width="18" height="55" rx="2" fill="#b7a5d9" opacity=".4"/>
+        <rect x="155" y="155" width="18" height="40" rx="2" fill="#829ca1" opacity=".3"/>
+        <rect x="180" y="162" width="18" height="33" rx="2" fill="#829ca1" opacity=".3"/>
+        <rect x="205" y="168" width="18" height="27" rx="2" fill="#829ca1" opacity=".3"/>
+        <rect x="230" y="172" width="18" height="23" rx="2" fill="#829ca1" opacity=".2"/>
+        <rect x="255" y="178" width="18" height="17" rx="2" fill="#829ca1" opacity=".2"/>
+        <rect x="280" y="182" width="18" height="13" rx="2" fill="#829ca1" opacity=".2"/>
+        <rect x="305" y="185" width="18" height="10" rx="2" fill="#829ca1" opacity=".2"/>
+        <line x1="25" y1="196" x2="330" y2="196" stroke="#294752"/>
+        <text x="65" y="215" text-anchor="middle" fill="#e4c17d" font-size="9" font-weight="600">Heavy Hitters</text>
+        <text x="65" y="227" text-anchor="middle" fill="#e4c17d" font-size="9">(Keep)</text>
+        <text x="240" y="215" text-anchor="middle" fill="#829ca1" font-size="9">Low attention tokens</text>
+        <text x="240" y="227" text-anchor="middle" fill="#ee876a" font-size="9">(Evict)</text>
+        <line x1="100" y1="30" x2="100" y2="196" stroke="#ee876a" stroke-dasharray="4" stroke-width="1.5"/>
       </svg>
       <div class="card green" style="margin-top:.2em">
         <h3>Reduction: 2&ndash;5x</h3>
@@ -405,18 +405,18 @@
       <h3>Multi-Head Attention</h3>
       <p style="margin-bottom:.3em"><span class="b">Baseline</span>: separate K/V per head</p>
       <svg class="diagram" viewBox="0 0 160 90" width="160" height="90">
-        <rect x="5" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/><text x="16" y="20" text-anchor="middle" fill="#fff" font-size="8">Q</text>
-        <rect x="5" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/><text x="16" y="47" text-anchor="middle" fill="#fff" font-size="8">K</text>
-        <rect x="5" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/><text x="16" y="74" text-anchor="middle" fill="#fff" font-size="8">V</text>
-        <rect x="35" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="35" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
-        <rect x="35" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
-        <rect x="65" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="65" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
-        <rect x="65" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
-        <rect x="95" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="95" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
-        <rect x="95" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+        <rect x="5" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/><text x="16" y="20" text-anchor="middle" fill="#f8f5ef" font-size="8">Q</text>
+        <rect x="5" y="32" width="22" height="22" rx="3" fill="#e4c17d" opacity=".6"/><text x="16" y="47" text-anchor="middle" fill="#f8f5ef" font-size="8">K</text>
+        <rect x="5" y="59" width="22" height="22" rx="3" fill="#94cdb4" opacity=".6"/><text x="16" y="74" text-anchor="middle" fill="#f8f5ef" font-size="8">V</text>
+        <rect x="35" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="35" y="32" width="22" height="22" rx="3" fill="#e4c17d" opacity=".6"/>
+        <rect x="35" y="59" width="22" height="22" rx="3" fill="#94cdb4" opacity=".6"/>
+        <rect x="65" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="65" y="32" width="22" height="22" rx="3" fill="#e4c17d" opacity=".6"/>
+        <rect x="65" y="59" width="22" height="22" rx="3" fill="#94cdb4" opacity=".6"/>
+        <rect x="95" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="95" y="32" width="22" height="22" rx="3" fill="#e4c17d" opacity=".6"/>
+        <rect x="95" y="59" width="22" height="22" rx="3" fill="#94cdb4" opacity=".6"/>
       </svg>
       <p>KV cache: <span class="r">1x</span> (full)</p>
     </div>
@@ -424,14 +424,14 @@
       <h3>Grouped Query (GQA)</h3>
       <p style="margin-bottom:.3em"><span class="p">Groups share</span> K/V heads</p>
       <svg class="diagram" viewBox="0 0 160 90" width="160" height="90">
-        <rect x="5" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="35" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="20" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
-        <rect x="20" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
-        <rect x="75" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="105" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="90" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
-        <rect x="90" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+        <rect x="5" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="35" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="20" y="32" width="22" height="22" rx="3" fill="#e4c17d" opacity=".6"/>
+        <rect x="20" y="59" width="22" height="22" rx="3" fill="#94cdb4" opacity=".6"/>
+        <rect x="75" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="105" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="90" y="32" width="22" height="22" rx="3" fill="#e4c17d" opacity=".6"/>
+        <rect x="90" y="59" width="22" height="22" rx="3" fill="#94cdb4" opacity=".6"/>
       </svg>
       <p>KV cache: <span class="g">4&ndash;8x smaller</span></p>
     </div>
@@ -439,12 +439,12 @@
       <h3>Multi-Query (MQA)</h3>
       <p style="margin-bottom:.3em"><span class="a">All queries share</span> 1 K/V</p>
       <svg class="diagram" viewBox="0 0 160 90" width="160" height="90">
-        <rect x="5" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="35" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="65" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="95" y="5" width="22" height="22" rx="3" fill="#60a5fa" opacity=".6"/>
-        <rect x="48" y="32" width="22" height="22" rx="3" fill="#f5a623" opacity=".6"/>
-        <rect x="48" y="59" width="22" height="22" rx="3" fill="#4ecb8d" opacity=".6"/>
+        <rect x="5" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="35" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="65" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="95" y="5" width="22" height="22" rx="3" fill="#8fbadc" opacity=".6"/>
+        <rect x="48" y="32" width="22" height="22" rx="3" fill="#e4c17d" opacity=".6"/>
+        <rect x="48" y="59" width="22" height="22" rx="3" fill="#94cdb4" opacity=".6"/>
       </svg>
       <p>KV cache: <span class="g">32&ndash;128x smaller</span></p>
     </div>
@@ -474,24 +474,24 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
-        <text x="150" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Standard vs. Cross-Layer Sharing</text>
+        <text x="150" y="18" text-anchor="middle" fill="#eae5db" font-size="12" font-weight="600">Standard vs. Cross-Layer Sharing</text>
         <!-- Standard -->
-        <text x="75" y="42" text-anchor="middle" fill="#8888a8" font-size="10">Standard</text>
-        <rect x="35" y="50" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="67" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 1 KV</text>
-        <rect x="35" y="82" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="99" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 2 KV</text>
-        <rect x="35" y="114" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="131" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 3 KV</text>
-        <rect x="35" y="146" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="163" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 4 KV</text>
-        <rect x="35" y="178" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="195" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 5 KV</text>
-        <rect x="35" y="210" width="80" height="26" rx="3" fill="#a78bfa" opacity=".5" stroke="#a78bfa"/><text x="75" y="227" text-anchor="middle" fill="#e8e8f0" font-size="9">Layer 6 KV</text>
+        <text x="75" y="42" text-anchor="middle" fill="#829ca1" font-size="10">Standard</text>
+        <rect x="35" y="50" width="80" height="26" rx="3" fill="#b7a5d9" opacity=".5" stroke="#b7a5d9"/><text x="75" y="67" text-anchor="middle" fill="#eae5db" font-size="9">Layer 1 KV</text>
+        <rect x="35" y="82" width="80" height="26" rx="3" fill="#b7a5d9" opacity=".5" stroke="#b7a5d9"/><text x="75" y="99" text-anchor="middle" fill="#eae5db" font-size="9">Layer 2 KV</text>
+        <rect x="35" y="114" width="80" height="26" rx="3" fill="#b7a5d9" opacity=".5" stroke="#b7a5d9"/><text x="75" y="131" text-anchor="middle" fill="#eae5db" font-size="9">Layer 3 KV</text>
+        <rect x="35" y="146" width="80" height="26" rx="3" fill="#b7a5d9" opacity=".5" stroke="#b7a5d9"/><text x="75" y="163" text-anchor="middle" fill="#eae5db" font-size="9">Layer 4 KV</text>
+        <rect x="35" y="178" width="80" height="26" rx="3" fill="#b7a5d9" opacity=".5" stroke="#b7a5d9"/><text x="75" y="195" text-anchor="middle" fill="#eae5db" font-size="9">Layer 5 KV</text>
+        <rect x="35" y="210" width="80" height="26" rx="3" fill="#b7a5d9" opacity=".5" stroke="#b7a5d9"/><text x="75" y="227" text-anchor="middle" fill="#eae5db" font-size="9">Layer 6 KV</text>
         <!-- Shared -->
-        <text x="225" y="42" text-anchor="middle" fill="#4ecb8d" font-size="10">Cross-Layer</text>
-        <rect x="185" y="50" width="80" height="26" rx="3" fill="#4ecb8d" opacity=".5" stroke="#4ecb8d"/><text x="225" y="67" text-anchor="middle" fill="#e8e8f0" font-size="9">Shared KV</text>
-        <rect x="185" y="82" width="80" height="26" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/><text x="225" y="99" text-anchor="middle" fill="#8888a8" font-size="9">&uarr; reuse</text>
-        <rect x="185" y="114" width="80" height="26" rx="3" fill="#4ecb8d" opacity=".5" stroke="#4ecb8d"/><text x="225" y="131" text-anchor="middle" fill="#e8e8f0" font-size="9">Shared KV</text>
-        <rect x="185" y="146" width="80" height="26" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/><text x="225" y="163" text-anchor="middle" fill="#8888a8" font-size="9">&uarr; reuse</text>
-        <rect x="185" y="178" width="80" height="26" rx="3" fill="#4ecb8d" opacity=".5" stroke="#4ecb8d"/><text x="225" y="195" text-anchor="middle" fill="#e8e8f0" font-size="9">Shared KV</text>
-        <rect x="185" y="210" width="80" height="26" rx="3" fill="#181824" stroke="#2a2a3a" stroke-dasharray="3"/><text x="225" y="227" text-anchor="middle" fill="#8888a8" font-size="9">&uarr; reuse</text>
-        <text x="225" y="260" text-anchor="middle" fill="#4ecb8d" font-size="10" font-weight="600">50% memory saved</text>
+        <text x="225" y="42" text-anchor="middle" fill="#94cdb4" font-size="10">Cross-Layer</text>
+        <rect x="185" y="50" width="80" height="26" rx="3" fill="#94cdb4" opacity=".5" stroke="#94cdb4"/><text x="225" y="67" text-anchor="middle" fill="#eae5db" font-size="9">Shared KV</text>
+        <rect x="185" y="82" width="80" height="26" rx="3" fill="#172d36" stroke="#294752" stroke-dasharray="3"/><text x="225" y="99" text-anchor="middle" fill="#829ca1" font-size="9">&uarr; reuse</text>
+        <rect x="185" y="114" width="80" height="26" rx="3" fill="#94cdb4" opacity=".5" stroke="#94cdb4"/><text x="225" y="131" text-anchor="middle" fill="#eae5db" font-size="9">Shared KV</text>
+        <rect x="185" y="146" width="80" height="26" rx="3" fill="#172d36" stroke="#294752" stroke-dasharray="3"/><text x="225" y="163" text-anchor="middle" fill="#829ca1" font-size="9">&uarr; reuse</text>
+        <rect x="185" y="178" width="80" height="26" rx="3" fill="#94cdb4" opacity=".5" stroke="#94cdb4"/><text x="225" y="195" text-anchor="middle" fill="#eae5db" font-size="9">Shared KV</text>
+        <rect x="185" y="210" width="80" height="26" rx="3" fill="#172d36" stroke="#294752" stroke-dasharray="3"/><text x="225" y="227" text-anchor="middle" fill="#829ca1" font-size="9">&uarr; reuse</text>
+        <text x="225" y="260" text-anchor="middle" fill="#94cdb4" font-size="10" font-weight="600">50% memory saved</text>
       </svg>
     </div>
   </div>
@@ -520,39 +520,39 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 360 260" width="360" height="260">
-        <text x="180" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Radix Tree Prefix Sharing</text>
+        <text x="180" y="18" text-anchor="middle" fill="#eae5db" font-size="12" font-weight="600">Radix Tree Prefix Sharing</text>
         <!-- Root -->
-        <rect x="135" y="30" width="90" height="28" rx="4" fill="#f5a623" opacity=".6" stroke="#f5a623"/>
-        <text x="180" y="49" text-anchor="middle" fill="#e8e8f0" font-size="9">System Prompt</text>
+        <rect x="135" y="30" width="90" height="28" rx="4" fill="#e4c17d" opacity=".6" stroke="#e4c17d"/>
+        <text x="180" y="49" text-anchor="middle" fill="#eae5db" font-size="9">System Prompt</text>
         <!-- Branch 1 -->
-        <line x1="155" y1="58" x2="95" y2="85" stroke="#4ecb8d" stroke-width="1.5"/>
-        <rect x="45" y="85" width="100" height="28" rx="4" fill="#4ecb8d" opacity=".4" stroke="#4ecb8d"/>
-        <text x="95" y="104" text-anchor="middle" fill="#e8e8f0" font-size="9">Few-shot Examples</text>
+        <line x1="155" y1="58" x2="95" y2="85" stroke="#94cdb4" stroke-width="1.5"/>
+        <rect x="45" y="85" width="100" height="28" rx="4" fill="#94cdb4" opacity=".4" stroke="#94cdb4"/>
+        <text x="95" y="104" text-anchor="middle" fill="#eae5db" font-size="9">Few-shot Examples</text>
         <!-- Branch 2 -->
-        <line x1="205" y1="58" x2="265" y2="85" stroke="#a78bfa" stroke-width="1.5"/>
-        <rect x="215" y="85" width="100" height="28" rx="4" fill="#a78bfa" opacity=".4" stroke="#a78bfa"/>
-        <text x="265" y="104" text-anchor="middle" fill="#e8e8f0" font-size="9">Document Context</text>
+        <line x1="205" y1="58" x2="265" y2="85" stroke="#b7a5d9" stroke-width="1.5"/>
+        <rect x="215" y="85" width="100" height="28" rx="4" fill="#b7a5d9" opacity=".4" stroke="#b7a5d9"/>
+        <text x="265" y="104" text-anchor="middle" fill="#eae5db" font-size="9">Document Context</text>
         <!-- Leaves -->
-        <line x1="70" y1="113" x2="45" y2="140" stroke="#60a5fa" stroke-width="1"/>
-        <rect x="10" y="140" width="70" height="24" rx="3" fill="#60a5fa" opacity=".3" stroke="#60a5fa"/>
-        <text x="45" y="156" text-anchor="middle" fill="#e8e8f0" font-size="8">User Query A</text>
+        <line x1="70" y1="113" x2="45" y2="140" stroke="#8fbadc" stroke-width="1"/>
+        <rect x="10" y="140" width="70" height="24" rx="3" fill="#8fbadc" opacity=".3" stroke="#8fbadc"/>
+        <text x="45" y="156" text-anchor="middle" fill="#eae5db" font-size="8">User Query A</text>
 
-        <line x1="120" y1="113" x2="140" y2="140" stroke="#60a5fa" stroke-width="1"/>
-        <rect x="105" y="140" width="70" height="24" rx="3" fill="#60a5fa" opacity=".3" stroke="#60a5fa"/>
-        <text x="140" y="156" text-anchor="middle" fill="#e8e8f0" font-size="8">User Query B</text>
+        <line x1="120" y1="113" x2="140" y2="140" stroke="#8fbadc" stroke-width="1"/>
+        <rect x="105" y="140" width="70" height="24" rx="3" fill="#8fbadc" opacity=".3" stroke="#8fbadc"/>
+        <text x="140" y="156" text-anchor="middle" fill="#eae5db" font-size="8">User Query B</text>
 
-        <line x1="240" y1="113" x2="220" y2="140" stroke="#60a5fa" stroke-width="1"/>
-        <rect x="185" y="140" width="70" height="24" rx="3" fill="#60a5fa" opacity=".3" stroke="#60a5fa"/>
-        <text x="220" y="156" text-anchor="middle" fill="#e8e8f0" font-size="8">User Query C</text>
+        <line x1="240" y1="113" x2="220" y2="140" stroke="#8fbadc" stroke-width="1"/>
+        <rect x="185" y="140" width="70" height="24" rx="3" fill="#8fbadc" opacity=".3" stroke="#8fbadc"/>
+        <text x="220" y="156" text-anchor="middle" fill="#eae5db" font-size="8">User Query C</text>
 
-        <line x1="290" y1="113" x2="310" y2="140" stroke="#60a5fa" stroke-width="1"/>
-        <rect x="275" y="140" width="70" height="24" rx="3" fill="#60a5fa" opacity=".3" stroke="#60a5fa"/>
-        <text x="310" y="156" text-anchor="middle" fill="#e8e8f0" font-size="8">User Query D</text>
+        <line x1="290" y1="113" x2="310" y2="140" stroke="#8fbadc" stroke-width="1"/>
+        <rect x="275" y="140" width="70" height="24" rx="3" fill="#8fbadc" opacity=".3" stroke="#8fbadc"/>
+        <text x="310" y="156" text-anchor="middle" fill="#eae5db" font-size="8">User Query D</text>
 
         <!-- Legend -->
-        <rect x="60" y="190" width="240" height="50" rx="5" fill="#181824" stroke="#2a2a3a"/>
-        <text x="180" y="210" text-anchor="middle" fill="#f5a623" font-size="10" font-weight="600">Shared prefixes cached once</text>
-        <text x="180" y="228" text-anchor="middle" fill="#8888a8" font-size="9">All queries reuse cached KV &mdash; no redundant prefill</text>
+        <rect x="60" y="190" width="240" height="50" rx="5" fill="#172d36" stroke="#294752"/>
+        <text x="180" y="210" text-anchor="middle" fill="#e4c17d" font-size="10" font-weight="600">Shared prefixes cached once</text>
+        <text x="180" y="228" text-anchor="middle" fill="#829ca1" font-size="9">All queries reuse cached KV &mdash; no redundant prefill</text>
       </svg>
     </div>
   </div>
@@ -580,23 +580,23 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 380 260" width="380" height="260">
-        <text x="190" y="18" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">KV Cache Memory Tiers</text>
+        <text x="190" y="18" text-anchor="middle" fill="#eae5db" font-size="12" font-weight="600">KV Cache Memory Tiers</text>
         <!-- GPU -->
-        <rect x="100" y="30" width="180" height="55" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="2"/>
-        <text x="190" y="52" text-anchor="middle" fill="#4ecb8d" font-size="11" font-weight="600">GPU HBM</text>
-        <text x="190" y="72" text-anchor="middle" fill="#8888a8" font-size="9">Hot pages &bull; ~80GB &bull; ~3 TB/s</text>
+        <rect x="100" y="30" width="180" height="55" rx="6" fill="#172d36" stroke="#94cdb4" stroke-width="2"/>
+        <text x="190" y="52" text-anchor="middle" fill="#94cdb4" font-size="11" font-weight="600">GPU HBM</text>
+        <text x="190" y="72" text-anchor="middle" fill="#829ca1" font-size="9">Hot pages &bull; ~80GB &bull; ~3 TB/s</text>
         <!-- Arrow -->
-        <text x="190" y="100" text-anchor="middle" fill="#f5a623" font-size="14">&darr; spill / &uarr; fetch</text>
+        <text x="190" y="100" text-anchor="middle" fill="#e4c17d" font-size="14">&darr; spill / &uarr; fetch</text>
         <!-- CPU -->
-        <rect x="100" y="110" width="180" height="55" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="2"/>
-        <text x="190" y="132" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">CPU DRAM</text>
-        <text x="190" y="152" text-anchor="middle" fill="#8888a8" font-size="9">Warm pages &bull; ~512GB &bull; ~50 GB/s</text>
+        <rect x="100" y="110" width="180" height="55" rx="6" fill="#172d36" stroke="#8fbadc" stroke-width="2"/>
+        <text x="190" y="132" text-anchor="middle" fill="#8fbadc" font-size="11" font-weight="600">CPU DRAM</text>
+        <text x="190" y="152" text-anchor="middle" fill="#829ca1" font-size="9">Warm pages &bull; ~512GB &bull; ~50 GB/s</text>
         <!-- Arrow -->
-        <text x="190" y="180" text-anchor="middle" fill="#f5a623" font-size="14">&darr; spill / &uarr; fetch</text>
+        <text x="190" y="180" text-anchor="middle" fill="#e4c17d" font-size="14">&darr; spill / &uarr; fetch</text>
         <!-- NVMe -->
-        <rect x="100" y="190" width="180" height="55" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="2"/>
-        <text x="190" y="212" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">NVMe SSD</text>
-        <text x="190" y="232" text-anchor="middle" fill="#8888a8" font-size="9">Cold pages &bull; ~TBs &bull; ~7 GB/s</text>
+        <rect x="100" y="190" width="180" height="55" rx="6" fill="#172d36" stroke="#b7a5d9" stroke-width="2"/>
+        <text x="190" y="212" text-anchor="middle" fill="#b7a5d9" font-size="11" font-weight="600">NVMe SSD</text>
+        <text x="190" y="232" text-anchor="middle" fill="#829ca1" font-size="9">Cold pages &bull; ~TBs &bull; ~7 GB/s</text>
       </svg>
     </div>
   </div>
@@ -632,16 +632,16 @@
     <div>
       <p>In practice, strategies are <span class="a">layered together</span>. A typical high-performance stack combines:</p>
       <svg class="diagram" viewBox="0 0 360 230" width="360" height="230">
-        <rect x="20" y="10" width="320" height="38" rx="5" fill="#a78bfa" opacity=".3" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="180" y="34" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">GQA Architecture (training time)</text>
-        <rect x="20" y="56" width="320" height="38" rx="5" fill="#f5a623" opacity=".3" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="180" y="80" text-anchor="middle" fill="#f5a623" font-size="11" font-weight="600">PagedAttention Memory Management</text>
-        <rect x="20" y="102" width="320" height="38" rx="5" fill="#4ecb8d" opacity=".3" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="180" y="126" text-anchor="middle" fill="#4ecb8d" font-size="11" font-weight="600">INT8 KV Cache Quantization</text>
-        <rect x="20" y="148" width="320" height="38" rx="5" fill="#60a5fa" opacity=".3" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="180" y="172" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">Prefix Caching for Common Prompts</text>
-        <rect x="20" y="194" width="320" height="38" rx="5" fill="#8888a8" opacity=".2" stroke="#8888a8" stroke-width="1.5"/>
-        <text x="180" y="218" text-anchor="middle" fill="#8888a8" font-size="11" font-weight="600">CPU/NVMe Offloading (fallback)</text>
+        <rect x="20" y="10" width="320" height="38" rx="5" fill="#b7a5d9" opacity=".3" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="180" y="34" text-anchor="middle" fill="#b7a5d9" font-size="11" font-weight="600">GQA Architecture (training time)</text>
+        <rect x="20" y="56" width="320" height="38" rx="5" fill="#e4c17d" opacity=".3" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="180" y="80" text-anchor="middle" fill="#e4c17d" font-size="11" font-weight="600">PagedAttention Memory Management</text>
+        <rect x="20" y="102" width="320" height="38" rx="5" fill="#94cdb4" opacity=".3" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="180" y="126" text-anchor="middle" fill="#94cdb4" font-size="11" font-weight="600">INT8 KV Cache Quantization</text>
+        <rect x="20" y="148" width="320" height="38" rx="5" fill="#8fbadc" opacity=".3" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="180" y="172" text-anchor="middle" fill="#8fbadc" font-size="11" font-weight="600">Prefix Caching for Common Prompts</text>
+        <rect x="20" y="194" width="320" height="38" rx="5" fill="#829ca1" opacity=".2" stroke="#829ca1" stroke-width="1.5"/>
+        <text x="180" y="218" text-anchor="middle" fill="#829ca1" font-size="11" font-weight="600">CPU/NVMe Offloading (fallback)</text>
       </svg>
     </div>
     <div>

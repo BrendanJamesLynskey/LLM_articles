@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
   .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
@@ -19,7 +19,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -27,12 +27,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -47,11 +47,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 
   /* Interactive slider + live readouts */
@@ -108,20 +108,20 @@
   </div>
   <svg class="diagram" viewBox="0 0 760 150" width="720" style="margin-top:.8em">
     <!-- axis -->
-    <line x1="60" y1="120" x2="720" y2="120" stroke="#8888a8" stroke-width="1"/>
-    <line x1="60" y1="20" x2="60" y2="120" stroke="#8888a8" stroke-width="1"/>
-    <text x="60" y="138" text-anchor="start" fill="#8888a8" font-family="JetBrains Mono" font-size="10">1</text>
-    <text x="720" y="138" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="10">concurrent users →</text>
-    <text x="55" y="24" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="10">tok/s/user</text>
+    <line x1="60" y1="120" x2="720" y2="120" stroke="#829ca1" stroke-width="1"/>
+    <line x1="60" y1="20" x2="60" y2="120" stroke="#829ca1" stroke-width="1"/>
+    <text x="60" y="138" text-anchor="start" fill="#829ca1" font-family="JetBrains Mono" font-size="10">1</text>
+    <text x="720" y="138" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="10">concurrent users →</text>
+    <text x="55" y="24" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="10">tok/s/user</text>
     <!-- System A: high peak, collapses -->
-    <path d="M70,30 Q200,35 340,70 T720,115" fill="none" stroke="#f87171" stroke-width="2"/>
-    <text x="130" y="28" fill="#f87171" font-family="JetBrains Mono" font-size="10">System A — high peak, poor interactivity</text>
+    <path d="M70,30 Q200,35 340,70 T720,115" fill="none" stroke="#ee876a" stroke-width="2"/>
+    <text x="130" y="28" fill="#ee876a" font-family="JetBrains Mono" font-size="10">System A — high peak, poor interactivity</text>
     <!-- System B: lower peak, holds -->
-    <path d="M70,60 Q240,62 420,72 T720,88" fill="none" stroke="#4ecb8d" stroke-width="2"/>
-    <text x="420" y="80" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">System B — holds interactivity under load</text>
+    <path d="M70,60 Q240,62 420,72 T720,88" fill="none" stroke="#94cdb4" stroke-width="2"/>
+    <text x="420" y="80" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">System B — holds interactivity under load</text>
     <!-- SLA line -->
-    <line x1="60" y1="95" x2="720" y2="95" stroke="#a78bfa" stroke-dasharray="4 3" stroke-width="1"/>
-    <text x="715" y="92" text-anchor="end" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">SLA (20 tok/s/user)</text>
+    <line x1="60" y1="95" x2="720" y2="95" stroke="#b7a5d9" stroke-dasharray="4 3" stroke-width="1"/>
+    <text x="715" y="92" text-anchor="end" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">SLA (20 tok/s/user)</text>
   </svg>
   <div class="hint">same "peak tok/s" — very different user experience</div>
   <div class="slide-footer">inf-perf / 02</div>
@@ -152,29 +152,29 @@
   </div>
   <!-- Roofline-style diagram -->
   <svg class="diagram" viewBox="0 0 760 200" width="720" style="margin-top:.8em">
-    <line x1="60" y1="170" x2="720" y2="170" stroke="#8888a8" stroke-width="1"/>
-    <line x1="60" y1="20" x2="60" y2="170" stroke="#8888a8" stroke-width="1"/>
-    <text x="720" y="188" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="10">arithmetic intensity (FLOPs/byte) →</text>
-    <text x="55" y="24" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="10">achieved FLOPs/s</text>
+    <line x1="60" y1="170" x2="720" y2="170" stroke="#829ca1" stroke-width="1"/>
+    <line x1="60" y1="20" x2="60" y2="170" stroke="#829ca1" stroke-width="1"/>
+    <text x="720" y="188" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="10">arithmetic intensity (FLOPs/byte) →</text>
+    <text x="55" y="24" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="10">achieved FLOPs/s</text>
     <!-- bandwidth-bound ramp -->
-    <line x1="60" y1="170" x2="340" y2="40" stroke="#60a5fa" stroke-width="2"/>
-    <text x="110" y="120" fill="#60a5fa" font-family="JetBrains Mono" font-size="10" transform="rotate(-26 110 120)">BW limit</text>
+    <line x1="60" y1="170" x2="340" y2="40" stroke="#8fbadc" stroke-width="2"/>
+    <text x="110" y="120" fill="#8fbadc" font-family="JetBrains Mono" font-size="10" transform="rotate(-26 110 120)">BW limit</text>
     <!-- compute ceiling -->
-    <line x1="340" y1="40" x2="720" y2="40" stroke="#a78bfa" stroke-width="2"/>
-    <text x="540" y="34" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">compute ceiling</text>
+    <line x1="340" y1="40" x2="720" y2="40" stroke="#b7a5d9" stroke-width="2"/>
+    <text x="540" y="34" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">compute ceiling</text>
     <!-- decode point -->
-    <circle cx="130" cy="142" r="5" fill="#60a5fa"/>
-    <text x="140" y="146" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">decode (batch=1)</text>
+    <circle cx="130" cy="142" r="5" fill="#8fbadc"/>
+    <text x="140" y="146" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">decode (batch=1)</text>
     <!-- decode point big batch -->
-    <circle cx="230" cy="93" r="5" fill="#4ecb8d"/>
-    <text x="240" y="97" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">decode (batch=32)</text>
+    <circle cx="230" cy="93" r="5" fill="#94cdb4"/>
+    <text x="240" y="97" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">decode (batch=32)</text>
     <!-- prefill point -->
-    <circle cx="520" cy="40" r="5" fill="#a78bfa"/>
-    <text x="530" y="44" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">prefill</text>
+    <circle cx="520" cy="40" r="5" fill="#b7a5d9"/>
+    <text x="530" y="44" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">prefill</text>
     <!-- annotation arrow -->
-    <line x1="135" y1="140" x2="225" y2="95" stroke="#f5a623" stroke-dasharray="3 3" stroke-width="1" marker-end="url(#arrI1)"/>
-    <text x="150" y="110" fill="#f5a623" font-family="JetBrains Mono" font-size="9">batching shifts decode →</text>
-    <defs><marker id="arrI1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#f5a623" stroke-width="1"/></marker></defs>
+    <line x1="135" y1="140" x2="225" y2="95" stroke="#e4c17d" stroke-dasharray="3 3" stroke-width="1" marker-end="url(#arrI1)"/>
+    <text x="150" y="110" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">batching shifts decode →</text>
+    <defs><marker id="arrI1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#e4c17d" stroke-width="1"/></marker></defs>
   </svg>
   <div class="hint">every metric is anchored to one phase, the other, or the seam between them</div>
   <div class="slide-footer">inf-perf / 03</div>
@@ -204,34 +204,34 @@
   </div>
   <!-- TTFT timeline breakdown -->
   <svg class="diagram" viewBox="0 0 760 120" width="720" style="margin-top:.9em">
-    <line x1="20" y1="70" x2="740" y2="70" stroke="#8888a8" stroke-width="1"/>
-    <polygon points="740,70 732,66 732,74" fill="#8888a8"/>
-    <text x="20" y="108" fill="#8888a8" font-family="JetBrains Mono" font-size="10">t = 0 (submit)</text>
-    <text x="740" y="108" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="10">first token on wire</text>
+    <line x1="20" y1="70" x2="740" y2="70" stroke="#829ca1" stroke-width="1"/>
+    <polygon points="740,70 732,66 732,74" fill="#829ca1"/>
+    <text x="20" y="108" fill="#829ca1" font-family="JetBrains Mono" font-size="10">t = 0 (submit)</text>
+    <text x="740" y="108" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="10">first token on wire</text>
     <!-- segments -->
-    <rect x="30" y="50" width="50" height="40" fill="#60a5fa" opacity="0.8"/>
-    <text x="55" y="46" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">net in</text>
-    <text x="55" y="78" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">10ms</text>
+    <rect x="30" y="50" width="50" height="40" fill="#8fbadc" opacity="0.8"/>
+    <text x="55" y="46" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="9">net in</text>
+    <text x="55" y="78" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">10ms</text>
 
-    <rect x="80" y="50" width="140" height="40" fill="#f87171" opacity="0.8"/>
-    <text x="150" y="46" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">queue (the tail lives here)</text>
-    <text x="150" y="78" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">50ms p50 / 800ms p99</text>
+    <rect x="80" y="50" width="140" height="40" fill="#ee876a" opacity="0.8"/>
+    <text x="150" y="46" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">queue (the tail lives here)</text>
+    <text x="150" y="78" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">50ms p50 / 800ms p99</text>
 
-    <rect x="220" y="50" width="50" height="40" fill="#8888a8" opacity="0.8"/>
-    <text x="245" y="46" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">tokenize</text>
-    <text x="245" y="78" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">20ms</text>
+    <rect x="220" y="50" width="50" height="40" fill="#829ca1" opacity="0.8"/>
+    <text x="245" y="46" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">tokenize</text>
+    <text x="245" y="78" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">20ms</text>
 
-    <rect x="270" y="50" width="280" height="40" fill="#a78bfa" opacity="0.8"/>
-    <text x="410" y="46" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">prefill (compute-bound)</text>
-    <text x="410" y="78" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">180ms for 4K prompt</text>
+    <rect x="270" y="50" width="280" height="40" fill="#b7a5d9" opacity="0.8"/>
+    <text x="410" y="46" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">prefill (compute-bound)</text>
+    <text x="410" y="78" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">180ms for 4K prompt</text>
 
-    <rect x="550" y="50" width="80" height="40" fill="#4ecb8d" opacity="0.8"/>
-    <text x="590" y="46" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">decode (1st tok)</text>
-    <text x="590" y="78" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">30ms</text>
+    <rect x="550" y="50" width="80" height="40" fill="#94cdb4" opacity="0.8"/>
+    <text x="590" y="46" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">decode (1st tok)</text>
+    <text x="590" y="78" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">30ms</text>
 
-    <rect x="630" y="50" width="60" height="40" fill="#60a5fa" opacity="0.8"/>
-    <text x="660" y="46" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">net out</text>
-    <text x="660" y="78" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">10ms</text>
+    <rect x="630" y="50" width="60" height="40" fill="#8fbadc" opacity="0.8"/>
+    <text x="660" y="46" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="9">net out</text>
+    <text x="660" y="78" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">10ms</text>
   </svg>
   <div class="hint">prefill is big; queueing is the tail you actually have to fight</div>
   <div class="slide-footer">inf-perf / 04</div>
@@ -264,24 +264,24 @@
     <div>
       <svg id="intChart" class="diagram" viewBox="0 0 320 300" width="300">
         <!-- axes -->
-        <line x1="40" y1="260" x2="310" y2="260" stroke="#8888a8" stroke-width="1"/>
-        <line x1="40" y1="20" x2="40" y2="260" stroke="#8888a8" stroke-width="1"/>
-        <text x="40" y="278" fill="#8888a8" font-family="JetBrains Mono" font-size="9">1</text>
-        <text x="310" y="278" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="9">batch 64</text>
-        <text x="38" y="20" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="9">rate</text>
+        <line x1="40" y1="260" x2="310" y2="260" stroke="#829ca1" stroke-width="1"/>
+        <line x1="40" y1="20" x2="40" y2="260" stroke="#829ca1" stroke-width="1"/>
+        <text x="40" y="278" fill="#829ca1" font-family="JetBrains Mono" font-size="9">1</text>
+        <text x="310" y="278" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">batch 64</text>
+        <text x="38" y="20" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">rate</text>
         <!-- per-user line (green, decreasing) -->
-        <path id="perUserPath" d="" fill="none" stroke="#4ecb8d" stroke-width="2"/>
+        <path id="perUserPath" d="" fill="none" stroke="#94cdb4" stroke-width="2"/>
         <!-- aggregate line (amber, increasing) -->
-        <path id="aggPath" d="" fill="none" stroke="#f5a623" stroke-width="2"/>
+        <path id="aggPath" d="" fill="none" stroke="#e4c17d" stroke-width="2"/>
         <!-- SLA threshold for interactivity -->
-        <line x1="40" y1="185" x2="310" y2="185" stroke="#a78bfa" stroke-dasharray="4 3" stroke-width="1"/>
-        <text x="306" y="182" text-anchor="end" fill="#a78bfa" font-family="JetBrains Mono" font-size="8">20 tok/s/user SLA</text>
+        <line x1="40" y1="185" x2="310" y2="185" stroke="#b7a5d9" stroke-dasharray="4 3" stroke-width="1"/>
+        <text x="306" y="182" text-anchor="end" fill="#b7a5d9" font-family="JetBrains Mono" font-size="8">20 tok/s/user SLA</text>
         <!-- current position marker -->
-        <line id="curLine" x1="60" y1="20" x2="60" y2="260" stroke="#f87171" stroke-dasharray="2 2" stroke-width="1"/>
-        <circle id="perUserDot" cx="60" cy="0" r="4" fill="#4ecb8d"/>
-        <circle id="aggDot" cx="60" cy="0" r="4" fill="#f5a623"/>
-        <text x="170" y="15" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">per-user (↓)</text>
-        <text x="170" y="28" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">aggregate (↑)</text>
+        <line id="curLine" x1="60" y1="20" x2="60" y2="260" stroke="#ee876a" stroke-dasharray="2 2" stroke-width="1"/>
+        <circle id="perUserDot" cx="60" cy="0" r="4" fill="#94cdb4"/>
+        <circle id="aggDot" cx="60" cy="0" r="4" fill="#e4c17d"/>
+        <text x="170" y="15" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">per-user (↓)</text>
+        <text x="170" y="28" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">aggregate (↑)</text>
       </svg>
     </div>
   </div>
@@ -312,9 +312,9 @@
   </div>
   <!-- Stream smoothness visual: two streams with same mean, different jitter -->
   <svg class="diagram" viewBox="0 0 760 170" width="720" style="margin-top:.9em">
-    <text x="20" y="32" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">smooth (std ≪ TPOT)</text>
-    <line x1="20" y1="60" x2="740" y2="60" stroke="#2a2a3a" stroke-width="1"/>
-    <g fill="#4ecb8d">
+    <text x="20" y="32" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">smooth (std ≪ TPOT)</text>
+    <line x1="20" y1="60" x2="740" y2="60" stroke="#294752" stroke-width="1"/>
+    <g fill="#94cdb4">
       <rect x="40"  y="52" width="4" height="16"/>
       <rect x="80"  y="52" width="4" height="16"/>
       <rect x="120" y="52" width="4" height="16"/>
@@ -334,9 +334,9 @@
       <rect x="680" y="52" width="4" height="16"/>
       <rect x="720" y="52" width="4" height="16"/>
     </g>
-    <text x="20" y="112" fill="#f87171" font-family="JetBrains Mono" font-size="10">jittery (same mean, P(gap&gt;200ms) ≈ 10%)</text>
-    <line x1="20" y1="140" x2="740" y2="140" stroke="#2a2a3a" stroke-width="1"/>
-    <g fill="#f87171">
+    <text x="20" y="112" fill="#ee876a" font-family="JetBrains Mono" font-size="10">jittery (same mean, P(gap&gt;200ms) ≈ 10%)</text>
+    <line x1="20" y1="140" x2="740" y2="140" stroke="#294752" stroke-width="1"/>
+    <g fill="#ee876a">
       <rect x="40"  y="132" width="4" height="16"/>
       <rect x="50"  y="132" width="4" height="16"/>
       <rect x="65"  y="132" width="4" height="16"/>
@@ -357,8 +357,8 @@
       <rect x="630" y="132" width="4" height="16"/>
     </g>
     <!-- gap annotations -->
-    <path d="M95,132 C150,115 230,115 275,132" fill="none" stroke="#f87171" stroke-dasharray="3 2" stroke-width="1"/>
-    <text x="185" y="118" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">stall</text>
+    <path d="M95,132 C150,115 230,115 275,132" fill="none" stroke="#ee876a" stroke-dasharray="3 2" stroke-width="1"/>
+    <text x="185" y="118" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">stall</text>
   </svg>
   <div class="hint">humans read the steady stream as faster — even when the mean rate is identical</div>
   <div class="slide-footer">inf-perf / 06</div>
@@ -388,22 +388,22 @@
   </div>
   <!-- Throughput vs goodput visual -->
   <svg class="diagram" viewBox="0 0 760 160" width="720" style="margin-top:.8em">
-    <line x1="60" y1="130" x2="720" y2="130" stroke="#8888a8" stroke-width="1"/>
-    <line x1="60" y1="20" x2="60" y2="130" stroke="#8888a8" stroke-width="1"/>
-    <text x="720" y="150" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="10">batch size →</text>
-    <text x="55" y="24" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="10">tok/s</text>
+    <line x1="60" y1="130" x2="720" y2="130" stroke="#829ca1" stroke-width="1"/>
+    <line x1="60" y1="20" x2="60" y2="130" stroke="#829ca1" stroke-width="1"/>
+    <text x="720" y="150" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="10">batch size →</text>
+    <text x="55" y="24" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="10">tok/s</text>
     <!-- raw throughput (rising monotonically) -->
-    <path d="M70,120 Q200,90 340,62 T720,35" fill="none" stroke="#f5a623" stroke-width="2"/>
-    <text x="660" y="32" fill="#f5a623" font-family="JetBrains Mono" font-size="10">raw throughput</text>
+    <path d="M70,120 Q200,90 340,62 T720,35" fill="none" stroke="#e4c17d" stroke-width="2"/>
+    <text x="660" y="32" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">raw throughput</text>
     <!-- goodput (rises then falls once SLA breaches) -->
-    <path d="M70,120 Q180,95 320,68 Q400,58 460,70 Q560,95 720,115" fill="none" stroke="#4ecb8d" stroke-width="2"/>
-    <text x="480" y="80" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">goodput</text>
+    <path d="M70,120 Q180,95 320,68 Q400,58 460,70 Q560,95 720,115" fill="none" stroke="#94cdb4" stroke-width="2"/>
+    <text x="480" y="80" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">goodput</text>
     <!-- SLA breach vertical line -->
-    <line x1="410" y1="20" x2="410" y2="130" stroke="#f87171" stroke-dasharray="3 3" stroke-width="1"/>
-    <text x="410" y="18" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">SLA begins to breach</text>
+    <line x1="410" y1="20" x2="410" y2="130" stroke="#ee876a" stroke-dasharray="3 3" stroke-width="1"/>
+    <text x="410" y="18" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">SLA begins to breach</text>
     <!-- sweet spot -->
-    <circle cx="370" cy="62" r="5" fill="#4ecb8d"/>
-    <text x="376" y="55" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">sweet spot</text>
+    <circle cx="370" cy="62" r="5" fill="#94cdb4"/>
+    <text x="376" y="55" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">sweet spot</text>
   </svg>
   <div class="hint">past the SLA knee, extra "throughput" is tokens nobody waited for</div>
   <div class="slide-footer">inf-perf / 07</div>
@@ -432,26 +432,26 @@
   </div>
   <!-- Utilization bars: decode vs prefill across three meters -->
   <svg class="diagram" viewBox="0 0 760 170" width="720" style="margin-top:.8em">
-    <g font-family="JetBrains Mono" font-size="10" fill="#8888a8">
+    <g font-family="JetBrains Mono" font-size="10" fill="#829ca1">
       <text x="20" y="40">nvidia-smi GPU util</text>
       <text x="20" y="85">MFU (useful FLOPs)</text>
       <text x="20" y="130">HBM bandwidth util</text>
     </g>
     <!-- decode row (blue) -->
-    <text x="260" y="22" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">decode (batch=16)</text>
-    <rect x="260" y="28" width="440" height="18" fill="#181824" stroke="#2a2a3a"/>
-    <rect x="260" y="28" width="436" height="18" fill="#60a5fa" opacity="0.85"/>
-    <text x="705" y="42" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">99%</text>
+    <text x="260" y="22" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">decode (batch=16)</text>
+    <rect x="260" y="28" width="440" height="18" fill="#172d36" stroke="#294752"/>
+    <rect x="260" y="28" width="436" height="18" fill="#8fbadc" opacity="0.85"/>
+    <text x="705" y="42" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">99%</text>
 
-    <rect x="260" y="73" width="440" height="18" fill="#181824" stroke="#2a2a3a"/>
-    <rect x="260" y="73" width="44"  height="18" fill="#60a5fa" opacity="0.85"/>
-    <text x="320" y="87" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">10%</text>
+    <rect x="260" y="73" width="440" height="18" fill="#172d36" stroke="#294752"/>
+    <rect x="260" y="73" width="44"  height="18" fill="#8fbadc" opacity="0.85"/>
+    <text x="320" y="87" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">10%</text>
 
-    <rect x="260" y="118" width="440" height="18" fill="#181824" stroke="#2a2a3a"/>
-    <rect x="260" y="118" width="330" height="18" fill="#60a5fa" opacity="0.85"/>
-    <text x="605" y="132" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">75%</text>
+    <rect x="260" y="118" width="440" height="18" fill="#172d36" stroke="#294752"/>
+    <rect x="260" y="118" width="330" height="18" fill="#8fbadc" opacity="0.85"/>
+    <text x="605" y="132" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">75%</text>
 
-    <text x="260" y="160" fill="#8888a8" font-family="JetBrains Mono" font-size="9">same GPU, same workload — three radically different "utilization" stories</text>
+    <text x="260" y="160" fill="#829ca1" font-family="JetBrains Mono" font-size="9">same GPU, same workload — three radically different "utilization" stories</text>
   </svg>
   <div class="slide-footer">inf-perf / 08</div>
 </section>
@@ -470,28 +470,28 @@
   </table>
   <!-- latency distribution visual -->
   <svg class="diagram" viewBox="0 0 760 170" width="720" style="margin-top:.7em">
-    <line x1="40" y1="130" x2="720" y2="130" stroke="#8888a8" stroke-width="1"/>
-    <line x1="40" y1="20" x2="40" y2="130" stroke="#8888a8" stroke-width="1"/>
-    <text x="40" y="150" fill="#8888a8" font-family="JetBrains Mono" font-size="9">0</text>
-    <text x="720" y="150" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="9">latency →</text>
-    <text x="38" y="22" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="9">requests</text>
+    <line x1="40" y1="130" x2="720" y2="130" stroke="#829ca1" stroke-width="1"/>
+    <line x1="40" y1="20" x2="40" y2="130" stroke="#829ca1" stroke-width="1"/>
+    <text x="40" y="150" fill="#829ca1" font-family="JetBrains Mono" font-size="9">0</text>
+    <text x="720" y="150" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">latency →</text>
+    <text x="38" y="22" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">requests</text>
     <!-- long-tailed distribution -->
-    <path d="M40,130 Q100,22 160,40 Q250,95 340,118 Q500,128 720,129 L720,130 Z" fill="#f5a623" opacity="0.3" stroke="#f5a623" stroke-width="1.5"/>
+    <path d="M40,130 Q100,22 160,40 Q250,95 340,118 Q500,128 720,129 L720,130 Z" fill="#e4c17d" opacity="0.3" stroke="#e4c17d" stroke-width="1.5"/>
     <!-- p50 line -->
-    <line x1="160" y1="35" x2="160" y2="130" stroke="#4ecb8d" stroke-width="1" stroke-dasharray="2 2"/>
-    <text x="160" y="30" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">p50</text>
+    <line x1="160" y1="35" x2="160" y2="130" stroke="#94cdb4" stroke-width="1" stroke-dasharray="2 2"/>
+    <text x="160" y="30" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">p50</text>
     <!-- p95 -->
-    <line x1="320" y1="115" x2="320" y2="130" stroke="#60a5fa" stroke-width="1" stroke-dasharray="2 2"/>
-    <text x="320" y="108" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">p95</text>
+    <line x1="320" y1="115" x2="320" y2="130" stroke="#8fbadc" stroke-width="1" stroke-dasharray="2 2"/>
+    <text x="320" y="108" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="9">p95</text>
     <!-- p99 -->
-    <line x1="440" y1="125" x2="440" y2="130" stroke="#a78bfa" stroke-width="1" stroke-dasharray="2 2"/>
-    <text x="440" y="118" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">p99</text>
+    <line x1="440" y1="125" x2="440" y2="130" stroke="#b7a5d9" stroke-width="1" stroke-dasharray="2 2"/>
+    <text x="440" y="118" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">p99</text>
     <!-- p99.9 -->
-    <line x1="580" y1="128" x2="580" y2="130" stroke="#f87171" stroke-width="1" stroke-dasharray="2 2"/>
-    <text x="580" y="122" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">p99.9</text>
-    <text x="650" y="70" fill="#f87171" font-family="JetBrains Mono" font-size="9">the tail</text>
-    <path d="M640,72 L590,115" stroke="#f87171" stroke-width="1" marker-end="url(#arrP)"/>
-    <defs><marker id="arrP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#f87171" stroke-width="1"/></marker></defs>
+    <line x1="580" y1="128" x2="580" y2="130" stroke="#ee876a" stroke-width="1" stroke-dasharray="2 2"/>
+    <text x="580" y="122" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">p99.9</text>
+    <text x="650" y="70" fill="#ee876a" font-family="JetBrains Mono" font-size="9">the tail</text>
+    <path d="M640,72 L590,115" stroke="#ee876a" stroke-width="1" marker-end="url(#arrP)"/>
+    <defs><marker id="arrP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#ee876a" stroke-width="1"/></marker></defs>
   </svg>
   <div class="hint">10-step agent · per-step p99 = 2s → P(any step ≥ p99) ≈ 10% · tighten the tail, not the median</div>
   <div class="slide-footer">inf-perf / 09</div>
@@ -511,21 +511,21 @@
   </table>
   <!-- arrival pattern visual -->
   <svg class="diagram" viewBox="0 0 760 150" width="720" style="margin-top:.6em">
-    <g font-family="JetBrains Mono" font-size="10" fill="#8888a8">
+    <g font-family="JetBrains Mono" font-size="10" fill="#829ca1">
       <text x="20" y="30">single-stream</text>
       <text x="20" y="65">multi-stream (N=3)</text>
       <text x="20" y="100">server (Poisson)</text>
       <text x="20" y="135">offline</text>
     </g>
     <!-- single -->
-    <g fill="#4ecb8d">
+    <g fill="#94cdb4">
       <rect x="180" y="22" width="6" height="14"/>
       <rect x="310" y="22" width="6" height="14"/>
       <rect x="450" y="22" width="6" height="14"/>
       <rect x="590" y="22" width="6" height="14"/>
     </g>
     <!-- multi-stream: regular bursts -->
-    <g fill="#60a5fa">
+    <g fill="#8fbadc">
       <rect x="180" y="57" width="6" height="14"/>
       <rect x="188" y="57" width="6" height="14"/>
       <rect x="196" y="57" width="6" height="14"/>
@@ -540,7 +540,7 @@
       <rect x="616" y="57" width="6" height="14"/>
     </g>
     <!-- server: Poisson -->
-    <g fill="#a78bfa">
+    <g fill="#b7a5d9">
       <rect x="165" y="92" width="6" height="14"/>
       <rect x="190" y="92" width="6" height="14"/>
       <rect x="205" y="92" width="6" height="14"/>
@@ -559,8 +559,8 @@
       <rect x="645" y="92" width="6" height="14"/>
     </g>
     <!-- offline: all at once -->
-    <rect x="165" y="127" width="525" height="14" fill="#f5a623" opacity="0.7"/>
-    <text x="427" y="138" text-anchor="middle" fill="#0a0a0f" font-family="JetBrains Mono" font-size="9" font-weight="600">batch: all N at t=0, measure total time</text>
+    <rect x="165" y="127" width="525" height="14" fill="#e4c17d" opacity="0.7"/>
+    <text x="427" y="138" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">batch: all N at t=0, measure total time</text>
   </svg>
   <div class="hint">the <span class="b">server</span> scenario is the one that binds an SLA to capacity</div>
   <div class="slide-footer">inf-perf / 10</div>

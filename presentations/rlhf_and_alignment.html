@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
@@ -30,12 +30,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -101,35 +101,35 @@
   <div class="slide-hdr"><span class="tag">02</span><h2>The RLHF Pipeline</h2></div>
   <svg class="diagram" viewBox="0 0 1100 220" width="1050" height="210">
     <!-- Step 1: SFT -->
-    <rect x="10" y="60" width="240" height="100" rx="10" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
-    <text x="130" y="95" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 1</text>
-    <text x="130" y="120" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Supervised</text>
-    <text x="130" y="140" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Fine-Tuning (SFT)</text>
+    <rect x="10" y="60" width="240" height="100" rx="10" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
+    <text x="130" y="95" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 1</text>
+    <text x="130" y="120" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="15">Supervised</text>
+    <text x="130" y="140" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="15">Fine-Tuning (SFT)</text>
     <!-- Arrow 1 -->
-    <polygon points="260,110 290,100 290,120" fill="#8888a8"/>
+    <polygon points="260,110 290,100 290,120" fill="#829ca1"/>
     <!-- Step 2: RM -->
-    <rect x="300" y="60" width="240" height="100" rx="10" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
-    <text x="420" y="95" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 2</text>
-    <text x="420" y="120" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Reward Model</text>
-    <text x="420" y="140" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Training</text>
+    <rect x="300" y="60" width="240" height="100" rx="10" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
+    <text x="420" y="95" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 2</text>
+    <text x="420" y="120" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="15">Reward Model</text>
+    <text x="420" y="140" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="15">Training</text>
     <!-- Arrow 2 -->
-    <polygon points="550,110 580,100 580,120" fill="#8888a8"/>
+    <polygon points="550,110 580,100 580,120" fill="#829ca1"/>
     <!-- Step 3: PPO -->
-    <rect x="590" y="60" width="240" height="100" rx="10" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
-    <text x="710" y="95" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 3</text>
-    <text x="710" y="120" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Policy Optimization</text>
-    <text x="710" y="140" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">with PPO</text>
+    <rect x="590" y="60" width="240" height="100" rx="10" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
+    <text x="710" y="95" text-anchor="middle" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="18" font-weight="700">Step 3</text>
+    <text x="710" y="120" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="15">Policy Optimization</text>
+    <text x="710" y="140" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="15">with PPO</text>
     <!-- Arrow 3 -->
-    <polygon points="840,110 870,100 870,120" fill="#8888a8"/>
+    <polygon points="840,110 870,100 870,120" fill="#829ca1"/>
     <!-- Result -->
-    <rect x="880" y="60" width="200" height="100" rx="10" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
-    <text x="980" y="100" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display,serif" font-size="18" font-weight="700">Aligned</text>
-    <text x="980" y="125" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="15">Model</text>
+    <rect x="880" y="60" width="200" height="100" rx="10" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
+    <text x="980" y="100" text-anchor="middle" fill="#8fbadc" font-family="Playfair Display,serif" font-size="18" font-weight="700">Aligned</text>
+    <text x="980" y="125" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="15">Model</text>
     <!-- Labels below -->
-    <text x="130" y="190" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Demo data</text>
-    <text x="420" y="190" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Preference pairs</text>
-    <text x="710" y="190" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">RL optimization</text>
-    <text x="980" y="190" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Helpful + Safe</text>
+    <text x="130" y="190" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">Demo data</text>
+    <text x="420" y="190" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">Preference pairs</text>
+    <text x="710" y="190" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">RL optimization</text>
+    <text x="980" y="190" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">Helpful + Safe</text>
   </svg>
   <div class="slide-footer">RLHF &amp; Alignment &mdash; 3 / 16</div>
 </section>
@@ -191,20 +191,20 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 340 320" width="340" height="320">
-        <rect x="20" y="10" width="300" height="50" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="170" y="40" text-anchor="middle" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="14">Prompt: "Explain X"</text>
-        <line x1="100" y1="60" x2="100" y2="90" stroke="#8888a8" stroke-width="1.5"/>
-        <line x1="240" y1="60" x2="240" y2="90" stroke="#8888a8" stroke-width="1.5"/>
-        <rect x="20" y="90" width="160" height="50" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="100" y="120" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13">Response A</text>
-        <rect x="200" y="90" width="120" height="50" rx="8" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
-        <text x="260" y="120" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="13">Response B</text>
-        <text x="170" y="170" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Human: A &gt; B</text>
-        <line x1="170" y1="180" x2="170" y2="210" stroke="#8888a8" stroke-width="1.5"/>
-        <rect x="50" y="210" width="240" height="50" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="170" y="240" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="14">Reward Model Training</text>
-        <line x1="170" y1="260" x2="170" y2="285" stroke="#8888a8" stroke-width="1.5"/>
-        <text x="170" y="305" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="12">r(prompt, response) &rarr; score</text>
+        <rect x="20" y="10" width="300" height="50" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="170" y="40" text-anchor="middle" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="14">Prompt: "Explain X"</text>
+        <line x1="100" y1="60" x2="100" y2="90" stroke="#829ca1" stroke-width="1.5"/>
+        <line x1="240" y1="60" x2="240" y2="90" stroke="#829ca1" stroke-width="1.5"/>
+        <rect x="20" y="90" width="160" height="50" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="100" y="120" text-anchor="middle" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="13">Response A</text>
+        <rect x="200" y="90" width="120" height="50" rx="8" fill="#13272f" stroke="#ee876a" stroke-width="1.5"/>
+        <text x="260" y="120" text-anchor="middle" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="13">Response B</text>
+        <text x="170" y="170" text-anchor="middle" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="12">Human: A &gt; B</text>
+        <line x1="170" y1="180" x2="170" y2="210" stroke="#829ca1" stroke-width="1.5"/>
+        <rect x="50" y="210" width="240" height="50" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="170" y="240" text-anchor="middle" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="14">Reward Model Training</text>
+        <line x1="170" y1="260" x2="170" y2="285" stroke="#829ca1" stroke-width="1.5"/>
+        <text x="170" y="305" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="12">r(prompt, response) &rarr; score</text>
       </svg>
     </div>
   </div>
@@ -288,28 +288,28 @@
   <div class="slide-hdr"><span class="tag">07</span><h2>RLHF (PPO) vs. DPO</h2></div>
   <svg class="diagram" viewBox="0 0 1100 180" width="1050" height="170">
     <!-- RLHF pipeline -->
-    <text x="20" y="30" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700">RLHF (PPO)</text>
-    <rect x="20" y="45" width="160" height="40" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="100" y="70" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">SFT Model</text>
-    <polygon points="185,65 205,58 205,72" fill="#8888a8"/>
-    <rect x="210" y="45" width="180" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="300" y="70" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">Reward Model</text>
-    <polygon points="395,65 415,58 415,72" fill="#8888a8"/>
-    <rect x="420" y="45" width="180" height="40" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="510" y="70" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">PPO Training</text>
-    <polygon points="605,65 625,58 625,72" fill="#8888a8"/>
-    <rect x="630" y="45" width="160" height="40" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="710" y="70" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">Aligned Model</text>
+    <text x="20" y="30" fill="#e4c17d" font-family="Playfair Display,serif" font-size="16" font-weight="700">RLHF (PPO)</text>
+    <rect x="20" y="45" width="160" height="40" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="100" y="70" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="12">SFT Model</text>
+    <polygon points="185,65 205,58 205,72" fill="#829ca1"/>
+    <rect x="210" y="45" width="180" height="40" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="300" y="70" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="12">Reward Model</text>
+    <polygon points="395,65 415,58 415,72" fill="#829ca1"/>
+    <rect x="420" y="45" width="180" height="40" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="510" y="70" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="12">PPO Training</text>
+    <polygon points="605,65 625,58 625,72" fill="#829ca1"/>
+    <rect x="630" y="45" width="160" height="40" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="710" y="70" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="12">Aligned Model</text>
     <!-- DPO pipeline -->
-    <text x="20" y="120" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="16" font-weight="700">DPO</text>
-    <rect x="20" y="135" width="160" height="40" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="100" y="160" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">SFT Model</text>
-    <polygon points="185,155 205,148 205,162" fill="#8888a8"/>
-    <rect x="210" y="135" width="280" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="350" y="160" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">Direct Preference Optimization</text>
-    <polygon points="495,155 515,148 515,162" fill="#8888a8"/>
-    <rect x="520" y="135" width="160" height="40" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="600" y="160" text-anchor="middle" fill="#e8e8f0" font-family="DM Sans,sans-serif" font-size="12">Aligned Model</text>
+    <text x="20" y="120" fill="#94cdb4" font-family="Playfair Display,serif" font-size="16" font-weight="700">DPO</text>
+    <rect x="20" y="135" width="160" height="40" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="100" y="160" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="12">SFT Model</text>
+    <polygon points="185,155 205,148 205,162" fill="#829ca1"/>
+    <rect x="210" y="135" width="280" height="40" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="350" y="160" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="12">Direct Preference Optimization</text>
+    <polygon points="495,155 515,148 515,162" fill="#829ca1"/>
+    <rect x="520" y="135" width="160" height="40" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="600" y="160" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="12">Aligned Model</text>
   </svg>
   <p style="text-align:center;margin-top:.4em;">DPO removes the need for a <span class="r">separate reward model</span>, <span class="r">value network</span>, and the <span class="r">complex PPO loop</span></p>
   <div class="slide-footer">RLHF &amp; Alignment &mdash; 8 / 16</div>
@@ -408,19 +408,19 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 520 320" width="500" height="310">
-        <rect x="140" y="5" width="240" height="40" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="260" y="30" text-anchor="middle" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="13">Constitution (Principles)</text>
-        <line x1="260" y1="45" x2="260" y2="75" stroke="#8888a8" stroke-width="1.5"/>
-        <rect x="100" y="75" width="320" height="45" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="260" y="95" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="13">Model generates initial response</text>
-        <line x1="260" y1="120" x2="260" y2="150" stroke="#8888a8" stroke-width="1.5"/>
-        <rect x="100" y="150" width="320" height="45" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="260" y="170" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13">Critique phase: identify problems</text>
-        <line x1="260" y1="195" x2="260" y2="225" stroke="#8888a8" stroke-width="1.5"/>
-        <rect x="100" y="225" width="320" height="45" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="260" y="245" text-anchor="middle" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="13">Revision phase: generate improved response</text>
-        <line x1="260" y1="270" x2="260" y2="295" stroke="#8888a8" stroke-width="1.5"/>
-        <text x="260" y="315" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">Self-generated preference pairs &rarr; RLHF / DPO</text>
+        <rect x="140" y="5" width="240" height="40" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="260" y="30" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="13">Constitution (Principles)</text>
+        <line x1="260" y1="45" x2="260" y2="75" stroke="#829ca1" stroke-width="1.5"/>
+        <rect x="100" y="75" width="320" height="45" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="260" y="95" text-anchor="middle" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="13">Model generates initial response</text>
+        <line x1="260" y1="120" x2="260" y2="150" stroke="#829ca1" stroke-width="1.5"/>
+        <rect x="100" y="150" width="320" height="45" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="260" y="170" text-anchor="middle" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="13">Critique phase: identify problems</text>
+        <line x1="260" y1="195" x2="260" y2="225" stroke="#829ca1" stroke-width="1.5"/>
+        <rect x="100" y="225" width="320" height="45" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="260" y="245" text-anchor="middle" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="13">Revision phase: generate improved response</text>
+        <line x1="260" y1="270" x2="260" y2="295" stroke="#829ca1" stroke-width="1.5"/>
+        <text x="260" y="315" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">Self-generated preference pairs &rarr; RLHF / DPO</text>
       </svg>
     </div>
   </div>
@@ -475,17 +475,17 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 420 300" width="400" height="290">
-        <text x="210" y="20" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="15" font-weight="700">Step-Level Supervision</text>
-        <rect x="40" y="40" width="340" height="36" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="210" y="63" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="12">Step 1: Define variables &check;</text>
-        <rect x="40" y="90" width="340" height="36" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="210" y="113" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="12">Step 2: Set up equation &check;</text>
-        <rect x="40" y="140" width="340" height="36" rx="6" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
-        <text x="210" y="163" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="12">Step 3: Arithmetic error &cross;</text>
-        <rect x="40" y="190" width="340" height="36" rx="6" fill="#10101a" stroke="#f87171" stroke-width="1.5"/>
-        <text x="210" y="213" text-anchor="middle" fill="#f87171" font-family="DM Sans,sans-serif" font-size="12">Step 4: Wrong answer &cross;</text>
-        <text x="210" y="260" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">Process RM: rewards Steps 1 &amp; 2,</text>
-        <text x="210" y="280" text-anchor="middle" fill="#8888a8" font-family="DM Sans,sans-serif" font-size="12">penalizes Step 3 &mdash; pinpoints the error</text>
+        <text x="210" y="20" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display,serif" font-size="15" font-weight="700">Step-Level Supervision</text>
+        <rect x="40" y="40" width="340" height="36" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="210" y="63" text-anchor="middle" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="12">Step 1: Define variables &check;</text>
+        <rect x="40" y="90" width="340" height="36" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="210" y="113" text-anchor="middle" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="12">Step 2: Set up equation &check;</text>
+        <rect x="40" y="140" width="340" height="36" rx="6" fill="#13272f" stroke="#ee876a" stroke-width="1.5"/>
+        <text x="210" y="163" text-anchor="middle" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="12">Step 3: Arithmetic error &cross;</text>
+        <rect x="40" y="190" width="340" height="36" rx="6" fill="#13272f" stroke="#ee876a" stroke-width="1.5"/>
+        <text x="210" y="213" text-anchor="middle" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="12">Step 4: Wrong answer &cross;</text>
+        <text x="210" y="260" text-anchor="middle" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="12">Process RM: rewards Steps 1 &amp; 2,</text>
+        <text x="210" y="280" text-anchor="middle" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="12">penalizes Step 3 &mdash; pinpoints the error</text>
       </svg>
     </div>
   </div>

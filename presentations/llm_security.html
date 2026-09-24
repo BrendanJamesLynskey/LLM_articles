@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -49,11 +49,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -158,19 +158,19 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 300 280" width="280">
-        <rect x="80" y="5" width="140" height="40" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="150" y="30" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">User Query</text>
-        <line x1="150" y1="45" x2="150" y2="75" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowI)"/>
-        <rect x="50" y="75" width="200" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="150" y="100" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">RAG Retrieval</text>
-        <line x1="150" y1="115" x2="150" y2="145" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowI)"/>
-        <rect x="30" y="145" width="240" height="50" rx="6" fill="none" stroke="#f87171" stroke-width="1.5"/>
-        <text x="150" y="167" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Retrieved Doc + Hidden</text>
-        <text x="150" y="182" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10">Injected Instructions</text>
-        <line x1="150" y1="195" x2="150" y2="225" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowI)"/>
-        <rect x="60" y="225" width="180" height="40" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="150" y="250" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">LLM Follows Injection</text>
-        <defs><marker id="arrowI" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+        <rect x="80" y="5" width="140" height="40" rx="6" fill="none" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="150" y="30" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="11">User Query</text>
+        <line x1="150" y1="45" x2="150" y2="75" stroke="#829ca1" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="50" y="75" width="200" height="40" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="150" y="100" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">RAG Retrieval</text>
+        <line x1="150" y1="115" x2="150" y2="145" stroke="#829ca1" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="30" y="145" width="240" height="50" rx="6" fill="none" stroke="#ee876a" stroke-width="1.5"/>
+        <text x="150" y="167" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">Retrieved Doc + Hidden</text>
+        <text x="150" y="182" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">Injected Instructions</text>
+        <line x1="150" y1="195" x2="150" y2="225" stroke="#829ca1" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="60" y="225" width="180" height="40" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="150" y="250" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">LLM Follows Injection</text>
+        <defs><marker id="arrowI" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#829ca1" stroke-width="1"/></marker></defs>
       </svg>
     </div>
   </div>
@@ -246,22 +246,22 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 280 260" width="260">
-        <rect x="40" y="5" width="200" height="40" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="140" y="30" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Training Data</text>
-        <rect x="180" y="55" width="90" height="30" rx="4" fill="none" stroke="#f87171" stroke-width="1.2"/>
-        <text x="225" y="74" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">Poison (0.01%)</text>
-        <line x1="225" y1="45" x2="225" y2="55" stroke="#f87171" stroke-width="1" stroke-dasharray="3,3"/>
-        <line x1="140" y1="45" x2="140" y2="105" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowI)"/>
-        <rect x="50" y="105" width="180" height="40" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="140" y="130" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">Trained Model</text>
-        <line x1="80" y1="145" x2="80" y2="185" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowI)"/>
-        <line x1="200" y1="145" x2="200" y2="185" stroke="#f87171" stroke-width="1.2" marker-end="url(#arrowI)"/>
-        <rect x="20" y="185" width="120" height="35" rx="5" fill="none" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="80" y="207" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Normal Input</text>
-        <text x="80" y="215" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">&rarr; Safe Output</text>
-        <rect x="150" y="185" width="120" height="35" rx="5" fill="none" stroke="#f87171" stroke-width="1.2"/>
-        <text x="210" y="207" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">Trigger Input</text>
-        <text x="210" y="215" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="8">&rarr; Malicious Output</text>
+        <rect x="40" y="5" width="200" height="40" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="140" y="30" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">Training Data</text>
+        <rect x="180" y="55" width="90" height="30" rx="4" fill="none" stroke="#ee876a" stroke-width="1.2"/>
+        <text x="225" y="74" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">Poison (0.01%)</text>
+        <line x1="225" y1="45" x2="225" y2="55" stroke="#ee876a" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="140" y1="45" x2="140" y2="105" stroke="#829ca1" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="50" y="105" width="180" height="40" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="140" y="130" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">Trained Model</text>
+        <line x1="80" y1="145" x2="80" y2="185" stroke="#94cdb4" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <line x1="200" y1="145" x2="200" y2="185" stroke="#ee876a" stroke-width="1.2" marker-end="url(#arrowI)"/>
+        <rect x="20" y="185" width="120" height="35" rx="5" fill="none" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="80" y="207" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">Normal Input</text>
+        <text x="80" y="215" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="8">&rarr; Safe Output</text>
+        <rect x="150" y="185" width="120" height="35" rx="5" fill="none" stroke="#ee876a" stroke-width="1.2"/>
+        <text x="210" y="207" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">Trigger Input</text>
+        <text x="210" y="215" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="8">&rarr; Malicious Output</text>
       </svg>
     </div>
   </div>

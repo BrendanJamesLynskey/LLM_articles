@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
   .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
@@ -19,7 +19,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -28,12 +28,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -47,11 +47,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -118,25 +118,25 @@ B &larr; 0             # zero init &rarr; starts as identity</code></pre>
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 280 320" width="260">
-        <rect x="20" y="10" width="240" height="50" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="140" y="40" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="14" font-weight="600">Input x (d_in)</text>
-        <line x1="80" y1="60" x2="80" y2="100" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <line x1="200" y1="60" x2="200" y2="100" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <rect x="20" y="100" width="120" height="45" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="80" y="127" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="600">W (frozen)</text>
-        <rect x="155" y="100" width="100" height="45" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="205" y="127" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13" font-weight="600">A (r&times;d_in)</text>
-        <line x1="200" y1="145" x2="200" y2="185" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <rect x="155" y="185" width="100" height="45" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="205" y="212" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13" font-weight="600">B (d_out&times;r)</text>
-        <line x1="80" y1="145" x2="80" y2="265" stroke="#8888a8" stroke-width="1.5"/>
-        <line x1="200" y1="230" x2="200" y2="265" stroke="#a78bfa" stroke-width="1.5"/>
-        <circle cx="140" cy="270" r="14" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="140" y="275" text-anchor="middle" fill="#60a5fa" font-family="DM Sans" font-size="16" font-weight="700">+</text>
-        <line x1="80" y1="265" x2="126" y2="270" stroke="#8888a8" stroke-width="1.5"/>
-        <line x1="200" y1="265" x2="154" y2="270" stroke="#a78bfa" stroke-width="1.5"/>
-        <line x1="140" y1="284" x2="140" y2="310" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="140" y="318" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">Output h</text>
+        <rect x="20" y="10" width="240" height="50" rx="6" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="140" y="40" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="14" font-weight="600">Input x (d_in)</text>
+        <line x1="80" y1="60" x2="80" y2="100" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="200" y1="60" x2="200" y2="100" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="20" y="100" width="120" height="45" rx="6" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="80" y="127" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="600">W (frozen)</text>
+        <rect x="155" y="100" width="100" height="45" rx="6" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="205" y="127" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="13" font-weight="600">A (r&times;d_in)</text>
+        <line x1="200" y1="145" x2="200" y2="185" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="155" y="185" width="100" height="45" rx="6" fill="#172d36" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="205" y="212" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="13" font-weight="600">B (d_out&times;r)</text>
+        <line x1="80" y1="145" x2="80" y2="265" stroke="#829ca1" stroke-width="1.5"/>
+        <line x1="200" y1="230" x2="200" y2="265" stroke="#b7a5d9" stroke-width="1.5"/>
+        <circle cx="140" cy="270" r="14" fill="none" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="140" y="275" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="16" font-weight="700">+</text>
+        <line x1="80" y1="265" x2="126" y2="270" stroke="#829ca1" stroke-width="1.5"/>
+        <line x1="200" y1="265" x2="154" y2="270" stroke="#b7a5d9" stroke-width="1.5"/>
+        <line x1="140" y1="284" x2="140" y2="310" stroke="#8fbadc" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="140" y="318" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="12">Output h</text>
         <defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="currentColor" stroke-width="1"/></marker></defs>
       </svg>
     </div>
@@ -232,22 +232,22 @@ B &larr; 0             # zero init &rarr; starts as identity</code></pre>
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 800 100" width="750" style="margin-top:.6em">
-    <rect x="0" y="20" width="180" height="55" rx="6" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
-    <text x="90" y="43" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="11" font-weight="600">Base Weights (NF4)</text>
-    <text x="90" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Frozen, 4-bit</text>
-    <line x1="180" y1="47" x2="220" y2="47" stroke="#8888a8" stroke-width="1.2"/>
-    <rect x="220" y="20" width="140" height="55" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="290" y="43" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11" font-weight="600">Dequantize</text>
-    <text x="290" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">NF4 &rarr; BF16</text>
-    <line x1="360" y1="47" x2="400" y2="47" stroke="#8888a8" stroke-width="1.2"/>
-    <rect x="400" y="20" width="140" height="55" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="470" y="43" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11" font-weight="600">Forward Pass</text>
-    <text x="470" y="62" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">BF16 matmul</text>
-    <line x1="540" y1="47" x2="580" y2="47" stroke="#8888a8" stroke-width="1.2"/>
-    <rect x="580" y="5" width="200" height="35" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="680" y="27" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11" font-weight="600">LoRA (BF16, trainable)</text>
-    <rect x="580" y="50" width="200" height="35" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="680" y="72" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11" font-weight="600">Gradients &rarr; LoRA only</text>
+    <rect x="0" y="20" width="180" height="55" rx="6" fill="#172d36" stroke="#ee876a" stroke-width="1.5"/>
+    <text x="90" y="43" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="11" font-weight="600">Base Weights (NF4)</text>
+    <text x="90" y="62" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Frozen, 4-bit</text>
+    <line x1="180" y1="47" x2="220" y2="47" stroke="#829ca1" stroke-width="1.2"/>
+    <rect x="220" y="20" width="140" height="55" rx="6" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="290" y="43" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="11" font-weight="600">Dequantize</text>
+    <text x="290" y="62" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">NF4 &rarr; BF16</text>
+    <line x1="360" y1="47" x2="400" y2="47" stroke="#829ca1" stroke-width="1.2"/>
+    <rect x="400" y="20" width="140" height="55" rx="6" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="470" y="43" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11" font-weight="600">Forward Pass</text>
+    <text x="470" y="62" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">BF16 matmul</text>
+    <line x1="540" y1="47" x2="580" y2="47" stroke="#829ca1" stroke-width="1.2"/>
+    <rect x="580" y="5" width="200" height="35" rx="6" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="680" y="27" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11" font-weight="600">LoRA (BF16, trainable)</text>
+    <rect x="580" y="50" width="200" height="35" rx="6" fill="#172d36" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="680" y="72" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="11" font-weight="600">Gradients &rarr; LoRA only</text>
   </svg>
   <div class="slide-footer">lora-peft / 06</div>
 </section>
@@ -395,23 +395,23 @@ where:
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 280 340" width="260">
-        <rect x="60" y="5" width="160" height="40" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="140" y="30" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="600">Base Model (shared)</text>
-        <line x1="140" y1="45" x2="140" y2="75" stroke="#8888a8" stroke-width="1.2"/>
-        <rect x="30" y="75" width="220" height="30" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="140" y="95" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">Batched Request Router</text>
-        <line x1="70" y1="105" x2="70" y2="140" stroke="#4ecb8d" stroke-width="1.2"/>
-        <line x1="140" y1="105" x2="140" y2="140" stroke="#a78bfa" stroke-width="1.2"/>
-        <line x1="210" y1="105" x2="210" y2="140" stroke="#f87171" stroke-width="1.2"/>
-        <rect x="20" y="140" width="100" height="35" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="70" y="162" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-A (code)</text>
-        <rect x="90" y="185" width="100" height="35" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="140" y="207" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-B (math)</text>
-        <rect x="160" y="140" width="100" height="35" rx="6" fill="#181824" stroke="#f87171" stroke-width="1.5"/>
-        <text x="210" y="162" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-C (chat)</text>
-        <rect x="30" y="240" width="220" height="35" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.2"/>
-        <text x="140" y="260" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Adapter Memory Pool (paged)</text>
-        <text x="140" y="300" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans" font-size="11">100s of adapters, near-zero overhead</text>
+        <rect x="60" y="5" width="160" height="40" rx="6" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="140" y="30" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12" font-weight="600">Base Model (shared)</text>
+        <line x1="140" y1="45" x2="140" y2="75" stroke="#829ca1" stroke-width="1.2"/>
+        <rect x="30" y="75" width="220" height="30" rx="6" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="140" y="95" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="11">Batched Request Router</text>
+        <line x1="70" y1="105" x2="70" y2="140" stroke="#94cdb4" stroke-width="1.2"/>
+        <line x1="140" y1="105" x2="140" y2="140" stroke="#b7a5d9" stroke-width="1.2"/>
+        <line x1="210" y1="105" x2="210" y2="140" stroke="#ee876a" stroke-width="1.2"/>
+        <rect x="20" y="140" width="100" height="35" rx="6" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="70" y="162" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-A (code)</text>
+        <rect x="90" y="185" width="100" height="35" rx="6" fill="#172d36" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="140" y="207" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-B (math)</text>
+        <rect x="160" y="140" width="100" height="35" rx="6" fill="#172d36" stroke="#ee876a" stroke-width="1.5"/>
+        <text x="210" y="162" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10" font-weight="600">LoRA-C (chat)</text>
+        <rect x="30" y="240" width="220" height="35" rx="6" fill="#172d36" stroke="#e4c17d" stroke-width="1.2"/>
+        <text x="140" y="260" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Adapter Memory Pool (paged)</text>
+        <text x="140" y="300" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">100s of adapters, near-zero overhead</text>
       </svg>
     </div>
   </div>

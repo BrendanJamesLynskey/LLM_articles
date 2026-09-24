@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -80,22 +80,22 @@
   <p>Modern LLM development follows a multi-stage pipeline, each stage with distinct objectives, data requirements, and computational profiles.</p>
   <svg class="diagram" viewBox="0 0 900 160" width="860" height="153">
     <defs>
-      <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#8888a8"/></marker>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#829ca1"/></marker>
     </defs>
-    <rect x="10" y="30" width="240" height="100" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
-    <text x="130" y="65" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="17" font-weight="700">Pre-Training</text>
-    <text x="130" y="88" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">1T-15T+ tokens</text>
-    <text x="130" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">90-98% compute</text>
-    <line x1="260" y1="80" x2="320" y2="80" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
-    <rect x="330" y="30" width="240" height="100" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
-    <text x="450" y="65" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="17" font-weight="700">Mid-Training</text>
-    <text x="450" y="88" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">100B-1T tokens</text>
-    <text x="450" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">1-5% compute</text>
-    <line x1="580" y1="80" x2="640" y2="80" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
-    <rect x="650" y="30" width="240" height="100" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
-    <text x="770" y="65" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="17" font-weight="700">Post-Training</text>
-    <text x="770" y="88" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="12">1B-100B+ tokens</text>
-    <text x="770" y="108" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="11">1-10% compute</text>
+    <rect x="10" y="30" width="240" height="100" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
+    <text x="130" y="65" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="17" font-weight="700">Pre-Training</text>
+    <text x="130" y="88" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">1T-15T+ tokens</text>
+    <text x="130" y="108" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">90-98% compute</text>
+    <line x1="260" y1="80" x2="320" y2="80" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="330" y="30" width="240" height="100" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
+    <text x="450" y="65" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display,serif" font-size="17" font-weight="700">Mid-Training</text>
+    <text x="450" y="88" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">100B-1T tokens</text>
+    <text x="450" y="108" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">1-5% compute</text>
+    <line x1="580" y1="80" x2="640" y2="80" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="650" y="30" width="240" height="100" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
+    <text x="770" y="65" text-anchor="middle" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="17" font-weight="700">Post-Training</text>
+    <text x="770" y="88" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">1B-100B+ tokens</text>
+    <text x="770" y="108" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">1-10% compute</text>
   </svg>
   <p style="text-align:center;font-size:.44em;color:var(--muted);margin-top:.5em">Each stage builds on the previous, with feedback flowing backward to inform the next generation.</p>
   <div class="slide-footer">LLM Training Stages &mdash; 1</div>
@@ -342,23 +342,23 @@
         <circle cx="170" cy="170" r="130" fill="none" stroke="var(--border)" stroke-width="1.5"/>
         <circle cx="170" cy="170" r="85" fill="none" stroke="var(--border)" stroke-width="1"/>
         <!-- segments -->
-        <path d="M170,170 L170,40 A130,130 0 0,1 283,105 Z" fill="#4ecb8d22" stroke="#4ecb8d" stroke-width="2"/>
-        <text x="235" y="80" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Context</text>
-        <text x="235" y="94" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Extension</text>
-        <path d="M170,170 L283,105 A130,130 0 0,1 283,235 Z" fill="#60a5fa22" stroke="#60a5fa" stroke-width="2"/>
-        <text x="268" y="175" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Domain</text>
-        <text x="258" y="189" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Adaptation</text>
-        <path d="M170,170 L283,235 A130,130 0 0,1 170,300 Z" fill="#a78bfa22" stroke="#a78bfa" stroke-width="2"/>
-        <text x="215" y="273" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Data</text>
-        <text x="215" y="287" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Annealing</text>
-        <path d="M170,170 L170,300 A130,130 0 0,1 57,235 Z" fill="#f8717122" stroke="#f87171" stroke-width="2"/>
-        <text x="80" y="280" fill="#f87171" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Model</text>
-        <text x="80" y="294" fill="#f87171" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Surgery</text>
-        <path d="M170,170 L57,235 A130,130 0 0,1 170,40 Z" fill="#f5a62322" stroke="#f5a623" stroke-width="2"/>
-        <text x="90" y="120" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Quality</text>
-        <text x="80" y="134" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Refinement</text>
-        <text x="170" y="167" text-anchor="middle" fill="#e8e8f0" font-family="Playfair Display,serif" font-size="14" font-weight="700">Mid-</text>
-        <text x="170" y="185" text-anchor="middle" fill="#e8e8f0" font-family="Playfair Display,serif" font-size="14" font-weight="700">Training</text>
+        <path d="M170,170 L170,40 A130,130 0 0,1 283,105 Z" fill="#94cdb422" stroke="#94cdb4" stroke-width="2"/>
+        <text x="235" y="80" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Context</text>
+        <text x="235" y="94" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Extension</text>
+        <path d="M170,170 L283,105 A130,130 0 0,1 283,235 Z" fill="#8fbadc22" stroke="#8fbadc" stroke-width="2"/>
+        <text x="268" y="175" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Domain</text>
+        <text x="258" y="189" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Adaptation</text>
+        <path d="M170,170 L283,235 A130,130 0 0,1 170,300 Z" fill="#b7a5d922" stroke="#b7a5d9" stroke-width="2"/>
+        <text x="215" y="273" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Data</text>
+        <text x="215" y="287" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Annealing</text>
+        <path d="M170,170 L170,300 A130,130 0 0,1 57,235 Z" fill="#ee876a22" stroke="#ee876a" stroke-width="2"/>
+        <text x="80" y="280" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Model</text>
+        <text x="80" y="294" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Surgery</text>
+        <path d="M170,170 L57,235 A130,130 0 0,1 170,40 Z" fill="#e4c17d22" stroke="#e4c17d" stroke-width="2"/>
+        <text x="90" y="120" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Quality</text>
+        <text x="80" y="134" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Refinement</text>
+        <text x="170" y="167" text-anchor="middle" fill="#eae5db" font-family="Playfair Display,serif" font-size="14" font-weight="700">Mid-</text>
+        <text x="170" y="185" text-anchor="middle" fill="#eae5db" font-family="Playfair Display,serif" font-size="14" font-weight="700">Training</text>
       </svg>
     </div>
   </div>
@@ -479,21 +479,21 @@
 <section>
   <div class="slide-hdr"><span class="tag">POST-TRAINING</span><h2>RLHF: Reward Modeling &amp; PPO</h2></div>
   <svg class="diagram" viewBox="0 0 920 110" width="880" height="105">
-    <rect x="10" y="15" width="180" height="80" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
-    <text x="100" y="48" text-anchor="middle" fill="#f5a623" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Human Preference</text>
-    <text x="100" y="68" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">Pairwise comparisons</text>
-    <line x1="200" y1="55" x2="250" y2="55" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
-    <rect x="260" y="15" width="180" height="80" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
-    <text x="350" y="48" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Reward Model</text>
-    <text x="350" y="68" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">Bradley-Terry scoring</text>
-    <line x1="450" y1="55" x2="500" y2="55" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
-    <rect x="510" y="15" width="180" height="80" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="2"/>
-    <text x="600" y="48" text-anchor="middle" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">PPO Optimization</text>
-    <text x="600" y="68" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">Policy + KL penalty</text>
-    <line x1="700" y1="55" x2="750" y2="55" stroke="#8888a8" stroke-width="2" marker-end="url(#arrow)"/>
-    <rect x="760" y="15" width="150" height="80" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="2"/>
-    <text x="835" y="48" text-anchor="middle" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Aligned Model</text>
-    <text x="835" y="68" text-anchor="middle" fill="#b8b8d0" font-family="DM Sans,sans-serif" font-size="11">Better than SFT alone</text>
+    <rect x="10" y="15" width="180" height="80" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
+    <text x="100" y="48" text-anchor="middle" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Human Preference</text>
+    <text x="100" y="68" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11">Pairwise comparisons</text>
+    <line x1="200" y1="55" x2="250" y2="55" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="260" y="15" width="180" height="80" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
+    <text x="350" y="48" text-anchor="middle" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Reward Model</text>
+    <text x="350" y="68" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11">Bradley-Terry scoring</text>
+    <line x1="450" y1="55" x2="500" y2="55" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="510" y="15" width="180" height="80" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
+    <text x="600" y="48" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">PPO Optimization</text>
+    <text x="600" y="68" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11">Policy + KL penalty</text>
+    <line x1="700" y1="55" x2="750" y2="55" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="760" y="15" width="150" height="80" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
+    <text x="835" y="48" text-anchor="middle" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Aligned Model</text>
+    <text x="835" y="68" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11">Better than SFT alone</text>
   </svg>
   <div class="cols cols-2" style="margin-top:.4em">
     <div class="card amber">

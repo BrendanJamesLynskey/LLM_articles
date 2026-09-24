@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -137,34 +137,34 @@
         </ul>
       </div>
       <svg class="diagram" viewBox="0 0 260 160" width="260">
-        <text x="130" y="16" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="11" font-weight="700">Gaudi Direct-Connect Mesh</text>
-        <circle cx="60" cy="60" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
-        <circle cx="130" cy="40" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
-        <circle cx="200" cy="60" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
-        <circle cx="60" cy="120" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
-        <circle cx="130" cy="140" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
-        <circle cx="200" cy="120" r="18" fill="#1a1a2e" stroke="#f5a623" stroke-width="1.2"/>
-        <text x="60" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G1</text>
-        <text x="130" y="44" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G2</text>
-        <text x="200" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G3</text>
-        <text x="60" y="124" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G4</text>
-        <text x="130" y="144" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G5</text>
-        <text x="200" y="124" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="8">G6</text>
-        <line x1="60" y1="60" x2="130" y2="40" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="130" y1="40" x2="200" y2="60" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="60" y1="60" x2="200" y2="60" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="60" y1="60" x2="60" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="60" y1="60" x2="130" y2="140" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="60" y1="60" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="130" y1="40" x2="60" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="130" y1="40" x2="130" y2="140" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="130" y1="40" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="200" y1="60" x2="60" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="200" y1="60" x2="130" y2="140" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="200" y1="60" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="60" y1="120" x2="130" y2="140" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="130" y1="140" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
-        <line x1="60" y1="120" x2="200" y2="120" stroke="#4ecb8d" stroke-width=".7" opacity=".5"/>
+        <text x="130" y="16" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display,serif" font-size="11" font-weight="700">Gaudi Direct-Connect Mesh</text>
+        <circle cx="60" cy="60" r="18" fill="#1a323b" stroke="#e4c17d" stroke-width="1.2"/>
+        <circle cx="130" cy="40" r="18" fill="#1a323b" stroke="#e4c17d" stroke-width="1.2"/>
+        <circle cx="200" cy="60" r="18" fill="#1a323b" stroke="#e4c17d" stroke-width="1.2"/>
+        <circle cx="60" cy="120" r="18" fill="#1a323b" stroke="#e4c17d" stroke-width="1.2"/>
+        <circle cx="130" cy="140" r="18" fill="#1a323b" stroke="#e4c17d" stroke-width="1.2"/>
+        <circle cx="200" cy="120" r="18" fill="#1a323b" stroke="#e4c17d" stroke-width="1.2"/>
+        <text x="60" y="64" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="8">G1</text>
+        <text x="130" y="44" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="8">G2</text>
+        <text x="200" y="64" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="8">G3</text>
+        <text x="60" y="124" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="8">G4</text>
+        <text x="130" y="144" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="8">G5</text>
+        <text x="200" y="124" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="8">G6</text>
+        <line x1="60" y1="60" x2="130" y2="40" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="40" x2="200" y2="60" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="60" x2="200" y2="60" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="60" x2="60" y2="120" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="60" x2="130" y2="140" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="60" x2="200" y2="120" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="40" x2="60" y2="120" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="40" x2="130" y2="140" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="40" x2="200" y2="120" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="200" y1="60" x2="60" y2="120" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="200" y1="60" x2="130" y2="140" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="200" y1="60" x2="200" y2="120" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="120" x2="130" y2="140" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="130" y1="140" x2="200" y2="120" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
+        <line x1="60" y1="120" x2="200" y2="120" stroke="#94cdb4" stroke-width=".7" opacity=".5"/>
       </svg>
     </div>
   </div>
@@ -268,23 +268,23 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 250 320" width="250">
-        <text x="125" y="18" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="12" font-weight="700">Gaudi 3 Die</text>
-        <rect x="10" y="28" width="230" height="280" rx="10" fill="none" stroke="#2a2a3a" stroke-width="1.5"/>
-        <rect x="25" y="42" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#f5a623" stroke-width="1"/>
-        <text x="125" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="10">2x Matrix Math Engines (FP8/BF16)</text>
-        <rect x="25" y="85" width="200" height="55" rx="5" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1"/>
-        <text x="125" y="105" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="10">64 Tensor Processor Cores</text>
-        <text x="125" y="128" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">VLIW ISA &bull; Local SRAM per TPC</text>
-        <rect x="25" y="148" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1"/>
-        <text x="125" y="170" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">128 GB HBM2e @ 3.7 TB/s</text>
-        <rect x="25" y="191" width="200" height="35" rx="5" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
-        <text x="125" y="213" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">8x 200GbE RDMA (RoCE v2)</text>
-        <rect x="25" y="240" width="95" height="50" rx="5" fill="#1a1a2e" stroke="#f87171" stroke-width="1"/>
-        <text x="72" y="260" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono,monospace" font-size="9">PCIe Gen5</text>
-        <text x="72" y="278" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Host I/O</text>
-        <rect x="130" y="240" width="95" height="50" rx="5" fill="#1a1a2e" stroke="#8888a8" stroke-width="1"/>
-        <text x="177" y="260" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">Media Engine</text>
-        <text x="177" y="278" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Decode/Encode</text>
+        <text x="125" y="18" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="12" font-weight="700">Gaudi 3 Die</text>
+        <rect x="10" y="28" width="230" height="280" rx="10" fill="none" stroke="#294752" stroke-width="1.5"/>
+        <rect x="25" y="42" width="200" height="35" rx="5" fill="#1a323b" stroke="#e4c17d" stroke-width="1"/>
+        <text x="125" y="64" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="10">2x Matrix Math Engines (FP8/BF16)</text>
+        <rect x="25" y="85" width="200" height="55" rx="5" fill="#1a323b" stroke="#94cdb4" stroke-width="1"/>
+        <text x="125" y="105" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">64 Tensor Processor Cores</text>
+        <text x="125" y="128" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">VLIW ISA &bull; Local SRAM per TPC</text>
+        <rect x="25" y="148" width="200" height="35" rx="5" fill="#1a323b" stroke="#8fbadc" stroke-width="1"/>
+        <text x="125" y="170" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">128 GB HBM2e @ 3.7 TB/s</text>
+        <rect x="25" y="191" width="200" height="35" rx="5" fill="#1a323b" stroke="#b7a5d9" stroke-width="1"/>
+        <text x="125" y="213" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="10">8x 200GbE RDMA (RoCE v2)</text>
+        <rect x="25" y="240" width="95" height="50" rx="5" fill="#1a323b" stroke="#ee876a" stroke-width="1"/>
+        <text x="72" y="260" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono,monospace" font-size="9">PCIe Gen5</text>
+        <text x="72" y="278" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">Host I/O</text>
+        <rect x="130" y="240" width="95" height="50" rx="5" fill="#1a323b" stroke="#829ca1" stroke-width="1"/>
+        <text x="177" y="260" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9">Media Engine</text>
+        <text x="177" y="278" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">Decode/Encode</text>
       </svg>
     </div>
   </div>
@@ -483,49 +483,49 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 250 340" width="250">
-        <text x="125" y="16" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="11" font-weight="700">Multi-Node Gaudi Cluster</text>
+        <text x="125" y="16" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="11" font-weight="700">Multi-Node Gaudi Cluster</text>
         <!-- Node 1 -->
-        <rect x="15" y="30" width="105" height="120" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="67" y="48" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Node 1</text>
+        <rect x="15" y="30" width="105" height="120" rx="6" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="67" y="48" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="9">Node 1</text>
         <g transform="translate(25,55)">
-          <rect x="0" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="22" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="44" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="66" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="0" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="22" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="44" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="66" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="0" y="0" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="22" y="0" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="44" y="0" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="66" y="0" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="0" y="22" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="22" y="22" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="44" y="22" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="66" y="22" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
         </g>
-        <text x="67" y="140" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">8x Gaudi (mesh)</text>
+        <text x="67" y="140" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="7">8x Gaudi (mesh)</text>
         <!-- Node 2 -->
-        <rect x="130" y="30" width="105" height="120" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width="1.2"/>
-        <text x="182" y="48" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Node 2</text>
+        <rect x="130" y="30" width="105" height="120" rx="6" fill="#1a323b" stroke="#94cdb4" stroke-width="1.2"/>
+        <text x="182" y="48" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="9">Node 2</text>
         <g transform="translate(140,55)">
-          <rect x="0" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="22" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="44" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="66" y="0" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="0" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="22" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="44" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
-          <rect x="66" y="22" width="18" height="18" rx="2" fill="#0e0e18" stroke="#f5a623" stroke-width=".7"/>
+          <rect x="0" y="0" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="22" y="0" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="44" y="0" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="66" y="0" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="0" y="22" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="22" y="22" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="44" y="22" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
+          <rect x="66" y="22" width="18" height="18" rx="2" fill="#12252d" stroke="#e4c17d" stroke-width=".7"/>
         </g>
-        <text x="182" y="140" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="7">8x Gaudi (mesh)</text>
+        <text x="182" y="140" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="7">8x Gaudi (mesh)</text>
         <!-- Spine switch -->
-        <rect x="40" y="180" width="170" height="35" rx="6" fill="#1a1a2e" stroke="#60a5fa" stroke-width="1.2"/>
-        <text x="125" y="202" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">200GbE Spine Switch</text>
-        <line x1="67" y1="150" x2="67" y2="180" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="182" y1="150" x2="182" y2="180" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3,2"/>
+        <rect x="40" y="180" width="170" height="35" rx="6" fill="#1a323b" stroke="#8fbadc" stroke-width="1.2"/>
+        <text x="125" y="202" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">200GbE Spine Switch</text>
+        <line x1="67" y1="150" x2="67" y2="180" stroke="#8fbadc" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="182" y1="150" x2="182" y2="180" stroke="#8fbadc" stroke-width="1" stroke-dasharray="3,2"/>
         <!-- More nodes -->
-        <rect x="15" y="240" width="105" height="40" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width=".8"/>
-        <text x="67" y="264" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">Node 3</text>
-        <rect x="130" y="240" width="105" height="40" rx="6" fill="#1a1a2e" stroke="#4ecb8d" stroke-width=".8"/>
-        <text x="182" y="264" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="9">... Node N</text>
-        <line x1="67" y1="215" x2="67" y2="240" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="182" y1="215" x2="182" y2="240" stroke="#60a5fa" stroke-width="1" stroke-dasharray="3,2"/>
-        <text x="125" y="305" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">Standard Ethernet fabric</text>
-        <text x="125" y="320" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono,monospace" font-size="8">No InfiniBand required</text>
+        <rect x="15" y="240" width="105" height="40" rx="6" fill="#1a323b" stroke="#94cdb4" stroke-width=".8"/>
+        <text x="67" y="264" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="9">Node 3</text>
+        <rect x="130" y="240" width="105" height="40" rx="6" fill="#1a323b" stroke="#94cdb4" stroke-width=".8"/>
+        <text x="182" y="264" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9">... Node N</text>
+        <line x1="67" y1="215" x2="67" y2="240" stroke="#8fbadc" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="182" y1="215" x2="182" y2="240" stroke="#8fbadc" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="125" y="305" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">Standard Ethernet fabric</text>
+        <text x="125" y="320" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="8">No InfiniBand required</text>
       </svg>
     </div>
   </div>

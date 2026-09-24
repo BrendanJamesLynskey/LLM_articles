@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.58em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.58em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -128,25 +128,25 @@
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 800 100" width="750" style="margin-top:.8em">
-    <rect x="10" y="20" width="120" height="55" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="70" y="42" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">User</text>
-    <text x="70" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(Resource Owner)</text>
-    <line x1="130" y1="47" x2="200" y2="47" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
-    <text x="165" y="40" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">consent</text>
-    <rect x="200" y="20" width="140" height="55" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="270" y="42" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Auth Server</text>
-    <text x="270" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(issues tokens)</text>
-    <line x1="340" y1="47" x2="420" y2="47" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
-    <text x="380" y="40" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">token</text>
-    <rect x="420" y="20" width="140" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="490" y="42" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">AI Agent</text>
-    <text x="490" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(Client)</text>
-    <line x1="560" y1="47" x2="640" y2="47" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
-    <text x="600" y="40" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">Bearer</text>
-    <rect x="640" y="20" width="140" height="55" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="710" y="42" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">MCP Server</text>
-    <text x="710" y="56" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(Resource Server)</text>
-    <defs><marker id="arrO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+    <rect x="10" y="20" width="120" height="55" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="70" y="42" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">User</text>
+    <text x="70" y="56" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(Resource Owner)</text>
+    <line x1="130" y1="47" x2="200" y2="47" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="165" y="40" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">consent</text>
+    <rect x="200" y="20" width="140" height="55" rx="6" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="270" y="42" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="11">Auth Server</text>
+    <text x="270" y="56" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(issues tokens)</text>
+    <line x1="340" y1="47" x2="420" y2="47" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="380" y="40" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">token</text>
+    <rect x="420" y="20" width="140" height="55" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="490" y="42" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">AI Agent</text>
+    <text x="490" y="56" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(Client)</text>
+    <line x1="560" y1="47" x2="640" y2="47" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="600" y="40" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">Bearer</text>
+    <rect x="640" y="20" width="140" height="55" rx="6" fill="none" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="710" y="42" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="11">MCP Server</text>
+    <text x="710" y="56" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(Resource Server)</text>
+    <defs><marker id="arrO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#829ca1" stroke-width="1"/></marker></defs>
   </svg>
   <div class="slide-footer">oauth-for-ai / 03</div>
 </section>
@@ -241,22 +241,22 @@
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.6em">
-    <rect x="10" y="15" width="130" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="75" y="37" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">MCP Host</text>
-    <text x="75" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(OAuth Client)</text>
-    <line x1="140" y1="42" x2="230" y2="25" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrO)"/>
-    <text x="185" y="25" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">register</text>
-    <line x1="140" y1="42" x2="230" y2="60" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrO)"/>
-    <text x="185" y="65" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">auth+PKCE</text>
-    <rect x="230" y="5" width="180" height="30" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
-    <text x="320" y="24" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">/oauth/register</text>
-    <rect x="230" y="45" width="180" height="30" rx="6" fill="none" stroke="#f5a623" stroke-width="1.2"/>
-    <text x="320" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">/oauth/authorize</text>
-    <line x1="410" y1="42" x2="500" y2="42" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
-    <text x="455" y="37" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">Bearer token</text>
-    <rect x="500" y="15" width="160" height="55" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="580" y="37" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">MCP Server</text>
-    <text x="580" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(Resource Server)</text>
+    <rect x="10" y="15" width="130" height="55" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="75" y="37" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">MCP Host</text>
+    <text x="75" y="52" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(OAuth Client)</text>
+    <line x1="140" y1="42" x2="230" y2="25" stroke="#b7a5d9" stroke-width="1.2" marker-end="url(#arrO)"/>
+    <text x="185" y="25" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">register</text>
+    <line x1="140" y1="42" x2="230" y2="60" stroke="#e4c17d" stroke-width="1.2" marker-end="url(#arrO)"/>
+    <text x="185" y="65" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">auth+PKCE</text>
+    <rect x="230" y="5" width="180" height="30" rx="6" fill="none" stroke="#b7a5d9" stroke-width="1.2"/>
+    <text x="320" y="24" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">/oauth/register</text>
+    <rect x="230" y="45" width="180" height="30" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.2"/>
+    <text x="320" y="64" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">/oauth/authorize</text>
+    <line x1="410" y1="42" x2="500" y2="42" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="455" y="37" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">Bearer token</text>
+    <rect x="500" y="15" width="160" height="55" rx="6" fill="none" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="580" y="37" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="11">MCP Server</text>
+    <text x="580" y="52" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(Resource Server)</text>
   </svg>
   <div class="slide-footer">oauth-for-ai / 06</div>
 </section>
@@ -402,20 +402,20 @@ prompts:get</code></pre>
 <section>
   <div class="slide-hdr"><span class="tag">DELEGATION</span><h2>The Principal Chain</h2></div>
   <svg class="diagram" viewBox="0 0 800 80" width="750" style="margin-bottom:.6em">
-    <rect x="10" y="15" width="120" height="50" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="70" y="44" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="11">User (Alice)</text>
-    <line x1="130" y1="40" x2="200" y2="40" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
-    <text x="165" y="33" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">delegates</text>
-    <rect x="200" y="15" width="150" height="50" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="275" y="44" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">Agent (MCP Host)</text>
-    <line x1="350" y1="40" x2="420" y2="40" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
-    <text x="385" y="33" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">calls</text>
-    <rect x="420" y="15" width="150" height="50" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="495" y="44" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="11">Tool (MCP Server)</text>
-    <line x1="570" y1="40" x2="640" y2="40" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrO)"/>
-    <text x="605" y="33" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">queries</text>
-    <rect x="640" y="15" width="140" height="50" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="710" y="44" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">Backend API</text>
+    <rect x="10" y="15" width="120" height="50" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="70" y="44" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">User (Alice)</text>
+    <line x1="130" y1="40" x2="200" y2="40" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="165" y="33" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">delegates</text>
+    <rect x="200" y="15" width="150" height="50" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="275" y="44" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">Agent (MCP Host)</text>
+    <line x1="350" y1="40" x2="420" y2="40" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="385" y="33" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">calls</text>
+    <rect x="420" y="15" width="150" height="50" rx="6" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="495" y="44" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="11">Tool (MCP Server)</text>
+    <line x1="570" y1="40" x2="640" y2="40" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrO)"/>
+    <text x="605" y="33" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">queries</text>
+    <rect x="640" y="15" width="140" height="50" rx="6" fill="none" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="710" y="44" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="11">Backend API</text>
   </svg>
   <div class="cols cols-3">
     <div class="card amber">

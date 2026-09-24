@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -108,20 +108,20 @@
   <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Inside a Transformer Layer</h2></div>
   <p>A decoder-only transformer (GPT, LLaMA, DeepSeek) is a stack of identical layers. Each layer has two main stages:</p>
   <svg class="diagram" viewBox="0 0 850 120" width="800" style="margin:.6em auto">
-    <rect x="10" y="20" width="180" height="80" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="100" y="55" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13">Attention</text>
-    <text x="100" y="75" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Stateful (KV cache)</text>
-    <line x1="190" y1="60" x2="270" y2="60" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
-    <text x="230" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">residual</text>
-    <rect x="270" y="20" width="180" height="80" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="360" y="55" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13">FFN / MoE</text>
-    <text x="360" y="75" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Stateless (weights)</text>
-    <line x1="450" y1="60" x2="530" y2="60" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
-    <text x="490" y="52" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">residual</text>
-    <rect x="530" y="20" width="180" height="80" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="620" y="55" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">Next Layer</text>
-    <text x="620" y="75" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">&times; 61&ndash;126 layers</text>
-    <defs><marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a8" stroke-width="1"/></marker></defs>
+    <rect x="10" y="20" width="180" height="80" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="100" y="55" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13">Attention</text>
+    <text x="100" y="75" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Stateful (KV cache)</text>
+    <line x1="190" y1="60" x2="270" y2="60" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="230" y="52" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">residual</text>
+    <rect x="270" y="20" width="180" height="80" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="360" y="55" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="13">FFN / MoE</text>
+    <text x="360" y="75" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Stateless (weights)</text>
+    <line x1="450" y1="60" x2="530" y2="60" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="490" y="52" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">residual</text>
+    <rect x="530" y="20" width="180" height="80" rx="6" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="620" y="55" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="13">Next Layer</text>
+    <text x="620" y="75" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">&times; 61&ndash;126 layers</text>
+    <defs><marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#829ca1" stroke-width="1"/></marker></defs>
   </svg>
   <div class="cols cols-2">
     <div class="card amber">
@@ -386,32 +386,32 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 320 280" width="290">
-        <rect x="80" y="5" width="160" height="40" rx="6" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="160" y="30" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="11">Token Hidden State</text>
-        <line x1="160" y1="45" x2="160" y2="75" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowA)"/>
-        <rect x="100" y="75" width="120" height="35" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="160" y="97" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Router (top-8)</text>
-        <line x1="100" y1="110" x2="30" y2="145" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3"/>
-        <line x1="130" y1="110" x2="80" y2="145" stroke="#a78bfa" stroke-width="1"/>
-        <line x1="160" y1="110" x2="160" y2="145" stroke="#a78bfa" stroke-width="1"/>
-        <line x1="190" y1="110" x2="240" y2="145" stroke="#a78bfa" stroke-width="1"/>
-        <line x1="220" y1="110" x2="290" y2="145" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3"/>
-        <rect x="10" y="145" width="45" height="28" rx="4" fill="none" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="3,3"/>
-        <text x="32" y="163" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="7">E1</text>
-        <rect x="60" y="145" width="45" height="28" rx="4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="82" y="163" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="7">E42</text>
-        <rect x="138" y="145" width="45" height="28" rx="4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="160" y="163" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="7">E117</text>
-        <rect x="218" y="145" width="45" height="28" rx="4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="240" y="163" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="7">E203</text>
-        <rect x="268" y="145" width="45" height="28" rx="4" fill="none" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="3,3"/>
-        <text x="290" y="163" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="7">E256</text>
-        <text x="113" y="162" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">...</text>
-        <text x="200" y="162" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">...</text>
-        <rect x="110" y="195" width="100" height="28" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-        <text x="160" y="213" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Shared Expert</text>
-        <line x1="160" y1="223" x2="160" y2="253" stroke="#8888a8" stroke-width="1.2" marker-end="url(#arrowA)"/>
-        <text x="160" y="270" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Combine &amp; Output</text>
+        <rect x="80" y="5" width="160" height="40" rx="6" fill="none" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="160" y="30" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="11">Token Hidden State</text>
+        <line x1="160" y1="45" x2="160" y2="75" stroke="#829ca1" stroke-width="1.2" marker-end="url(#arrowA)"/>
+        <rect x="100" y="75" width="120" height="35" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="160" y="97" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">Router (top-8)</text>
+        <line x1="100" y1="110" x2="30" y2="145" stroke="#b7a5d9" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="130" y1="110" x2="80" y2="145" stroke="#b7a5d9" stroke-width="1"/>
+        <line x1="160" y1="110" x2="160" y2="145" stroke="#b7a5d9" stroke-width="1"/>
+        <line x1="190" y1="110" x2="240" y2="145" stroke="#b7a5d9" stroke-width="1"/>
+        <line x1="220" y1="110" x2="290" y2="145" stroke="#b7a5d9" stroke-width="1" stroke-dasharray="3,3"/>
+        <rect x="10" y="145" width="45" height="28" rx="4" fill="none" stroke="#294752" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="32" y="163" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="7">E1</text>
+        <rect x="60" y="145" width="45" height="28" rx="4" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="82" y="163" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="7">E42</text>
+        <rect x="138" y="145" width="45" height="28" rx="4" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="160" y="163" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="7">E117</text>
+        <rect x="218" y="145" width="45" height="28" rx="4" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="240" y="163" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="7">E203</text>
+        <rect x="268" y="145" width="45" height="28" rx="4" fill="none" stroke="#294752" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="290" y="163" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="7">E256</text>
+        <text x="113" y="162" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">...</text>
+        <text x="200" y="162" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">...</text>
+        <rect x="110" y="195" width="100" height="28" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+        <text x="160" y="213" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">Shared Expert</text>
+        <line x1="160" y1="223" x2="160" y2="253" stroke="#829ca1" stroke-width="1.2" marker-end="url(#arrowA)"/>
+        <text x="160" y="270" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">Combine &amp; Output</text>
       </svg>
     </div>
   </div>
@@ -529,33 +529,33 @@
 <section>
   <div class="slide-hdr"><span class="tag">MECHANISM</span><h2>The AFD Decode Loop</h2></div>
   <svg class="diagram" viewBox="0 0 880 200" width="840" style="margin:.4em auto">
-    <rect x="10" y="10" width="250" height="180" rx="8" fill="none" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="135" y="35" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12" font-weight="bold">GPU (Vera Rubin)</text>
-    <rect x="30" y="50" width="210" height="30" rx="4" fill="none" stroke="#f5a623" stroke-width="1"/>
-    <text x="135" y="70" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">1. Compute Q/K/V, update KV cache</text>
-    <rect x="30" y="90" width="210" height="30" rx="4" fill="none" stroke="#f5a623" stroke-width="1"/>
-    <text x="135" y="110" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">2. Attention scores + output</text>
-    <rect x="30" y="145" width="210" height="30" rx="4" fill="none" stroke="#a78bfa" stroke-width="1"/>
-    <text x="135" y="165" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">5. Residual + Norm &rarr; next layer</text>
-    <line x1="260" y1="100" x2="370" y2="60" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrowB)"/>
-    <text x="315" y="68" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">activation</text>
-    <line x1="370" y1="150" x2="260" y2="155" stroke="#4ecb8d" stroke-width="2" marker-end="url(#arrowC)"/>
-    <text x="315" y="145" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">FFN output</text>
-    <rect x="370" y="10" width="250" height="180" rx="8" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="495" y="35" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12" font-weight="bold">LPX (Groq 3 LPU)</text>
-    <rect x="390" y="50" width="210" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
-    <text x="495" y="70" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">3. Route to MoE experts</text>
-    <rect x="390" y="90" width="210" height="30" rx="4" fill="none" stroke="#4ecb8d" stroke-width="1"/>
-    <text x="495" y="110" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">4. Compute FFN, combine outputs</text>
-    <rect x="660" y="40" width="200" height="140" rx="8" fill="none" stroke="#8888a8" stroke-width="1" stroke-dasharray="4,3"/>
-    <text x="760" y="65" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">Activation tensor:</text>
-    <text x="760" y="85" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="10">7168 &times; batch_size</text>
-    <text x="760" y="105" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">(in FP8)</text>
-    <text x="760" y="135" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Small relative to</text>
-    <text x="760" y="152" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">KV cache or weights</text>
+    <rect x="10" y="10" width="250" height="180" rx="8" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="135" y="35" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12" font-weight="bold">GPU (Vera Rubin)</text>
+    <rect x="30" y="50" width="210" height="30" rx="4" fill="none" stroke="#e4c17d" stroke-width="1"/>
+    <text x="135" y="70" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">1. Compute Q/K/V, update KV cache</text>
+    <rect x="30" y="90" width="210" height="30" rx="4" fill="none" stroke="#e4c17d" stroke-width="1"/>
+    <text x="135" y="110" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">2. Attention scores + output</text>
+    <rect x="30" y="145" width="210" height="30" rx="4" fill="none" stroke="#b7a5d9" stroke-width="1"/>
+    <text x="135" y="165" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">5. Residual + Norm &rarr; next layer</text>
+    <line x1="260" y1="100" x2="370" y2="60" stroke="#8fbadc" stroke-width="2" marker-end="url(#arrowB)"/>
+    <text x="315" y="68" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="9">activation</text>
+    <line x1="370" y1="150" x2="260" y2="155" stroke="#94cdb4" stroke-width="2" marker-end="url(#arrowC)"/>
+    <text x="315" y="145" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">FFN output</text>
+    <rect x="370" y="10" width="250" height="180" rx="8" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="495" y="35" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="12" font-weight="bold">LPX (Groq 3 LPU)</text>
+    <rect x="390" y="50" width="210" height="30" rx="4" fill="none" stroke="#94cdb4" stroke-width="1"/>
+    <text x="495" y="70" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">3. Route to MoE experts</text>
+    <rect x="390" y="90" width="210" height="30" rx="4" fill="none" stroke="#94cdb4" stroke-width="1"/>
+    <text x="495" y="110" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">4. Compute FFN, combine outputs</text>
+    <rect x="660" y="40" width="200" height="140" rx="8" fill="none" stroke="#829ca1" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="760" y="65" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Activation tensor:</text>
+    <text x="760" y="85" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">7168 &times; batch_size</text>
+    <text x="760" y="105" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(in FP8)</text>
+    <text x="760" y="135" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">Small relative to</text>
+    <text x="760" y="152" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">KV cache or weights</text>
     <defs>
-      <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#60a5fa" stroke-width="1"/></marker>
-      <marker id="arrowC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#4ecb8d" stroke-width="1"/></marker>
+      <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#8fbadc" stroke-width="1"/></marker>
+      <marker id="arrowC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#94cdb4" stroke-width="1"/></marker>
     </defs>
   </svg>
   <div class="cols cols-2" style="margin-top:.4em">
@@ -593,18 +593,18 @@
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.8em">
-    <rect x="10" y="15" width="170" height="55" rx="6" fill="none" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="95" y="38" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">LPX Draft</text>
-    <text x="95" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">K candidates (fast)</text>
-    <line x1="180" y1="42" x2="260" y2="42" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
-    <text x="220" y="35" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="10">K tokens</text>
-    <rect x="260" y="15" width="220" height="55" rx="6" fill="none" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="370" y="38" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">GPU Verify</text>
-    <text x="370" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">parallel (1 pass)</text>
-    <line x1="480" y1="42" x2="560" y2="42" stroke="#8888a8" stroke-width="1.5" marker-end="url(#arrowA)"/>
-    <rect x="560" y="15" width="180" height="55" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="650" y="38" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">Accept / Reject</text>
-    <text x="650" y="55" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">multi-token commit</text>
+    <rect x="10" y="15" width="170" height="55" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="95" y="38" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="12">LPX Draft</text>
+    <text x="95" y="55" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">K candidates (fast)</text>
+    <line x1="180" y1="42" x2="260" y2="42" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="220" y="35" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">K tokens</text>
+    <rect x="260" y="15" width="220" height="55" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="370" y="38" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12">GPU Verify</text>
+    <text x="370" y="55" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">parallel (1 pass)</text>
+    <line x1="480" y1="42" x2="560" y2="42" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <rect x="560" y="15" width="180" height="55" rx="6" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="650" y="38" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="12">Accept / Reject</text>
+    <text x="650" y="55" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">multi-token commit</text>
   </svg>
   <div class="card purple" style="margin-top:.8em">
     <h3>Clean Division</h3>

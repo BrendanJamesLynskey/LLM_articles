@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
-  :root { --amber:#f5a623;--green:#4ecb8d;--purple:#a78bfa;--blue:#60a5fa;--red:#f87171;--bg:#0a0a0f;--bg2:#10101a;--bg3:#181824;--border:#2a2a3a;--text:#e8e8f0;--muted:#8888a8; }
+  :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
   .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
@@ -20,7 +20,7 @@
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
   .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
-  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#cdd6f4}
+  .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
   .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
@@ -29,12 +29,12 @@
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
   .card.amber{border-left:3px solid var(--amber)}.card.green{border-left:3px solid var(--green)}
   .card.purple{border-left:3px solid var(--purple)}.card.blue{border-left:3px solid var(--blue)}.card.red{border-left:3px solid var(--red)}
-  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b8b8d0}
-  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b8b8d0;margin-bottom:.1em}
+  .card h3{font-size:.7em;margin:0 0 .3em}.card p{font-size:.46em;margin:0;color:#b9c9c7}
+  .card ul{margin:0;padding-left:1.2em}.card li{font-size:.46em;color:#b9c9c7;margin-bottom:.1em}
   .reveal table{width:100%;border-collapse:collapse;font-size:.56em}
   .reveal table th{background:var(--bg3);color:var(--amber);font-weight:600;padding:.45em .7em;border:1px solid var(--border);text-align:left}
-  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#ccc}
-  .reveal table tr:nth-child(even) td{background:#0e0e18}
+  .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
+  .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
   .mono{font-family:'JetBrains Mono',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
@@ -48,11 +48,11 @@
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -100,33 +100,33 @@
   <div class="slide-hdr"><span class="tag">02</span><h2>Technique Landscape</h2></div>
   <svg class="diagram" viewBox="0 0 900 340" width="860" height="320">
     <!-- Foundation layer -->
-    <rect x="30" y="230" width="840" height="80" rx="10" fill="#10101a" stroke="#2a2a3a"/>
-    <text x="450" y="260" text-anchor="middle" fill="#f5a623" font-family="Playfair Display,serif" font-size="16" font-weight="700">Foundational Techniques</text>
-    <text x="180" y="290" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="13">Zero-Shot</text>
-    <text x="450" y="290" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="13">Few-Shot</text>
-    <text x="720" y="290" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="13">Chain-of-Thought</text>
+    <rect x="30" y="230" width="840" height="80" rx="10" fill="#13272f" stroke="#294752"/>
+    <text x="450" y="260" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="16" font-weight="700">Foundational Techniques</text>
+    <text x="180" y="290" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="13">Zero-Shot</text>
+    <text x="450" y="290" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="13">Few-Shot</text>
+    <text x="720" y="290" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="13">Chain-of-Thought</text>
     <!-- Advanced layer -->
-    <rect x="80" y="120" width="370" height="80" rx="10" fill="#10101a" stroke="#2a2a3a"/>
-    <text x="265" y="150" text-anchor="middle" fill="#a78bfa" font-family="Playfair Display,serif" font-size="16" font-weight="700">Advanced Reasoning</text>
-    <text x="155" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Self-Consistency</text>
-    <text x="310" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Tree/Graph-of-Thought</text>
+    <rect x="80" y="120" width="370" height="80" rx="10" fill="#13272f" stroke="#294752"/>
+    <text x="265" y="150" text-anchor="middle" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="16" font-weight="700">Advanced Reasoning</text>
+    <text x="155" y="178" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="12">Self-Consistency</text>
+    <text x="310" y="178" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="12">Tree/Graph-of-Thought</text>
     <!-- Structured layer -->
-    <rect x="480" y="120" width="370" height="80" rx="10" fill="#10101a" stroke="#2a2a3a"/>
-    <text x="665" y="150" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display,serif" font-size="16" font-weight="700">Structured Output &amp; Control</text>
-    <text x="565" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Format Spec</text>
-    <text x="700" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">System Prompts</text>
-    <text x="800" y="178" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Tools</text>
+    <rect x="480" y="120" width="370" height="80" rx="10" fill="#13272f" stroke="#294752"/>
+    <text x="665" y="150" text-anchor="middle" fill="#8fbadc" font-family="Playfair Display,serif" font-size="16" font-weight="700">Structured Output &amp; Control</text>
+    <text x="565" y="178" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="12">Format Spec</text>
+    <text x="700" y="178" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="12">System Prompts</text>
+    <text x="800" y="178" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="12">Tools</text>
     <!-- Top layer -->
-    <rect x="200" y="20" width="500" height="70" rx="10" fill="#10101a" stroke="#2a2a3a"/>
-    <text x="450" y="50" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display,serif" font-size="16" font-weight="700">Optimization &amp; Automation</text>
-    <text x="320" y="72" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Iterative Refinement</text>
-    <text x="450" y="72" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">Decomposition</text>
-    <text x="580" y="72" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="12">DSPy / OPRO</text>
+    <rect x="200" y="20" width="500" height="70" rx="10" fill="#13272f" stroke="#294752"/>
+    <text x="450" y="50" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display,serif" font-size="16" font-weight="700">Optimization &amp; Automation</text>
+    <text x="320" y="72" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="12">Iterative Refinement</text>
+    <text x="450" y="72" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="12">Decomposition</text>
+    <text x="580" y="72" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="12">DSPy / OPRO</text>
     <!-- Arrows -->
-    <line x1="265" y1="200" x2="350" y2="230" stroke="#2a2a3a" stroke-width="1.5"/>
-    <line x1="665" y1="200" x2="550" y2="230" stroke="#2a2a3a" stroke-width="1.5"/>
-    <line x1="350" y1="90" x2="265" y2="120" stroke="#2a2a3a" stroke-width="1.5"/>
-    <line x1="550" y1="90" x2="665" y2="120" stroke="#2a2a3a" stroke-width="1.5"/>
+    <line x1="265" y1="200" x2="350" y2="230" stroke="#294752" stroke-width="1.5"/>
+    <line x1="665" y1="200" x2="550" y2="230" stroke="#294752" stroke-width="1.5"/>
+    <line x1="350" y1="90" x2="265" y2="120" stroke="#294752" stroke-width="1.5"/>
+    <line x1="550" y1="90" x2="665" y2="120" stroke="#294752" stroke-width="1.5"/>
   </svg>
   <div class="slide-footer">prompt_engineering // 3</div>
 </section>
@@ -174,17 +174,17 @@ evidence supporting each one."</code></pre>
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 320 260" width="300" height="250">
-        <rect x="10" y="10" width="300" height="55" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="25" y="32" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Example 1</text>
-        <text x="25" y="52" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
-        <rect x="10" y="80" width="300" height="55" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="25" y="102" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">Example 2</text>
-        <text x="25" y="122" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
-        <rect x="10" y="150" width="300" height="55" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="25" y="172" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">Example 3</text>
-        <text x="25" y="192" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
-        <rect x="10" y="220" width="300" height="35" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
-        <text x="25" y="243" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="12">Actual Query &rarr; ?</text>
+        <rect x="10" y="10" width="300" height="55" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="25" y="32" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="11">Example 1</text>
+        <text x="25" y="52" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
+        <rect x="10" y="80" width="300" height="55" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="25" y="102" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="11">Example 2</text>
+        <text x="25" y="122" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
+        <rect x="10" y="150" width="300" height="55" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="25" y="172" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="11">Example 3</text>
+        <text x="25" y="192" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="11">Input &rarr; Output</text>
+        <rect x="10" y="220" width="300" height="35" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
+        <text x="25" y="243" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="12">Actual Query &rarr; ?</text>
       </svg>
     </div>
   </div>
@@ -222,31 +222,31 @@ evidence supporting each one."</code></pre>
   <div class="slide-hdr"><span class="tag">06</span><h2>Self-Consistency</h2></div>
   <svg class="diagram" viewBox="0 0 900 280" width="860" height="260">
     <!-- Prompt -->
-    <rect x="20" y="100" width="140" height="60" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="90" y="126" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12">Prompt</text>
-    <text x="90" y="146" text-anchor="middle" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">+ CoT</text>
+    <rect x="20" y="100" width="140" height="60" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="90" y="126" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="12">Prompt</text>
+    <text x="90" y="146" text-anchor="middle" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="11">+ CoT</text>
     <!-- Paths -->
-    <line x1="160" y1="115" x2="260" y2="50" stroke="#a78bfa" stroke-width="1.5"/>
-    <line x1="160" y1="130" x2="260" y2="130" stroke="#60a5fa" stroke-width="1.5"/>
-    <line x1="160" y1="145" x2="260" y2="210" stroke="#4ecb8d" stroke-width="1.5"/>
+    <line x1="160" y1="115" x2="260" y2="50" stroke="#b7a5d9" stroke-width="1.5"/>
+    <line x1="160" y1="130" x2="260" y2="130" stroke="#8fbadc" stroke-width="1.5"/>
+    <line x1="160" y1="145" x2="260" y2="210" stroke="#94cdb4" stroke-width="1.5"/>
     <!-- Path boxes -->
-    <rect x="260" y="20" width="260" height="55" rx="8" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="280" y="42" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">Path 1</text>
-    <text x="280" y="62" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Step A &rarr; Step B &rarr; Answer: 42</text>
-    <rect x="260" y="100" width="260" height="55" rx="8" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="280" y="122" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">Path 2</text>
-    <text x="280" y="142" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Step C &rarr; Step D &rarr; Answer: 42</text>
-    <rect x="260" y="180" width="260" height="55" rx="8" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="280" y="202" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">Path 3</text>
-    <text x="280" y="222" fill="#cdd6f4" font-family="DM Sans,sans-serif" font-size="11">Step E &rarr; Step F &rarr; Answer: 37</text>
+    <rect x="260" y="20" width="260" height="55" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="280" y="42" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="11">Path 1</text>
+    <text x="280" y="62" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="11">Step A &rarr; Step B &rarr; Answer: 42</text>
+    <rect x="260" y="100" width="260" height="55" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="280" y="122" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="11">Path 2</text>
+    <text x="280" y="142" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="11">Step C &rarr; Step D &rarr; Answer: 42</text>
+    <rect x="260" y="180" width="260" height="55" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="280" y="202" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="11">Path 3</text>
+    <text x="280" y="222" fill="#d7dbd4" font-family="DM Sans,sans-serif" font-size="11">Step E &rarr; Step F &rarr; Answer: 37</text>
     <!-- Arrows to voting -->
-    <line x1="520" y1="50" x2="620" y2="120" stroke="#2a2a3a" stroke-width="1.5"/>
-    <line x1="520" y1="130" x2="620" y2="130" stroke="#2a2a3a" stroke-width="1.5"/>
-    <line x1="520" y1="210" x2="620" y2="140" stroke="#2a2a3a" stroke-width="1.5"/>
+    <line x1="520" y1="50" x2="620" y2="120" stroke="#294752" stroke-width="1.5"/>
+    <line x1="520" y1="130" x2="620" y2="130" stroke="#294752" stroke-width="1.5"/>
+    <line x1="520" y1="210" x2="620" y2="140" stroke="#294752" stroke-width="1.5"/>
     <!-- Majority vote -->
-    <rect x="620" y="95" width="160" height="60" rx="8" fill="#10101a" stroke="#f5a623" stroke-width="2"/>
-    <text x="700" y="121" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="12">Majority Vote</text>
-    <text x="700" y="143" text-anchor="middle" fill="#4ecb8d" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Answer: 42</text>
+    <rect x="620" y="95" width="160" height="60" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
+    <text x="700" y="121" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="12">Majority Vote</text>
+    <text x="700" y="143" text-anchor="middle" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Answer: 42</text>
   </svg>
   <p style="text-align:center;margin-top:.3em;">Correct reasoning paths <span class="g">converge</span> on the same answer; incorrect paths <span class="r">diverge</span>.</p>
   <div class="slide-footer">prompt_engineering // 7</div>
@@ -276,34 +276,34 @@ evidence supporting each one."</code></pre>
   </div>
   <svg class="diagram" viewBox="0 0 900 150" width="860" height="140" style="margin-top:.6em;">
     <!-- Tree side -->
-    <circle cx="100" cy="30" r="14" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
-    <text x="100" y="34" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10">S</text>
-    <line x1="90" y1="44" x2="55" y2="70" stroke="#a78bfa" stroke-width="1"/>
-    <line x1="110" y1="44" x2="145" y2="70" stroke="#a78bfa" stroke-width="1"/>
-    <circle cx="55" cy="82" r="12" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
-    <circle cx="145" cy="82" r="12" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
-    <line x1="45" y1="94" x2="25" y2="115" stroke="#a78bfa" stroke-width="1"/>
-    <line x1="65" y1="94" x2="85" y2="115" stroke="#a78bfa" stroke-width="1"/>
-    <line x1="135" y1="94" x2="115" y2="115" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4"/>
-    <line x1="155" y1="94" x2="175" y2="115" stroke="#a78bfa" stroke-width="1"/>
-    <circle cx="25" cy="127" r="10" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-    <circle cx="85" cy="127" r="10" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
-    <circle cx="115" cy="127" r="10" fill="#10101a" stroke="#f87171" stroke-width="1" stroke-dasharray="3"/>
-    <circle cx="175" cy="127" r="10" fill="#10101a" stroke="#a78bfa" stroke-width="1"/>
-    <text x="100" y="148" text-anchor="middle" fill="#a78bfa" font-family="DM Sans,sans-serif" font-size="11">Tree-of-Thought</text>
+    <circle cx="100" cy="30" r="14" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
+    <text x="100" y="34" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="10">S</text>
+    <line x1="90" y1="44" x2="55" y2="70" stroke="#b7a5d9" stroke-width="1"/>
+    <line x1="110" y1="44" x2="145" y2="70" stroke="#b7a5d9" stroke-width="1"/>
+    <circle cx="55" cy="82" r="12" fill="#13272f" stroke="#b7a5d9" stroke-width="1"/>
+    <circle cx="145" cy="82" r="12" fill="#13272f" stroke="#b7a5d9" stroke-width="1"/>
+    <line x1="45" y1="94" x2="25" y2="115" stroke="#b7a5d9" stroke-width="1"/>
+    <line x1="65" y1="94" x2="85" y2="115" stroke="#b7a5d9" stroke-width="1"/>
+    <line x1="135" y1="94" x2="115" y2="115" stroke="#b7a5d9" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="155" y1="94" x2="175" y2="115" stroke="#b7a5d9" stroke-width="1"/>
+    <circle cx="25" cy="127" r="10" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+    <circle cx="85" cy="127" r="10" fill="#13272f" stroke="#b7a5d9" stroke-width="1"/>
+    <circle cx="115" cy="127" r="10" fill="#13272f" stroke="#ee876a" stroke-width="1" stroke-dasharray="3"/>
+    <circle cx="175" cy="127" r="10" fill="#13272f" stroke="#b7a5d9" stroke-width="1"/>
+    <text x="100" y="148" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="11">Tree-of-Thought</text>
     <!-- Graph side -->
-    <circle cx="500" cy="30" r="14" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="500" y="34" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="10">S</text>
-    <line x1="490" y1="44" x2="450" y2="70" stroke="#60a5fa" stroke-width="1"/>
-    <line x1="510" y1="44" x2="550" y2="70" stroke="#60a5fa" stroke-width="1"/>
-    <circle cx="450" cy="82" r="12" fill="#10101a" stroke="#60a5fa" stroke-width="1"/>
-    <circle cx="550" cy="82" r="12" fill="#10101a" stroke="#60a5fa" stroke-width="1"/>
-    <line x1="462" y1="88" x2="538" y2="88" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4"/>
-    <line x1="450" y1="94" x2="480" y2="120" stroke="#60a5fa" stroke-width="1"/>
-    <line x1="550" y1="94" x2="520" y2="120" stroke="#60a5fa" stroke-width="1"/>
-    <circle cx="500" cy="127" r="12" fill="#10101a" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="500" y="131" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="9">M</text>
-    <text x="500" y="148" text-anchor="middle" fill="#60a5fa" font-family="DM Sans,sans-serif" font-size="11">Graph-of-Thought (merge)</text>
+    <circle cx="500" cy="30" r="14" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+    <text x="500" y="34" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">S</text>
+    <line x1="490" y1="44" x2="450" y2="70" stroke="#8fbadc" stroke-width="1"/>
+    <line x1="510" y1="44" x2="550" y2="70" stroke="#8fbadc" stroke-width="1"/>
+    <circle cx="450" cy="82" r="12" fill="#13272f" stroke="#8fbadc" stroke-width="1"/>
+    <circle cx="550" cy="82" r="12" fill="#13272f" stroke="#8fbadc" stroke-width="1"/>
+    <line x1="462" y1="88" x2="538" y2="88" stroke="#8fbadc" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="450" y1="94" x2="480" y2="120" stroke="#8fbadc" stroke-width="1"/>
+    <line x1="550" y1="94" x2="520" y2="120" stroke="#8fbadc" stroke-width="1"/>
+    <circle cx="500" cy="127" r="12" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
+    <text x="500" y="131" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="9">M</text>
+    <text x="500" y="148" text-anchor="middle" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="11">Graph-of-Thought (merge)</text>
   </svg>
   <div class="slide-footer">prompt_engineering // 8</div>
 </section>
@@ -314,17 +314,17 @@ evidence supporting each one."</code></pre>
   <div class="cols cols-4060">
     <div>
       <svg class="diagram" viewBox="0 0 280 280" width="260" height="270">
-        <rect x="80" y="5" width="120" height="40" rx="6" fill="#10101a" stroke="#60a5fa" stroke-width="1.5"/>
-        <text x="140" y="30" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="11">User Query</text>
-        <line x1="140" y1="45" x2="140" y2="70" stroke="#2a2a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <rect x="50" y="70" width="180" height="40" rx="6" fill="#10101a" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="140" y="95" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="11">Embedding Search</text>
-        <line x1="140" y1="110" x2="140" y2="135" stroke="#2a2a3a" stroke-width="1.5"/>
-        <rect x="30" y="135" width="220" height="40" rx="6" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-        <text x="140" y="160" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono,monospace" font-size="11">Retrieved Context</text>
-        <line x1="140" y1="175" x2="140" y2="200" stroke="#2a2a3a" stroke-width="1.5"/>
-        <rect x="60" y="200" width="160" height="40" rx="6" fill="#10101a" stroke="#4ecb8d" stroke-width="2"/>
-        <text x="140" y="225" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono,monospace" font-size="11">LLM Response</text>
+        <rect x="80" y="5" width="120" height="40" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
+        <text x="140" y="30" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="11">User Query</text>
+        <line x1="140" y1="45" x2="140" y2="70" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="50" y="70" width="180" height="40" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
+        <text x="140" y="95" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="11">Embedding Search</text>
+        <line x1="140" y1="110" x2="140" y2="135" stroke="#294752" stroke-width="1.5"/>
+        <rect x="30" y="135" width="220" height="40" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+        <text x="140" y="160" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="11">Retrieved Context</text>
+        <line x1="140" y1="175" x2="140" y2="200" stroke="#294752" stroke-width="1.5"/>
+        <rect x="60" y="200" width="160" height="40" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
+        <text x="140" y="225" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="11">LLM Response</text>
       </svg>
     </div>
     <div>

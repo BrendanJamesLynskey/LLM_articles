@@ -11,17 +11,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root {
-    --amber:  #f5a623;
-    --green:  #4ecb8d;
-    --purple: #a78bfa;
-    --blue:   #60a5fa;
-    --red:    #f87171;
-    --bg:     #0a0a0f;
-    --bg2:    #10101a;
-    --bg3:    #181824;
-    --border: #2a2a3a;
-    --text:   #e8e8f0;
-    --muted:  #8888a8;
+    --amber:  #e4c17d;
+    --green:  #94cdb4;
+    --purple: #b7a5d9;
+    --blue:   #8fbadc;
+    --red:    #ee876a;
+    --bg:     #0f2027;
+    --bg2:    #13272f;
+    --bg3:    #172d36;
+    --border: #294752;
+    --text:   #eae5db;
+    --muted:  #829ca1;
   }
   .reveal-viewport { background: var(--bg); }
   .reveal .slides section { background: transparent; overflow-y: auto !important; padding-top: .5em; align-items: flex-start !important; justify-content: flex-start !important; }
@@ -35,7 +35,7 @@
   .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .60em; }
   .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
                  border-radius: 6px; padding: .6em .9em; margin: .5em 0; }
-  .reveal pre code { font-size: .44em; line-height: 1.5; background: transparent; color: #cdd6f4; }
+  .reveal pre code { font-size: .44em; line-height: 1.5; background: transparent; color: #d7dbd4; }
   .slide-hdr {
     display: flex; align-items: center; gap: .6em;
     border-bottom: 1px solid var(--border);
@@ -64,14 +64,14 @@
   .card.blue  { border-left: 3px solid var(--blue); }
   .card.red   { border-left: 3px solid var(--red); }
   .card h3 { font-size: .7em; margin: 0 0 .3em; }
-  .card p  { font-size: .46em; margin: 0; color: #b8b8d0; }
+  .card p  { font-size: .46em; margin: 0; color: #b9c9c7; }
   .card ul { margin: 0; padding-left: 1.2em; }
-  .card li { font-size: .46em; color: #b8b8d0; margin-bottom: .1em; }
+  .card li { font-size: .46em; color: #b9c9c7; margin-bottom: .1em; }
   .reveal table { width: 100%; border-collapse: collapse; font-size: .56em; }
   .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
                      padding: .45em .7em; border: 1px solid var(--border); text-align: left; }
-  .reveal table td { padding: .4em .7em; border: 1px solid var(--border); color: #ccc; }
-  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+  .reveal table td { padding: .4em .7em; border: 1px solid var(--border); color: #cbd4cf; }
+  .reveal table tr:nth-child(even) td { background: #12252d; }
   .a  { color: var(--amber); font-weight: 600; }
   .g  { color: var(--green); font-weight: 600; }
   .p  { color: var(--purple); font-weight: 600; }
@@ -102,11 +102,11 @@
   .reveal ul, .reveal ol { margin: .25em 0 .25em 1.2em; }
 
   .reveal .slides{overflow:visible !important}
-  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,0.25) transparent}
+  .reveal .slides>section,.reveal .slides>section>section{overflow-y:auto !important;max-height:880px;scrollbar-width:thin;scrollbar-color:rgba(228,193,125,0.25) transparent}
   .reveal .slides>section::-webkit-scrollbar{width:5px}
   .reveal .slides>section::-webkit-scrollbar-track{background:transparent}
-  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.25);border-radius:3px}
-  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.5)}
+  .reveal .slides>section::-webkit-scrollbar-thumb{background:rgba(228,193,125,0.25);border-radius:3px}
+  .reveal .slides>section::-webkit-scrollbar-thumb:hover{background:rgba(228,193,125,0.5)}
   .reveal{font-size:28px}
 </style>
 </head>
@@ -181,17 +181,17 @@
     <div>
       <svg class="diagram" viewBox="0 0 320 240" width="320" height="240">
         <!-- Axes -->
-        <line x1="50" y1="200" x2="300" y2="200" stroke="#2a2a3a" stroke-width="1.5"/>
-        <line x1="50" y1="200" x2="50" y2="20" stroke="#2a2a3a" stroke-width="1.5"/>
+        <line x1="50" y1="200" x2="300" y2="200" stroke="#294752" stroke-width="1.5"/>
+        <line x1="50" y1="200" x2="50" y2="20" stroke="#294752" stroke-width="1.5"/>
         <!-- Quadratic curve -->
-        <path d="M60,195 Q120,185 160,160 Q200,120 240,50 Q260,20 280,5" fill="none" stroke="#f87171" stroke-width="2.5"/>
+        <path d="M60,195 Q120,185 160,160 Q200,120 240,50 Q260,20 280,5" fill="none" stroke="#ee876a" stroke-width="2.5"/>
         <!-- Linear line -->
-        <line x1="60" y1="190" x2="280" y2="120" stroke="#4ecb8d" stroke-width="2.5"/>
+        <line x1="60" y1="190" x2="280" y2="120" stroke="#94cdb4" stroke-width="2.5"/>
         <!-- Labels -->
-        <text x="275" y="15" fill="#f87171" font-size="11" font-family="JetBrains Mono">O(n&sup2;)</text>
-        <text x="275" y="115" fill="#4ecb8d" font-size="11" font-family="JetBrains Mono">O(n)</text>
-        <text x="150" y="220" fill="#8888a8" font-size="10" font-family="JetBrains Mono">Context Length</text>
-        <text x="12" y="110" fill="#8888a8" font-size="10" font-family="JetBrains Mono" transform="rotate(-90,12,110)">Cost</text>
+        <text x="275" y="15" fill="#ee876a" font-size="11" font-family="JetBrains Mono">O(n&sup2;)</text>
+        <text x="275" y="115" fill="#94cdb4" font-size="11" font-family="JetBrains Mono">O(n)</text>
+        <text x="150" y="220" fill="#829ca1" font-size="10" font-family="JetBrains Mono">Context Length</text>
+        <text x="12" y="110" fill="#829ca1" font-size="10" font-family="JetBrains Mono" transform="rotate(-90,12,110)">Cost</text>
       </svg>
     </div>
   </div>
@@ -225,21 +225,21 @@
   </div>
   <svg class="diagram" viewBox="0 0 700 100" width="700" height="100" style="margin-top:.8em;">
     <!-- Rotation visualization -->
-    <rect x="10" y="20" width="120" height="55" rx="6" fill="#10101a" stroke="#2a2a3a"/>
-    <text x="70" y="42" fill="#e8e8f0" font-size="11" text-anchor="middle" font-family="DM Sans">Query Vector</text>
-    <text x="70" y="60" fill="#8888a8" font-size="10" text-anchor="middle" font-family="JetBrains Mono">q</text>
-    <text x="165" y="52" fill="#f5a623" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
-    <rect x="200" y="20" width="140" height="55" rx="6" fill="#10101a" stroke="#f5a623"/>
-    <text x="270" y="42" fill="#f5a623" font-size="11" text-anchor="middle" font-family="DM Sans">Rotate by &theta;&middot;pos</text>
-    <text x="270" y="60" fill="#8888a8" font-size="10" text-anchor="middle" font-family="JetBrains Mono">R(&theta;,m) &middot; q</text>
-    <text x="375" y="52" fill="#f5a623" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
-    <rect x="410" y="20" width="120" height="55" rx="6" fill="#10101a" stroke="#4ecb8d"/>
-    <text x="470" y="42" fill="#4ecb8d" font-size="11" text-anchor="middle" font-family="DM Sans">Dot Product</text>
-    <text x="470" y="60" fill="#8888a8" font-size="10" text-anchor="middle" font-family="JetBrains Mono">f(m - n)</text>
-    <text x="565" y="52" fill="#4ecb8d" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
-    <rect x="600" y="20" width="90" height="55" rx="6" fill="#10101a" stroke="#a78bfa"/>
-    <text x="645" y="42" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="DM Sans">Relative</text>
-    <text x="645" y="60" fill="#a78bfa" font-size="10" text-anchor="middle" font-family="DM Sans">Position</text>
+    <rect x="10" y="20" width="120" height="55" rx="6" fill="#13272f" stroke="#294752"/>
+    <text x="70" y="42" fill="#eae5db" font-size="11" text-anchor="middle" font-family="DM Sans">Query Vector</text>
+    <text x="70" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">q</text>
+    <text x="165" y="52" fill="#e4c17d" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
+    <rect x="200" y="20" width="140" height="55" rx="6" fill="#13272f" stroke="#e4c17d"/>
+    <text x="270" y="42" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">Rotate by &theta;&middot;pos</text>
+    <text x="270" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">R(&theta;,m) &middot; q</text>
+    <text x="375" y="52" fill="#e4c17d" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
+    <rect x="410" y="20" width="120" height="55" rx="6" fill="#13272f" stroke="#94cdb4"/>
+    <text x="470" y="42" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">Dot Product</text>
+    <text x="470" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">f(m - n)</text>
+    <text x="565" y="52" fill="#94cdb4" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
+    <rect x="600" y="20" width="90" height="55" rx="6" fill="#13272f" stroke="#b7a5d9"/>
+    <text x="645" y="42" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="DM Sans">Relative</text>
+    <text x="645" y="60" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="DM Sans">Position</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -296,20 +296,20 @@
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 600 90" width="600" height="90" style="margin-top:.8em;">
-    <text x="20" y="50" fill="#8888a8" font-size="11" font-family="JetBrains Mono">Attention Bias:</text>
-    <rect x="165" y="25" width="50" height="40" rx="4" fill="#10101a" stroke="#a78bfa"/>
-    <text x="190" y="50" fill="#a78bfa" font-size="12" text-anchor="middle" font-family="JetBrains Mono">0</text>
-    <rect x="225" y="25" width="50" height="40" rx="4" fill="#10101a" stroke="#a78bfa"/>
-    <text x="250" y="50" fill="#a78bfa" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-1</text>
-    <rect x="285" y="25" width="50" height="40" rx="4" fill="#10101a" stroke="#a78bfa"/>
-    <text x="310" y="50" fill="#a78bfa" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-2</text>
-    <rect x="345" y="25" width="50" height="40" rx="4" fill="#10101a" stroke="#a78bfa"/>
-    <text x="370" y="50" fill="#a78bfa" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-3</text>
-    <rect x="405" y="25" width="50" height="40" rx="4" fill="#10101a" stroke="#f87171"/>
-    <text x="430" y="50" fill="#f87171" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-n</text>
-    <text x="470" y="50" fill="#8888a8" font-size="11" font-family="JetBrains Mono">&times; slope m</text>
-    <text x="165" y="82" fill="#8888a8" font-size="9" font-family="JetBrains Mono">nearby tokens</text>
-    <text x="390" y="82" fill="#8888a8" font-size="9" font-family="JetBrains Mono">distant tokens</text>
+    <text x="20" y="50" fill="#829ca1" font-size="11" font-family="JetBrains Mono">Attention Bias:</text>
+    <rect x="165" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#b7a5d9"/>
+    <text x="190" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="JetBrains Mono">0</text>
+    <rect x="225" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#b7a5d9"/>
+    <text x="250" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-1</text>
+    <rect x="285" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#b7a5d9"/>
+    <text x="310" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-2</text>
+    <rect x="345" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#b7a5d9"/>
+    <text x="370" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-3</text>
+    <rect x="405" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#ee876a"/>
+    <text x="430" y="50" fill="#ee876a" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-n</text>
+    <text x="470" y="50" fill="#829ca1" font-size="11" font-family="JetBrains Mono">&times; slope m</text>
+    <text x="165" y="82" fill="#829ca1" font-size="9" font-family="JetBrains Mono">nearby tokens</text>
+    <text x="390" y="82" fill="#829ca1" font-size="9" font-family="JetBrains Mono">distant tokens</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -333,19 +333,19 @@
     <div>
       <svg class="diagram" viewBox="0 0 280 220" width="280" height="220">
         <!-- GPU diagram -->
-        <rect x="20" y="10" width="240" height="200" rx="8" fill="none" stroke="#2a2a3a" stroke-width="1.5"/>
-        <text x="140" y="30" fill="#8888a8" font-size="10" text-anchor="middle" font-family="JetBrains Mono">GPU</text>
+        <rect x="20" y="10" width="240" height="200" rx="8" fill="none" stroke="#294752" stroke-width="1.5"/>
+        <text x="140" y="30" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">GPU</text>
         <!-- SRAM -->
-        <rect x="40" y="45" width="200" height="55" rx="6" fill="#10101a" stroke="#4ecb8d"/>
-        <text x="140" y="68" fill="#4ecb8d" font-size="12" text-anchor="middle" font-family="JetBrains Mono">SRAM (on-chip)</text>
-        <text x="140" y="85" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Tiled attention computed here</text>
+        <rect x="40" y="45" width="200" height="55" rx="6" fill="#13272f" stroke="#94cdb4"/>
+        <text x="140" y="68" fill="#94cdb4" font-size="12" text-anchor="middle" font-family="JetBrains Mono">SRAM (on-chip)</text>
+        <text x="140" y="85" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Tiled attention computed here</text>
         <!-- HBM -->
-        <rect x="40" y="120" width="200" height="55" rx="6" fill="#10101a" stroke="#f87171"/>
-        <text x="140" y="143" fill="#f87171" font-size="12" text-anchor="middle" font-family="JetBrains Mono">HBM (main memory)</text>
-        <text x="140" y="160" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">No full N&times;N matrix stored</text>
+        <rect x="40" y="120" width="200" height="55" rx="6" fill="#13272f" stroke="#ee876a"/>
+        <text x="140" y="143" fill="#ee876a" font-size="12" text-anchor="middle" font-family="JetBrains Mono">HBM (main memory)</text>
+        <text x="140" y="160" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">No full N&times;N matrix stored</text>
         <!-- Arrow -->
-        <line x1="140" y1="100" x2="140" y2="118" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
-        <defs><marker id="arrowAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f5a623"/></marker></defs>
+        <line x1="140" y1="100" x2="140" y2="118" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+        <defs><marker id="arrowAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#e4c17d"/></marker></defs>
       </svg>
     </div>
   </div>
@@ -380,25 +380,25 @@
   </div>
   <svg class="diagram" viewBox="0 0 700 120" width="700" height="120" style="margin-top:.6em;">
     <!-- Full attention -->
-    <text x="80" y="15" fill="#f87171" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Full Attention</text>
-    <rect x="20" y="22" width="120" height="80" rx="4" fill="#f87171" fill-opacity="0.15" stroke="#f87171"/>
-    <text x="80" y="68" fill="#f87171" font-size="22" text-anchor="middle" font-family="JetBrains Mono">N&times;N</text>
+    <text x="80" y="15" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Full Attention</text>
+    <rect x="20" y="22" width="120" height="80" rx="4" fill="#ee876a" fill-opacity="0.15" stroke="#ee876a"/>
+    <text x="80" y="68" fill="#ee876a" font-size="22" text-anchor="middle" font-family="JetBrains Mono">N&times;N</text>
     <!-- Arrow -->
-    <text x="180" y="68" fill="#f5a623" font-size="22" text-anchor="middle">&rarr;</text>
+    <text x="180" y="68" fill="#e4c17d" font-size="22" text-anchor="middle">&rarr;</text>
     <!-- Sliding window -->
-    <text x="300" y="15" fill="#60a5fa" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Sliding Window</text>
-    <rect x="220" y="22" width="160" height="80" rx="4" fill="none" stroke="#2a2a3a"/>
-    <line x1="220" y1="22" x2="380" y2="102" stroke="#60a5fa" stroke-width="20" stroke-opacity="0.3"/>
-    <text x="300" y="68" fill="#60a5fa" font-size="12" text-anchor="middle" font-family="JetBrains Mono">N&times;w band</text>
+    <text x="300" y="15" fill="#8fbadc" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Sliding Window</text>
+    <rect x="220" y="22" width="160" height="80" rx="4" fill="none" stroke="#294752"/>
+    <line x1="220" y1="22" x2="380" y2="102" stroke="#8fbadc" stroke-width="20" stroke-opacity="0.3"/>
+    <text x="300" y="68" fill="#8fbadc" font-size="12" text-anchor="middle" font-family="JetBrains Mono">N&times;w band</text>
     <!-- Arrow -->
-    <text x="420" y="68" fill="#f5a623" font-size="22" text-anchor="middle">&rarr;</text>
+    <text x="420" y="68" fill="#e4c17d" font-size="22" text-anchor="middle">&rarr;</text>
     <!-- Sparse -->
-    <text x="560" y="15" fill="#a78bfa" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Sparse + Global</text>
-    <rect x="470" y="22" width="160" height="80" rx="4" fill="none" stroke="#2a2a3a"/>
-    <line x1="470" y1="22" x2="630" y2="102" stroke="#a78bfa" stroke-width="14" stroke-opacity="0.3"/>
-    <line x1="470" y1="22" x2="470" y2="102" stroke="#4ecb8d" stroke-width="6" stroke-opacity="0.4"/>
-    <line x1="470" y1="22" x2="630" y2="22" stroke="#4ecb8d" stroke-width="6" stroke-opacity="0.4"/>
-    <text x="560" y="68" fill="#a78bfa" font-size="10" text-anchor="middle" font-family="JetBrains Mono">local + global</text>
+    <text x="560" y="15" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Sparse + Global</text>
+    <rect x="470" y="22" width="160" height="80" rx="4" fill="none" stroke="#294752"/>
+    <line x1="470" y1="22" x2="630" y2="102" stroke="#b7a5d9" stroke-width="14" stroke-opacity="0.3"/>
+    <line x1="470" y1="22" x2="470" y2="102" stroke="#94cdb4" stroke-width="6" stroke-opacity="0.4"/>
+    <line x1="470" y1="22" x2="630" y2="22" stroke="#94cdb4" stroke-width="6" stroke-opacity="0.4"/>
+    <text x="560" y="68" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="JetBrains Mono">local + global</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -412,34 +412,34 @@
   <p>Distributes the sequence across multiple devices in a <span class="a">logical ring</span>, enabling contexts that exceed single-device memory.</p>
   <svg class="diagram" viewBox="0 0 700 230" width="700" height="230" style="margin-top:.4em;">
     <!-- Ring of devices -->
-    <circle cx="350" cy="120" r="90" fill="none" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4,4"/>
+    <circle cx="350" cy="120" r="90" fill="none" stroke="#294752" stroke-width="1" stroke-dasharray="4,4"/>
     <!-- Device 0 -->
-    <rect x="310" y="10" width="80" height="40" rx="6" fill="#10101a" stroke="#f5a623"/>
-    <text x="350" y="35" fill="#f5a623" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 0</text>
+    <rect x="310" y="10" width="80" height="40" rx="6" fill="#13272f" stroke="#e4c17d"/>
+    <text x="350" y="35" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 0</text>
     <!-- Device 1 -->
-    <rect x="430" y="80" width="80" height="40" rx="6" fill="#10101a" stroke="#4ecb8d"/>
-    <text x="470" y="105" fill="#4ecb8d" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 1</text>
+    <rect x="430" y="80" width="80" height="40" rx="6" fill="#13272f" stroke="#94cdb4"/>
+    <text x="470" y="105" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 1</text>
     <!-- Device 2 -->
-    <rect x="310" y="180" width="80" height="40" rx="6" fill="#10101a" stroke="#a78bfa"/>
-    <text x="350" y="205" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 2</text>
+    <rect x="310" y="180" width="80" height="40" rx="6" fill="#13272f" stroke="#b7a5d9"/>
+    <text x="350" y="205" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 2</text>
     <!-- Device 3 -->
-    <rect x="190" y="80" width="80" height="40" rx="6" fill="#10101a" stroke="#60a5fa"/>
-    <text x="230" y="105" fill="#60a5fa" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 3</text>
+    <rect x="190" y="80" width="80" height="40" rx="6" fill="#13272f" stroke="#8fbadc"/>
+    <text x="230" y="105" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 3</text>
     <!-- Arrows -->
-    <path d="M390,35 Q440,40 435,80" fill="none" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
-    <path d="M470,120 Q475,170 390,195" fill="none" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arrG)"/>
-    <path d="M310,200 Q260,195 265,125" fill="none" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrP)"/>
-    <path d="M230,80 Q225,45 310,30" fill="none" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrB)"/>
+    <path d="M390,35 Q440,40 435,80" fill="none" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+    <path d="M470,120 Q475,170 390,195" fill="none" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrG)"/>
+    <path d="M310,200 Q260,195 265,125" fill="none" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#arrP)"/>
+    <path d="M230,80 Q225,45 310,30" fill="none" stroke="#8fbadc" stroke-width="1.5" marker-end="url(#arrB)"/>
     <defs>
-      <marker id="arrG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
-      <marker id="arrP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#a78bfa"/></marker>
-      <marker id="arrB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#60a5fa"/></marker>
+      <marker id="arrG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#94cdb4"/></marker>
+      <marker id="arrP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#b7a5d9"/></marker>
+      <marker id="arrB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#8fbadc"/></marker>
     </defs>
     <!-- Labels -->
-    <text x="555" y="55" fill="#8888a8" font-size="10" font-family="DM Sans">Each device holds a KV segment</text>
-    <text x="555" y="72" fill="#8888a8" font-size="10" font-family="DM Sans">KV blocks passed around ring</text>
-    <text x="555" y="89" fill="#8888a8" font-size="10" font-family="DM Sans">Computation overlaps communication</text>
-    <text x="555" y="106" fill="#4ecb8d" font-size="10" font-family="JetBrains Mono">Essential for 100K+ tokens</text>
+    <text x="555" y="55" fill="#829ca1" font-size="10" font-family="DM Sans">Each device holds a KV segment</text>
+    <text x="555" y="72" fill="#829ca1" font-size="10" font-family="DM Sans">KV blocks passed around ring</text>
+    <text x="555" y="89" fill="#829ca1" font-size="10" font-family="DM Sans">Computation overlaps communication</text>
+    <text x="555" y="106" fill="#94cdb4" font-size="10" font-family="JetBrains Mono">Essential for 100K+ tokens</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -457,20 +457,20 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 400 180" width="400" height="180">
-        <rect x="10" y="10" width="110" height="50" rx="6" fill="#10101a" stroke="#f5a623"/>
-        <text x="65" y="40" fill="#f5a623" font-size="11" text-anchor="middle" font-family="DM Sans">Query</text>
-        <path d="M120,35 L160,35" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
-        <rect x="165" y="10" width="110" height="50" rx="6" fill="#10101a" stroke="#a78bfa"/>
-        <text x="220" y="32" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="DM Sans">Vector</text>
-        <text x="220" y="48" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="DM Sans">Database</text>
-        <path d="M275,35 L310,35" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrP)"/>
-        <rect x="315" y="10" width="80" height="50" rx="6" fill="#10101a" stroke="#4ecb8d"/>
-        <text x="355" y="32" fill="#4ecb8d" font-size="11" text-anchor="middle" font-family="DM Sans">Top-K</text>
-        <text x="355" y="48" fill="#4ecb8d" font-size="11" text-anchor="middle" font-family="DM Sans">Results</text>
-        <path d="M355,60 L355,90" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arrG)"/>
-        <rect x="130" y="95" width="260" height="50" rx="6" fill="#10101a" stroke="#60a5fa"/>
-        <text x="260" y="118" fill="#60a5fa" font-size="11" text-anchor="middle" font-family="DM Sans">LLM Context = Query + Retrieved Passages</text>
-        <text x="260" y="135" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">O(n) + retrieval cost &mdash; arbitrary external memory</text>
+        <rect x="10" y="10" width="110" height="50" rx="6" fill="#13272f" stroke="#e4c17d"/>
+        <text x="65" y="40" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">Query</text>
+        <path d="M120,35 L160,35" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+        <rect x="165" y="10" width="110" height="50" rx="6" fill="#13272f" stroke="#b7a5d9"/>
+        <text x="220" y="32" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="DM Sans">Vector</text>
+        <text x="220" y="48" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="DM Sans">Database</text>
+        <path d="M275,35 L310,35" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#arrP)"/>
+        <rect x="315" y="10" width="80" height="50" rx="6" fill="#13272f" stroke="#94cdb4"/>
+        <text x="355" y="32" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">Top-K</text>
+        <text x="355" y="48" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">Results</text>
+        <path d="M355,60 L355,90" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrG)"/>
+        <rect x="130" y="95" width="260" height="50" rx="6" fill="#13272f" stroke="#8fbadc"/>
+        <text x="260" y="118" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="DM Sans">LLM Context = Query + Retrieved Passages</text>
+        <text x="260" y="135" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">O(n) + retrieval cost &mdash; arbitrary external memory</text>
       </svg>
     </div>
   </div>
@@ -532,17 +532,17 @@
     <div>
       <svg class="diagram" viewBox="0 0 280 180" width="280" height="180">
         <!-- Context bar -->
-        <rect x="20" y="30" width="240" height="35" rx="4" fill="none" stroke="#2a2a3a"/>
-        <rect x="20" y="30" width="60" height="35" rx="4" fill="#4ecb8d" fill-opacity="0.3"/>
-        <rect x="100" y="30" width="80" height="35" rx="4" fill="#f87171" fill-opacity="0.3"/>
-        <rect x="200" y="30" width="60" height="35" rx="4" fill="#4ecb8d" fill-opacity="0.3"/>
-        <text x="50" y="52" fill="#4ecb8d" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Begin</text>
-        <text x="140" y="52" fill="#f87171" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Middle</text>
-        <text x="230" y="52" fill="#4ecb8d" font-size="9" text-anchor="middle" font-family="JetBrains Mono">End</text>
+        <rect x="20" y="30" width="240" height="35" rx="4" fill="none" stroke="#294752"/>
+        <rect x="20" y="30" width="60" height="35" rx="4" fill="#94cdb4" fill-opacity="0.3"/>
+        <rect x="100" y="30" width="80" height="35" rx="4" fill="#ee876a" fill-opacity="0.3"/>
+        <rect x="200" y="30" width="60" height="35" rx="4" fill="#94cdb4" fill-opacity="0.3"/>
+        <text x="50" y="52" fill="#94cdb4" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Begin</text>
+        <text x="140" y="52" fill="#ee876a" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Middle</text>
+        <text x="230" y="52" fill="#94cdb4" font-size="9" text-anchor="middle" font-family="JetBrains Mono">End</text>
         <!-- Accuracy curve -->
-        <text x="140" y="85" fill="#8888a8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Retrieval Accuracy</text>
-        <polyline points="30,100 60,105 90,115 120,135 140,140 160,135 190,120 220,105 250,100" fill="none" stroke="#f5a623" stroke-width="2"/>
-        <text x="140" y="165" fill="#f87171" font-size="9" text-anchor="middle" font-family="JetBrains Mono">&uarr; "Lost in the Middle"</text>
+        <text x="140" y="85" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Retrieval Accuracy</text>
+        <polyline points="30,100 60,105 90,115 120,135 140,140 160,135 190,120 220,105 250,100" fill="none" stroke="#e4c17d" stroke-width="2"/>
+        <text x="140" y="165" fill="#ee876a" font-size="9" text-anchor="middle" font-family="JetBrains Mono">&uarr; "Lost in the Middle"</text>
       </svg>
     </div>
   </div>
@@ -659,43 +659,43 @@
   </div>
   <svg class="diagram" viewBox="0 0 800 310" width="800" height="310">
     <!-- Start -->
-    <rect x="310" y="5" width="180" height="40" rx="20" fill="#10101a" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="400" y="30" fill="#f5a623" font-size="11" text-anchor="middle" font-family="DM Sans">Need long context?</text>
+    <rect x="310" y="5" width="180" height="40" rx="20" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
+    <text x="400" y="30" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">Need long context?</text>
     <!-- Branch left: fits in memory -->
-    <line x1="350" y1="45" x2="180" y2="85" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arrG)"/>
-    <text x="240" y="60" fill="#4ecb8d" font-size="9" font-family="JetBrains Mono">fits in GPU mem</text>
-    <rect x="80" y="85" width="200" height="40" rx="6" fill="#10101a" stroke="#4ecb8d"/>
-    <text x="180" y="110" fill="#4ecb8d" font-size="11" text-anchor="middle" font-family="DM Sans">FlashAttention + RoPE/YaRN</text>
+    <line x1="350" y1="45" x2="180" y2="85" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrG)"/>
+    <text x="240" y="60" fill="#94cdb4" font-size="9" font-family="JetBrains Mono">fits in GPU mem</text>
+    <rect x="80" y="85" width="200" height="40" rx="6" fill="#13272f" stroke="#94cdb4"/>
+    <text x="180" y="110" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">FlashAttention + RoPE/YaRN</text>
     <!-- Branch right: exceeds memory -->
-    <line x1="450" y1="45" x2="620" y2="85" stroke="#f87171" stroke-width="1.5" marker-end="url(#arrR)"/>
-    <text x="555" y="60" fill="#f87171" font-size="9" font-family="JetBrains Mono">exceeds GPU mem</text>
-    <defs><marker id="arrR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f87171"/></marker></defs>
-    <rect x="530" y="85" width="180" height="40" rx="6" fill="#10101a" stroke="#f87171"/>
-    <text x="620" y="105" fill="#e8e8f0" font-size="11" text-anchor="middle" font-family="DM Sans">Multi-device?</text>
+    <line x1="450" y1="45" x2="620" y2="85" stroke="#ee876a" stroke-width="1.5" marker-end="url(#arrR)"/>
+    <text x="555" y="60" fill="#ee876a" font-size="9" font-family="JetBrains Mono">exceeds GPU mem</text>
+    <defs><marker id="arrR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#ee876a"/></marker></defs>
+    <rect x="530" y="85" width="180" height="40" rx="6" fill="#13272f" stroke="#ee876a"/>
+    <text x="620" y="105" fill="#eae5db" font-size="11" text-anchor="middle" font-family="DM Sans">Multi-device?</text>
     <!-- Multi-device yes -->
-    <line x1="570" y1="125" x2="470" y2="165" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrB)"/>
-    <text x="500" y="142" fill="#60a5fa" font-size="9" font-family="JetBrains Mono">yes</text>
-    <rect x="370" y="165" width="200" height="40" rx="6" fill="#10101a" stroke="#60a5fa"/>
-    <text x="470" y="190" fill="#60a5fa" font-size="11" text-anchor="middle" font-family="DM Sans">Ring Attention</text>
+    <line x1="570" y1="125" x2="470" y2="165" stroke="#8fbadc" stroke-width="1.5" marker-end="url(#arrB)"/>
+    <text x="500" y="142" fill="#8fbadc" font-size="9" font-family="JetBrains Mono">yes</text>
+    <rect x="370" y="165" width="200" height="40" rx="6" fill="#13272f" stroke="#8fbadc"/>
+    <text x="470" y="190" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="DM Sans">Ring Attention</text>
     <!-- Multi-device no -->
-    <line x1="670" y1="125" x2="700" y2="165" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrP)"/>
-    <text x="700" y="142" fill="#a78bfa" font-size="9" font-family="JetBrains Mono">no</text>
-    <rect x="620" y="165" width="180" height="40" rx="6" fill="#10101a" stroke="#a78bfa"/>
-    <text x="710" y="185" fill="#a78bfa" font-size="10" text-anchor="middle" font-family="DM Sans">Precision needed?</text>
+    <line x1="670" y1="125" x2="700" y2="165" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#arrP)"/>
+    <text x="700" y="142" fill="#b7a5d9" font-size="9" font-family="JetBrains Mono">no</text>
+    <rect x="620" y="165" width="180" height="40" rx="6" fill="#13272f" stroke="#b7a5d9"/>
+    <text x="710" y="185" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="DM Sans">Precision needed?</text>
     <!-- Precision yes/no -->
-    <line x1="660" y1="205" x2="580" y2="245" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
-    <text x="600" y="222" fill="#f5a623" font-size="9" font-family="JetBrains Mono">yes</text>
-    <rect x="460" y="245" width="240" height="40" rx="6" fill="#10101a" stroke="#f5a623"/>
-    <text x="580" y="270" fill="#f5a623" font-size="10" text-anchor="middle" font-family="DM Sans">Sparse Attention / SSM Hybrid</text>
-    <line x1="760" y1="205" x2="780" y2="245" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arrG)"/>
-    <text x="785" y="222" fill="#4ecb8d" font-size="9" font-family="JetBrains Mono">no</text>
-    <rect x="720" y="245" width="70" height="40" rx="6" fill="#10101a" stroke="#4ecb8d"/>
-    <text x="755" y="270" fill="#4ecb8d" font-size="10" text-anchor="middle" font-family="DM Sans">RAG</text>
+    <line x1="660" y1="205" x2="580" y2="245" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+    <text x="600" y="222" fill="#e4c17d" font-size="9" font-family="JetBrains Mono">yes</text>
+    <rect x="460" y="245" width="240" height="40" rx="6" fill="#13272f" stroke="#e4c17d"/>
+    <text x="580" y="270" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="DM Sans">Sparse Attention / SSM Hybrid</text>
+    <line x1="760" y1="205" x2="780" y2="245" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrG)"/>
+    <text x="785" y="222" fill="#94cdb4" font-size="9" font-family="JetBrains Mono">no</text>
+    <rect x="720" y="245" width="70" height="40" rx="6" fill="#13272f" stroke="#94cdb4"/>
+    <text x="755" y="270" fill="#94cdb4" font-size="10" text-anchor="middle" font-family="DM Sans">RAG</text>
     <!-- Low-latency branch from left -->
-    <line x1="180" y1="125" x2="180" y2="165" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
-    <text x="195" y="150" fill="#8888a8" font-size="9" font-family="JetBrains Mono">need low latency?</text>
-    <rect x="80" y="165" width="200" height="40" rx="6" fill="#10101a" stroke="#f5a623"/>
-    <text x="180" y="190" fill="#f5a623" font-size="11" text-anchor="middle" font-family="DM Sans">Sliding Window Attention</text>
+    <line x1="180" y1="125" x2="180" y2="165" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+    <text x="195" y="150" fill="#829ca1" font-size="9" font-family="JetBrains Mono">need low latency?</text>
+    <rect x="80" y="165" width="200" height="40" rx="6" fill="#13272f" stroke="#e4c17d"/>
+    <text x="180" y="190" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">Sliding Window Attention</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -708,37 +708,37 @@
   </div>
   <svg class="diagram" viewBox="0 0 800 200" width="800" height="200">
     <!-- Timeline axis -->
-    <line x1="40" y1="100" x2="760" y2="100" stroke="#2a2a3a" stroke-width="2"/>
+    <line x1="40" y1="100" x2="760" y2="100" stroke="#294752" stroke-width="2"/>
     <!-- Nodes -->
-    <circle cx="80" cy="100" r="6" fill="#f87171"/>
-    <text x="80" y="80" fill="#f87171" font-size="10" text-anchor="middle" font-family="JetBrains Mono">512</text>
-    <text x="80" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">BERT</text>
-    <text x="80" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2018</text>
+    <circle cx="80" cy="100" r="6" fill="#ee876a"/>
+    <text x="80" y="80" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">512</text>
+    <text x="80" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">BERT</text>
+    <text x="80" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2018</text>
 
-    <circle cx="200" cy="100" r="6" fill="#f87171"/>
-    <text x="200" y="80" fill="#f87171" font-size="10" text-anchor="middle" font-family="JetBrains Mono">2K</text>
-    <text x="200" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-2</text>
-    <text x="200" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2019</text>
+    <circle cx="200" cy="100" r="6" fill="#ee876a"/>
+    <text x="200" y="80" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">2K</text>
+    <text x="200" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-2</text>
+    <text x="200" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2019</text>
 
-    <circle cx="320" cy="100" r="6" fill="#f5a623"/>
-    <text x="320" y="80" fill="#f5a623" font-size="10" text-anchor="middle" font-family="JetBrains Mono">4K-8K</text>
-    <text x="320" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-3.5/LLaMA</text>
-    <text x="320" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2022-23</text>
+    <circle cx="320" cy="100" r="6" fill="#e4c17d"/>
+    <text x="320" y="80" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="JetBrains Mono">4K-8K</text>
+    <text x="320" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-3.5/LLaMA</text>
+    <text x="320" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2022-23</text>
 
-    <circle cx="460" cy="100" r="7" fill="#f5a623"/>
-    <text x="460" y="80" fill="#f5a623" font-size="10" text-anchor="middle" font-family="JetBrains Mono">32K-128K</text>
-    <text x="460" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-4/Claude</text>
-    <text x="460" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2023-24</text>
+    <circle cx="460" cy="100" r="7" fill="#e4c17d"/>
+    <text x="460" y="80" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="JetBrains Mono">32K-128K</text>
+    <text x="460" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-4/Claude</text>
+    <text x="460" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2023-24</text>
 
-    <circle cx="600" cy="100" r="7" fill="#4ecb8d"/>
-    <text x="600" y="80" fill="#4ecb8d" font-size="10" text-anchor="middle" font-family="JetBrains Mono">200K+</text>
-    <text x="600" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">Claude 3/Gemini</text>
-    <text x="600" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2024-25</text>
+    <circle cx="600" cy="100" r="7" fill="#94cdb4"/>
+    <text x="600" y="80" fill="#94cdb4" font-size="10" text-anchor="middle" font-family="JetBrains Mono">200K+</text>
+    <text x="600" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Claude 3/Gemini</text>
+    <text x="600" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2024-25</text>
 
-    <circle cx="720" cy="100" r="8" fill="#a78bfa"/>
-    <text x="720" y="80" fill="#a78bfa" font-size="10" text-anchor="middle" font-family="JetBrains Mono">1M+</text>
-    <text x="720" y="130" fill="#8888a8" font-size="9" text-anchor="middle" font-family="DM Sans">Experimental</text>
-    <text x="720" y="145" fill="#8888a8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2025-26</text>
+    <circle cx="720" cy="100" r="8" fill="#b7a5d9"/>
+    <text x="720" y="80" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="JetBrains Mono">1M+</text>
+    <text x="720" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Experimental</text>
+    <text x="720" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2025-26</text>
   </svg>
   <div class="card amber" style="margin-top:.4em;">
     <h3>3 Orders of Magnitude in ~7 Years</h3>

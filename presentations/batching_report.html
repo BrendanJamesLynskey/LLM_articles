@@ -6,7 +6,7 @@
 <title>Batching in LLM Inference | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
@@ -25,14 +25,14 @@
   }
   .reveal-viewport { background: var(--bg); }
   .reveal .slides section { background: transparent; overflow-y: auto !important; padding-top: .5em; align-items: flex-start !important; justify-content: flex-start !important; }
-  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
-  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal { font-family: 'Manrope', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Sora', serif; font-weight: 700; }
   .reveal h1 { font-size: 1.8em; color: var(--amber); line-height: 1.15; }
   .reveal h2 { font-size: 1.25em; color: var(--amber); margin-bottom: .4em; }
   .reveal h3 { font-size: .85em; color: var(--green); margin-bottom: .3em; }
   .reveal p  { font-size: .62em; line-height: 1.65; color: var(--text); }
   .reveal li { font-size: .60em; line-height: 1.65; margin-bottom: .2em; }
-  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .60em; }
+  .reveal code { font-family: 'Source Code Pro', monospace; font-size: .60em; }
   .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
                  border-radius: 6px; padding: .6em .9em; margin: .5em 0; }
   .reveal pre code { font-size: .44em; line-height: 1.5; background: transparent; color: #d7dbd4; }
@@ -42,7 +42,7 @@
     padding-bottom: .35em; margin-bottom: .6em;
   }
   .slide-hdr .tag {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Source Code Pro', monospace;
     font-size: .44em; font-weight: 500;
     color: var(--bg); background: var(--amber);
     padding: .15em .5em; border-radius: 3px;
@@ -77,10 +77,10 @@
   .p  { color: var(--purple); font-weight: 600; }
   .b  { color: var(--blue); font-weight: 600; }
   .r  { color: var(--red); font-weight: 600; }
-  .mono { font-family: 'JetBrains Mono', monospace; }
+  .mono { font-family: 'Source Code Pro', monospace; }
   svg.diagram { display: block; margin: 0 auto; overflow: visible; }
   .pill {
-    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    display: inline-block; font-family: 'Source Code Pro', monospace;
     font-size: .48em; padding: .1em .5em; border-radius: 99px;
     border: 1px solid; margin: 0 .1em;
   }
@@ -90,15 +90,15 @@
   .pill.blue  { color: var(--blue); border-color: var(--blue); }
   .reveal .slide-footer {
     position: absolute; bottom: .6em; right: 1.2em;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Source Code Pro', monospace;
     font-size: .36em; color: var(--muted); letter-spacing: .05em;
   }
   .title-slide h1 { font-size: 2.0em; }
   .title-slide .subtitle {
-    font-size: .44em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-size: .44em; color: var(--green); font-family: 'Manrope', sans-serif;
     font-weight: 300; letter-spacing: .04em; margin: .5em 0 1.2em;
   }
-  .title-slide .meta { font-size: .52em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .title-slide .meta { font-size: .52em; color: var(--muted); font-family: 'Source Code Pro', monospace; }
   .reveal ul, .reveal ol { margin: .25em 0 .25em 1.2em; }
 
   .reveal .slides{overflow:visible !important}
@@ -116,7 +116,7 @@
 
 <!-- ============ SLIDE 1: TITLE ============ -->
 <section class="title-slide">
-  <p style="font-family:'JetBrains Mono',monospace; font-size:.48em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <p style="font-family:'Source Code Pro',monospace; font-size:.48em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
   <h1>Batching in LLM Inference</h1>
   <div class="subtitle">Techniques, Strategies, and Applications</div>
   <hr style="border: none; border-top: 2px solid var(--amber); width: 5em; margin: 0 auto 1em;">
@@ -150,18 +150,18 @@
   <div style="margin-top:.8em;">
     <svg class="diagram" viewBox="0 0 900 120" width="820" height="110">
       <rect x="10" y="15" width="180" height="90" rx="8" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-      <text x="100" y="50" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="14" font-weight="600">Single Request</text>
-      <text x="100" y="75" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">Low GPU utilization</text>
+      <text x="100" y="50" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="14" font-weight="600">Single Request</text>
+      <text x="100" y="75" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">Low GPU utilization</text>
       <line x1="200" y1="60" x2="310" y2="60" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
-      <text x="255" y="50" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">batch</text>
+      <text x="255" y="50" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">batch</text>
       <rect x="320" y="15" width="250" height="90" rx="8" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-      <text x="445" y="50" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="14" font-weight="600">Batched Requests (N)</text>
-      <text x="445" y="75" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">High GPU utilization</text>
+      <text x="445" y="50" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="14" font-weight="600">Batched Requests (N)</text>
+      <text x="445" y="75" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">High GPU utilization</text>
       <line x1="580" y1="60" x2="660" y2="60" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
       <rect x="670" y="15" width="210" height="90" rx="8" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
-      <text x="775" y="45" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="14" font-weight="600">Throughput &uarr;</text>
-      <text x="775" y="68" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="14" font-weight="600">Cost per token &darr;</text>
-      <text x="775" y="88" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">Better economics</text>
+      <text x="775" y="45" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="14" font-weight="600">Throughput &uarr;</text>
+      <text x="775" y="68" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="14" font-weight="600">Cost per token &darr;</text>
+      <text x="775" y="88" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">Better economics</text>
       <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#829ca1"/></marker></defs>
     </svg>
   </div>
@@ -222,22 +222,22 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 340 280" width="320" height="260">
-        <text x="170" y="18" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Static Batch — Padding Waste</text>
+        <text x="170" y="18" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Static Batch — Padding Waste</text>
         <rect x="20" y="30" width="300" height="40" rx="4" fill="none" stroke="#e4c17d" stroke-width="1"/>
         <rect x="22" y="32" width="296" height="36" rx="3" fill="#e4c17d30"/>
-        <text x="170" y="55" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="12">Seq 1 (long) ████████████████</text>
+        <text x="170" y="55" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="12">Seq 1 (long) ████████████████</text>
         <rect x="20" y="80" width="300" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1"/>
         <rect x="22" y="82" width="160" height="36" rx="3" fill="#94cdb430"/>
         <rect x="184" y="82" width="134" height="36" rx="3" fill="#ee876a20" stroke="#ee876a" stroke-width="1" stroke-dasharray="3,3"/>
-        <text x="100" y="105" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="12">Seq 2</text>
-        <text x="250" y="105" text-anchor="middle" fill="#ee876a" font-family="DM Sans" font-size="11">padding</text>
+        <text x="100" y="105" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="12">Seq 2</text>
+        <text x="250" y="105" text-anchor="middle" fill="#ee876a" font-family="Manrope" font-size="11">padding</text>
         <rect x="20" y="130" width="300" height="40" rx="4" fill="none" stroke="#8fbadc" stroke-width="1"/>
         <rect x="22" y="132" width="90" height="36" rx="3" fill="#8fbadc30"/>
         <rect x="114" y="132" width="204" height="36" rx="3" fill="#ee876a20" stroke="#ee876a" stroke-width="1" stroke-dasharray="3,3"/>
-        <text x="68" y="155" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="12">Seq 3</text>
-        <text x="216" y="155" text-anchor="middle" fill="#ee876a" font-family="DM Sans" font-size="11">padding</text>
+        <text x="68" y="155" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="12">Seq 3</text>
+        <text x="216" y="155" text-anchor="middle" fill="#ee876a" font-family="Manrope" font-size="11">padding</text>
         <line x1="320" y1="30" x2="320" y2="170" stroke="#ee876a" stroke-width="1" stroke-dasharray="4,3"/>
-        <text x="315" y="185" text-anchor="end" fill="#ee876a" font-family="JetBrains Mono" font-size="10">blocked until longest done</text>
+        <text x="315" y="185" text-anchor="end" fill="#ee876a" font-family="Source Code Pro" font-size="10">blocked until longest done</text>
       </svg>
     </div>
   </div>
@@ -265,21 +265,21 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 340 260" width="320" height="240">
-        <text x="170" y="18" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Continuous — Dynamic Slot Filling</text>
+        <text x="170" y="18" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Continuous — Dynamic Slot Filling</text>
         <!-- time axis -->
         <line x1="30" y1="240" x2="320" y2="240" stroke="#294752" stroke-width="1"/>
-        <text x="175" y="255" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">time →</text>
+        <text x="175" y="255" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">time →</text>
         <!-- sequences -->
         <rect x="30" y="35" width="280" height="28" rx="4" fill="#e4c17d25" stroke="#e4c17d" stroke-width="1"/>
-        <text x="170" y="54" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="11">Seq A</text>
+        <text x="170" y="54" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="11">Seq A</text>
         <rect x="30" y="70" width="140" height="28" rx="4" fill="#94cdb425" stroke="#94cdb4" stroke-width="1"/>
-        <text x="100" y="89" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">Seq B</text>
+        <text x="100" y="89" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="11">Seq B</text>
         <rect x="180" y="70" width="130" height="28" rx="4" fill="#b7a5d925" stroke="#b7a5d9" stroke-width="1"/>
-        <text x="245" y="89" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="11">Seq D (new!)</text>
+        <text x="245" y="89" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="11">Seq D (new!)</text>
         <rect x="30" y="105" width="200" height="28" rx="4" fill="#8fbadc25" stroke="#8fbadc" stroke-width="1"/>
-        <text x="130" y="124" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="11">Seq C</text>
+        <text x="130" y="124" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="11">Seq C</text>
         <rect x="240" y="105" width="70" height="28" rx="4" fill="#ee876a25" stroke="#ee876a" stroke-width="1"/>
-        <text x="275" y="124" text-anchor="middle" fill="#ee876a" font-family="DM Sans" font-size="11">Seq E</text>
+        <text x="275" y="124" text-anchor="middle" fill="#ee876a" font-family="Manrope" font-size="11">Seq E</text>
         <!-- arrow showing swap -->
         <path d="M172 82 C175 98, 178 75, 178 82" stroke="#94cdb4" stroke-width="1" fill="none" marker-end="url(#arrow2)"/>
         <defs><marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94cdb4"/></marker></defs>
@@ -329,21 +329,21 @@
   </div>
   <svg class="diagram" viewBox="0 0 900 130" width="840" height="120">
     <rect x="10" y="20" width="170" height="90" rx="8" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="95" y="50" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="13" font-weight="600">Draft Model</text>
-    <text x="95" y="70" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Small &amp; fast</text>
-    <text x="95" y="88" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Proposes K tokens</text>
+    <text x="95" y="50" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="13" font-weight="600">Draft Model</text>
+    <text x="95" y="70" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Small &amp; fast</text>
+    <text x="95" y="88" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Proposes K tokens</text>
     <line x1="185" y1="65" x2="290" y2="65" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="237" y="55" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">K candidates</text>
+    <text x="237" y="55" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">K candidates</text>
     <rect x="295" y="20" width="250" height="90" rx="8" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="420" y="50" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="13" font-weight="600">Target Model</text>
-    <text x="420" y="70" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Batched verification</text>
-    <text x="420" y="88" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Single forward pass</text>
+    <text x="420" y="50" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="13" font-weight="600">Target Model</text>
+    <text x="420" y="70" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Batched verification</text>
+    <text x="420" y="88" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Single forward pass</text>
     <line x1="550" y1="65" x2="640" y2="65" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
-    <text x="595" y="55" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">accept/reject</text>
+    <text x="595" y="55" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">accept/reject</text>
     <rect x="645" y="20" width="230" height="90" rx="8" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="760" y="50" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="13" font-weight="600">Output Tokens</text>
-    <text x="760" y="70" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Preserves target distribution</text>
-    <text x="760" y="88" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Fewer total forward passes</text>
+    <text x="760" y="50" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="13" font-weight="600">Output Tokens</text>
+    <text x="760" y="70" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Preserves target distribution</text>
+    <text x="760" y="88" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Fewer total forward passes</text>
   </svg>
   <div class="cols cols-2" style="margin-top:.5em;">
     <div class="card green">
@@ -437,38 +437,38 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 320 300" width="300" height="280">
-        <text x="160" y="18" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">KV Cache Pages</text>
+        <text x="160" y="18" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">KV Cache Pages</text>
         <!-- GPU Memory block -->
         <rect x="20" y="30" width="280" height="250" rx="6" fill="none" stroke="#294752" stroke-width="1"/>
-        <text x="160" y="50" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">GPU Memory</text>
+        <text x="160" y="50" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">GPU Memory</text>
         <!-- Pages -->
         <rect x="35" y="60" width="55" height="40" rx="3" fill="#e4c17d20" stroke="#e4c17d" stroke-width="1"/>
-        <text x="62" y="84" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">S1-P0</text>
+        <text x="62" y="84" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">S1-P0</text>
         <rect x="100" y="60" width="55" height="40" rx="3" fill="#94cdb420" stroke="#94cdb4" stroke-width="1"/>
-        <text x="127" y="84" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">S2-P0</text>
+        <text x="127" y="84" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">S2-P0</text>
         <rect x="165" y="60" width="55" height="40" rx="3" fill="#e4c17d20" stroke="#e4c17d" stroke-width="1"/>
-        <text x="192" y="84" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">S1-P1</text>
+        <text x="192" y="84" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">S1-P1</text>
         <rect x="230" y="60" width="55" height="40" rx="3" fill="#b7a5d920" stroke="#b7a5d9" stroke-width="1"/>
-        <text x="257" y="84" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">S3-P0</text>
+        <text x="257" y="84" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="9">S3-P0</text>
         <rect x="35" y="110" width="55" height="40" rx="3" fill="#b7a5d920" stroke="#b7a5d9" stroke-width="1"/>
-        <text x="62" y="134" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">S3-P1</text>
+        <text x="62" y="134" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="9">S3-P1</text>
         <rect x="100" y="110" width="55" height="40" rx="3" fill="#94cdb420" stroke="#94cdb4" stroke-width="1"/>
-        <text x="127" y="134" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">S2-P1</text>
+        <text x="127" y="134" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">S2-P1</text>
         <rect x="165" y="110" width="55" height="40" rx="3" fill="#8fbadc20" stroke="#8fbadc" stroke-width="1"/>
-        <text x="192" y="134" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="9">shared</text>
+        <text x="192" y="134" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="9">shared</text>
         <rect x="230" y="110" width="55" height="40" rx="3" fill="#172d3600" stroke="#294752" stroke-width="1" stroke-dasharray="3,3"/>
-        <text x="257" y="134" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">free</text>
+        <text x="257" y="134" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">free</text>
         <!-- Legend -->
         <rect x="35" y="170" width="12" height="12" rx="2" fill="#e4c17d40" stroke="#e4c17d" stroke-width="1"/>
-        <text x="55" y="181" fill="#e4c17d" font-family="DM Sans" font-size="10">Seq 1</text>
+        <text x="55" y="181" fill="#e4c17d" font-family="Manrope" font-size="10">Seq 1</text>
         <rect x="105" y="170" width="12" height="12" rx="2" fill="#94cdb440" stroke="#94cdb4" stroke-width="1"/>
-        <text x="125" y="181" fill="#94cdb4" font-family="DM Sans" font-size="10">Seq 2</text>
+        <text x="125" y="181" fill="#94cdb4" font-family="Manrope" font-size="10">Seq 2</text>
         <rect x="175" y="170" width="12" height="12" rx="2" fill="#b7a5d940" stroke="#b7a5d9" stroke-width="1"/>
-        <text x="195" y="181" fill="#b7a5d9" font-family="DM Sans" font-size="10">Seq 3</text>
+        <text x="195" y="181" fill="#b7a5d9" font-family="Manrope" font-size="10">Seq 3</text>
         <rect x="235" y="170" width="12" height="12" rx="2" fill="#8fbadc40" stroke="#8fbadc" stroke-width="1"/>
-        <text x="255" y="181" fill="#8fbadc" font-family="DM Sans" font-size="10">Shared</text>
-        <text x="160" y="210" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Non-contiguous allocation</text>
-        <text x="160" y="228" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">eliminates fragmentation</text>
+        <text x="255" y="181" fill="#8fbadc" font-family="Manrope" font-size="10">Shared</text>
+        <text x="160" y="210" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Non-contiguous allocation</text>
+        <text x="160" y="228" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">eliminates fragmentation</text>
       </svg>
     </div>
   </div>
@@ -510,18 +510,18 @@
   </div>
   <svg class="diagram" viewBox="0 0 900 100" width="840" height="90" style="margin-top:.6em;">
     <rect x="10" y="10" width="160" height="70" rx="6" fill="none" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="90" y="38" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="12" font-weight="600">Request Queue</text>
-    <text x="90" y="58" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">sorted by priority</text>
+    <text x="90" y="38" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="12" font-weight="600">Request Queue</text>
+    <text x="90" y="58" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">sorted by priority</text>
     <line x1="175" y1="45" x2="280" y2="45" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
     <rect x="285" y="10" width="200" height="70" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="385" y="38" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="12" font-weight="600">Scheduler</text>
-    <text x="385" y="58" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">admission control + preemption</text>
+    <text x="385" y="38" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="12" font-weight="600">Scheduler</text>
+    <text x="385" y="58" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">admission control + preemption</text>
     <line x1="490" y1="45" x2="580" y2="45" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
     <rect x="585" y="10" width="180" height="70" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="675" y="38" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="12" font-weight="600">Active Batch</text>
-    <text x="675" y="58" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">GPU execution</text>
+    <text x="675" y="38" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="12" font-weight="600">Active Batch</text>
+    <text x="675" y="58" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">GPU execution</text>
     <path d="M675 80 Q675 95, 385 95 Q385 90, 385 80" stroke="#ee876a" stroke-width="1" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow3)"/>
-    <text x="530" y="92" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">preempt</text>
+    <text x="530" y="92" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="9">preempt</text>
     <defs><marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ee876a"/></marker></defs>
   </svg>
   <div class="slide-footer">Batching in LLM Inference</div>
@@ -645,18 +645,18 @@
   </div>
   <svg class="diagram" viewBox="0 0 900 100" width="840" height="90" style="margin-top:.6em;">
     <rect x="10" y="15" width="180" height="65" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="100" y="42" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="12" font-weight="600">Training Step</text>
-    <text x="100" y="60" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Policy update</text>
+    <text x="100" y="42" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="12" font-weight="600">Training Step</text>
+    <text x="100" y="60" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Policy update</text>
     <line x1="195" y1="47" x2="280" y2="47" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
     <rect x="285" y="15" width="240" height="65" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="405" y="42" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="12" font-weight="600">Batched Generation</text>
-    <text x="405" y="60" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">N completions in parallel</text>
+    <text x="405" y="42" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="12" font-weight="600">Batched Generation</text>
+    <text x="405" y="60" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">N completions in parallel</text>
     <line x1="530" y1="47" x2="610" y2="47" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
     <rect x="615" y="15" width="180" height="65" rx="6" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="705" y="42" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="12" font-weight="600">Reward / Ranking</text>
-    <text x="705" y="60" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Human or model feedback</text>
+    <text x="705" y="42" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="12" font-weight="600">Reward / Ranking</text>
+    <text x="705" y="60" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Human or model feedback</text>
     <path d="M705 80 Q705 95, 100 95 Q100 85, 100 80" stroke="#829ca1" stroke-width="1" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
-    <text x="400" y="92" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">training loop</text>
+    <text x="400" y="92" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">training loop</text>
   </svg>
   <div class="slide-footer">Batching in LLM Inference</div>
 </section>
@@ -788,7 +788,7 @@
 
 <!-- ============ SLIDE 18: CLOSING ============ -->
 <section class="title-slide">
-  <p style="font-family:'JetBrains Mono',monospace; font-size:.48em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <p style="font-family:'Source Code Pro',monospace; font-size:.48em; color:var(--muted); letter-spacing:.15em; margin-bottom:.2em;">TECHNICAL REPORT</p>
   <h1>Batching in LLM Inference</h1>
   <div class="subtitle">Techniques, Strategies, and Applications</div>
   <hr style="border: none; border-top: 2px solid var(--amber); width: 5em; margin: 0 auto 1em;">

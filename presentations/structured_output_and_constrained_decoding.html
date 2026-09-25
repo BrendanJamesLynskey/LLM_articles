@@ -6,22 +6,22 @@
 <title>Structured Output and Constrained Decoding | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -35,15 +35,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -101,20 +101,20 @@
     </defs>
     <!-- Boxes -->
     <rect x="10" y="30" width="180" height="70" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="100" y="58" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="14" font-weight="600">Prompt-Only</text>
-    <text x="100" y="80" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">No guarantees</text>
+    <text x="100" y="58" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="14" font-weight="600">Prompt-Only</text>
+    <text x="100" y="80" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">No guarantees</text>
 
     <rect x="240" y="30" width="180" height="70" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="330" y="58" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="14" font-weight="600">JSON Mode</text>
-    <text x="330" y="80" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Valid syntax, no schema</text>
+    <text x="330" y="58" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="14" font-weight="600">JSON Mode</text>
+    <text x="330" y="80" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Valid syntax, no schema</text>
 
     <rect x="470" y="30" width="180" height="70" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="560" y="58" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="14" font-weight="600">Schema-Constrained</text>
-    <text x="560" y="80" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Type + field guarantees</text>
+    <text x="560" y="58" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="14" font-weight="600">Schema-Constrained</text>
+    <text x="560" y="80" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Type + field guarantees</text>
 
     <rect x="700" y="30" width="180" height="70" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="790" y="58" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="14" font-weight="600">Grammar/CFG</text>
-    <text x="790" y="80" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Arbitrary formal languages</text>
+    <text x="790" y="58" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="14" font-weight="600">Grammar/CFG</text>
+    <text x="790" y="80" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Arbitrary formal languages</text>
 
     <!-- Arrows -->
     <line x1="190" y1="65" x2="238" y2="65" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrow)"/>
@@ -123,9 +123,9 @@
 
     <!-- Guarantee bar -->
     <line x1="10" y1="140" x2="880" y2="140" stroke="#294752" stroke-width="1"/>
-    <text x="10" y="165" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Weakest</text>
-    <text x="830" y="165" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Strongest</text>
-    <text x="445" y="160" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="13" font-weight="600">Structural Guarantee Spectrum</text>
+    <text x="10" y="165" fill="#829ca1" font-family="Source Code Pro" font-size="11">Weakest</text>
+    <text x="830" y="165" fill="#829ca1" font-family="Source Code Pro" font-size="11">Strongest</text>
+    <text x="445" y="160" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="13" font-weight="600">Structural Guarantee Spectrum</text>
 
     <!-- gradient bar -->
     <defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#ee876a"/><stop offset="50%" style="stop-color:#e4c17d"/><stop offset="100%" style="stop-color:#94cdb4"/></linearGradient></defs>
@@ -184,26 +184,26 @@ array  ::= "[" value ("," value)* "]"</code></pre>
     <div>
       <svg class="diagram" viewBox="0 0 340 260" width="340" height="260">
         <circle cx="50" cy="50" r="25" fill="none" stroke="#94cdb4" stroke-width="2"/>
-        <text x="50" y="55" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="13">S0</text>
+        <text x="50" y="55" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="13">S0</text>
         <circle cx="170" cy="50" r="25" fill="none" stroke="#b7a5d9" stroke-width="2"/>
-        <text x="170" y="55" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="13">S1</text>
+        <text x="170" y="55" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="13">S1</text>
         <circle cx="290" cy="50" r="25" fill="none" stroke="#8fbadc" stroke-width="2"/>
         <circle cx="290" cy="50" r="20" fill="none" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="290" y="55" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="13">S2</text>
+        <text x="290" y="55" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="13">S2</text>
         <line x1="75" y1="50" x2="143" y2="50" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="110" y="40" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">[0-9]</text>
+        <text x="110" y="40" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">[0-9]</text>
         <line x1="195" y1="50" x2="263" y2="50" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="229" y="40" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">[0-9]</text>
+        <text x="229" y="40" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">[0-9]</text>
         <path d="M 170 25 C 190 0 210 0 190 23" fill="none" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="200" y="10" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">[0-9]</text>
+        <text x="200" y="10" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">[0-9]</text>
         <!-- Token sets -->
         <rect x="10" y="110" width="130" height="55" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="1"/>
-        <text x="75" y="130" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Valid tokens @ S0</text>
-        <text x="75" y="150" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">"0".."9" only</text>
+        <text x="75" y="130" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Valid tokens @ S0</text>
+        <text x="75" y="150" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">"0".."9" only</text>
 
         <rect x="180" y="110" width="150" height="55" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1"/>
-        <text x="255" y="130" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Valid tokens @ S1</text>
-        <text x="255" y="150" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">"0".."9", "00".."99"</text>
+        <text x="255" y="130" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Valid tokens @ S1</text>
+        <text x="255" y="150" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">"0".."9", "00".."99"</text>
       </svg>
     </div>
   </div>
@@ -287,24 +287,24 @@ Model:  "{\"name"   &rarr; token [57234]
   <svg class="diagram" viewBox="0 0 900 200" width="880" height="190">
     <!-- Pipeline -->
     <rect x="10" y="60" width="140" height="65" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="80" y="85" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="13" font-weight="600">Model Forward</text>
-    <text x="80" y="105" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Raw logits</text>
+    <text x="80" y="85" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="13" font-weight="600">Model Forward</text>
+    <text x="80" y="105" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Raw logits</text>
 
     <rect x="200" y="60" width="160" height="65" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="280" y="85" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="13" font-weight="600">Grammar Mask</text>
-    <text x="280" y="105" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">PDA/DFA state &rarr; mask</text>
+    <text x="280" y="85" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="13" font-weight="600">Grammar Mask</text>
+    <text x="280" y="105" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">PDA/DFA state &rarr; mask</text>
 
     <rect x="410" y="60" width="160" height="65" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="490" y="85" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="13" font-weight="600">Logit Bias</text>
-    <text x="490" y="105" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Per-token offsets</text>
+    <text x="490" y="85" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="13" font-weight="600">Logit Bias</text>
+    <text x="490" y="105" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Per-token offsets</text>
 
     <rect x="620" y="60" width="140" height="65" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="690" y="85" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="13" font-weight="600">Temperature</text>
-    <text x="690" y="105" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Scaling</text>
+    <text x="690" y="85" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="13" font-weight="600">Temperature</text>
+    <text x="690" y="105" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Scaling</text>
 
     <rect x="810" y="60" width="80" height="65" rx="8" fill="#13272f" stroke="#ee876a" stroke-width="1.5"/>
-    <text x="850" y="85" text-anchor="middle" fill="#ee876a" font-family="DM Sans" font-size="13" font-weight="600">Sample</text>
-    <text x="850" y="105" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Token</text>
+    <text x="850" y="85" text-anchor="middle" fill="#ee876a" font-family="Manrope" font-size="13" font-weight="600">Sample</text>
+    <text x="850" y="105" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Token</text>
 
     <line x1="150" y1="92" x2="198" y2="92" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrow)"/>
     <line x1="360" y1="92" x2="408" y2="92" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrow)"/>
@@ -581,48 +581,48 @@ response = client.chat.completions.create(
   <svg class="diagram" viewBox="0 0 900 380" width="880" height="370">
     <!-- Start -->
     <rect x="340" y="5" width="220" height="45" rx="22" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="450" y="33" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="14" font-weight="600">Need structured output?</text>
+    <text x="450" y="33" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="14" font-weight="600">Need structured output?</text>
 
     <!-- Branch 1 -->
     <line x1="450" y1="50" x2="450" y2="80" stroke="#829ca1" stroke-width="1.5"/>
     <rect x="340" y="80" width="220" height="40" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="450" y="105" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="13">Is the format a simple pattern?</text>
+    <text x="450" y="105" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="13">Is the format a simple pattern?</text>
 
     <!-- Yes: Regex -->
     <line x1="560" y1="100" x2="700" y2="100" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="630" y="93" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">yes</text>
+    <text x="630" y="93" fill="#94cdb4" font-family="Source Code Pro" font-size="11">yes</text>
     <rect x="700" y="78" width="170" height="44" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="785" y="105" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="13" font-weight="600">Regex / FSM</text>
+    <text x="785" y="105" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="13" font-weight="600">Regex / FSM</text>
 
     <!-- No -->
     <line x1="450" y1="120" x2="450" y2="155" stroke="#829ca1" stroke-width="1.5"/>
-    <text x="462" y="143" fill="#ee876a" font-family="JetBrains Mono" font-size="11">no</text>
+    <text x="462" y="143" fill="#ee876a" font-family="Source Code Pro" font-size="11">no</text>
     <rect x="340" y="155" width="220" height="40" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="450" y="180" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="13">Is it JSON with a known schema?</text>
+    <text x="450" y="180" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="13">Is it JSON with a known schema?</text>
 
     <!-- Yes: Schema -->
     <line x1="560" y1="175" x2="700" y2="175" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="630" y="168" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">yes</text>
+    <text x="630" y="168" fill="#94cdb4" font-family="Source Code Pro" font-size="11">yes</text>
     <rect x="700" y="153" width="170" height="44" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="785" y="180" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="13" font-weight="600">JSON Schema</text>
+    <text x="785" y="180" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="13" font-weight="600">JSON Schema</text>
 
     <!-- No -->
     <line x1="450" y1="195" x2="450" y2="230" stroke="#829ca1" stroke-width="1.5"/>
-    <text x="462" y="218" fill="#ee876a" font-family="JetBrains Mono" font-size="11">no</text>
+    <text x="462" y="218" fill="#ee876a" font-family="Source Code Pro" font-size="11">no</text>
     <rect x="340" y="230" width="220" height="40" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="450" y="255" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="13">Does it need recursive structure?</text>
+    <text x="450" y="255" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="13">Does it need recursive structure?</text>
 
     <!-- Yes: CFG -->
     <line x1="560" y1="250" x2="700" y2="250" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="630" y="243" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">yes</text>
+    <text x="630" y="243" fill="#94cdb4" font-family="Source Code Pro" font-size="11">yes</text>
     <rect x="700" y="228" width="170" height="44" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="785" y="255" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="13" font-weight="600">Full CFG / PDA</text>
+    <text x="785" y="255" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="13" font-weight="600">Full CFG / PDA</text>
 
     <!-- No: Function Calling -->
     <line x1="450" y1="270" x2="450" y2="305" stroke="#829ca1" stroke-width="1.5"/>
-    <text x="462" y="293" fill="#ee876a" font-family="JetBrains Mono" font-size="11">no</text>
+    <text x="462" y="293" fill="#ee876a" font-family="Source Code Pro" font-size="11">no</text>
     <rect x="340" y="305" width="220" height="44" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-    <text x="450" y="332" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="13" font-weight="600">Function Calling / Tool Use</text>
+    <text x="450" y="332" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="13" font-weight="600">Function Calling / Tool Use</text>
   </svg>
   <div class="slide-footer">constrained-decoding / 15</div>
 </section>

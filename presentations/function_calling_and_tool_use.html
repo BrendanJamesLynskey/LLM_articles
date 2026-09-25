@@ -6,22 +6,22 @@
 <title>Function Calling and Tool Use | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -35,15 +35,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .mono{font-family:'Source Code Pro',monospace}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
   .pill.red{color:var(--red);border-color:var(--red)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}

@@ -6,22 +6,22 @@
 <title>Google TPU Architecture | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -35,15 +35,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -80,40 +80,40 @@
     <line x1="60" y1="140" x2="1060" y2="140" stroke="#294752" stroke-width="2"/>
     <!-- v1 -->
     <circle cx="100" cy="140" r="8" fill="#e4c17d"/>
-    <text x="100" y="115" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="600">v1</text>
-    <text x="100" y="170" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">2016</text>
-    <text x="100" y="188" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">Inference only</text>
-    <text x="100" y="203" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">92 TOPS INT8</text>
+    <text x="100" y="115" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13" font-weight="600">v1</text>
+    <text x="100" y="170" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">2016</text>
+    <text x="100" y="188" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">Inference only</text>
+    <text x="100" y="203" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">92 TOPS INT8</text>
     <!-- v2 -->
     <circle cx="260" cy="140" r="8" fill="#e4c17d"/>
-    <text x="260" y="115" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="600">v2</text>
-    <text x="260" y="170" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">2017</text>
-    <text x="260" y="188" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">Training support</text>
-    <text x="260" y="203" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">HBM + 45 TFLOPS</text>
+    <text x="260" y="115" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13" font-weight="600">v2</text>
+    <text x="260" y="170" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">2017</text>
+    <text x="260" y="188" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">Training support</text>
+    <text x="260" y="203" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">HBM + 45 TFLOPS</text>
     <!-- v3 -->
     <circle cx="420" cy="140" r="8" fill="#e4c17d"/>
-    <text x="420" y="115" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="600">v3</text>
-    <text x="420" y="170" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">2018</text>
-    <text x="420" y="188" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">Liquid cooled</text>
-    <text x="420" y="203" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">1024-chip pods</text>
+    <text x="420" y="115" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13" font-weight="600">v3</text>
+    <text x="420" y="170" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">2018</text>
+    <text x="420" y="188" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">Liquid cooled</text>
+    <text x="420" y="203" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">1024-chip pods</text>
     <!-- v4 -->
     <circle cx="580" cy="140" r="10" fill="#94cdb4"/>
-    <text x="580" y="112" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="14" font-weight="600">v4</text>
-    <text x="580" y="170" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">2022</text>
-    <text x="580" y="188" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">275 TFLOPS BF16</text>
-    <text x="580" y="203" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">4096-chip pods</text>
+    <text x="580" y="112" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="14" font-weight="600">v4</text>
+    <text x="580" y="170" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">2022</text>
+    <text x="580" y="188" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">275 TFLOPS BF16</text>
+    <text x="580" y="203" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">4096-chip pods</text>
     <!-- v5p -->
     <circle cx="770" cy="140" r="10" fill="#b7a5d9"/>
-    <text x="770" y="112" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="14" font-weight="600">v5p</text>
-    <text x="770" y="170" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">2023</text>
-    <text x="770" y="188" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">459 TFLOPS BF16</text>
-    <text x="770" y="203" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">SparseCore</text>
+    <text x="770" y="112" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="14" font-weight="600">v5p</text>
+    <text x="770" y="170" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">2023</text>
+    <text x="770" y="188" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">459 TFLOPS BF16</text>
+    <text x="770" y="203" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">SparseCore</text>
     <!-- Trillium -->
     <circle cx="940" cy="140" r="12" fill="#8fbadc"/>
-    <text x="940" y="108" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="14" font-weight="600">Trillium</text>
-    <text x="940" y="170" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">2024</text>
-    <text x="940" y="188" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">4.7x over v5e</text>
-    <text x="940" y="203" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="10">Enhanced ICI</text>
+    <text x="940" y="108" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="14" font-weight="600">Trillium</text>
+    <text x="940" y="170" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">2024</text>
+    <text x="940" y="188" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">4.7x over v5e</text>
+    <text x="940" y="203" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="10">Enhanced ICI</text>
   </svg>
   <div class="slide-footer">google-tpu / 02</div>
 </section>
@@ -125,49 +125,49 @@
     <div>
       <svg class="diagram" viewBox="0 0 420 340" width="420" height="340">
         <!-- Grid of processing elements -->
-        <text x="210" y="20" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12" font-weight="600">128 x 128 MXU Systolic Array</text>
+        <text x="210" y="20" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12" font-weight="600">128 x 128 MXU Systolic Array</text>
         <!-- Row labels -->
-        <text x="15" y="72" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Weight</text>
-        <text x="15" y="84" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Flow &#8594;</text>
+        <text x="15" y="72" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Weight</text>
+        <text x="15" y="84" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Flow &#8594;</text>
         <!-- Column labels -->
-        <text x="75" y="38" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10" text-anchor="middle">Activation</text>
-        <text x="75" y="48" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10" text-anchor="middle">Flow &#8595;</text>
+        <text x="75" y="38" fill="#b7a5d9" font-family="Source Code Pro" font-size="10" text-anchor="middle">Activation</text>
+        <text x="75" y="48" fill="#b7a5d9" font-family="Source Code Pro" font-size="10" text-anchor="middle">Flow &#8595;</text>
         <!-- Grid 6x6 representation -->
         <g transform="translate(50, 55)">
           <rect x="0" y="0" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.8"/>
-          <text x="20" y="24" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="20" y="24" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="50" y="0" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.7"/>
-          <text x="70" y="24" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="70" y="24" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="100" y="0" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.6"/>
-          <text x="120" y="24" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="120" y="24" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="150" y="0" width="40" height="40" rx="4" fill="none" stroke="#8fbadc" stroke-width="1" stroke-dasharray="4"/>
           <rect x="200" y="0" width="40" height="40" rx="4" fill="none" stroke="#8fbadc" stroke-width="1" stroke-dasharray="4"/>
           <rect x="250" y="0" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.5"/>
-          <text x="270" y="24" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="270" y="24" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
 
           <rect x="0" y="50" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.7"/>
-          <text x="20" y="74" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="20" y="74" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="50" y="50" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.6"/>
-          <text x="70" y="74" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="70" y="74" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="100" y="50" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.5"/>
-          <text x="120" y="74" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="120" y="74" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="150" y="50" width="40" height="40" rx="4" fill="none" stroke="#8fbadc" stroke-width="1" stroke-dasharray="4"/>
           <rect x="200" y="50" width="40" height="40" rx="4" fill="none" stroke="#8fbadc" stroke-width="1" stroke-dasharray="4"/>
           <rect x="250" y="50" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.4"/>
-          <text x="270" y="74" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="270" y="74" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
 
           <rect x="0" y="100" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.6"/>
-          <text x="20" y="124" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="20" y="124" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="50" y="100" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.5"/>
-          <text x="70" y="124" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="70" y="124" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="100" y="100" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.4"/>
-          <text x="120" y="124" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="120" y="124" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <rect x="150" y="100" width="40" height="40" rx="4" fill="none" stroke="#8fbadc" stroke-width="1" stroke-dasharray="4"/>
           <rect x="200" y="100" width="40" height="40" rx="4" fill="none" stroke="#8fbadc" stroke-width="1" stroke-dasharray="4"/>
           <rect x="250" y="100" width="40" height="40" rx="4" fill="none" stroke="#94cdb4" stroke-width="1.5" opacity="0.3"/>
-          <text x="270" y="124" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">MAC</text>
+          <text x="270" y="124" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">MAC</text>
           <!-- Dots indicating continuation -->
-          <text x="175" y="170" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="14">. . .</text>
+          <text x="175" y="170" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="14">. . .</text>
 
           <!-- Arrows showing data flow -->
           <line x1="42" y1="20" x2="48" y2="20" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowA)"/>
@@ -175,8 +175,8 @@
           <line x1="20" y1="42" x2="20" y2="48" stroke="#b7a5d9" stroke-width="1.5"/>
           <line x1="70" y1="42" x2="70" y2="48" stroke="#b7a5d9" stroke-width="1.5"/>
         </g>
-        <text x="210" y="265" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Data flows through array &mdash; each PE does</text>
-        <text x="210" y="280" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">multiply-accumulate and passes result to neighbor</text>
+        <text x="210" y="265" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Data flows through array &mdash; each PE does</text>
+        <text x="210" y="280" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">multiply-accumulate and passes result to neighbor</text>
       </svg>
     </div>
     <div>
@@ -208,41 +208,41 @@
   <div class="cols cols-2">
     <div>
       <svg class="diagram" viewBox="0 0 460 300" width="460" height="300">
-        <text x="230" y="20" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12" font-weight="600">TPU v4 Chip Block Diagram</text>
+        <text x="230" y="20" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12" font-weight="600">TPU v4 Chip Block Diagram</text>
         <!-- TensorCore 0 -->
         <rect x="20" y="40" width="200" height="200" rx="8" fill="none" stroke="#e4c17d" stroke-width="2"/>
-        <text x="120" y="60" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">TensorCore 0</text>
+        <text x="120" y="60" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">TensorCore 0</text>
         <rect x="35" y="72" width="80" height="35" rx="4" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="75" y="94" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">MXU 128x128</text>
+        <text x="75" y="94" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">MXU 128x128</text>
         <rect x="125" y="72" width="80" height="35" rx="4" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-        <text x="165" y="94" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Vector Unit</text>
+        <text x="165" y="94" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Vector Unit</text>
         <rect x="35" y="116" width="80" height="35" rx="4" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="75" y="138" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">Scalar Unit</text>
+        <text x="75" y="138" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="10">Scalar Unit</text>
         <rect x="125" y="116" width="80" height="35" rx="4" fill="#13272f" stroke="#829ca1" stroke-width="1.5"/>
-        <text x="165" y="138" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Transpose</text>
+        <text x="165" y="138" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">Transpose</text>
         <!-- HBM -->
         <rect x="35" y="165" width="170" height="30" rx="4" fill="#13272f" stroke="#ee876a" stroke-width="1.5"/>
-        <text x="120" y="185" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">HBM2e &mdash; 16 GB</text>
+        <text x="120" y="185" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="10">HBM2e &mdash; 16 GB</text>
         <!-- ICI links -->
         <rect x="35" y="205" width="170" height="25" rx="4" fill="#13272f" stroke="#e4c17d" stroke-width="1"/>
-        <text x="120" y="222" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">3x ICI Links (X, Y, Z)</text>
+        <text x="120" y="222" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">3x ICI Links (X, Y, Z)</text>
         <!-- TensorCore 1 -->
         <rect x="240" y="40" width="200" height="200" rx="8" fill="none" stroke="#e4c17d" stroke-width="2"/>
-        <text x="340" y="60" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">TensorCore 1</text>
+        <text x="340" y="60" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">TensorCore 1</text>
         <rect x="255" y="72" width="80" height="35" rx="4" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="295" y="94" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">MXU 128x128</text>
+        <text x="295" y="94" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">MXU 128x128</text>
         <rect x="345" y="72" width="80" height="35" rx="4" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-        <text x="385" y="94" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Vector Unit</text>
+        <text x="385" y="94" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Vector Unit</text>
         <rect x="255" y="116" width="80" height="35" rx="4" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="295" y="138" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">Scalar Unit</text>
+        <text x="295" y="138" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="10">Scalar Unit</text>
         <rect x="345" y="116" width="80" height="35" rx="4" fill="#13272f" stroke="#829ca1" stroke-width="1.5"/>
-        <text x="385" y="138" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Transpose</text>
+        <text x="385" y="138" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">Transpose</text>
         <rect x="255" y="165" width="170" height="30" rx="4" fill="#13272f" stroke="#ee876a" stroke-width="1.5"/>
-        <text x="340" y="185" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">HBM2e &mdash; 16 GB</text>
+        <text x="340" y="185" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="10">HBM2e &mdash; 16 GB</text>
         <rect x="255" y="205" width="170" height="25" rx="4" fill="#13272f" stroke="#e4c17d" stroke-width="1"/>
-        <text x="340" y="222" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">3x ICI Links (X, Y, Z)</text>
+        <text x="340" y="222" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">3x ICI Links (X, Y, Z)</text>
         <!-- Total -->
-        <text x="230" y="270" text-anchor="middle" fill="#eae5db" font-family="DM Sans" font-size="12">Total: <tspan fill="#e4c17d" font-weight="600">275 TFLOPS BF16</tspan> | <tspan fill="#ee876a">32 GB HBM2e</tspan> | <tspan fill="#94cdb4">~1.2 TB/s</tspan></text>
+        <text x="230" y="270" text-anchor="middle" fill="#eae5db" font-family="Manrope" font-size="12">Total: <tspan fill="#e4c17d" font-weight="600">275 TFLOPS BF16</tspan> | <tspan fill="#ee876a">32 GB HBM2e</tspan> | <tspan fill="#94cdb4">~1.2 TB/s</tspan></text>
       </svg>
     </div>
     <div>
@@ -292,27 +292,27 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 440 350" width="440" height="350">
-        <text x="220" y="20" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="12" font-weight="600">v5p Chip: Dense + Sparse Compute</text>
+        <text x="220" y="20" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="12" font-weight="600">v5p Chip: Dense + Sparse Compute</text>
         <!-- MXU block -->
         <rect x="40" y="45" width="160" height="100" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-        <text x="120" y="75" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="12" font-weight="600">MXU</text>
-        <text x="120" y="95" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Dense matmul</text>
-        <text x="120" y="110" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">459 TFLOPS BF16</text>
+        <text x="120" y="75" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="12" font-weight="600">MXU</text>
+        <text x="120" y="95" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Dense matmul</text>
+        <text x="120" y="110" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">459 TFLOPS BF16</text>
         <!-- SparseCore block -->
         <rect x="240" y="45" width="160" height="100" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-        <text x="320" y="75" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="12" font-weight="600">SparseCore</text>
-        <text x="320" y="95" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Embedding lookups</text>
-        <text x="320" y="110" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Sparse features</text>
+        <text x="320" y="75" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="12" font-weight="600">SparseCore</text>
+        <text x="320" y="95" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Embedding lookups</text>
+        <text x="320" y="110" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Sparse features</text>
         <!-- Concurrent arrow -->
-        <text x="220" y="170" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">Concurrent execution</text>
+        <text x="220" y="170" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">Concurrent execution</text>
         <line x1="120" y1="150" x2="120" y2="178" stroke="#94cdb4" stroke-width="1.5"/>
         <line x1="320" y1="150" x2="320" y2="178" stroke="#8fbadc" stroke-width="1.5"/>
         <!-- HBM -->
         <rect x="40" y="185" width="360" height="45" rx="6" fill="#13272f" stroke="#ee876a" stroke-width="2"/>
-        <text x="220" y="213" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="12">95 GB HBM</text>
+        <text x="220" y="213" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="12">95 GB HBM</text>
         <!-- ICI -->
         <rect x="40" y="250" width="360" height="40" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-        <text x="220" y="275" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">ICI Interconnect &mdash; 8,960-chip pods</text>
+        <text x="220" y="275" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">ICI Interconnect &mdash; 8,960-chip pods</text>
       </svg>
     </div>
   </div>
@@ -365,36 +365,36 @@
   <div class="cols cols-6040">
     <div>
       <svg class="diagram" viewBox="0 0 420 320" width="420" height="320">
-        <text x="210" y="18" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11" font-weight="600">3D Torus ICI Topology (2D slice shown)</text>
+        <text x="210" y="18" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11" font-weight="600">3D Torus ICI Topology (2D slice shown)</text>
         <!-- 4x4 grid of TPU chips -->
         <g transform="translate(60, 35)">
           <!-- Row 0 -->
           <rect x="0" y="0" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="25" y="30" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="25" y="30" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="80" y="0" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="105" y="30" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="105" y="30" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="160" y="0" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="185" y="30" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="185" y="30" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="240" y="0" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="265" y="30" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="265" y="30" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <!-- Row 1 -->
           <rect x="0" y="80" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="25" y="110" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="25" y="110" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="80" y="80" width="50" height="50" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-          <text x="105" y="110" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="105" y="110" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="160" y="80" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="185" y="110" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="185" y="110" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="240" y="80" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="265" y="110" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="265" y="110" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <!-- Row 2 -->
           <rect x="0" y="160" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="25" y="190" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="25" y="190" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="80" y="160" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="105" y="190" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="105" y="190" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="160" y="160" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="185" y="190" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="185" y="190" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <rect x="240" y="160" width="50" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-          <text x="265" y="190" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">TPU</text>
+          <text x="265" y="190" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">TPU</text>
           <!-- Horizontal links -->
           <line x1="52" y1="25" x2="78" y2="25" stroke="#94cdb4" stroke-width="1.5"/>
           <line x1="132" y1="25" x2="158" y2="25" stroke="#94cdb4" stroke-width="1.5"/>
@@ -419,9 +419,9 @@
           <path d="M -5,25 Q -20,25 -20,105 Q -20,185 -5,185" fill="none" stroke="#ee876a" stroke-width="1" stroke-dasharray="4"/>
           <path d="M 295,25 Q 310,25 310,105 Q 310,185 295,185" fill="none" stroke="#ee876a" stroke-width="1" stroke-dasharray="4"/>
         </g>
-        <text x="210" y="275" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">&#9472; X-axis ICI</text>
-        <text x="210" y="290" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">&#9474; Y-axis ICI</text>
-        <text x="210" y="305" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">--- Torus wraparound</text>
+        <text x="210" y="275" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">&#9472; X-axis ICI</text>
+        <text x="210" y="290" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">&#9474; Y-axis ICI</text>
+        <text x="210" y="305" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="10">--- Torus wraparound</text>
       </svg>
     </div>
     <div>
@@ -454,37 +454,37 @@
   <svg class="diagram" viewBox="0 0 900 230" width="900" height="230">
     <!-- Slice 1 -->
     <rect x="30" y="30" width="250" height="150" rx="10" fill="none" stroke="#e4c17d" stroke-width="2"/>
-    <text x="155" y="55" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12" font-weight="600">Slice 0 (4096 chips)</text>
-    <text x="155" y="80" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">ICI-connected 3D torus</text>
+    <text x="155" y="55" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12" font-weight="600">Slice 0 (4096 chips)</text>
+    <text x="155" y="80" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="11">ICI-connected 3D torus</text>
     <rect x="55" y="95" width="60" height="30" rx="4" fill="#13272f" stroke="#94cdb4" stroke-width="1"/>
-    <text x="85" y="115" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="8">Tensor TP</text>
+    <text x="85" y="115" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="8">Tensor TP</text>
     <rect x="125" y="95" width="60" height="30" rx="4" fill="#13272f" stroke="#b7a5d9" stroke-width="1"/>
-    <text x="155" y="115" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="8">Data DP</text>
+    <text x="155" y="115" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="8">Data DP</text>
     <rect x="195" y="95" width="60" height="30" rx="4" fill="#13272f" stroke="#8fbadc" stroke-width="1"/>
-    <text x="225" y="115" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="8">Pipeline PP</text>
-    <text x="155" y="160" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Low-latency ICI collectives</text>
+    <text x="225" y="115" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="8">Pipeline PP</text>
+    <text x="155" y="160" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Low-latency ICI collectives</text>
     <!-- DCN link -->
     <line x1="285" y1="105" x2="345" y2="105" stroke="#ee876a" stroke-width="2" stroke-dasharray="6"/>
-    <text x="315" y="95" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">DCN</text>
+    <text x="315" y="95" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="9">DCN</text>
     <!-- Slice 2 -->
     <rect x="350" y="30" width="250" height="150" rx="10" fill="none" stroke="#e4c17d" stroke-width="2"/>
-    <text x="475" y="55" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12" font-weight="600">Slice 1 (4096 chips)</text>
-    <text x="475" y="80" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">ICI-connected 3D torus</text>
+    <text x="475" y="55" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12" font-weight="600">Slice 1 (4096 chips)</text>
+    <text x="475" y="80" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="11">ICI-connected 3D torus</text>
     <rect x="375" y="95" width="60" height="30" rx="4" fill="#13272f" stroke="#94cdb4" stroke-width="1"/>
-    <text x="405" y="115" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="8">Tensor TP</text>
+    <text x="405" y="115" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="8">Tensor TP</text>
     <rect x="445" y="95" width="60" height="30" rx="4" fill="#13272f" stroke="#b7a5d9" stroke-width="1"/>
-    <text x="475" y="115" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="8">Data DP</text>
+    <text x="475" y="115" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="8">Data DP</text>
     <rect x="515" y="95" width="60" height="30" rx="4" fill="#13272f" stroke="#8fbadc" stroke-width="1"/>
-    <text x="545" y="115" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="8">Pipeline PP</text>
-    <text x="475" y="160" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Low-latency ICI collectives</text>
+    <text x="545" y="115" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="8">Pipeline PP</text>
+    <text x="475" y="160" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Low-latency ICI collectives</text>
     <!-- DCN link 2 -->
     <line x1="605" y1="105" x2="665" y2="105" stroke="#ee876a" stroke-width="2" stroke-dasharray="6"/>
-    <text x="635" y="95" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">DCN</text>
+    <text x="635" y="95" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="9">DCN</text>
     <!-- Slice 3 -->
     <rect x="670" y="30" width="200" height="150" rx="10" fill="none" stroke="#e4c17d" stroke-width="2" stroke-dasharray="4"/>
-    <text x="770" y="85" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Slice N ...</text>
-    <text x="770" y="115" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Scale to 10,000s</text>
-    <text x="770" y="130" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">of chips</text>
+    <text x="770" y="85" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Slice N ...</text>
+    <text x="770" y="115" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Scale to 10,000s</text>
+    <text x="770" y="130" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">of chips</text>
   </svg>
   <div class="cols cols-2" style="margin-top:.3em">
     <div class="card amber">
@@ -505,30 +505,30 @@
   <div class="cols cols-6040">
     <div>
       <svg class="diagram" viewBox="0 0 420 340" width="420" height="340">
-        <text x="210" y="20" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11" font-weight="600">TPU Software Compilation Pipeline</text>
+        <text x="210" y="20" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11" font-weight="600">TPU Software Compilation Pipeline</text>
         <!-- JAX layer -->
         <rect x="80" y="40" width="260" height="45" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-        <text x="210" y="60" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="12" font-weight="600">JAX (Python API)</text>
-        <text x="210" y="76" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">NumPy API + jit + grad + vmap</text>
+        <text x="210" y="60" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="12" font-weight="600">JAX (Python API)</text>
+        <text x="210" y="76" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">NumPy API + jit + grad + vmap</text>
         <line x1="210" y1="87" x2="210" y2="105" stroke="#829ca1" stroke-width="1.5"/>
         <!-- XLA HLO -->
         <rect x="80" y="105" width="260" height="45" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-        <text x="210" y="125" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="12" font-weight="600">XLA (HLO Graph)</text>
-        <text x="210" y="141" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Optimization passes + fusion</text>
+        <text x="210" y="125" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="12" font-weight="600">XLA (HLO Graph)</text>
+        <text x="210" y="141" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Optimization passes + fusion</text>
         <line x1="210" y1="152" x2="210" y2="170" stroke="#829ca1" stroke-width="1.5"/>
         <!-- GSPMD -->
         <rect x="80" y="170" width="260" height="45" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-        <text x="210" y="190" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="12" font-weight="600">GSPMD Partitioner</text>
-        <text x="210" y="206" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">Sharding propagation + collectives</text>
+        <text x="210" y="190" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="12" font-weight="600">GSPMD Partitioner</text>
+        <text x="210" y="206" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">Sharding propagation + collectives</text>
         <line x1="210" y1="217" x2="210" y2="235" stroke="#829ca1" stroke-width="1.5"/>
         <!-- TPU code -->
         <rect x="80" y="235" width="260" height="45" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-        <text x="210" y="255" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12" font-weight="600">TPU Machine Code</text>
-        <text x="210" y="271" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">MXU + Vector + Scalar instructions</text>
+        <text x="210" y="255" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12" font-weight="600">TPU Machine Code</text>
+        <text x="210" y="271" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">MXU + Vector + Scalar instructions</text>
         <!-- Arrow labels -->
-        <text x="355" y="100" fill="#8fbadc" font-family="JetBrains Mono" font-size="9">jit()</text>
-        <text x="355" y="165" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">lower()</text>
-        <text x="355" y="230" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">compile()</text>
+        <text x="355" y="100" fill="#8fbadc" font-family="Source Code Pro" font-size="9">jit()</text>
+        <text x="355" y="165" fill="#94cdb4" font-family="Source Code Pro" font-size="9">lower()</text>
+        <text x="355" y="230" fill="#b7a5d9" font-family="Source Code Pro" font-size="9">compile()</text>
       </svg>
     </div>
     <div>
@@ -596,32 +596,32 @@ def train_step(params, batch):
   </div>
   <div style="margin-top:.8em">
     <svg class="diagram" viewBox="0 0 900 120" width="900" height="120">
-      <text x="450" y="18" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11" font-weight="600">Inference Serving Pipeline</text>
+      <text x="450" y="18" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11" font-weight="600">Inference Serving Pipeline</text>
       <!-- Client -->
       <rect x="20" y="40" width="120" height="55" rx="6" fill="#13272f" stroke="#829ca1" stroke-width="1.5"/>
-      <text x="80" y="65" text-anchor="middle" fill="#eae5db" font-family="DM Sans" font-size="11">Client</text>
-      <text x="80" y="82" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">gRPC / REST</text>
+      <text x="80" y="65" text-anchor="middle" fill="#eae5db" font-family="Manrope" font-size="11">Client</text>
+      <text x="80" y="82" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">gRPC / REST</text>
       <line x1="142" y1="67" x2="188" y2="67" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrow)"/>
       <!-- Load Balancer -->
       <rect x="190" y="40" width="130" height="55" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-      <text x="255" y="65" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="11">Load Balancer</text>
-      <text x="255" y="82" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">SAX Router</text>
+      <text x="255" y="65" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="11">Load Balancer</text>
+      <text x="255" y="82" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">SAX Router</text>
       <line x1="322" y1="67" x2="368" y2="67" stroke="#829ca1" stroke-width="1.5"/>
       <!-- Batcher -->
       <rect x="370" y="40" width="130" height="55" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-      <text x="435" y="65" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">Batcher</text>
-      <text x="435" y="82" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">Continuous batching</text>
+      <text x="435" y="65" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="11">Batcher</text>
+      <text x="435" y="82" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">Continuous batching</text>
       <line x1="502" y1="67" x2="548" y2="67" stroke="#829ca1" stroke-width="1.5"/>
       <!-- TPU Workers -->
       <rect x="550" y="40" width="160" height="55" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-      <text x="630" y="60" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">TPU Workers</text>
-      <text x="630" y="78" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">Sharded model on v5e</text>
-      <text x="630" y="90" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">XLA-compiled graph</text>
+      <text x="630" y="60" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">TPU Workers</text>
+      <text x="630" y="78" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">Sharded model on v5e</text>
+      <text x="630" y="90" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">XLA-compiled graph</text>
       <line x1="712" y1="67" x2="758" y2="67" stroke="#829ca1" stroke-width="1.5"/>
       <!-- Response -->
       <rect x="760" y="40" width="120" height="55" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-      <text x="820" y="65" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="11">Response</text>
-      <text x="820" y="82" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">Tokens streamed</text>
+      <text x="820" y="65" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="11">Response</text>
+      <text x="820" y="82" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">Tokens streamed</text>
     </svg>
   </div>
   <div class="slide-footer">google-tpu / 10</div>

@@ -6,23 +6,23 @@
 <title>Quantization for Inference | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -36,15 +36,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -111,23 +111,23 @@
       </marker>
     </defs>
     <rect x="10" y="50" width="160" height="80" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="90" y="85" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="14" font-weight="600">FP32 / FP16</text>
-    <text x="90" y="110" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">Full Precision</text>
+    <text x="90" y="85" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="14" font-weight="600">FP32 / FP16</text>
+    <text x="90" y="110" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">Full Precision</text>
     <line x1="180" y1="90" x2="280" y2="90" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <rect x="290" y="50" width="160" height="80" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="370" y="85" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="14" font-weight="600">FP8 / INT8</text>
-    <text x="370" y="110" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">2x Savings</text>
+    <text x="370" y="85" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="14" font-weight="600">FP8 / INT8</text>
+    <text x="370" y="110" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">2x Savings</text>
     <line x1="460" y1="90" x2="560" y2="90" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <rect x="570" y="50" width="160" height="80" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="650" y="85" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="14" font-weight="600">INT4 / INT3</text>
-    <text x="650" y="110" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">4&ndash;8x Savings</text>
+    <text x="650" y="85" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="14" font-weight="600">INT4 / INT3</text>
+    <text x="650" y="110" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">4&ndash;8x Savings</text>
     <line x1="740" y1="90" x2="830" y2="90" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <rect x="835" y="65" width="55" height="50" rx="6" fill="#13272f" stroke="#ee876a" stroke-width="2"/>
-    <text x="862" y="95" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="13" font-weight="600">INT2</text>
-    <text x="90" y="160" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Baseline</text>
-    <text x="370" y="160" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Production</text>
-    <text x="650" y="160" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Edge / Cost-opt</text>
-    <text x="862" y="160" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Research</text>
+    <text x="862" y="95" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="13" font-weight="600">INT2</text>
+    <text x="90" y="160" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Baseline</text>
+    <text x="370" y="160" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Production</text>
+    <text x="650" y="160" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Edge / Cost-opt</text>
+    <text x="862" y="160" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Research</text>
   </svg>
   <div class="slide-footer">quantization_for_inference &mdash; 02</div>
 </section>
@@ -205,15 +205,15 @@
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 800 110" width="750" height="100" style="margin-top:.5em">
-    <text x="20" y="20" fill="#829ca1" font-family="DM Sans" font-size="12">Granularity spectrum:</text>
+    <text x="20" y="20" fill="#829ca1" font-family="Manrope" font-size="12">Granularity spectrum:</text>
     <rect x="20" y="35" width="200" height="45" rx="6" fill="none" stroke="#e4c17d" stroke-width="2"/>
-    <text x="120" y="63" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13">1 scale/matrix</text>
+    <text x="120" y="63" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13">1 scale/matrix</text>
     <rect x="260" y="35" width="200" height="45" rx="6" fill="none" stroke="#94cdb4" stroke-width="2"/>
-    <text x="360" y="63" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="13">1 scale/channel</text>
+    <text x="360" y="63" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="13">1 scale/channel</text>
     <rect x="500" y="35" width="250" height="45" rx="6" fill="none" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="625" y="63" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="13">1 scale/32-128 elems</text>
-    <text x="120" y="100" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Least accurate</text>
-    <text x="625" y="100" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Most accurate</text>
+    <text x="625" y="63" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="13">1 scale/32-128 elems</text>
+    <text x="120" y="100" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Least accurate</text>
+    <text x="625" y="100" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Most accurate</text>
     <line x1="220" y1="57" x2="258" y2="57" stroke="#294752" stroke-width="1.5" stroke-dasharray="4"/>
     <line x1="460" y1="57" x2="498" y2="57" stroke="#294752" stroke-width="1.5" stroke-dasharray="4"/>
   </svg>
@@ -423,36 +423,36 @@
   <svg class="diagram" viewBox="0 0 900 300" width="850" height="280">
     <!-- Top question -->
     <rect x="300" y="5" width="300" height="45" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="450" y="33" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="14" font-weight="600">What is your deployment target?</text>
+    <text x="450" y="33" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="14" font-weight="600">What is your deployment target?</text>
     <!-- Branches -->
     <line x1="350" y1="50" x2="140" y2="100" stroke="#94cdb4" stroke-width="1.5"/>
     <line x1="450" y1="50" x2="450" y2="100" stroke="#8fbadc" stroke-width="1.5"/>
     <line x1="550" y1="50" x2="760" y2="100" stroke="#b7a5d9" stroke-width="1.5"/>
     <!-- Left: High-end -->
     <rect x="30" y="100" width="220" height="80" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="140" y="125" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="13" font-weight="600">High-End GPU Serving</text>
-    <text x="140" y="148" text-anchor="middle" fill="#cbd4cf" font-family="DM Sans" font-size="11">Hopper / Blackwell GPUs</text>
-    <text x="140" y="168" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="600">FP8</text>
+    <text x="140" y="125" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="13" font-weight="600">High-End GPU Serving</text>
+    <text x="140" y="148" text-anchor="middle" fill="#cbd4cf" font-family="Manrope" font-size="11">Hopper / Blackwell GPUs</text>
+    <text x="140" y="168" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13" font-weight="600">FP8</text>
     <!-- Center: Cost-opt -->
     <rect x="310" y="100" width="280" height="80" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-    <text x="450" y="125" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="13" font-weight="600">Cost-Optimized Serving</text>
-    <text x="450" y="148" text-anchor="middle" fill="#cbd4cf" font-family="DM Sans" font-size="11">Single GPU / edge deployment</text>
-    <text x="450" y="168" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="600">INT4 (GPTQ / AWQ)</text>
+    <text x="450" y="125" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="13" font-weight="600">Cost-Optimized Serving</text>
+    <text x="450" y="148" text-anchor="middle" fill="#cbd4cf" font-family="Manrope" font-size="11">Single GPU / edge deployment</text>
+    <text x="450" y="168" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13" font-weight="600">INT4 (GPTQ / AWQ)</text>
     <!-- Right: Edge -->
     <rect x="650" y="100" width="220" height="80" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="760" y="125" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="13" font-weight="600">Extreme Edge</text>
-    <text x="760" y="148" text-anchor="middle" fill="#cbd4cf" font-family="DM Sans" font-size="11">Laptop / mobile</text>
-    <text x="760" y="168" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="600">INT3 / INT2 + Mixed</text>
+    <text x="760" y="125" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="13" font-weight="600">Extreme Edge</text>
+    <text x="760" y="148" text-anchor="middle" fill="#cbd4cf" font-family="Manrope" font-size="11">Laptop / mobile</text>
+    <text x="760" y="168" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13" font-weight="600">INT3 / INT2 + Mixed</text>
     <!-- Outcome labels -->
     <line x1="140" y1="180" x2="140" y2="220" stroke="#294752" stroke-width="1" stroke-dasharray="4"/>
     <line x1="450" y1="180" x2="450" y2="220" stroke="#294752" stroke-width="1" stroke-dasharray="4"/>
     <line x1="760" y1="180" x2="760" y2="220" stroke="#294752" stroke-width="1" stroke-dasharray="4"/>
-    <text x="140" y="240" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">No quality loss</text>
-    <text x="140" y="258" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">Native HW support</text>
-    <text x="450" y="240" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="11">1-3% ppl increase</text>
-    <text x="450" y="258" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="11">Strong accuracy-efficiency</text>
-    <text x="760" y="240" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="11">Noticeable quality impact</text>
-    <text x="760" y="258" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="11">Requires outlier handling</text>
+    <text x="140" y="240" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="11">No quality loss</text>
+    <text x="140" y="258" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="11">Native HW support</text>
+    <text x="450" y="240" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="11">1-3% ppl increase</text>
+    <text x="450" y="258" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="11">Strong accuracy-efficiency</text>
+    <text x="760" y="240" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="11">Noticeable quality impact</text>
+    <text x="760" y="258" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="11">Requires outlier handling</text>
   </svg>
   <div class="slide-footer">quantization_for_inference &mdash; 12</div>
 </section>
@@ -647,25 +647,25 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 320 260" width="300" height="240">
-        <text x="160" y="20" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display" font-size="16" font-weight="700">The Quantization Spectrum</text>
+        <text x="160" y="20" text-anchor="middle" fill="#e4c17d" font-family="Sora" font-size="16" font-weight="700">The Quantization Spectrum</text>
         <!-- Bars -->
         <rect x="30" y="45" width="260" height="32" rx="4" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
         <rect x="30" y="45" width="260" height="32" rx="4" fill="#94cdb4" fill-opacity="0.15"/>
-        <text x="40" y="66" fill="#94cdb4" font-family="JetBrains Mono" font-size="12">FP8    2x savings   ~0% ppl loss</text>
+        <text x="40" y="66" fill="#94cdb4" font-family="Source Code Pro" font-size="12">FP8    2x savings   ~0% ppl loss</text>
 
         <rect x="30" y="87" width="260" height="32" rx="4" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
         <rect x="30" y="87" width="260" height="32" rx="4" fill="#8fbadc" fill-opacity="0.15"/>
-        <text x="40" y="108" fill="#8fbadc" font-family="JetBrains Mono" font-size="12">INT8   2x savings   ~0% ppl loss</text>
+        <text x="40" y="108" fill="#8fbadc" font-family="Source Code Pro" font-size="12">INT8   2x savings   ~0% ppl loss</text>
 
         <rect x="30" y="129" width="260" height="32" rx="4" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
         <rect x="30" y="129" width="260" height="32" rx="4" fill="#b7a5d9" fill-opacity="0.15"/>
-        <text x="40" y="150" fill="#b7a5d9" font-family="JetBrains Mono" font-size="12">INT4   4x savings  1-3% ppl loss</text>
+        <text x="40" y="150" fill="#b7a5d9" font-family="Source Code Pro" font-size="12">INT4   4x savings  1-3% ppl loss</text>
 
         <rect x="30" y="171" width="260" height="32" rx="4" fill="#13272f" stroke="#ee876a" stroke-width="1.5"/>
         <rect x="30" y="171" width="260" height="32" rx="4" fill="#ee876a" fill-opacity="0.15"/>
-        <text x="40" y="192" fill="#ee876a" font-family="JetBrains Mono" font-size="12">INT2  5-8x savings   notable loss</text>
+        <text x="40" y="192" fill="#ee876a" font-family="Source Code Pro" font-size="12">INT2  5-8x savings   notable loss</text>
 
-        <text x="160" y="230" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">More savings &darr; &mdash; More quality impact &darr;</text>
+        <text x="160" y="230" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">More savings &darr; &mdash; More quality impact &darr;</text>
       </svg>
     </div>
   </div>

@@ -6,23 +6,23 @@
 <title>Ollama Non-Determinism | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -36,15 +36,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -104,23 +104,23 @@
       <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#e4c17d"/></marker>
     </defs>
     <rect x="10" y="25" width="210" height="70" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="115" y="55" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="14" font-weight="600">Tokenisation</text>
-    <text x="115" y="78" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">text &rarr; token IDs</text>
+    <text x="115" y="55" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="14" font-weight="600">Tokenisation</text>
+    <text x="115" y="78" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">text &rarr; token IDs</text>
     <line x1="225" y1="60" x2="280" y2="60" stroke="#e4c17d" marker-end="url(#arrow)"/>
 
     <rect x="285" y="25" width="210" height="70" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="390" y="55" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="14" font-weight="600">Prefill (Batched)</text>
-    <text x="390" y="78" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">populate KV cache</text>
+    <text x="390" y="55" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="14" font-weight="600">Prefill (Batched)</text>
+    <text x="390" y="78" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">populate KV cache</text>
     <line x1="500" y1="60" x2="555" y2="60" stroke="#e4c17d" marker-end="url(#arrow)"/>
 
     <rect x="560" y="25" width="210" height="70" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="665" y="55" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="14" font-weight="600">Autoregressive Gen</text>
-    <text x="665" y="78" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">logit vector per step</text>
+    <text x="665" y="55" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="14" font-weight="600">Autoregressive Gen</text>
+    <text x="665" y="78" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">logit vector per step</text>
     <line x1="775" y1="60" x2="830" y2="60" stroke="#e4c17d" marker-end="url(#arrow)"/>
 
     <rect x="835" y="25" width="210" height="70" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="940" y="55" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="14" font-weight="600">Sampling</text>
-    <text x="940" y="78" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">temp=0 &rarr; argmax</text>
+    <text x="940" y="55" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="14" font-weight="600">Sampling</text>
+    <text x="940" y="78" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">temp=0 &rarr; argmax</text>
   </svg>
   <div class="card amber" style="margin-top:.6em">
     <h3>Key Insight</h3>
@@ -181,19 +181,19 @@
   </div>
   <svg class="diagram" viewBox="0 0 900 100" width="860" height="95" style="margin-top:.6em">
     <rect x="10" y="15" width="200" height="65" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="110" y="42" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="12" font-weight="500">RTX 3090</text>
-    <text x="110" y="62" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Ampere &bull; GA102</text>
+    <text x="110" y="42" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="12" font-weight="500">RTX 3090</text>
+    <text x="110" y="62" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Ampere &bull; GA102</text>
 
     <rect x="250" y="15" width="200" height="65" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="350" y="42" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="12" font-weight="500">RTX 4080</text>
-    <text x="350" y="62" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Ada Lovelace &bull; AD103</text>
+    <text x="350" y="42" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="12" font-weight="500">RTX 4080</text>
+    <text x="350" y="62" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Ada Lovelace &bull; AD103</text>
 
     <rect x="490" y="15" width="200" height="65" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="590" y="42" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="12" font-weight="500">NVIDIA L4</text>
-    <text x="590" y="62" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Ada Lovelace &bull; AD104</text>
+    <text x="590" y="42" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="12" font-weight="500">NVIDIA L4</text>
+    <text x="590" y="62" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Ada Lovelace &bull; AD104</text>
 
-    <text x="730" y="40" fill="#ee876a" font-family="JetBrains Mono" font-size="13" font-weight="500">&Delta; ~1e-4</text>
-    <text x="730" y="62" fill="#829ca1" font-family="DM Sans" font-size="11">per GEMM op</text>
+    <text x="730" y="40" fill="#ee876a" font-family="Source Code Pro" font-size="13" font-weight="500">&Delta; ~1e-4</text>
+    <text x="730" y="62" fill="#829ca1" font-family="Manrope" font-size="11">per GEMM op</text>
   </svg>
   <div class="slide-footer">ollama-nondeterminism &bull; 04</div>
 </section>
@@ -205,19 +205,19 @@
     <div>
       <svg class="diagram" viewBox="0 0 300 260" width="280" height="250">
         <rect x="10" y="10" width="280" height="240" rx="10" fill="#13272f" stroke="#294752" stroke-width="1"/>
-        <text x="150" y="38" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="13" font-weight="600">llama.cpp Server</text>
+        <text x="150" y="38" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="13" font-weight="600">llama.cpp Server</text>
         <rect x="30" y="55" width="100" height="35" rx="5" fill="#172d36" stroke="#94cdb4" stroke-width="1"/>
-        <text x="80" y="77" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Slot 1</text>
+        <text x="80" y="77" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Slot 1</text>
         <rect x="170" y="55" width="100" height="35" rx="5" fill="#172d36" stroke="#b7a5d9" stroke-width="1"/>
-        <text x="220" y="77" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Slot 2</text>
+        <text x="220" y="77" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Slot 2</text>
         <rect x="30" y="100" width="100" height="35" rx="5" fill="#172d36" stroke="#8fbadc" stroke-width="1"/>
-        <text x="80" y="122" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">Slot 3</text>
+        <text x="80" y="122" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="10">Slot 3</text>
         <rect x="170" y="100" width="100" height="35" rx="5" fill="#172d36" stroke="#ee876a" stroke-width="1"/>
-        <text x="220" y="122" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">Slot N</text>
+        <text x="220" y="122" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="10">Slot N</text>
         <line x1="30" y1="155" x2="270" y2="155" stroke="#294752"/>
         <rect x="50" y="170" width="200" height="40" rx="5" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="150" y="195" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="12" font-weight="600">Combined GPU Batch</text>
-        <text x="150" y="230" text-anchor="middle" fill="#ee876a" font-family="DM Sans" font-size="11">Different dims &rarr; different FP path</text>
+        <text x="150" y="195" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="12" font-weight="600">Combined GPU Batch</text>
+        <text x="150" y="230" text-anchor="middle" fill="#ee876a" font-family="Manrope" font-size="11">Different dims &rarr; different FP path</text>
       </svg>
     </div>
     <div>
@@ -355,43 +355,43 @@
     </defs>
     <!-- Prompt -->
     <rect x="20" y="130" width="130" height="50" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="85" y="160" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="13" font-weight="600">Prompt</text>
+    <text x="85" y="160" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="13" font-weight="600">Prompt</text>
     <line x1="155" y1="155" x2="195" y2="155" stroke="#e4c17d" marker-end="url(#arr2)"/>
 
     <!-- Matrix Ops -->
     <rect x="200" y="100" width="180" height="110" rx="8" fill="#13272f" stroke="#ee876a" stroke-width="2"/>
-    <text x="290" y="130" text-anchor="middle" fill="#ee876a" font-family="DM Sans" font-size="13" font-weight="600">Matrix Operations</text>
-    <text x="290" y="152" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">GEMM, Attention, Norms</text>
-    <text x="290" y="172" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">NON-DETERMINISTIC</text>
-    <text x="290" y="195" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">FP rounding, GPU kernels,</text>
-    <text x="290" y="207" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">batch dims, offload split</text>
+    <text x="290" y="130" text-anchor="middle" fill="#ee876a" font-family="Manrope" font-size="13" font-weight="600">Matrix Operations</text>
+    <text x="290" y="152" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">GEMM, Attention, Norms</text>
+    <text x="290" y="172" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="10">NON-DETERMINISTIC</text>
+    <text x="290" y="195" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">FP rounding, GPU kernels,</text>
+    <text x="290" y="207" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">batch dims, offload split</text>
     <line x1="385" y1="155" x2="425" y2="155" stroke="#e4c17d" marker-end="url(#arr2)"/>
 
     <!-- Logits -->
     <rect x="430" y="120" width="150" height="70" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="505" y="150" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="13" font-weight="600">Logit Vector</text>
-    <text x="505" y="172" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="10">~128k values</text>
+    <text x="505" y="150" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="13" font-weight="600">Logit Vector</text>
+    <text x="505" y="172" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="10">~128k values</text>
     <line x1="585" y1="155" x2="625" y2="155" stroke="#e4c17d" marker-end="url(#arr2)"/>
 
     <!-- Sampling -->
     <rect x="630" y="120" width="150" height="70" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="705" y="148" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="13" font-weight="600">Sampling</text>
-    <text x="705" y="168" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">temp=0: argmax</text>
+    <text x="705" y="148" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="13" font-weight="600">Sampling</text>
+    <text x="705" y="168" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">temp=0: argmax</text>
     <line x1="785" y1="155" x2="825" y2="155" stroke="#e4c17d" marker-end="url(#arr2)"/>
 
     <!-- Output -->
     <rect x="830" y="130" width="130" height="50" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="895" y="160" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="13" font-weight="600">Token Output</text>
+    <text x="895" y="160" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="13" font-weight="600">Token Output</text>
 
     <!-- Labels -->
     <rect x="200" y="25" width="180" height="50" rx="6" fill="#202325" stroke="#ee876a" stroke-width="1" stroke-dasharray="4"/>
-    <text x="290" y="46" text-anchor="middle" fill="#ee876a" font-family="DM Sans" font-size="11" font-weight="600">Non-determinism zone</text>
-    <text x="290" y="63" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="9">temp=0 cannot fix this</text>
+    <text x="290" y="46" text-anchor="middle" fill="#ee876a" font-family="Manrope" font-size="11" font-weight="600">Non-determinism zone</text>
+    <text x="290" y="63" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="9">temp=0 cannot fix this</text>
     <line x1="290" y1="75" x2="290" y2="96" stroke="#ee876a" stroke-dasharray="3"/>
 
     <!-- Autoregressive feedback loop -->
     <path d="M895,185 L895,270 L85,270 L85,185" fill="none" stroke="#e4c17d" stroke-width="1.5" stroke-dasharray="6" marker-end="url(#arr2)"/>
-    <text x="490" y="290" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="11">Autoregressive feedback &mdash; one flipped token cascades</text>
+    <text x="490" y="290" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="11">Autoregressive feedback &mdash; one flipped token cascades</text>
   </svg>
   <div class="slide-footer">ollama-nondeterminism &bull; 10</div>
 </section>

@@ -6,22 +6,22 @@
 <title>Agentic Performance | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.55em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}.cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
   .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.8em 1em}
@@ -34,16 +34,16 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
   .pill.red{color:var(--red);border-color:var(--red)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.72em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -56,13 +56,13 @@
 
   /* Interactive controls */
   .ctl{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.7em 1em;margin-top:.6em}
-  .ctl label{font-family:'JetBrains Mono',monospace;font-size:.48em;color:var(--muted);letter-spacing:.04em}
+  .ctl label{font-family:'Source Code Pro',monospace;font-size:.48em;color:var(--muted);letter-spacing:.04em}
   .ctl input[type=range]{width:100%;margin-top:.3em;accent-color:var(--amber)}
-  .ctl .readout{display:flex;gap:1.2em;margin-top:.3em;font-family:'JetBrains Mono',monospace;font-size:.52em}
+  .ctl .readout{display:flex;gap:1.2em;margin-top:.3em;font-family:'Source Code Pro',monospace;font-size:.52em}
   .ctl .readout .v{color:var(--amber);font-weight:600}
   .ctl .readout .w{color:var(--green);font-weight:600}
   .ctl .readout .x{color:var(--red);font-weight:600}
-  .hint{font-family:'JetBrains Mono',monospace;font-size:.42em;color:var(--muted);text-align:center;margin-top:.3em;letter-spacing:.04em}
+  .hint{font-family:'Source Code Pro',monospace;font-size:.42em;color:var(--muted);text-align:center;margin-top:.3em;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -97,7 +97,7 @@
     </div>
     <div class="card green">
       <h3>The sum</h3>
-      <p style="font-family:'JetBrains Mono',monospace;font-size:.52em;color:#d7dbd4">T<sub>agent</sub> ≈ Σ<sub>steps</sub> ( T<sub>LLM</sub> + T<sub>tool</sub> + T<sub>orch</sub> + T<sub>memory</sub> )</p>
+      <p style="font-family:'Source Code Pro',monospace;font-size:.52em;color:#d7dbd4">T<sub>agent</sub> ≈ Σ<sub>steps</sub> ( T<sub>LLM</sub> + T<sub>tool</sub> + T<sub>orch</sub> + T<sub>memory</sub> )</p>
       <ul>
         <li>T<sub>LLM</sub> is well-studied and tracked.</li>
         <li>T<sub>tool</sub>, T<sub>orch</sub>, T<sub>memory</sub> are where most agent time actually lives.</li>
@@ -111,43 +111,43 @@
     </defs>
     <!-- Step 1 box -->
     <rect x="20" y="40" width="170" height="90" rx="8" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="105" y="32" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">STEP 1</text>
+    <text x="105" y="32" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">STEP 1</text>
     <rect x="30" y="52" width="55" height="28" fill="#b7a5d9" opacity="0.8"/>
-    <text x="57" y="70" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">LLM call</text>
+    <text x="57" y="70" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">LLM call</text>
     <rect x="88" y="52" width="35" height="28" fill="#829ca1" opacity="0.7"/>
-    <text x="105" y="70" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">parse</text>
+    <text x="105" y="70" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">parse</text>
     <rect x="126" y="52" width="55" height="28" fill="#8fbadc" opacity="0.8"/>
-    <text x="153" y="70" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">tool</text>
+    <text x="153" y="70" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">tool</text>
     <rect x="30" y="85" width="70" height="28" fill="#94cdb4" opacity="0.7"/>
-    <text x="65" y="103" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">memory</text>
+    <text x="65" y="103" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">memory</text>
     <rect x="103" y="85" width="78" height="28" fill="#829ca1" opacity="0.5"/>
-    <text x="142" y="103" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">orch CPU</text>
+    <text x="142" y="103" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">orch CPU</text>
     <!-- arrow to step 2 -->
     <line x1="190" y1="85" x2="240" y2="85" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arr2)"/>
     <!-- Step 2 box -->
     <rect x="240" y="40" width="170" height="90" rx="8" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="325" y="32" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">STEP 2</text>
+    <text x="325" y="32" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">STEP 2</text>
     <rect x="250" y="52" width="55" height="28" fill="#b7a5d9" opacity="0.8"/>
-    <text x="277" y="70" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">LLM call</text>
+    <text x="277" y="70" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">LLM call</text>
     <rect x="308" y="52" width="35" height="28" fill="#829ca1" opacity="0.7"/>
-    <text x="325" y="70" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">parse</text>
+    <text x="325" y="70" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">parse</text>
     <rect x="346" y="52" width="55" height="28" fill="#8fbadc" opacity="0.8"/>
-    <text x="373" y="70" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">tool</text>
+    <text x="373" y="70" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">tool</text>
     <rect x="250" y="85" width="70" height="28" fill="#94cdb4" opacity="0.7"/>
-    <text x="285" y="103" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">memory</text>
+    <text x="285" y="103" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">memory</text>
     <rect x="323" y="85" width="78" height="28" fill="#829ca1" opacity="0.5"/>
-    <text x="362" y="103" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">orch CPU</text>
+    <text x="362" y="103" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">orch CPU</text>
     <!-- ... -->
-    <text x="440" y="90" fill="#829ca1" font-family="JetBrains Mono" font-size="14">···</text>
+    <text x="440" y="90" fill="#829ca1" font-family="Source Code Pro" font-size="14">···</text>
     <!-- Final step -->
     <rect x="490" y="40" width="170" height="90" rx="8" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="575" y="32" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">STEP N</text>
+    <text x="575" y="32" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">STEP N</text>
     <rect x="500" y="68" width="150" height="36" fill="#e4c17d" opacity="0.85"/>
-    <text x="575" y="90" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="10" font-weight="600">final answer</text>
+    <text x="575" y="90" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="10" font-weight="600">final answer</text>
     <line x1="660" y1="85" x2="730" y2="85" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arr2)"/>
-    <text x="720" y="75" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">→ user</text>
+    <text x="720" y="75" text-anchor="end" fill="#829ca1" font-family="Source Code Pro" font-size="9">→ user</text>
     <!-- legend -->
-    <g font-family="JetBrains Mono" font-size="9">
+    <g font-family="Source Code Pro" font-size="9">
       <rect x="20" y="150" width="12" height="10" fill="#b7a5d9"/><text x="36" y="159" fill="#b7a5d9">LLM</text>
       <rect x="85" y="150" width="12" height="10" fill="#8fbadc"/><text x="101" y="159" fill="#8fbadc">tool / net</text>
       <rect x="185" y="150" width="12" height="10" fill="#94cdb4"/><text x="201" y="159" fill="#94cdb4">memory</text>
@@ -191,17 +191,17 @@
       <svg id="tailChart" class="diagram" viewBox="0 0 320 300" width="300">
         <line x1="40" y1="260" x2="310" y2="260" stroke="#829ca1" stroke-width="1"/>
         <line x1="40" y1="20" x2="40" y2="260" stroke="#829ca1" stroke-width="1"/>
-        <text x="40" y="278" fill="#829ca1" font-family="JetBrains Mono" font-size="9">1</text>
-        <text x="310" y="278" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">40 steps</text>
-        <text x="38" y="22" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">P(tail hit)</text>
-        <text x="44" y="32" fill="#829ca1" font-family="JetBrains Mono" font-size="9">100%</text>
-        <text x="44" y="262" fill="#829ca1" font-family="JetBrains Mono" font-size="9">0%</text>
+        <text x="40" y="278" fill="#829ca1" font-family="Source Code Pro" font-size="9">1</text>
+        <text x="310" y="278" text-anchor="end" fill="#829ca1" font-family="Source Code Pro" font-size="9">40 steps</text>
+        <text x="38" y="22" text-anchor="end" fill="#829ca1" font-family="Source Code Pro" font-size="9">P(tail hit)</text>
+        <text x="44" y="32" fill="#829ca1" font-family="Source Code Pro" font-size="9">100%</text>
+        <text x="44" y="262" fill="#829ca1" font-family="Source Code Pro" font-size="9">0%</text>
         <!-- p99 curve (red) -->
         <path id="p99Curve" d="" fill="none" stroke="#ee876a" stroke-width="2"/>
-        <text x="300" y="80" text-anchor="end" fill="#ee876a" font-family="JetBrains Mono" font-size="9">p99 events</text>
+        <text x="300" y="80" text-anchor="end" fill="#ee876a" font-family="Source Code Pro" font-size="9">p99 events</text>
         <!-- p99.9 curve (amber) -->
         <path id="p999Curve" d="" fill="none" stroke="#e4c17d" stroke-width="2"/>
-        <text x="300" y="220" text-anchor="end" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">p99.9 events</text>
+        <text x="300" y="220" text-anchor="end" fill="#e4c17d" font-family="Source Code Pro" font-size="9">p99.9 events</text>
         <!-- current marker -->
         <line id="stepLine" x1="0" y1="20" x2="0" y2="260" stroke="#94cdb4" stroke-dasharray="2 2" stroke-width="1"/>
         <circle id="p99Dot" r="4" fill="#ee876a"/>
@@ -235,36 +235,36 @@
   </div>
   <!-- Sequential vs parallel timeline -->
   <svg class="diagram" viewBox="0 0 760 180" width="720" style="margin-top:.9em">
-    <text x="20" y="30" fill="#ee876a" font-family="JetBrains Mono" font-size="10">sequential (3 tool calls)</text>
+    <text x="20" y="30" fill="#ee876a" font-family="Source Code Pro" font-size="10">sequential (3 tool calls)</text>
     <line x1="20" y1="60" x2="740" y2="60" stroke="#294752" stroke-width="1"/>
     <rect x="20"  y="48" width="60" height="24" fill="#b7a5d9" opacity="0.85"/>
-    <text x="50" y="64" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">LLM</text>
+    <text x="50" y="64" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">LLM</text>
     <rect x="80"  y="48" width="90" height="24" fill="#8fbadc" opacity="0.85"/>
-    <text x="125" y="64" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">tool A</text>
+    <text x="125" y="64" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">tool A</text>
     <rect x="170" y="48" width="100" height="24" fill="#8fbadc" opacity="0.85"/>
-    <text x="220" y="64" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">tool B</text>
+    <text x="220" y="64" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">tool B</text>
     <rect x="270" y="48" width="85" height="24" fill="#8fbadc" opacity="0.85"/>
-    <text x="312" y="64" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">tool C</text>
+    <text x="312" y="64" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">tool C</text>
     <rect x="355" y="48" width="60" height="24" fill="#b7a5d9" opacity="0.85"/>
-    <text x="385" y="64" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">LLM</text>
+    <text x="385" y="64" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">LLM</text>
     <line x1="415" y1="40" x2="415" y2="80" stroke="#ee876a" stroke-width="1.5" stroke-dasharray="3 2"/>
-    <text x="415" y="36" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">395ms</text>
+    <text x="415" y="36" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="9">395ms</text>
 
-    <text x="20" y="110" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">parallel (tools fanned out concurrently)</text>
+    <text x="20" y="110" fill="#94cdb4" font-family="Source Code Pro" font-size="10">parallel (tools fanned out concurrently)</text>
     <line x1="20" y1="140" x2="740" y2="140" stroke="#294752" stroke-width="1"/>
     <rect x="20"  y="128" width="60" height="24" fill="#b7a5d9" opacity="0.85"/>
-    <text x="50" y="144" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">LLM</text>
+    <text x="50" y="144" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">LLM</text>
     <rect x="80"  y="115" width="100" height="10" fill="#8fbadc" opacity="0.85"/>
-    <text x="130" y="123" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="8">tool A</text>
+    <text x="130" y="123" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="8">tool A</text>
     <rect x="80"  y="128" width="100" height="10" fill="#8fbadc" opacity="0.85"/>
-    <text x="130" y="136" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="8">tool B</text>
+    <text x="130" y="136" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="8">tool B</text>
     <rect x="80"  y="141" width="100" height="10" fill="#8fbadc" opacity="0.85"/>
-    <text x="130" y="149" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="8">tool C</text>
+    <text x="130" y="149" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="8">tool C</text>
     <rect x="180" y="128" width="60" height="24" fill="#b7a5d9" opacity="0.85"/>
-    <text x="210" y="144" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">LLM</text>
+    <text x="210" y="144" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">LLM</text>
     <line x1="240" y1="120" x2="240" y2="160" stroke="#94cdb4" stroke-width="1.5" stroke-dasharray="3 2"/>
-    <text x="240" y="116" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">220ms</text>
-    <text x="300" y="145" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">→ saves (N−1) × T_tool</text>
+    <text x="240" y="116" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">220ms</text>
+    <text x="300" y="145" fill="#94cdb4" font-family="Source Code Pro" font-size="10">→ saves (N−1) × T_tool</text>
   </svg>
   <div class="slide-footer">agent-perf / 04</div>
 </section>
@@ -295,18 +295,18 @@
   </div>
   <!-- stacked bar: what 120ms CPU step looks like -->
   <svg class="diagram" viewBox="0 0 760 110" width="720" style="margin-top:.9em">
-    <text x="20" y="28" fill="#829ca1" font-family="JetBrains Mono" font-size="10">per-step CPU breakdown (typical, ≈120ms)</text>
+    <text x="20" y="28" fill="#829ca1" font-family="Source Code Pro" font-size="10">per-step CPU breakdown (typical, ≈120ms)</text>
     <rect x="20"  y="38" width="130" height="30" fill="#e4c17d" opacity="0.85"/>
-    <text x="85" y="58" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">tokenize · 30ms</text>
+    <text x="85" y="58" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">tokenize · 30ms</text>
     <rect x="150" y="38" width="180" height="30" fill="#94cdb4" opacity="0.85"/>
-    <text x="240" y="58" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">prompt assembly · 40ms</text>
+    <text x="240" y="58" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">prompt assembly · 40ms</text>
     <rect x="330" y="38" width="90" height="30" fill="#8fbadc" opacity="0.85"/>
-    <text x="375" y="58" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">parse · 20ms</text>
+    <text x="375" y="58" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">parse · 20ms</text>
     <rect x="420" y="38" width="100" height="30" fill="#b7a5d9" opacity="0.85"/>
-    <text x="470" y="58" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">framework · 22ms</text>
+    <text x="470" y="58" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">framework · 22ms</text>
     <rect x="520" y="38" width="40" height="30" fill="#829ca1" opacity="0.85"/>
-    <text x="540" y="58" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">IPC · 8ms</text>
-    <text x="20" y="92" fill="#829ca1" font-family="JetBrains Mono" font-size="10">× N steps = serious time, all invisible to the GPU profiler</text>
+    <text x="540" y="58" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">IPC · 8ms</text>
+    <text x="20" y="92" fill="#829ca1" font-family="Source Code Pro" font-size="10">× N steps = serious time, all invisible to the GPU profiler</text>
   </svg>
   <div class="slide-footer">agent-perf / 05</div>
 </section>
@@ -338,27 +338,27 @@
   <svg class="diagram" viewBox="0 0 760 200" width="720" style="margin-top:.9em">
     <!-- centre: agent -->
     <circle cx="130" cy="100" r="22" fill="#e4c17d" opacity="0.85"/>
-    <text x="130" y="105" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="11" font-weight="600">agent</text>
+    <text x="130" y="105" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="11" font-weight="600">agent</text>
     <!-- intra-DC ring -->
     <path d="M130,100 m-60,0 a60,60 0 1,0 120,0 a60,60 0 1,0 -120,0" fill="none" stroke="#94cdb4" stroke-width="1" stroke-dasharray="3 3"/>
-    <text x="130" y="40" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">intra-DC · &lt;1 ms</text>
+    <text x="130" y="40" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">intra-DC · &lt;1 ms</text>
     <!-- intra-region -->
     <path d="M130,100 m-115,0 a115,115 0 1,0 230,0 a115,115 0 1,0 -230,0" fill="none" stroke="#8fbadc" stroke-width="1" stroke-dasharray="3 3"/>
-    <text x="130" y="205" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="9">intra-region · 5–20 ms</text>
+    <text x="130" y="205" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="9">intra-region · 5–20 ms</text>
     <!-- inter-continent marker -->
     <circle cx="560" cy="100" r="22" fill="#ee876a" opacity="0.85"/>
-    <text x="560" y="105" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="11" font-weight="600">EU tool</text>
+    <text x="560" y="105" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="11" font-weight="600">EU tool</text>
     <line x1="152" y1="100" x2="538" y2="100" stroke="#ee876a" stroke-width="1.5" stroke-dasharray="5 3"/>
-    <text x="350" y="94" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">~80 ms each way, × 10 steps = 1.6s</text>
+    <text x="350" y="94" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="10">~80 ms each way, × 10 steps = 1.6s</text>
     <!-- co-located alternative -->
     <circle cx="230" cy="155" r="18" fill="#94cdb4" opacity="0.85"/>
-    <text x="230" y="160" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="10" font-weight="600">co-lo tool</text>
+    <text x="230" y="160" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="10" font-weight="600">co-lo tool</text>
     <line x1="148" y1="115" x2="215" y2="148" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="280" y="178" text-anchor="start" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">&lt;1 ms round-trip — 100× faster</text>
+    <text x="280" y="178" text-anchor="start" fill="#94cdb4" font-family="Source Code Pro" font-size="9">&lt;1 ms round-trip — 100× faster</text>
     <!-- hedging annotation -->
-    <text x="660" y="45" text-anchor="end" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">hedge:</text>
-    <text x="660" y="60" text-anchor="end" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">issue to 2 endpoints,</text>
-    <text x="660" y="72" text-anchor="end" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">take the first response</text>
+    <text x="660" y="45" text-anchor="end" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">hedge:</text>
+    <text x="660" y="60" text-anchor="end" fill="#b7a5d9" font-family="Source Code Pro" font-size="9">issue to 2 endpoints,</text>
+    <text x="660" y="72" text-anchor="end" fill="#b7a5d9" font-family="Source Code Pro" font-size="9">take the first response</text>
   </svg>
   <div class="slide-footer">agent-perf / 06</div>
 </section>
@@ -386,10 +386,10 @@
   </div>
   <!-- Storage latency ladder -->
   <svg class="diagram" viewBox="0 0 760 180" width="720" style="margin-top:.9em">
-    <text x="20" y="20" fill="#829ca1" font-family="JetBrains Mono" font-size="10">storage latency ladder (log scale)</text>
+    <text x="20" y="20" fill="#829ca1" font-family="Source Code Pro" font-size="10">storage latency ladder (log scale)</text>
     <line x1="80" y1="160" x2="740" y2="160" stroke="#829ca1" stroke-width="1"/>
     <!-- ticks -->
-    <g font-family="JetBrains Mono" font-size="9" fill="#829ca1">
+    <g font-family="Source Code Pro" font-size="9" fill="#829ca1">
       <line x1="100" y1="160" x2="100" y2="165" stroke="#829ca1"/><text x="100" y="178" text-anchor="middle">0.1ms</text>
       <line x1="230" y1="160" x2="230" y2="165" stroke="#829ca1"/><text x="230" y="178" text-anchor="middle">1ms</text>
       <line x1="360" y1="160" x2="360" y2="165" stroke="#829ca1"/><text x="360" y="178" text-anchor="middle">10ms</text>
@@ -399,19 +399,19 @@
     </g>
     <!-- bars -->
     <rect x="100" y="40"  width="180" height="14" fill="#94cdb4" opacity="0.85"/>
-    <text x="285" y="52" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">process-local cache (hot KV, in-proc memory)</text>
+    <text x="285" y="52" fill="#94cdb4" font-family="Source Code Pro" font-size="10">process-local cache (hot KV, in-proc memory)</text>
 
     <rect x="260" y="60"  width="120" height="14" fill="#b7a5d9" opacity="0.85"/>
-    <text x="385" y="72" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">local vector DB HNSW (1–5 ms)</text>
+    <text x="385" y="72" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">local vector DB HNSW (1–5 ms)</text>
 
     <rect x="330" y="80"  width="180" height="14" fill="#8fbadc" opacity="0.85"/>
-    <text x="515" y="92" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">remote RAG + embed (20–60 ms)</text>
+    <text x="515" y="92" fill="#8fbadc" font-family="Source Code Pro" font-size="10">remote RAG + embed (20–60 ms)</text>
 
     <rect x="400" y="100" width="180" height="14" fill="#e4c17d" opacity="0.85"/>
-    <text x="585" y="112" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">remote doc store + vector (50–150 ms)</text>
+    <text x="585" y="112" fill="#e4c17d" font-family="Source Code Pro" font-size="10">remote doc store + vector (50–150 ms)</text>
 
     <rect x="490" y="120" width="220" height="14" fill="#ee876a" opacity="0.85"/>
-    <text x="500" y="132" fill="#ee876a" font-family="JetBrains Mono" font-size="10">KV-cache offload to NVMe — do not use for interactive</text>
+    <text x="500" y="132" fill="#ee876a" font-family="Source Code Pro" font-size="10">KV-cache offload to NVMe — do not use for interactive</text>
   </svg>
   <div class="slide-footer">agent-perf / 07</div>
 </section>
@@ -456,14 +456,14 @@
   <svg class="diagram" viewBox="0 0 760 180" width="720" style="margin-top:.9em">
     <circle cx="280" cy="100" r="75" fill="#94cdb4" opacity="0.25" stroke="#94cdb4" stroke-width="1.5"/>
     <circle cx="400" cy="100" r="75" fill="#8fbadc" opacity="0.25" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="240" y="60" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">correct</text>
-    <text x="438" y="60" fill="#8fbadc" font-family="JetBrains Mono" font-size="11">on-time</text>
-    <text x="340" y="100" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12" font-weight="600">goodput</text>
-    <text x="340" y="118" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">(headline metric)</text>
-    <text x="180" y="140" fill="#829ca1" font-family="JetBrains Mono" font-size="10">slow but right</text>
-    <text x="182" y="156" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(low goodput)</text>
-    <text x="560" y="140" fill="#829ca1" font-family="JetBrains Mono" font-size="10">fast but wrong</text>
-    <text x="562" y="156" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(low goodput)</text>
+    <text x="240" y="60" fill="#94cdb4" font-family="Source Code Pro" font-size="11">correct</text>
+    <text x="438" y="60" fill="#8fbadc" font-family="Source Code Pro" font-size="11">on-time</text>
+    <text x="340" y="100" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12" font-weight="600">goodput</text>
+    <text x="340" y="118" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">(headline metric)</text>
+    <text x="180" y="140" fill="#829ca1" font-family="Source Code Pro" font-size="10">slow but right</text>
+    <text x="182" y="156" fill="#829ca1" font-family="Source Code Pro" font-size="9">(low goodput)</text>
+    <text x="560" y="140" fill="#829ca1" font-family="Source Code Pro" font-size="10">fast but wrong</text>
+    <text x="562" y="156" fill="#829ca1" font-family="Source Code Pro" font-size="9">(low goodput)</text>
   </svg>
   <div class="slide-footer">agent-perf / 09</div>
 </section>
@@ -484,28 +484,28 @@
   <!-- stacked bars: p50 vs p99 -->
   <svg class="diagram" viewBox="0 0 760 180" width="720" style="margin-top:.8em">
     <line x1="100" y1="150" x2="720" y2="150" stroke="#829ca1" stroke-width="1"/>
-    <g font-family="JetBrains Mono" font-size="10" fill="#829ca1">
+    <g font-family="Source Code Pro" font-size="10" fill="#829ca1">
       <text x="90" y="54" text-anchor="end">p50 (515ms)</text>
       <text x="90" y="104" text-anchor="end">p99 (2.13s)</text>
       <text x="720" y="170" text-anchor="end">→ ms</text>
     </g>
     <!-- p50 bar: 400 + 60 + 25 + 30 = 515 total → scale 1ms = 1px -->
     <rect x="100" y="42" width="400" height="22" fill="#b7a5d9" opacity="0.85"/>
-    <text x="300" y="58" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">LLM 400</text>
+    <text x="300" y="58" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">LLM 400</text>
     <rect x="500" y="42" width="60"  height="22" fill="#8fbadc" opacity="0.85"/>
-    <text x="530" y="58" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">tool</text>
+    <text x="530" y="58" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">tool</text>
     <rect x="560" y="42" width="25"  height="22" fill="#829ca1" opacity="0.85"/>
     <rect x="585" y="42" width="30"  height="22" fill="#94cdb4" opacity="0.85"/>
     <!-- p99 bar: 1500 + 400 + 80 + 150 = 2130 → need to fit in 620px width → scale 0.29 -->
     <rect x="100" y="92" width="435" height="22" fill="#b7a5d9" opacity="0.85"/>
-    <text x="317" y="108" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">LLM 1500</text>
+    <text x="317" y="108" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">LLM 1500</text>
     <rect x="535" y="92" width="116" height="22" fill="#8fbadc" opacity="0.85"/>
-    <text x="593" y="108" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">tool 400</text>
+    <text x="593" y="108" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">tool 400</text>
     <rect x="651" y="92" width="23"  height="22" fill="#829ca1" opacity="0.85"/>
     <rect x="674" y="92" width="44"  height="22" fill="#94cdb4" opacity="0.85"/>
-    <text x="720" y="108" text-anchor="end" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">mem 150</text>
+    <text x="720" y="108" text-anchor="end" fill="#94cdb4" font-family="Source Code Pro" font-size="9">mem 150</text>
     <!-- legend -->
-    <g font-family="JetBrains Mono" font-size="9">
+    <g font-family="Source Code Pro" font-size="9">
       <rect x="100" y="160" width="12" height="10" fill="#b7a5d9"/><text x="116" y="169" fill="#b7a5d9">LLM</text>
       <rect x="170" y="160" width="12" height="10" fill="#8fbadc"/><text x="186" y="169" fill="#8fbadc">tool</text>
       <rect x="240" y="160" width="12" height="10" fill="#829ca1"/><text x="256" y="169" fill="#829ca1">CPU orch</text>

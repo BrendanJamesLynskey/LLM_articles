@@ -6,23 +6,23 @@
 <title>Ring Attention &amp; Sequence Parallelism | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -36,15 +36,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -61,7 +61,7 @@
 
 <!-- ============ SLIDE 1 : TITLE ============ -->
 <section class="title-slide">
-  <p style="font-family:'JetBrains Mono',monospace;font-size:.44em;color:var(--muted);letter-spacing:.12em;margin-bottom:.2em;">TECHNICAL REPORT</p>
+  <p style="font-family:'Source Code Pro',monospace;font-size:.44em;color:var(--muted);letter-spacing:.12em;margin-bottom:.2em;">TECHNICAL REPORT</p>
   <h1>Ring Attention &amp; Sequence Parallelism</h1>
   <div class="subtitle">Distributing Attention Across Devices for Long-Context Training and Inference</div>
   <div style="width:3em;height:2px;background:var(--amber);margin:0 auto 1em;"></div>
@@ -93,22 +93,22 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
-        <text x="150" y="20" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="10">Memory per layer (BF16, 128K seq)</text>
+        <text x="150" y="20" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="10">Memory per layer (BF16, 128K seq)</text>
         <!-- bars -->
         <rect x="40" y="45" width="220" height="30" rx="4" fill="var(--bg3)" stroke="var(--red)" stroke-width="1.2"/>
         <rect x="40" y="45" width="220" height="30" rx="4" fill="var(--red)" opacity="0.25"/>
-        <text x="150" y="65" text-anchor="middle" fill="var(--red)" font-family="JetBrains Mono" font-size="11" font-weight="600">Attention Activations ~2 GB</text>
+        <text x="150" y="65" text-anchor="middle" fill="var(--red)" font-family="Source Code Pro" font-size="11" font-weight="600">Attention Activations ~2 GB</text>
         <rect x="40" y="90" width="170" height="30" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.2"/>
         <rect x="40" y="90" width="170" height="30" rx="4" fill="var(--amber)" opacity="0.15"/>
-        <text x="125" y="110" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="11">FFN Activations</text>
+        <text x="125" y="110" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="11">FFN Activations</text>
         <rect x="40" y="135" width="140" height="30" rx="4" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.2"/>
         <rect x="40" y="135" width="140" height="30" rx="4" fill="var(--purple)" opacity="0.15"/>
-        <text x="110" y="155" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="11">KV Cache</text>
+        <text x="110" y="155" text-anchor="middle" fill="var(--purple)" font-family="Source Code Pro" font-size="11">KV Cache</text>
         <!-- GPU limit line -->
         <line x1="40" y1="200" x2="260" y2="200" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="6,3"/>
-        <text x="150" y="220" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="10">H100 HBM = 80 GB</text>
-        <text x="150" y="245" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">80 layers = 160 GB activations alone</text>
-        <text x="150" y="265" text-anchor="middle" fill="var(--red)" font-family="DM Sans" font-size="11" font-weight="600">2x GPU memory exceeded</text>
+        <text x="150" y="220" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="10">H100 HBM = 80 GB</text>
+        <text x="150" y="245" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="10">80 layers = 160 GB activations alone</text>
+        <text x="150" y="265" text-anchor="middle" fill="var(--red)" font-family="Manrope" font-size="11" font-weight="600">2x GPU memory exceeded</text>
       </svg>
     </div>
   </div>
@@ -163,17 +163,17 @@
         <circle cx="150" cy="150" r="100" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>
         <!-- GPU nodes -->
         <circle cx="150" cy="50" r="28" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.5"/>
-        <text x="150" y="47" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9" font-weight="600">GPU 0</text>
-        <text x="150" y="60" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">Q₀ + KV</text>
+        <text x="150" y="47" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="9" font-weight="600">GPU 0</text>
+        <text x="150" y="60" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="7">Q₀ + KV</text>
         <circle cx="250" cy="150" r="28" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.5"/>
-        <text x="250" y="147" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9" font-weight="600">GPU 1</text>
-        <text x="250" y="160" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">Q₁ + KV</text>
+        <text x="250" y="147" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="9" font-weight="600">GPU 1</text>
+        <text x="250" y="160" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="7">Q₁ + KV</text>
         <circle cx="150" cy="250" r="28" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.5"/>
-        <text x="150" y="247" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="9" font-weight="600">GPU 2</text>
-        <text x="150" y="260" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">Q₂ + KV</text>
+        <text x="150" y="247" text-anchor="middle" fill="var(--purple)" font-family="Source Code Pro" font-size="9" font-weight="600">GPU 2</text>
+        <text x="150" y="260" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="7">Q₂ + KV</text>
         <circle cx="50" cy="150" r="28" fill="var(--bg3)" stroke="var(--blue)" stroke-width="1.5"/>
-        <text x="50" y="147" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="9" font-weight="600">GPU 3</text>
-        <text x="50" y="160" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">Q₃ + KV</text>
+        <text x="50" y="147" text-anchor="middle" fill="var(--blue)" font-family="Source Code Pro" font-size="9" font-weight="600">GPU 3</text>
+        <text x="50" y="160" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="7">Q₃ + KV</text>
         <!-- Arrows showing KV rotation -->
         <path d="M175,55 L220,120" fill="none" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arrowG)"/>
         <path d="M245,180 L180,240" fill="none" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#arrowP)"/>
@@ -185,8 +185,8 @@
           <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--blue)"/></marker>
           <marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--amber)"/></marker>
         </defs>
-        <text x="150" y="155" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">KV blocks</text>
-        <text x="150" y="168" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">rotate each round</text>
+        <text x="150" y="155" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="10">KV blocks</text>
+        <text x="150" y="168" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="10">rotate each round</text>
       </svg>
     </div>
   </div>
@@ -200,32 +200,32 @@
     <p style="text-align:center;margin-bottom:.6em;">While device <span class="mono">i</span> computes FlashAttention on the current KV block, it <span class="g">simultaneously</span> sends that block to device <span class="mono">i+1</span> and receives the next block from <span class="mono">i-1</span>.</p>
     <svg class="diagram" viewBox="0 0 800 220" width="800" height="220">
       <!-- Timeline header -->
-      <text x="80" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">Round 1</text>
-      <text x="280" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">Round 2</text>
-      <text x="480" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">Round 3</text>
-      <text x="680" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="11">Round N</text>
-      <text x="580" y="25" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="14">...</text>
+      <text x="80" y="25" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="11">Round 1</text>
+      <text x="280" y="25" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="11">Round 2</text>
+      <text x="480" y="25" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="11">Round 3</text>
+      <text x="680" y="25" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="11">Round N</text>
+      <text x="580" y="25" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="14">...</text>
       <!-- Compute row -->
-      <text x="10" y="65" fill="var(--amber)" font-family="JetBrains Mono" font-size="10" dominant-baseline="middle">Compute</text>
+      <text x="10" y="65" fill="var(--amber)" font-family="Source Code Pro" font-size="10" dominant-baseline="middle">Compute</text>
       <rect x="50" y="45" width="160" height="35" rx="4" fill="var(--amber)" opacity="0.25" stroke="var(--amber)" stroke-width="1"/>
-      <text x="130" y="67" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">FlashAttn(Q, KV₀)</text>
+      <text x="130" y="67" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="9">FlashAttn(Q, KV₀)</text>
       <rect x="250" y="45" width="160" height="35" rx="4" fill="var(--amber)" opacity="0.25" stroke="var(--amber)" stroke-width="1"/>
-      <text x="330" y="67" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">FlashAttn(Q, KV₁)</text>
+      <text x="330" y="67" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="9">FlashAttn(Q, KV₁)</text>
       <rect x="450" y="45" width="160" height="35" rx="4" fill="var(--amber)" opacity="0.25" stroke="var(--amber)" stroke-width="1"/>
-      <text x="530" y="67" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">FlashAttn(Q, KV₂)</text>
+      <text x="530" y="67" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="9">FlashAttn(Q, KV₂)</text>
       <rect x="650" y="45" width="130" height="35" rx="4" fill="var(--amber)" opacity="0.25" stroke="var(--amber)" stroke-width="1"/>
-      <text x="715" y="67" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">FlashAttn(Q, KVₙ)</text>
+      <text x="715" y="67" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="9">FlashAttn(Q, KVₙ)</text>
       <!-- Comm row -->
-      <text x="10" y="125" fill="var(--green)" font-family="JetBrains Mono" font-size="10" dominant-baseline="middle">Comms</text>
+      <text x="10" y="125" fill="var(--green)" font-family="Source Code Pro" font-size="10" dominant-baseline="middle">Comms</text>
       <rect x="50" y="105" width="160" height="35" rx="4" fill="var(--green)" opacity="0.15" stroke="var(--green)" stroke-width="1"/>
-      <text x="130" y="127" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">Send KV₀ / Recv KV₁</text>
+      <text x="130" y="127" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="9">Send KV₀ / Recv KV₁</text>
       <rect x="250" y="105" width="160" height="35" rx="4" fill="var(--green)" opacity="0.15" stroke="var(--green)" stroke-width="1"/>
-      <text x="330" y="127" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">Send KV₁ / Recv KV₂</text>
+      <text x="330" y="127" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="9">Send KV₁ / Recv KV₂</text>
       <rect x="450" y="105" width="160" height="35" rx="4" fill="var(--green)" opacity="0.15" stroke="var(--green)" stroke-width="1"/>
-      <text x="530" y="127" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">Send KV₂ / Recv KV₃</text>
+      <text x="530" y="127" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="9">Send KV₂ / Recv KV₃</text>
       <!-- overlap label -->
-      <text x="400" y="170" text-anchor="middle" fill="var(--green)" font-family="DM Sans" font-size="12" font-weight="600">Communication fully hidden when compute &gt; transfer time</text>
-      <text x="400" y="195" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">NVLink: 900 GB/s (A100), 1.8 TB/s (H100) — a few thousand tokens per device suffices</text>
+      <text x="400" y="170" text-anchor="middle" fill="var(--green)" font-family="Manrope" font-size="12" font-weight="600">Communication fully hidden when compute &gt; transfer time</text>
+      <text x="400" y="195" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="10">NVLink: 900 GB/s (A100), 1.8 TB/s (H100) — a few thousand tokens per device suffices</text>
     </svg>
   </div>
   <div class="slide-footer">ring attention &amp; sequence parallelism</div>
@@ -252,7 +252,7 @@
     <div>
       <div class="card amber" style="margin-bottom:.8em;">
         <h3>Round k on Device i</h3>
-        <p style="font-family:'JetBrains Mono',monospace;font-size:.7em;line-height:1.7;">
+        <p style="font-family:'Source Code Pro',monospace;font-size:.7em;line-height:1.7;">
           O_local, LSE_local = FlashAttn(Q_i, KV_k)<br>
           <br>
           <span style="color:var(--green);">// Combine with running state</span><br>
@@ -282,21 +282,21 @@
         <li>Up to <span class="r">50% compute wasted</span> from load imbalance</li>
       </ul>
       <svg class="diagram" viewBox="0 0 280 120" width="280" height="120" style="margin-top:.5em;">
-        <text x="140" y="15" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">Contiguous assignment (unbalanced)</text>
+        <text x="140" y="15" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="9">Contiguous assignment (unbalanced)</text>
         <rect x="10" y="30" width="60" height="25" rx="3" fill="var(--blue)" opacity="0.3" stroke="var(--blue)" stroke-width="1"/>
-        <text x="40" y="47" text-anchor="middle" fill="var(--blue)" font-family="JetBrains Mono" font-size="8">Dev 0</text>
+        <text x="40" y="47" text-anchor="middle" fill="var(--blue)" font-family="Source Code Pro" font-size="8">Dev 0</text>
         <rect x="80" y="30" width="60" height="25" rx="3" fill="var(--green)" opacity="0.3" stroke="var(--green)" stroke-width="1"/>
-        <text x="110" y="47" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="8">Dev 1</text>
+        <text x="110" y="47" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="8">Dev 1</text>
         <rect x="150" y="30" width="60" height="25" rx="3" fill="var(--purple)" opacity="0.3" stroke="var(--purple)" stroke-width="1"/>
-        <text x="180" y="47" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="8">Dev 2</text>
+        <text x="180" y="47" text-anchor="middle" fill="var(--purple)" font-family="Source Code Pro" font-size="8">Dev 2</text>
         <rect x="220" y="30" width="60" height="25" rx="3" fill="var(--red)" opacity="0.3" stroke="var(--red)" stroke-width="1"/>
-        <text x="250" y="47" text-anchor="middle" fill="var(--red)" font-family="JetBrains Mono" font-size="8">Dev 3</text>
+        <text x="250" y="47" text-anchor="middle" fill="var(--red)" font-family="Source Code Pro" font-size="8">Dev 3</text>
         <!-- Work bars -->
         <rect x="25" y="70" width="30" height="8" rx="2" fill="var(--blue)"/>
         <rect x="80" y="70" width="60" height="8" rx="2" fill="var(--green)"/>
         <rect x="150" y="70" width="60" height="8" rx="2" fill="var(--purple)"/>
         <rect x="220" y="70" width="60" height="8" rx="2" fill="var(--red)"/>
-        <text x="140" y="100" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="8">Work per device (causal mask)</text>
+        <text x="140" y="100" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="8">Work per device (causal mask)</text>
       </svg>
     </div>
     <div>
@@ -308,7 +308,7 @@
         <li>Compatible with RoPE: tokens keep <span class="a">original position indices</span></li>
       </ul>
       <svg class="diagram" viewBox="0 0 280 120" width="280" height="120" style="margin-top:.5em;">
-        <text x="140" y="15" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">Striped assignment (balanced)</text>
+        <text x="140" y="15" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="9">Striped assignment (balanced)</text>
         <!-- Interleaved bars -->
         <rect x="10" y="30" width="15" height="25" rx="2" fill="var(--blue)" opacity="0.5"/>
         <rect x="27" y="30" width="15" height="25" rx="2" fill="var(--green)" opacity="0.5"/>
@@ -327,7 +327,7 @@
         <rect x="90" y="70" width="50" height="8" rx="2" fill="var(--green)"/>
         <rect x="155" y="70" width="50" height="8" rx="2" fill="var(--purple)"/>
         <rect x="220" y="70" width="50" height="8" rx="2" fill="var(--red)"/>
-        <text x="140" y="100" text-anchor="middle" fill="var(--green)" font-family="DM Sans" font-size="8">Balanced work per device</text>
+        <text x="140" y="100" text-anchor="middle" fill="var(--green)" font-family="Manrope" font-size="8">Balanced work per device</text>
       </svg>
     </div>
   </div>
@@ -356,28 +356,28 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
-        <text x="150" y="20" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="10">Ulysses: All-to-All redistribution</text>
+        <text x="150" y="20" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="10">Ulysses: All-to-All redistribution</text>
         <!-- Before -->
-        <text x="75" y="50" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="9">Before All-to-All</text>
+        <text x="75" y="50" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="9">Before All-to-All</text>
         <rect x="15" y="60" width="55" height="60" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/>
-        <text x="42" y="78" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="7">Seq 0..N/4</text>
-        <text x="42" y="92" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">All heads</text>
+        <text x="42" y="78" text-anchor="middle" fill="var(--text)" font-family="Source Code Pro" font-size="7">Seq 0..N/4</text>
+        <text x="42" y="92" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="7">All heads</text>
         <rect x="80" y="60" width="55" height="60" rx="4" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1"/>
-        <text x="107" y="78" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="7">Seq N/4..N/2</text>
-        <text x="107" y="92" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">All heads</text>
+        <text x="107" y="78" text-anchor="middle" fill="var(--text)" font-family="Source Code Pro" font-size="7">Seq N/4..N/2</text>
+        <text x="107" y="92" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="7">All heads</text>
         <!-- Arrow -->
         <path d="M75,130 L75,155" fill="none" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arrowGA)"/>
-        <text x="120" y="147" fill="var(--green)" font-family="JetBrains Mono" font-size="9">all-to-all</text>
+        <text x="120" y="147" fill="var(--green)" font-family="Source Code Pro" font-size="9">all-to-all</text>
         <defs><marker id="arrowGA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--green)"/></marker></defs>
         <!-- After -->
-        <text x="75" y="175" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9">After All-to-All</text>
+        <text x="75" y="175" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="9">After All-to-All</text>
         <rect x="15" y="185" width="55" height="60" rx="4" fill="var(--bg3)" stroke="var(--green)" stroke-width="1"/>
-        <text x="42" y="203" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="7">Full seq</text>
-        <text x="42" y="217" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="7">Heads 0..H/4</text>
+        <text x="42" y="203" text-anchor="middle" fill="var(--text)" font-family="Source Code Pro" font-size="7">Full seq</text>
+        <text x="42" y="217" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="7">Heads 0..H/4</text>
         <rect x="80" y="185" width="55" height="60" rx="4" fill="var(--bg3)" stroke="var(--green)" stroke-width="1"/>
-        <text x="107" y="203" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="7">Full seq</text>
-        <text x="107" y="217" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="7">Heads H/4..H/2</text>
-        <text x="150" y="270" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Standard FlashAttention per device</text>
+        <text x="107" y="203" text-anchor="middle" fill="var(--text)" font-family="Source Code Pro" font-size="7">Full seq</text>
+        <text x="107" y="217" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="7">Heads H/4..H/2</text>
+        <text x="150" y="270" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">Standard FlashAttention per device</text>
       </svg>
     </div>
   </div>
@@ -440,22 +440,22 @@
       <svg class="diagram" viewBox="0 0 300 280" width="300" height="280">
         <!-- Node 0 -->
         <rect x="10" y="40" width="130" height="110" rx="6" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.5"/>
-        <text x="75" y="58" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9" font-weight="600">Node 0</text>
+        <text x="75" y="58" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="9" font-weight="600">Node 0</text>
         <rect x="20" y="65" width="50" height="30" rx="3" fill="var(--bg2)" stroke="var(--amber)" stroke-width="1"/>
-        <text x="45" y="84" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">GPU 0</text>
+        <text x="45" y="84" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="7">GPU 0</text>
         <rect x="80" y="65" width="50" height="30" rx="3" fill="var(--bg2)" stroke="var(--amber)" stroke-width="1"/>
-        <text x="105" y="84" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">GPU 1</text>
-        <text x="75" y="115" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="7">Ulysses (all-to-all)</text>
-        <text x="75" y="130" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">NVLink 1.8 TB/s</text>
+        <text x="105" y="84" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="7">GPU 1</text>
+        <text x="75" y="115" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="7">Ulysses (all-to-all)</text>
+        <text x="75" y="130" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="7">NVLink 1.8 TB/s</text>
         <!-- Node 1 -->
         <rect x="160" y="40" width="130" height="110" rx="6" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.5"/>
-        <text x="225" y="58" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9" font-weight="600">Node 1</text>
+        <text x="225" y="58" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="9" font-weight="600">Node 1</text>
         <rect x="170" y="65" width="50" height="30" rx="3" fill="var(--bg2)" stroke="var(--amber)" stroke-width="1"/>
-        <text x="195" y="84" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">GPU 2</text>
+        <text x="195" y="84" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="7">GPU 2</text>
         <rect x="230" y="65" width="50" height="30" rx="3" fill="var(--bg2)" stroke="var(--amber)" stroke-width="1"/>
-        <text x="255" y="84" text-anchor="middle" fill="var(--amber)" font-family="JetBrains Mono" font-size="7">GPU 3</text>
-        <text x="225" y="115" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="7">Ulysses (all-to-all)</text>
-        <text x="225" y="130" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="7">NVLink 1.8 TB/s</text>
+        <text x="255" y="84" text-anchor="middle" fill="var(--amber)" font-family="Source Code Pro" font-size="7">GPU 3</text>
+        <text x="225" y="115" text-anchor="middle" fill="var(--green)" font-family="Source Code Pro" font-size="7">Ulysses (all-to-all)</text>
+        <text x="225" y="130" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="7">NVLink 1.8 TB/s</text>
         <!-- Inter-node ring -->
         <path d="M140,90 L160,90" fill="none" stroke="var(--purple)" stroke-width="2" marker-end="url(#arrowPP)"/>
         <path d="M160,100 L140,100" fill="none" stroke="var(--purple)" stroke-width="2" marker-end="url(#arrowPP2)"/>
@@ -463,12 +463,12 @@
           <marker id="arrowPP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--purple)"/></marker>
           <marker id="arrowPP2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--purple)"/></marker>
         </defs>
-        <text x="150" y="180" text-anchor="middle" fill="var(--purple)" font-family="JetBrains Mono" font-size="9" font-weight="600">Ring Attention (inter-node)</text>
-        <text x="150" y="200" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="8">InfiniBand — comm overlaps compute</text>
+        <text x="150" y="180" text-anchor="middle" fill="var(--purple)" font-family="Source Code Pro" font-size="9" font-weight="600">Ring Attention (inter-node)</text>
+        <text x="150" y="200" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="8">InfiniBand — comm overlaps compute</text>
         <!-- Summary -->
         <rect x="30" y="225" width="240" height="40" rx="6" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
-        <text x="150" y="245" text-anchor="middle" fill="var(--text)" font-family="DM Sans" font-size="10">Better performance than either method alone</text>
-        <text x="150" y="258" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">by matching parallelism to network bandwidth</text>
+        <text x="150" y="245" text-anchor="middle" fill="var(--text)" font-family="Manrope" font-size="10">Better performance than either method alone</text>
+        <text x="150" y="258" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">by matching parallelism to network bandwidth</text>
       </svg>
     </div>
   </div>
@@ -619,33 +619,33 @@
   <svg class="diagram" viewBox="0 0 800 200" width="800" height="200">
     <!-- DP -->
     <rect x="10" y="30" width="140" height="80" rx="6" fill="var(--bg3)" stroke="var(--amber)" stroke-width="1.5"/>
-    <text x="80" y="55" text-anchor="middle" fill="var(--amber)" font-family="Playfair Display" font-size="12" font-weight="700">Data Parallel</text>
-    <text x="80" y="75" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Different sequences</text>
-    <text x="80" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">per device</text>
+    <text x="80" y="55" text-anchor="middle" fill="var(--amber)" font-family="Sora" font-size="12" font-weight="700">Data Parallel</text>
+    <text x="80" y="75" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">Different sequences</text>
+    <text x="80" y="90" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">per device</text>
     <!-- TP -->
     <rect x="170" y="30" width="140" height="80" rx="6" fill="var(--bg3)" stroke="var(--green)" stroke-width="1.5"/>
-    <text x="240" y="55" text-anchor="middle" fill="var(--green)" font-family="Playfair Display" font-size="12" font-weight="700">Tensor Parallel</text>
-    <text x="240" y="75" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Split weight matrices</text>
-    <text x="240" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">within layers</text>
+    <text x="240" y="55" text-anchor="middle" fill="var(--green)" font-family="Sora" font-size="12" font-weight="700">Tensor Parallel</text>
+    <text x="240" y="75" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">Split weight matrices</text>
+    <text x="240" y="90" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">within layers</text>
     <!-- PP -->
     <rect x="330" y="30" width="140" height="80" rx="6" fill="var(--bg3)" stroke="var(--purple)" stroke-width="1.5"/>
-    <text x="400" y="55" text-anchor="middle" fill="var(--purple)" font-family="Playfair Display" font-size="12" font-weight="700">Pipeline Parallel</text>
-    <text x="400" y="75" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">Groups of layers</text>
-    <text x="400" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">across stages</text>
+    <text x="400" y="55" text-anchor="middle" fill="var(--purple)" font-family="Sora" font-size="12" font-weight="700">Pipeline Parallel</text>
+    <text x="400" y="75" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">Groups of layers</text>
+    <text x="400" y="90" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">across stages</text>
     <!-- EP -->
     <rect x="490" y="30" width="140" height="80" rx="6" fill="var(--bg3)" stroke="var(--blue)" stroke-width="1.5"/>
-    <text x="560" y="55" text-anchor="middle" fill="var(--blue)" font-family="Playfair Display" font-size="12" font-weight="700">Expert Parallel</text>
-    <text x="560" y="75" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">MoE experts</text>
-    <text x="560" y="90" text-anchor="middle" fill="var(--muted)" font-family="DM Sans" font-size="9">across devices</text>
+    <text x="560" y="55" text-anchor="middle" fill="var(--blue)" font-family="Sora" font-size="12" font-weight="700">Expert Parallel</text>
+    <text x="560" y="75" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">MoE experts</text>
+    <text x="560" y="90" text-anchor="middle" fill="var(--muted)" font-family="Manrope" font-size="9">across devices</text>
     <!-- SP highlighted -->
     <rect x="650" y="25" width="140" height="90" rx="6" fill="var(--bg3)" stroke="var(--red)" stroke-width="2.5"/>
-    <text x="720" y="52" text-anchor="middle" fill="var(--red)" font-family="Playfair Display" font-size="12" font-weight="700">Sequence Parallel</text>
-    <text x="720" y="72" text-anchor="middle" fill="var(--text)" font-family="DM Sans" font-size="9">Split sequence across</text>
-    <text x="720" y="87" text-anchor="middle" fill="var(--text)" font-family="DM Sans" font-size="9">devices for attention</text>
-    <text x="720" y="100" text-anchor="middle" fill="var(--red)" font-family="JetBrains Mono" font-size="8">NEW</text>
+    <text x="720" y="52" text-anchor="middle" fill="var(--red)" font-family="Sora" font-size="12" font-weight="700">Sequence Parallel</text>
+    <text x="720" y="72" text-anchor="middle" fill="var(--text)" font-family="Manrope" font-size="9">Split sequence across</text>
+    <text x="720" y="87" text-anchor="middle" fill="var(--text)" font-family="Manrope" font-size="9">devices for attention</text>
+    <text x="720" y="100" text-anchor="middle" fill="var(--red)" font-family="Source Code Pro" font-size="8">NEW</text>
     <!-- Bottom label -->
-    <text x="400" y="155" text-anchor="middle" fill="var(--text)" font-family="DM Sans" font-size="11">All five dimensions are <tspan fill="var(--amber)" font-weight="600">orthogonal</tspan> and can be composed in modern training frameworks</text>
-    <text x="400" y="180" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono" font-size="9">5D parallelism: DP x TP x PP x EP x CP</text>
+    <text x="400" y="155" text-anchor="middle" fill="var(--text)" font-family="Manrope" font-size="11">All five dimensions are <tspan fill="var(--amber)" font-weight="600">orthogonal</tspan> and can be composed in modern training frameworks</text>
+    <text x="400" y="180" text-anchor="middle" fill="var(--muted)" font-family="Source Code Pro" font-size="9">5D parallelism: DP x TP x PP x EP x CP</text>
   </svg>
   <div class="slide-footer">ring attention &amp; sequence parallelism</div>
 </section>
@@ -669,7 +669,7 @@
       <div class="card green" style="margin-bottom:.6em;">
         <h3>Linear Scaling</h3>
         <p>Context length scales <span class="g">linearly</span> with GPU count:</p>
-        <p style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:var(--green);margin-top:.3em;">max_ctx = N_devices x tokens_per_device</p>
+        <p style="font-family:'Source Code Pro',monospace;font-size:.8em;color:var(--green);margin-top:.3em;">max_ctx = N_devices x tokens_per_device</p>
       </div>
       <div class="card amber">
         <h3>Wall-Clock Time</h3>
@@ -735,7 +735,7 @@
     </div>
   </div>
   <div style="text-align:center;margin-top:1.5em;">
-    <p style="font-size:.7em;color:var(--muted);font-family:'JetBrains Mono',monospace;">March 2026 • Technical Report</p>
+    <p style="font-size:.7em;color:var(--muted);font-family:'Source Code Pro',monospace;">March 2026 • Technical Report</p>
   </div>
   <div class="slide-footer">ring attention &amp; sequence parallelism</div>
 </section>

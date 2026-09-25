@@ -6,22 +6,22 @@
 <title>Cerebras Wafer-Scale Engine | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -35,15 +35,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -97,7 +97,7 @@
   <div class="slide-hdr"><span class="tag">CONCEPT</span><h2>Wafer-Scale Integration</h2></div>
   <svg class="diagram" viewBox="0 0 900 280" width="820" height="260">
     <!-- Conventional approach -->
-    <text x="180" y="25" fill="#e4c17d" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">Conventional: Diced Dies</text>
+    <text x="180" y="25" fill="#e4c17d" font-family="Sora,serif" font-size="16" font-weight="700" text-anchor="middle">Conventional: Diced Dies</text>
     <circle cx="180" cy="150" r="110" fill="none" stroke="#294752" stroke-width="2"/>
     <rect x="115" y="90" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/><rect x="150" y="90" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/>
     <rect x="185" y="90" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/><rect x="220" y="90" width="30" height="30" rx="2" fill="#ee876a" opacity=".5"/>
@@ -107,15 +107,15 @@
     <rect x="185" y="160" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/><rect x="220" y="160" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/>
     <rect x="115" y="195" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/><rect x="150" y="195" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/>
     <rect x="185" y="195" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/><rect x="220" y="195" width="30" height="30" rx="2" fill="#94cdb4" opacity=".7"/>
-    <text x="180" y="270" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">~100s of dies per wafer, individually packaged</text>
+    <text x="180" y="270" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="11" text-anchor="middle">~100s of dies per wafer, individually packaged</text>
     <!-- Arrow -->
     <text x="390" y="155" fill="#e4c17d" font-size="32">&#x2192;</text>
     <!-- Cerebras approach -->
-    <text x="620" y="25" fill="#e4c17d" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">Cerebras: One Wafer = One Chip</text>
+    <text x="620" y="25" fill="#e4c17d" font-family="Sora,serif" font-size="16" font-weight="700" text-anchor="middle">Cerebras: One Wafer = One Chip</text>
     <circle cx="620" cy="150" r="110" fill="#94cdb4" opacity=".15" stroke="#94cdb4" stroke-width="2"/>
-    <text x="620" y="140" fill="#94cdb4" font-family="Playfair Display,serif" font-size="22" font-weight="700" text-anchor="middle">WSE-3</text>
-    <text x="620" y="165" fill="#eae5db" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">46,225 mm&sup2; single chip</text>
-    <text x="620" y="270" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">Entire wafer is the processor &mdash; no dicing</text>
+    <text x="620" y="140" fill="#94cdb4" font-family="Sora,serif" font-size="22" font-weight="700" text-anchor="middle">WSE-3</text>
+    <text x="620" y="165" fill="#eae5db" font-family="Source Code Pro,monospace" font-size="12" text-anchor="middle">46,225 mm&sup2; single chip</text>
+    <text x="620" y="270" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="11" text-anchor="middle">Entire wafer is the processor &mdash; no dicing</text>
   </svg>
   <p style="text-align:center;margin-top:.4em">Defect tolerance via <span class="g">redundant cores</span> and <span class="b">dynamic routing</span> around faulty regions. Spare cores replace defective sites transparently.</p>
   <div class="slide-footer">cerebras / 03</div>
@@ -181,19 +181,19 @@
     <div>
       <svg class="diagram" viewBox="0 0 440 250" width="440" height="250">
         <!-- GPU bar -->
-        <text x="10" y="55" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">GPU (HBM3e)</text>
+        <text x="10" y="55" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="11">GPU (HBM3e)</text>
         <rect x="120" y="40" width="18" height="22" rx="3" fill="#b7a5d9" opacity=".8"/>
-        <text x="145" y="56" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="10">~3.5 TB/s</text>
+        <text x="145" y="56" fill="#b7a5d9" font-family="Source Code Pro,monospace" font-size="10">~3.5 TB/s</text>
         <!-- WSE bar -->
-        <text x="10" y="110" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">WSE-3 (SRAM)</text>
+        <text x="10" y="110" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="11">WSE-3 (SRAM)</text>
         <rect x="120" y="93" width="310" height="22" rx="3" fill="#94cdb4" opacity=".8"/>
-        <text x="270" y="109" fill="#0f2027" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600">21,000 TB/s (21 PB/s)</text>
+        <text x="270" y="109" fill="#0f2027" font-family="Source Code Pro,monospace" font-size="11" font-weight="600">21,000 TB/s (21 PB/s)</text>
         <!-- Label -->
-        <text x="220" y="155" fill="#e4c17d" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">~6,000x bandwidth gap</text>
+        <text x="220" y="155" fill="#e4c17d" font-family="Sora,serif" font-size="14" font-weight="700" text-anchor="middle">~6,000x bandwidth gap</text>
         <!-- Explanation -->
-        <text x="10" y="190" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">Transformer inference is memory-bandwidth bound.</text>
-        <text x="10" y="210" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">Each generated token requires streaming all model</text>
-        <text x="10" y="230" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">weights through compute. SRAM wins decisively.</text>
+        <text x="10" y="190" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="12">Transformer inference is memory-bandwidth bound.</text>
+        <text x="10" y="210" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="12">Each generated token requires streaming all model</text>
+        <text x="10" y="230" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="12">weights through compute. SRAM wins decisively.</text>
       </svg>
     </div>
     <div>
@@ -216,25 +216,25 @@
   <svg class="diagram" viewBox="0 0 860 260" width="820" height="250">
     <!-- MemoryX -->
     <rect x="20" y="50" width="200" height="170" rx="10" fill="none" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="120" y="80" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">MemoryX</text>
-    <text x="120" y="105" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">External weight storage</text>
-    <rect x="45" y="120" width="150" height="25" rx="4" fill="#13272f" stroke="#294752"/><text x="120" y="137" fill="#cbd4cf" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">DRAM Tiers</text>
-    <rect x="45" y="155" width="150" height="25" rx="4" fill="#13272f" stroke="#294752"/><text x="120" y="172" fill="#cbd4cf" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Flash Storage</text>
-    <text x="120" y="207" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Scales to trillions of params</text>
+    <text x="120" y="80" fill="#b7a5d9" font-family="Sora,serif" font-size="16" font-weight="700" text-anchor="middle">MemoryX</text>
+    <text x="120" y="105" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">External weight storage</text>
+    <rect x="45" y="120" width="150" height="25" rx="4" fill="#13272f" stroke="#294752"/><text x="120" y="137" fill="#cbd4cf" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">DRAM Tiers</text>
+    <rect x="45" y="155" width="150" height="25" rx="4" fill="#13272f" stroke="#294752"/><text x="120" y="172" fill="#cbd4cf" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">Flash Storage</text>
+    <text x="120" y="207" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">Scales to trillions of params</text>
     <!-- SwarmX arrows -->
     <rect x="280" y="90" width="160" height="80" rx="8" fill="none" stroke="#8fbadc" stroke-width="2" stroke-dasharray="6,3"/>
-    <text x="360" y="120" fill="#8fbadc" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">SwarmX</text>
-    <text x="360" y="145" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">High-BW streaming fabric</text>
+    <text x="360" y="120" fill="#8fbadc" font-family="Sora,serif" font-size="15" font-weight="700" text-anchor="middle">SwarmX</text>
+    <text x="360" y="145" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">High-BW streaming fabric</text>
     <line x1="220" y1="130" x2="280" y2="130" stroke="#8fbadc" stroke-width="2" marker-end="url(#arrowBlue)"/>
     <line x1="440" y1="130" x2="510" y2="130" stroke="#8fbadc" stroke-width="2" marker-end="url(#arrowBlue)"/>
     <!-- WSE -->
     <circle cx="620" cy="130" r="95" fill="#94cdb4" opacity=".1" stroke="#94cdb4" stroke-width="2"/>
-    <text x="620" y="120" fill="#94cdb4" font-family="Playfair Display,serif" font-size="18" font-weight="700" text-anchor="middle">WSE-3</text>
-    <text x="620" y="145" fill="#eae5db" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">900K cores + 44GB SRAM</text>
+    <text x="620" y="120" fill="#94cdb4" font-family="Sora,serif" font-size="18" font-weight="700" text-anchor="middle">WSE-3</text>
+    <text x="620" y="145" fill="#eae5db" font-family="Source Code Pro,monospace" font-size="11" text-anchor="middle">900K cores + 44GB SRAM</text>
     <!-- Output -->
     <line x1="715" y1="130" x2="790" y2="130" stroke="#e4c17d" stroke-width="2" marker-end="url(#arrowAmber)"/>
-    <text x="830" y="125" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">Tokens</text>
-    <text x="830" y="142" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">Out</text>
+    <text x="830" y="125" fill="#e4c17d" font-family="Source Code Pro,monospace" font-size="12" text-anchor="middle">Tokens</text>
+    <text x="830" y="142" fill="#e4c17d" font-family="Source Code Pro,monospace" font-size="12" text-anchor="middle">Out</text>
     <!-- Arrow markers -->
     <defs>
       <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#8fbadc"/></marker>
@@ -260,13 +260,13 @@
       </ul>
       <svg class="diagram" viewBox="0 0 300 60" width="280" height="55" style="margin-top:.5em">
         <rect x="5" y="10" width="80" height="40" rx="5" fill="#b7a5d9" opacity=".3" stroke="#b7a5d9"/>
-        <text x="45" y="35" fill="#b7a5d9" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">HBM (weights)</text>
+        <text x="45" y="35" fill="#b7a5d9" font-size="10" font-family="Source Code Pro,monospace" text-anchor="middle">HBM (weights)</text>
         <text x="105" y="35" fill="#829ca1" font-size="16">&rarr;</text>
         <rect x="120" y="10" width="60" height="40" rx="5" fill="#e4c17d" opacity=".3" stroke="#e4c17d"/>
-        <text x="150" y="35" fill="#e4c17d" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">Compute</text>
+        <text x="150" y="35" fill="#e4c17d" font-size="10" font-family="Source Code Pro,monospace" text-anchor="middle">Compute</text>
         <text x="198" y="35" fill="#829ca1" font-size="16">&rarr;</text>
         <rect x="215" y="10" width="75" height="40" rx="5" fill="#94cdb4" opacity=".3" stroke="#94cdb4"/>
-        <text x="252" y="35" fill="#94cdb4" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">Activations</text>
+        <text x="252" y="35" fill="#94cdb4" font-size="10" font-family="Source Code Pro,monospace" text-anchor="middle">Activations</text>
       </svg>
     </div>
     <div class="card green">
@@ -280,12 +280,12 @@
       </ul>
       <svg class="diagram" viewBox="0 0 300 60" width="280" height="55" style="margin-top:.5em">
         <rect x="5" y="10" width="80" height="40" rx="5" fill="#b7a5d9" opacity=".3" stroke="#b7a5d9"/>
-        <text x="45" y="35" fill="#b7a5d9" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">MemoryX</text>
+        <text x="45" y="35" fill="#b7a5d9" font-size="10" font-family="Source Code Pro,monospace" text-anchor="middle">MemoryX</text>
         <text x="105" y="35" fill="#94cdb4" font-size="16">&rarr;</text>
         <rect x="120" y="10" width="60" height="40" rx="5" fill="#e4c17d" opacity=".3" stroke="#e4c17d"/>
-        <text x="150" y="35" fill="#e4c17d" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">Compute</text>
-        <text x="200" y="20" fill="#94cdb4" font-size="9" font-family="JetBrains Mono,monospace">activations</text>
-        <text x="200" y="45" fill="#94cdb4" font-size="9" font-family="JetBrains Mono,monospace">stay on SRAM</text>
+        <text x="150" y="35" fill="#e4c17d" font-size="10" font-family="Source Code Pro,monospace" text-anchor="middle">Compute</text>
+        <text x="200" y="20" fill="#94cdb4" font-size="9" font-family="Source Code Pro,monospace">activations</text>
+        <text x="200" y="45" fill="#94cdb4" font-size="9" font-family="Source Code Pro,monospace">stay on SRAM</text>
       </svg>
     </div>
   </div>
@@ -327,18 +327,18 @@
   </div>
   <svg class="diagram" viewBox="0 0 800 100" width="780" height="95" style="margin-top:.6em">
     <rect x="50" y="10" width="140" height="75" rx="8" fill="none" stroke="#e4c17d" stroke-width="2"/>
-    <text x="120" y="40" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">CS-3 #1</text>
-    <text x="120" y="60" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">WSE-3 + Cooling</text>
+    <text x="120" y="40" fill="#e4c17d" font-family="Source Code Pro,monospace" font-size="12" text-anchor="middle">CS-3 #1</text>
+    <text x="120" y="60" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">WSE-3 + Cooling</text>
     <line x1="190" y1="48" x2="250" y2="48" stroke="#8fbadc" stroke-width="1.5" stroke-dasharray="4,2"/>
     <rect x="250" y="10" width="140" height="75" rx="8" fill="none" stroke="#e4c17d" stroke-width="2"/>
-    <text x="320" y="40" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">CS-3 #2</text>
-    <text x="320" y="60" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">WSE-3 + Cooling</text>
+    <text x="320" y="40" fill="#e4c17d" font-family="Source Code Pro,monospace" font-size="12" text-anchor="middle">CS-3 #2</text>
+    <text x="320" y="60" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">WSE-3 + Cooling</text>
     <line x1="390" y1="48" x2="450" y2="48" stroke="#8fbadc" stroke-width="1.5" stroke-dasharray="4,2"/>
     <text x="470" y="52" fill="#829ca1" font-size="20">...</text>
     <line x1="500" y1="48" x2="540" y2="48" stroke="#b7a5d9" stroke-width="1.5" stroke-dasharray="4,2"/>
     <rect x="540" y="10" width="200" height="75" rx="8" fill="none" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="640" y="40" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="middle">MemoryX Cluster</text>
-    <text x="640" y="60" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">DRAM + Flash weight storage</text>
+    <text x="640" y="40" fill="#b7a5d9" font-family="Source Code Pro,monospace" font-size="12" text-anchor="middle">MemoryX Cluster</text>
+    <text x="640" y="60" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">DRAM + Flash weight storage</text>
   </svg>
   <div class="slide-footer">cerebras / 09</div>
 </section>
@@ -404,13 +404,13 @@
   <svg class="diagram" viewBox="0 0 700 240" width="680" height="230">
     <!-- Layers -->
     <rect x="100" y="10" width="500" height="45" rx="6" fill="#e4c17d" opacity=".15" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="350" y="38" fill="#e4c17d" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">User Code (PyTorch)</text>
+    <text x="350" y="38" fill="#e4c17d" font-family="Sora,serif" font-size="15" font-weight="700" text-anchor="middle">User Code (PyTorch)</text>
     <rect x="100" y="65" width="500" height="45" rx="6" fill="#94cdb4" opacity=".15" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="350" y="93" fill="#94cdb4" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">Cerebras Model Zoo + APIs</text>
+    <text x="350" y="93" fill="#94cdb4" font-family="Sora,serif" font-size="15" font-weight="700" text-anchor="middle">Cerebras Model Zoo + APIs</text>
     <rect x="100" y="120" width="500" height="45" rx="6" fill="#b7a5d9" opacity=".15" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="350" y="148" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">Cerebras Compiler (Graph Optimization + Placement)</text>
+    <text x="350" y="148" fill="#b7a5d9" font-family="Sora,serif" font-size="15" font-weight="700" text-anchor="middle">Cerebras Compiler (Graph Optimization + Placement)</text>
     <rect x="100" y="175" width="500" height="45" rx="6" fill="#8fbadc" opacity=".15" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="350" y="203" fill="#8fbadc" font-family="Playfair Display,serif" font-size="15" font-weight="700" text-anchor="middle">WSE Runtime (Core Scheduling + Weight Streaming)</text>
+    <text x="350" y="203" fill="#8fbadc" font-family="Sora,serif" font-size="15" font-weight="700" text-anchor="middle">WSE Runtime (Core Scheduling + Weight Streaming)</text>
   </svg>
   <div class="cols cols-2" style="margin-top:.4em">
     <div class="card green">

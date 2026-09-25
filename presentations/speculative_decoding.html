@@ -6,23 +6,23 @@
 <title>Speculative Decoding | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -36,15 +36,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -123,16 +123,16 @@
   </div>
   <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.8em">
     <rect x="10" y="15" width="120" height="55" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="70" y="47" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12">Draft Model</text>
+    <text x="70" y="47" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12">Draft Model</text>
     <line x1="130" y1="42" x2="200" y2="42" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrowG)"/>
-    <text x="165" y="35" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">K tokens</text>
+    <text x="165" y="35" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">K tokens</text>
     <rect x="200" y="15" width="220" height="55" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="310" y="47" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="12">Target Model (1 pass)</text>
+    <text x="310" y="47" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="12">Target Model (1 pass)</text>
     <line x1="420" y1="42" x2="490" y2="42" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrowG)"/>
-    <text x="455" y="35" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">verify</text>
+    <text x="455" y="35" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">verify</text>
     <rect x="490" y="15" width="150" height="55" rx="6" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="565" y="42" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="12">Accept / Reject</text>
-    <text x="565" y="57" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">+ resample</text>
+    <text x="565" y="42" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="12">Accept / Reject</text>
+    <text x="565" y="57" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">+ resample</text>
     <defs><marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#829ca1" stroke-width="1"/></marker></defs>
   </svg>
   <div class="slide-footer">speculative-decoding / 03</div>
@@ -266,22 +266,22 @@
     <div>
       <svg class="diagram" viewBox="0 0 320 220" width="300">
         <rect x="10" y="10" width="130" height="60" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="75" y="35" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">Draft: 8B</text>
-        <text x="75" y="52" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">1 GPU</text>
+        <text x="75" y="35" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">Draft: 8B</text>
+        <text x="75" y="52" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">1 GPU</text>
         <rect x="10" y="100" width="300" height="100" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="160" y="130" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">Target: 70B</text>
-        <text x="160" y="150" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">8 GPUs &mdash; Tensor Parallel</text>
+        <text x="160" y="130" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="11">Target: 70B</text>
+        <text x="160" y="150" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">8 GPUs &mdash; Tensor Parallel</text>
         <rect x="25" y="165" width="50" height="25" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
-        <text x="50" y="182" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="8">GPU 0</text>
+        <text x="50" y="182" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="8">GPU 0</text>
         <rect x="85" y="165" width="50" height="25" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
-        <text x="110" y="182" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="8">GPU 1</text>
+        <text x="110" y="182" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="8">GPU 1</text>
         <rect x="145" y="165" width="50" height="25" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
-        <text x="170" y="182" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="8">GPU 2</text>
-        <text x="220" y="182" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="12">...</text>
+        <text x="170" y="182" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="8">GPU 2</text>
+        <text x="220" y="182" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="12">...</text>
         <rect x="245" y="165" width="50" height="25" rx="3" fill="var(--bg3)" stroke="var(--border)"/>
-        <text x="270" y="182" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="8">GPU 7</text>
+        <text x="270" y="182" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="8">GPU 7</text>
         <line x1="75" y1="70" x2="75" y2="100" stroke="#829ca1" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrowM)"/>
-        <text x="95" y="88" fill="#829ca1" font-family="JetBrains Mono" font-size="9">K tokens</text>
+        <text x="95" y="88" fill="#829ca1" font-family="Source Code Pro" font-size="9">K tokens</text>
         <defs><marker id="arrowM" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#829ca1" stroke-width="1"/></marker></defs>
       </svg>
     </div>
@@ -309,23 +309,23 @@
     <div>
       <svg class="diagram" viewBox="0 0 300 260" width="280">
         <rect x="60" y="10" width="180" height="45" rx="6" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="150" y="37" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">Target Hidden State</text>
+        <text x="150" y="37" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="11">Target Hidden State</text>
         <line x1="90" y1="55" x2="50" y2="90" stroke="#b7a5d9" stroke-width="1.2"/>
         <line x1="150" y1="55" x2="150" y2="90" stroke="#b7a5d9" stroke-width="1.2"/>
         <line x1="210" y1="55" x2="250" y2="90" stroke="#b7a5d9" stroke-width="1.2"/>
         <rect x="10" y="90" width="80" height="35" rx="5" fill="none" stroke="#b7a5d9" stroke-width="1.2"/>
-        <text x="50" y="112" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Head +1</text>
+        <text x="50" y="112" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Head +1</text>
         <rect x="110" y="90" width="80" height="35" rx="5" fill="none" stroke="#b7a5d9" stroke-width="1.2"/>
-        <text x="150" y="112" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Head +2</text>
+        <text x="150" y="112" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Head +2</text>
         <rect x="210" y="90" width="80" height="35" rx="5" fill="none" stroke="#b7a5d9" stroke-width="1.2"/>
-        <text x="250" y="112" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Head +3</text>
+        <text x="250" y="112" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Head +3</text>
         <line x1="50" y1="125" x2="50" y2="155" stroke="#829ca1" stroke-width="1" stroke-dasharray="3,3"/>
         <line x1="150" y1="125" x2="150" y2="155" stroke="#829ca1" stroke-width="1" stroke-dasharray="3,3"/>
         <line x1="250" y1="125" x2="250" y2="155" stroke="#829ca1" stroke-width="1" stroke-dasharray="3,3"/>
         <rect x="20" y="155" width="260" height="40" rx="6" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="150" y="180" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">Tree Attention Verify</text>
+        <text x="150" y="180" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">Tree Attention Verify</text>
         <line x1="150" y1="195" x2="150" y2="225" stroke="#94cdb4" stroke-width="1.2" marker-end="url(#arrowM)"/>
-        <text x="150" y="245" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">Accepted Tokens</text>
+        <text x="150" y="245" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="11">Accepted Tokens</text>
       </svg>
     </div>
   </div>
@@ -397,19 +397,19 @@ function add(a, b) {
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 800 80" width="750" style="margin-top:.6em">
-    <text x="10" y="25" fill="#ee876a" font-family="JetBrains Mono" font-size="10">Standard:</text>
-    <rect x="90" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="100" y="27" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="7">t1</text>
-    <rect x="115" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="125" y="27" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="7">t2</text>
-    <rect x="140" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="150" y="27" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="7">t3</text>
-    <rect x="165" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="175" y="27" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="7">t4</text>
-    <rect x="190" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="200" y="27" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="7">t5</text>
-    <rect x="215" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="225" y="27" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="7">t6</text>
-    <text x="245" y="27" fill="#829ca1" font-family="JetBrains Mono" font-size="10">... (6 sync rounds)</text>
+    <text x="10" y="25" fill="#ee876a" font-family="Source Code Pro" font-size="10">Standard:</text>
+    <rect x="90" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="100" y="27" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="7">t1</text>
+    <rect x="115" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="125" y="27" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="7">t2</text>
+    <rect x="140" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="150" y="27" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="7">t3</text>
+    <rect x="165" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="175" y="27" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="7">t4</text>
+    <rect x="190" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="200" y="27" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="7">t5</text>
+    <rect x="215" y="12" width="20" height="22" rx="2" fill="#ee876a" opacity=".3" stroke="#ee876a" stroke-width=".8"/><text x="225" y="27" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="7">t6</text>
+    <text x="245" y="27" fill="#829ca1" font-family="Source Code Pro" font-size="10">... (6 sync rounds)</text>
 
-    <text x="10" y="65" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Speculative:</text>
-    <rect x="90" y="48" width="70" height="26" rx="2" fill="#94cdb4" opacity=".15" stroke="#94cdb4" stroke-width=".8"/><text x="125" y="65" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="7">t1 t2 t3</text>
-    <rect x="170" y="48" width="70" height="26" rx="2" fill="#94cdb4" opacity=".15" stroke="#94cdb4" stroke-width=".8"/><text x="205" y="65" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="7">t4 t5 t6</text>
-    <text x="250" y="65" fill="#829ca1" font-family="JetBrains Mono" font-size="10">... (2 sync rounds)</text>
+    <text x="10" y="65" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Speculative:</text>
+    <rect x="90" y="48" width="70" height="26" rx="2" fill="#94cdb4" opacity=".15" stroke="#94cdb4" stroke-width=".8"/><text x="125" y="65" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="7">t1 t2 t3</text>
+    <rect x="170" y="48" width="70" height="26" rx="2" fill="#94cdb4" opacity=".15" stroke="#94cdb4" stroke-width=".8"/><text x="205" y="65" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="7">t4 t5 t6</text>
+    <text x="250" y="65" fill="#829ca1" font-family="Source Code Pro" font-size="10">... (2 sync rounds)</text>
   </svg>
   <div class="slide-footer">speculative-decoding / 11</div>
 </section>
@@ -510,30 +510,30 @@ function add(a, b) {
     <div>
       <svg class="diagram" viewBox="0 0 280 220" width="260">
         <circle cx="140" cy="20" r="12" fill="none" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="140" y="24" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">t0</text>
+        <text x="140" y="24" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">t0</text>
         <line x1="132" y1="30" x2="80" y2="70" stroke="#829ca1" stroke-width="1"/>
         <line x1="148" y1="30" x2="200" y2="70" stroke="#829ca1" stroke-width="1"/>
         <circle cx="80" cy="80" r="12" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="80" y="84" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">A</text>
+        <text x="80" y="84" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">A</text>
         <circle cx="200" cy="80" r="12" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
-        <text x="200" y="84" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">B</text>
+        <text x="200" y="84" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="9">B</text>
         <line x1="72" y1="90" x2="40" y2="130" stroke="#829ca1" stroke-width="1"/>
         <line x1="88" y1="90" x2="120" y2="130" stroke="#829ca1" stroke-width="1"/>
         <line x1="192" y1="90" x2="170" y2="130" stroke="#829ca1" stroke-width="1"/>
         <line x1="208" y1="90" x2="240" y2="130" stroke="#829ca1" stroke-width="1"/>
         <circle cx="40" cy="140" r="12" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="40" y="144" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">A1</text>
+        <text x="40" y="144" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">A1</text>
         <circle cx="120" cy="140" r="12" fill="none" stroke="#ee876a" stroke-width="1.5" stroke-dasharray="3,2"/>
-        <text x="120" y="144" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">A2</text>
+        <text x="120" y="144" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="9">A2</text>
         <circle cx="170" cy="140" r="12" fill="none" stroke="#ee876a" stroke-width="1.5" stroke-dasharray="3,2"/>
-        <text x="170" y="144" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">B1</text>
+        <text x="170" y="144" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="9">B1</text>
         <circle cx="240" cy="140" r="12" fill="none" stroke="#b7a5d9" stroke-width="1.5"/>
-        <text x="240" y="144" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">B2</text>
+        <text x="240" y="144" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="9">B2</text>
         <line x1="32" y1="150" x2="15" y2="185" stroke="#94cdb4" stroke-width="1"/>
         <circle cx="15" cy="195" r="12" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="15" y="199" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="8">A1a</text>
-        <text x="90" y="205" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">accepted path</text>
-        <text x="90" y="218" fill="#ee876a" font-family="JetBrains Mono" font-size="9">- - rejected</text>
+        <text x="15" y="199" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="8">A1a</text>
+        <text x="90" y="205" fill="#94cdb4" font-family="Source Code Pro" font-size="9">accepted path</text>
+        <text x="90" y="218" fill="#ee876a" font-family="Source Code Pro" font-size="9">- - rejected</text>
       </svg>
     </div>
   </div>

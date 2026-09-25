@@ -6,23 +6,23 @@
 <title>Memory Hierarchy &amp; Offloading for LLM Inference | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -36,15 +36,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -162,17 +162,17 @@
     <div>
       <svg class="diagram" viewBox="0 0 320 280" width="320">
         <rect x="60" y="10" width="200" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-        <text x="160" y="40" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13">GPU HBM</text>
+        <text x="160" y="40" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13">GPU HBM</text>
         <line x1="160" y1="60" x2="160" y2="100" stroke="#294752" stroke-width="2" stroke-dasharray="4,4"/>
-        <text x="230" y="85" fill="#ee876a" font-family="JetBrains Mono" font-size="10">PCIe Link</text>
+        <text x="230" y="85" fill="#ee876a" font-family="Source Code Pro" font-size="10">PCIe Link</text>
         <rect x="60" y="100" width="200" height="50" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-        <text x="160" y="130" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="13">CPU DRAM</text>
+        <text x="160" y="130" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="13">CPU DRAM</text>
         <line x1="160" y1="150" x2="160" y2="190" stroke="#294752" stroke-width="2" stroke-dasharray="4,4"/>
-        <text x="230" y="175" fill="#829ca1" font-family="JetBrains Mono" font-size="10">NVMe Link</text>
+        <text x="230" y="175" fill="#829ca1" font-family="Source Code Pro" font-size="10">NVMe Link</text>
         <rect x="60" y="190" width="200" height="50" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-        <text x="160" y="220" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="13">NVMe SSD</text>
-        <text x="30" y="40" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">Fast</text>
-        <text x="30" y="220" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9">Slow</text>
+        <text x="160" y="220" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="13">NVMe SSD</text>
+        <text x="30" y="40" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">Fast</text>
+        <text x="30" y="220" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="9">Slow</text>
         <line x1="30" y1="55" x2="30" y2="200" stroke="#294752" stroke-width="1.5" marker-end="url(#arrow)"/>
         <defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#294752"/></marker></defs>
       </svg>
@@ -256,21 +256,21 @@
     <div>
       <svg class="diagram" viewBox="0 0 340 260" width="340">
         <rect x="20" y="10" width="140" height="40" rx="5" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-        <text x="90" y="35" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">GPU: Compute N</text>
+        <text x="90" y="35" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">GPU: Compute N</text>
         <rect x="180" y="10" width="140" height="40" rx="5" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-        <text x="250" y="35" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">PCIe: Fetch N+1</text>
+        <text x="250" y="35" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="11">PCIe: Fetch N+1</text>
         <rect x="20" y="70" width="140" height="40" rx="5" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-        <text x="90" y="95" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">GPU: Compute N+1</text>
+        <text x="90" y="95" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">GPU: Compute N+1</text>
         <rect x="180" y="70" width="140" height="40" rx="5" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-        <text x="250" y="95" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">PCIe: Fetch N+2</text>
+        <text x="250" y="95" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="11">PCIe: Fetch N+2</text>
         <rect x="20" y="130" width="140" height="40" rx="5" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-        <text x="90" y="155" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="11">GPU: Compute N+2</text>
+        <text x="90" y="155" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="11">GPU: Compute N+2</text>
         <rect x="180" y="130" width="140" height="40" rx="5" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-        <text x="250" y="155" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">PCIe: Fetch N+3</text>
-        <text x="170" y="210" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">Overlap hides transfer latency</text>
-        <text x="10" y="35" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">t0</text>
-        <text x="10" y="95" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">t1</text>
-        <text x="10" y="155" text-anchor="end" fill="#829ca1" font-family="JetBrains Mono" font-size="9">t2</text>
+        <text x="250" y="155" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="11">PCIe: Fetch N+3</text>
+        <text x="170" y="210" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">Overlap hides transfer latency</text>
+        <text x="10" y="35" text-anchor="end" fill="#829ca1" font-family="Source Code Pro" font-size="9">t0</text>
+        <text x="10" y="95" text-anchor="end" fill="#829ca1" font-family="Source Code Pro" font-size="9">t1</text>
+        <text x="10" y="155" text-anchor="end" fill="#829ca1" font-family="Source Code Pro" font-size="9">t2</text>
       </svg>
     </div>
   </div>
@@ -284,16 +284,16 @@
     <div>
       <svg class="diagram" viewBox="0 0 260 250" width="260">
         <rect x="20" y="20" width="220" height="90" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-        <text x="130" y="45" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12">GPU Memory</text>
+        <text x="130" y="45" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12">GPU Memory</text>
         <rect x="35" y="55" width="90" height="40" rx="4" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="80" y="80" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Buffer A</text>
+        <text x="80" y="80" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Buffer A</text>
         <rect x="135" y="55" width="90" height="40" rx="4" fill="#172d36" stroke="#b7a5d9" stroke-width="1.5"/>
-        <text x="180" y="80" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Buffer B</text>
+        <text x="180" y="80" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Buffer B</text>
         <rect x="20" y="140" width="220" height="50" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-        <text x="130" y="170" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="12">CPU DRAM (Weights)</text>
+        <text x="130" y="170" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="12">CPU DRAM (Weights)</text>
         <path d="M80,110 L80,140" stroke="#94cdb4" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowG)"/>
         <path d="M180,140 L180,110" stroke="#b7a5d9" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowP)"/>
-        <text x="130" y="225" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="11">Alternate: compute A, fill B</text>
+        <text x="130" y="225" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="11">Alternate: compute A, fill B</text>
         <defs>
           <marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#94cdb4"/></marker>
           <marker id="arrowP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#b7a5d9"/></marker>
@@ -361,21 +361,21 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 280 280" width="280">
-        <text x="140" y="15" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Layer Assignment</text>
+        <text x="140" y="15" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">Layer Assignment</text>
         <rect x="40" y="30" width="200" height="30" rx="4" fill="#1a323b" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="140" y="50" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">Layer 0 - GPU</text>
+        <text x="140" y="50" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">Layer 0 - GPU</text>
         <rect x="40" y="65" width="200" height="30" rx="4" fill="#1a323b" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="140" y="85" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">Layer 1 - GPU</text>
+        <text x="140" y="85" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">Layer 1 - GPU</text>
         <rect x="40" y="100" width="200" height="30" rx="4" fill="#1a323b" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="140" y="120" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">...</text>
+        <text x="140" y="120" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">...</text>
         <rect x="40" y="135" width="200" height="30" rx="4" fill="#1a323b" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="140" y="155" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">Layer N-3 - GPU</text>
+        <text x="140" y="155" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">Layer N-3 - GPU</text>
         <rect x="40" y="175" width="200" height="30" rx="4" fill="#1a323b" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="140" y="195" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Layer N-2 - CPU</text>
+        <text x="140" y="195" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Layer N-2 - CPU</text>
         <rect x="40" y="210" width="200" height="30" rx="4" fill="#1a323b" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="140" y="230" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Layer N-1 - CPU</text>
+        <text x="140" y="230" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Layer N-1 - CPU</text>
         <rect x="40" y="245" width="200" height="30" rx="4" fill="#1a323b" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="140" y="265" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Layer N - CPU</text>
+        <text x="140" y="265" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Layer N - CPU</text>
       </svg>
     </div>
   </div>
@@ -436,20 +436,20 @@
     <div>
       <svg class="diagram" viewBox="0 0 300 240" width="300">
         <rect x="20" y="20" width="120" height="45" rx="5" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-        <text x="80" y="38" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">FP16 Weights</text>
-        <text x="80" y="53" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">(large)</text>
+        <text x="80" y="38" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="10">FP16 Weights</text>
+        <text x="80" y="53" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">(large)</text>
         <path d="M140,42 L170,42" stroke="#e4c17d" stroke-width="2" marker-end="url(#arrowA)"/>
         <rect x="170" y="20" width="110" height="45" rx="5" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-        <text x="225" y="38" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">Quantize</text>
-        <text x="225" y="53" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">CPU-side</text>
+        <text x="225" y="38" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">Quantize</text>
+        <text x="225" y="53" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">CPU-side</text>
         <path d="M225,65 L225,90" stroke="#94cdb4" stroke-width="2" marker-end="url(#arrowA)"/>
         <rect x="155" y="90" width="140" height="45" rx="5" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-        <text x="225" y="108" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">INT4 Transfer</text>
-        <text x="225" y="123" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">4x smaller!</text>
+        <text x="225" y="108" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="10">INT4 Transfer</text>
+        <text x="225" y="123" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">4x smaller!</text>
         <path d="M225,135 L225,160" stroke="#b7a5d9" stroke-width="2" marker-end="url(#arrowA)"/>
         <rect x="155" y="160" width="140" height="45" rx="5" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-        <text x="225" y="178" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Dequantize</text>
-        <text x="225" y="193" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">GPU-side</text>
+        <text x="225" y="178" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Dequantize</text>
+        <text x="225" y="193" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">GPU-side</text>
         <defs><marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#e4c17d"/></marker></defs>
       </svg>
     </div>
@@ -515,16 +515,16 @@
     <div>
       <svg class="diagram" viewBox="0 0 280 220" width="280">
         <rect x="20" y="10" width="240" height="80" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-        <text x="140" y="35" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="12">Unified Virtual Address Space</text>
+        <text x="140" y="35" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="12">Unified Virtual Address Space</text>
         <rect x="35" y="45" width="100" height="35" rx="4" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="85" y="67" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">GPU Pages</text>
+        <text x="85" y="67" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">GPU Pages</text>
         <rect x="145" y="45" width="100" height="35" rx="4" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="195" y="67" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">CPU Pages</text>
-        <text x="140" y="115" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">Page Faults</text>
-        <text x="140" y="130" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="10">= Unpredictable Stalls</text>
+        <text x="195" y="67" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="9">CPU Pages</text>
+        <text x="140" y="115" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="10">Page Faults</text>
+        <text x="140" y="130" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="10">= Unpredictable Stalls</text>
         <path d="M85,80 C85,105 195,105 195,80" stroke="#ee876a" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
-        <text x="140" y="170" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">Explicit scheduling is better</text>
-        <text x="140" y="185" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="11">for production workloads</text>
+        <text x="140" y="170" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="11">Explicit scheduling is better</text>
+        <text x="140" y="185" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="11">for production workloads</text>
       </svg>
     </div>
   </div>
@@ -573,47 +573,47 @@
   <svg class="diagram" viewBox="0 0 900 420" width="900">
     <!-- Start -->
     <rect x="340" y="10" width="220" height="40" rx="20" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="450" y="35" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12">Model fits in GPU RAM?</text>
+    <text x="450" y="35" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12">Model fits in GPU RAM?</text>
     <!-- Yes path -->
     <path d="M560,30 L680,30" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#aG)"/>
-    <text x="620" y="24" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Yes</text>
+    <text x="620" y="24" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Yes</text>
     <rect x="680" y="10" width="180" height="40" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="770" y="35" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">Run fully on GPU</text>
+    <text x="770" y="35" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="11">Run fully on GPU</text>
     <!-- No path -->
     <path d="M450,50 L450,80" stroke="#ee876a" stroke-width="1.5" marker-end="url(#aR)"/>
-    <text x="462" y="70" fill="#ee876a" font-family="JetBrains Mono" font-size="10">No</text>
+    <text x="462" y="70" fill="#ee876a" font-family="Source Code Pro" font-size="10">No</text>
     <rect x="340" y="80" width="220" height="40" rx="20" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="450" y="105" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12">Quantized model fits?</text>
+    <text x="450" y="105" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12">Quantized model fits?</text>
     <!-- Yes -->
     <path d="M560,100 L680,100" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#aG)"/>
-    <text x="620" y="94" fill="#94cdb4" font-family="JetBrains Mono" font-size="10">Yes</text>
+    <text x="620" y="94" fill="#94cdb4" font-family="Source Code Pro" font-size="10">Yes</text>
     <rect x="680" y="80" width="180" height="40" rx="6" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="770" y="105" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="11">Quantize &amp; run on GPU</text>
+    <text x="770" y="105" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="11">Quantize &amp; run on GPU</text>
     <!-- No -->
     <path d="M450,120 L450,155" stroke="#ee876a" stroke-width="1.5" marker-end="url(#aR)"/>
-    <text x="462" y="142" fill="#ee876a" font-family="JetBrains Mono" font-size="10">No</text>
+    <text x="462" y="142" fill="#ee876a" font-family="Source Code Pro" font-size="10">No</text>
     <rect x="320" y="155" width="260" height="40" rx="20" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="450" y="180" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="12">Interactive or batch workload?</text>
+    <text x="450" y="180" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="12">Interactive or batch workload?</text>
     <!-- Interactive path -->
     <path d="M320,175 L160,175" stroke="#8fbadc" stroke-width="1.5" marker-end="url(#aB)"/>
-    <text x="240" y="168" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">Interactive</text>
+    <text x="240" y="168" fill="#8fbadc" font-family="Source Code Pro" font-size="10">Interactive</text>
     <rect x="20" y="155" width="140" height="40" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-    <text x="90" y="175" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">CPU offload</text>
-    <text x="90" y="188" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">(few layers)</text>
+    <text x="90" y="175" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="10">CPU offload</text>
+    <text x="90" y="188" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="10">(few layers)</text>
     <path d="M90,195 L90,225" stroke="#8fbadc" stroke-width="1.5" marker-end="url(#aB)"/>
     <rect x="10" y="225" width="160" height="50" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="90" y="245" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">llama.cpp layer split</text>
-    <text x="90" y="262" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">+ double buffering</text>
+    <text x="90" y="245" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">llama.cpp layer split</text>
+    <text x="90" y="262" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">+ double buffering</text>
     <!-- Batch path -->
     <path d="M580,175 L680,175" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#aP)"/>
-    <text x="630" y="168" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Batch</text>
+    <text x="630" y="168" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Batch</text>
     <rect x="680" y="155" width="180" height="40" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="770" y="175" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">Aggressive offload</text>
-    <text x="770" y="188" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="10">(GPU+CPU+SSD)</text>
+    <text x="770" y="175" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">Aggressive offload</text>
+    <text x="770" y="188" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="10">(GPU+CPU+SSD)</text>
     <path d="M770,195 L770,225" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#aP)"/>
     <rect x="690" y="225" width="160" height="50" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="770" y="245" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">FlexGen-style</text>
-    <text x="770" y="262" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">LP scheduler</text>
+    <text x="770" y="245" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">FlexGen-style</text>
+    <text x="770" y="262" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">LP scheduler</text>
     <defs>
       <marker id="aG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#94cdb4"/></marker>
       <marker id="aR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#ee876a"/></marker>

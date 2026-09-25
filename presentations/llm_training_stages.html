@@ -6,23 +6,23 @@
 <title>LLM Training Stages | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -36,15 +36,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -83,19 +83,19 @@
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#829ca1"/></marker>
     </defs>
     <rect x="10" y="30" width="240" height="100" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="130" y="65" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="17" font-weight="700">Pre-Training</text>
-    <text x="130" y="88" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">1T-15T+ tokens</text>
-    <text x="130" y="108" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">90-98% compute</text>
+    <text x="130" y="65" text-anchor="middle" fill="#e4c17d" font-family="Sora,serif" font-size="17" font-weight="700">Pre-Training</text>
+    <text x="130" y="88" text-anchor="middle" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="12">1T-15T+ tokens</text>
+    <text x="130" y="108" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="11">90-98% compute</text>
     <line x1="260" y1="80" x2="320" y2="80" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <rect x="330" y="30" width="240" height="100" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="450" y="65" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display,serif" font-size="17" font-weight="700">Mid-Training</text>
-    <text x="450" y="88" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">100B-1T tokens</text>
-    <text x="450" y="108" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">1-5% compute</text>
+    <text x="450" y="65" text-anchor="middle" fill="#94cdb4" font-family="Sora,serif" font-size="17" font-weight="700">Mid-Training</text>
+    <text x="450" y="88" text-anchor="middle" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="12">100B-1T tokens</text>
+    <text x="450" y="108" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="11">1-5% compute</text>
     <line x1="580" y1="80" x2="640" y2="80" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <rect x="650" y="30" width="240" height="100" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="770" y="65" text-anchor="middle" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="17" font-weight="700">Post-Training</text>
-    <text x="770" y="88" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="12">1B-100B+ tokens</text>
-    <text x="770" y="108" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="11">1-10% compute</text>
+    <text x="770" y="65" text-anchor="middle" fill="#b7a5d9" font-family="Sora,serif" font-size="17" font-weight="700">Post-Training</text>
+    <text x="770" y="88" text-anchor="middle" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="12">1B-100B+ tokens</text>
+    <text x="770" y="108" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="11">1-10% compute</text>
   </svg>
   <p style="text-align:center;font-size:.44em;color:var(--muted);margin-top:.5em">Each stage builds on the previous, with feedback flowing backward to inform the next generation.</p>
   <div class="slide-footer">LLM Training Stages &mdash; 1</div>
@@ -343,22 +343,22 @@
         <circle cx="170" cy="170" r="85" fill="none" stroke="var(--border)" stroke-width="1"/>
         <!-- segments -->
         <path d="M170,170 L170,40 A130,130 0 0,1 283,105 Z" fill="#94cdb422" stroke="#94cdb4" stroke-width="2"/>
-        <text x="235" y="80" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Context</text>
-        <text x="235" y="94" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Extension</text>
+        <text x="235" y="80" fill="#94cdb4" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Context</text>
+        <text x="235" y="94" fill="#94cdb4" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Extension</text>
         <path d="M170,170 L283,105 A130,130 0 0,1 283,235 Z" fill="#8fbadc22" stroke="#8fbadc" stroke-width="2"/>
-        <text x="268" y="175" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Domain</text>
-        <text x="258" y="189" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Adaptation</text>
+        <text x="268" y="175" fill="#8fbadc" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Domain</text>
+        <text x="258" y="189" fill="#8fbadc" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Adaptation</text>
         <path d="M170,170 L283,235 A130,130 0 0,1 170,300 Z" fill="#b7a5d922" stroke="#b7a5d9" stroke-width="2"/>
-        <text x="215" y="273" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Data</text>
-        <text x="215" y="287" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Annealing</text>
+        <text x="215" y="273" fill="#b7a5d9" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Data</text>
+        <text x="215" y="287" fill="#b7a5d9" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Annealing</text>
         <path d="M170,170 L170,300 A130,130 0 0,1 57,235 Z" fill="#ee876a22" stroke="#ee876a" stroke-width="2"/>
-        <text x="80" y="280" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Model</text>
-        <text x="80" y="294" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Surgery</text>
+        <text x="80" y="280" fill="#ee876a" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Model</text>
+        <text x="80" y="294" fill="#ee876a" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Surgery</text>
         <path d="M170,170 L57,235 A130,130 0 0,1 170,40 Z" fill="#e4c17d22" stroke="#e4c17d" stroke-width="2"/>
-        <text x="90" y="120" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Quality</text>
-        <text x="80" y="134" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="11" font-weight="600">Refinement</text>
-        <text x="170" y="167" text-anchor="middle" fill="#eae5db" font-family="Playfair Display,serif" font-size="14" font-weight="700">Mid-</text>
-        <text x="170" y="185" text-anchor="middle" fill="#eae5db" font-family="Playfair Display,serif" font-size="14" font-weight="700">Training</text>
+        <text x="90" y="120" fill="#e4c17d" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Quality</text>
+        <text x="80" y="134" fill="#e4c17d" font-family="Manrope,sans-serif" font-size="11" font-weight="600">Refinement</text>
+        <text x="170" y="167" text-anchor="middle" fill="#eae5db" font-family="Sora,serif" font-size="14" font-weight="700">Mid-</text>
+        <text x="170" y="185" text-anchor="middle" fill="#eae5db" font-family="Sora,serif" font-size="14" font-weight="700">Training</text>
       </svg>
     </div>
   </div>
@@ -383,7 +383,7 @@
       <p>Context extended in stages, not a single jump:</p>
       <div class="card green">
         <h3>Llama 3 Context Ladder</h3>
-        <p style="font-family:'JetBrains Mono',monospace;font-size:.44em;line-height:2">
+        <p style="font-family:'Source Code Pro',monospace;font-size:.44em;line-height:2">
           8K &rarr; 16K &rarr; 32K &rarr; 65K &rarr; 128K<br>
           <span style="color:var(--muted)">~800B tokens total mid-training</span>
         </p>
@@ -480,20 +480,20 @@
   <div class="slide-hdr"><span class="tag">POST-TRAINING</span><h2>RLHF: Reward Modeling &amp; PPO</h2></div>
   <svg class="diagram" viewBox="0 0 920 110" width="880" height="105">
     <rect x="10" y="15" width="180" height="80" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="100" y="48" text-anchor="middle" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Human Preference</text>
-    <text x="100" y="68" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11">Pairwise comparisons</text>
+    <text x="100" y="48" text-anchor="middle" fill="#e4c17d" font-family="Manrope,sans-serif" font-size="13" font-weight="600">Human Preference</text>
+    <text x="100" y="68" text-anchor="middle" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11">Pairwise comparisons</text>
     <line x1="200" y1="55" x2="250" y2="55" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <rect x="260" y="15" width="180" height="80" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="350" y="48" text-anchor="middle" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Reward Model</text>
-    <text x="350" y="68" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11">Bradley-Terry scoring</text>
+    <text x="350" y="48" text-anchor="middle" fill="#94cdb4" font-family="Manrope,sans-serif" font-size="13" font-weight="600">Reward Model</text>
+    <text x="350" y="68" text-anchor="middle" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11">Bradley-Terry scoring</text>
     <line x1="450" y1="55" x2="500" y2="55" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <rect x="510" y="15" width="180" height="80" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="600" y="48" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">PPO Optimization</text>
-    <text x="600" y="68" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11">Policy + KL penalty</text>
+    <text x="600" y="48" text-anchor="middle" fill="#b7a5d9" font-family="Manrope,sans-serif" font-size="13" font-weight="600">PPO Optimization</text>
+    <text x="600" y="68" text-anchor="middle" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11">Policy + KL penalty</text>
     <line x1="700" y1="55" x2="750" y2="55" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <rect x="760" y="15" width="150" height="80" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-    <text x="835" y="48" text-anchor="middle" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="13" font-weight="600">Aligned Model</text>
-    <text x="835" y="68" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11">Better than SFT alone</text>
+    <text x="835" y="48" text-anchor="middle" fill="#8fbadc" font-family="Manrope,sans-serif" font-size="13" font-weight="600">Aligned Model</text>
+    <text x="835" y="68" text-anchor="middle" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11">Better than SFT alone</text>
   </svg>
   <div class="cols cols-2" style="margin-top:.4em">
     <div class="card amber">

@@ -6,23 +6,23 @@
 <title>Power &amp; Thermal Management for GPU-Based LLM Inference | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -36,15 +36,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -104,32 +104,32 @@
   <div class="slide-hdr"><span class="tag">FUNDAMENTALS</span><h2>GPU Power Anatomy</h2></div>
   <svg class="diagram" viewBox="0 0 900 320" width="850">
     <rect x="30" y="30" width="840" height="270" rx="12" fill="#13272f" stroke="#294752"/>
-    <text x="450" y="22" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="13">GPU Power Domains</text>
+    <text x="450" y="22" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="13">GPU Power Domains</text>
     <!-- Compute -->
     <rect x="60" y="60" width="180" height="100" rx="8" fill="#172d36" stroke="#e4c17d" stroke-width="2"/>
-    <text x="150" y="95" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display" font-size="15" font-weight="700">Compute Cores</text>
-    <text x="150" y="118" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="12">CUDA / Tensor Cores</text>
-    <text x="150" y="140" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Dominates in prefill</text>
+    <text x="150" y="95" text-anchor="middle" fill="#e4c17d" font-family="Sora" font-size="15" font-weight="700">Compute Cores</text>
+    <text x="150" y="118" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="12">CUDA / Tensor Cores</text>
+    <text x="150" y="140" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Dominates in prefill</text>
     <!-- Memory -->
     <rect x="270" y="60" width="180" height="100" rx="8" fill="#172d36" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="360" y="95" text-anchor="middle" fill="#b7a5d9" font-family="Playfair Display" font-size="15" font-weight="700">Memory</text>
-    <text x="360" y="118" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="12">HBM / GDDR6 + Controllers</text>
-    <text x="360" y="140" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Dominates in decode</text>
+    <text x="360" y="95" text-anchor="middle" fill="#b7a5d9" font-family="Sora" font-size="15" font-weight="700">Memory</text>
+    <text x="360" y="118" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="12">HBM / GDDR6 + Controllers</text>
+    <text x="360" y="140" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Dominates in decode</text>
     <!-- Interconnect -->
     <rect x="480" y="60" width="180" height="100" rx="8" fill="#172d36" stroke="#8fbadc" stroke-width="2"/>
-    <text x="570" y="95" text-anchor="middle" fill="#8fbadc" font-family="Playfair Display" font-size="15" font-weight="700">Interconnect</text>
-    <text x="570" y="118" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="12">NVLink / PCIe PHYs</text>
-    <text x="570" y="140" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Fixed + data-dependent</text>
+    <text x="570" y="95" text-anchor="middle" fill="#8fbadc" font-family="Sora" font-size="15" font-weight="700">Interconnect</text>
+    <text x="570" y="118" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="12">NVLink / PCIe PHYs</text>
+    <text x="570" y="140" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Fixed + data-dependent</text>
     <!-- Auxiliary -->
     <rect x="690" y="60" width="150" height="100" rx="8" fill="#172d36" stroke="#94cdb4" stroke-width="2"/>
-    <text x="765" y="95" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display" font-size="15" font-weight="700">Auxiliary</text>
-    <text x="765" y="118" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="12">VRMs, Fans, I/O</text>
-    <text x="765" y="140" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Always-on baseline</text>
+    <text x="765" y="95" text-anchor="middle" fill="#94cdb4" font-family="Sora" font-size="15" font-weight="700">Auxiliary</text>
+    <text x="765" y="118" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="12">VRMs, Fans, I/O</text>
+    <text x="765" y="140" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Always-on baseline</text>
     <!-- Arrow: All to heat -->
     <line x1="450" y1="175" x2="450" y2="220" stroke="#ee876a" stroke-width="2" marker-end="url(#arrowR)"/>
     <defs><marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#ee876a"/></marker></defs>
     <rect x="310" y="225" width="280" height="50" rx="8" fill="#172d36" stroke="#ee876a" stroke-width="2"/>
-    <text x="450" y="256" text-anchor="middle" fill="#ee876a" font-family="Playfair Display" font-size="15" font-weight="700">100% converted to heat</text>
+    <text x="450" y="256" text-anchor="middle" fill="#ee876a" font-family="Sora" font-size="15" font-weight="700">100% converted to heat</text>
   </svg>
   <div class="slide-footer">Power &amp; Thermal Management &mdash; 02</div>
 </section>
@@ -209,16 +209,16 @@
   </div>
   <svg class="diagram" viewBox="0 0 800 90" width="750" style="margin-top:.6em">
     <rect x="10" y="15" width="780" height="55" rx="27" fill="#172d36" stroke="#294752"/>
-    <text x="30" y="48" fill="#94cdb4" font-family="JetBrains Mono" font-size="12">18&deg;C</text>
+    <text x="30" y="48" fill="#94cdb4" font-family="Source Code Pro" font-size="12">18&deg;C</text>
     <!-- gradient bar -->
     <rect x="90" y="28" width="600" height="28" rx="14" fill="url(#tempGrad)"/>
     <defs><linearGradient id="tempGrad" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#8fbadc"/><stop offset="50%" stop-color="#e4c17d"/><stop offset="100%" stop-color="#ee876a"/>
     </linearGradient></defs>
-    <text x="710" y="48" fill="#ee876a" font-family="JetBrains Mono" font-size="12">95&deg;C</text>
+    <text x="710" y="48" fill="#ee876a" font-family="Source Code Pro" font-size="12">95&deg;C</text>
     <!-- markers -->
     <line x1="520" y1="25" x2="520" y2="60" stroke="#e4c17d" stroke-width="2" stroke-dasharray="3"/>
-    <text x="520" y="78" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="10">Throttle zone &rarr;</text>
+    <text x="520" y="78" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="10">Throttle zone &rarr;</text>
   </svg>
   <div class="slide-footer">Power &amp; Thermal Management &mdash; 05</div>
 </section>
@@ -229,37 +229,37 @@
   <svg class="diagram" viewBox="0 0 900 280" width="860">
     <!-- Air -->
     <rect x="20" y="30" width="270" height="230" rx="10" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-    <text x="155" y="60" text-anchor="middle" fill="#8fbadc" font-family="Playfair Display" font-size="17" font-weight="700">Air Cooling</text>
-    <text x="155" y="85" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="12">Most common approach</text>
+    <text x="155" y="60" text-anchor="middle" fill="#8fbadc" font-family="Sora" font-size="17" font-weight="700">Air Cooling</text>
+    <text x="155" y="85" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="12">Most common approach</text>
     <line x1="45" y1="98" x2="265" y2="98" stroke="#294752"/>
-    <text x="40" y="120" fill="#829ca1" font-family="DM Sans" font-size="11">+ Simple, low upfront cost</text>
-    <text x="40" y="140" fill="#829ca1" font-family="DM Sans" font-size="11">+ Hot/cold aisle containment</text>
-    <text x="40" y="160" fill="#829ca1" font-family="DM Sans" font-size="11">+ Blower-style for density</text>
-    <text x="40" y="185" fill="#ee876a" font-family="DM Sans" font-size="11">&minus; Limited thermal density</text>
-    <text x="40" y="205" fill="#ee876a" font-family="DM Sans" font-size="11">&minus; Fan noise &amp; power draw</text>
-    <text x="155" y="240" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono" font-size="12">~1x thermal capacity</text>
+    <text x="40" y="120" fill="#829ca1" font-family="Manrope" font-size="11">+ Simple, low upfront cost</text>
+    <text x="40" y="140" fill="#829ca1" font-family="Manrope" font-size="11">+ Hot/cold aisle containment</text>
+    <text x="40" y="160" fill="#829ca1" font-family="Manrope" font-size="11">+ Blower-style for density</text>
+    <text x="40" y="185" fill="#ee876a" font-family="Manrope" font-size="11">&minus; Limited thermal density</text>
+    <text x="40" y="205" fill="#ee876a" font-family="Manrope" font-size="11">&minus; Fan noise &amp; power draw</text>
+    <text x="155" y="240" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro" font-size="12">~1x thermal capacity</text>
     <!-- Liquid -->
     <rect x="315" y="30" width="270" height="230" rx="10" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="450" y="60" text-anchor="middle" fill="#b7a5d9" font-family="Playfair Display" font-size="17" font-weight="700">Liquid Cooling</text>
-    <text x="450" y="85" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="12">Direct-to-chip cold plates</text>
+    <text x="450" y="60" text-anchor="middle" fill="#b7a5d9" font-family="Sora" font-size="17" font-weight="700">Liquid Cooling</text>
+    <text x="450" y="85" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="12">Direct-to-chip cold plates</text>
     <line x1="340" y1="98" x2="560" y2="98" stroke="#294752"/>
-    <text x="335" y="120" fill="#829ca1" font-family="DM Sans" font-size="11">+ 2&ndash;3x better conductivity</text>
-    <text x="335" y="140" fill="#829ca1" font-family="DM Sans" font-size="11">+ Higher sustained power</text>
-    <text x="335" y="160" fill="#829ca1" font-family="DM Sans" font-size="11">+ Denser GPU packing</text>
-    <text x="335" y="185" fill="#ee876a" font-family="DM Sans" font-size="11">&minus; Higher upfront cost</text>
-    <text x="335" y="205" fill="#ee876a" font-family="DM Sans" font-size="11">&minus; Plumbing complexity</text>
-    <text x="450" y="240" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="12">~2&ndash;3x thermal capacity</text>
+    <text x="335" y="120" fill="#829ca1" font-family="Manrope" font-size="11">+ 2&ndash;3x better conductivity</text>
+    <text x="335" y="140" fill="#829ca1" font-family="Manrope" font-size="11">+ Higher sustained power</text>
+    <text x="335" y="160" fill="#829ca1" font-family="Manrope" font-size="11">+ Denser GPU packing</text>
+    <text x="335" y="185" fill="#ee876a" font-family="Manrope" font-size="11">&minus; Higher upfront cost</text>
+    <text x="335" y="205" fill="#ee876a" font-family="Manrope" font-size="11">&minus; Plumbing complexity</text>
+    <text x="450" y="240" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="12">~2&ndash;3x thermal capacity</text>
     <!-- Immersion -->
     <rect x="610" y="30" width="270" height="230" rx="10" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="745" y="60" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display" font-size="17" font-weight="700">Immersion</text>
-    <text x="745" y="85" text-anchor="middle" fill="#b9c9c7" font-family="DM Sans" font-size="12">Dielectric fluid submersion</text>
+    <text x="745" y="60" text-anchor="middle" fill="#94cdb4" font-family="Sora" font-size="17" font-weight="700">Immersion</text>
+    <text x="745" y="85" text-anchor="middle" fill="#b9c9c7" font-family="Manrope" font-size="12">Dielectric fluid submersion</text>
     <line x1="635" y1="98" x2="855" y2="98" stroke="#294752"/>
-    <text x="630" y="120" fill="#829ca1" font-family="DM Sans" font-size="11">+ No fans, zero noise</text>
-    <text x="630" y="140" fill="#829ca1" font-family="DM Sans" font-size="11">+ 100+ kW per rack</text>
-    <text x="630" y="160" fill="#829ca1" font-family="DM Sans" font-size="11">+ Best energy efficiency</text>
-    <text x="630" y="185" fill="#ee876a" font-family="DM Sans" font-size="11">&minus; Maintenance complexity</text>
-    <text x="630" y="205" fill="#ee876a" font-family="DM Sans" font-size="11">&minus; Dielectric fluid cost</text>
-    <text x="745" y="240" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono" font-size="12">&gt;5x thermal capacity</text>
+    <text x="630" y="120" fill="#829ca1" font-family="Manrope" font-size="11">+ No fans, zero noise</text>
+    <text x="630" y="140" fill="#829ca1" font-family="Manrope" font-size="11">+ 100+ kW per rack</text>
+    <text x="630" y="160" fill="#829ca1" font-family="Manrope" font-size="11">+ Best energy efficiency</text>
+    <text x="630" y="185" fill="#ee876a" font-family="Manrope" font-size="11">&minus; Maintenance complexity</text>
+    <text x="630" y="205" fill="#ee876a" font-family="Manrope" font-size="11">&minus; Dielectric fluid cost</text>
+    <text x="745" y="240" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro" font-size="12">&gt;5x thermal capacity</text>
   </svg>
   <div class="slide-footer">Power &amp; Thermal Management &mdash; 06</div>
 </section>
@@ -279,23 +279,23 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 320 280" width="300">
-        <text x="160" y="18" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Airflow Path</text>
+        <text x="160" y="18" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Airflow Path</text>
         <!-- Chassis -->
         <rect x="20" y="30" width="280" height="230" rx="8" fill="#13272f" stroke="#294752"/>
         <!-- Cold air in -->
         <polygon points="10,145 45,125 45,165" fill="#8fbadc" opacity="0.7"/>
-        <text x="55" y="148" fill="#8fbadc" font-family="JetBrains Mono" font-size="10">Cold In</text>
+        <text x="55" y="148" fill="#8fbadc" font-family="Source Code Pro" font-size="10">Cold In</text>
         <!-- GPU slots -->
         <rect x="110" y="50" width="40" height="190" rx="4" fill="#172d36" stroke="#e4c17d"/>
         <rect x="165" y="50" width="40" height="190" rx="4" fill="#172d36" stroke="#e4c17d"/>
         <rect x="220" y="50" width="40" height="190" rx="4" fill="#172d36" stroke="#b7a5d9"/>
-        <text x="130" y="150" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9" transform="rotate(-90,130,150)">GPU 1</text>
-        <text x="185" y="150" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9" transform="rotate(-90,185,150)">GPU 2</text>
-        <text x="240" y="150" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="9" transform="rotate(-90,240,150)">GPU 3</text>
+        <text x="130" y="150" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9" transform="rotate(-90,130,150)">GPU 1</text>
+        <text x="185" y="150" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9" transform="rotate(-90,185,150)">GPU 2</text>
+        <text x="240" y="150" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="9" transform="rotate(-90,240,150)">GPU 3</text>
         <!-- Hot air out -->
         <polygon points="310,145 275,125 275,165" fill="#ee876a" opacity="0.7"/>
-        <text x="262" y="118" fill="#ee876a" font-family="JetBrains Mono" font-size="10">Hot</text>
-        <text x="262" y="130" fill="#ee876a" font-family="JetBrains Mono" font-size="10">Out</text>
+        <text x="262" y="118" fill="#ee876a" font-family="Source Code Pro" font-size="10">Hot</text>
+        <text x="262" y="130" fill="#ee876a" font-family="Source Code Pro" font-size="10">Out</text>
         <!-- Arrows -->
         <line x1="55" y1="145" x2="105" y2="145" stroke="#8fbadc" stroke-width="1.5" marker-end="url(#arrowB)"/>
         <defs><marker id="arrowB" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L6,2.5 L0,5Z" fill="#8fbadc"/></marker></defs>
@@ -341,21 +341,21 @@
   <div class="cols cols-4060">
     <div>
       <svg class="diagram" viewBox="0 0 280 240" width="260">
-        <text x="140" y="18" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Power vs Throughput</text>
+        <text x="140" y="18" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Power vs Throughput</text>
         <!-- Axes -->
         <line x1="40" y1="210" x2="260" y2="210" stroke="#294752" stroke-width="1.5"/>
         <line x1="40" y1="210" x2="40" y2="30" stroke="#294752" stroke-width="1.5"/>
-        <text x="150" y="235" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Power (W)</text>
-        <text x="15" y="120" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10" transform="rotate(-90,15,120)">Throughput</text>
+        <text x="150" y="235" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">Power (W)</text>
+        <text x="15" y="120" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10" transform="rotate(-90,15,120)">Throughput</text>
         <!-- Curve showing diminishing returns -->
         <path d="M50,200 Q100,80 160,60 Q200,50 250,45" fill="none" stroke="#94cdb4" stroke-width="2.5"/>
         <!-- Sweet spot -->
         <circle cx="160" cy="60" r="6" fill="none" stroke="#e4c17d" stroke-width="2"/>
-        <text x="168" y="50" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">Sweet spot</text>
+        <text x="168" y="50" fill="#e4c17d" font-family="Source Code Pro" font-size="9">Sweet spot</text>
         <!-- Annotations -->
         <line x1="160" y1="66" x2="160" y2="210" stroke="#e4c17d" stroke-width="1" stroke-dasharray="4"/>
-        <text x="160" y="222" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="9">80%</text>
-        <text x="250" y="222" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono" font-size="9">100%</text>
+        <text x="160" y="222" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="9">80%</text>
+        <text x="250" y="222" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro" font-size="9">100%</text>
       </svg>
     </div>
     <div>
@@ -468,23 +468,23 @@ nvidia-smi -lgc 1200,1800</code></pre>
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 800 100" width="760" style="margin-top:.6em">
-    <text x="400" y="15" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">GPU Power State Timeline</text>
+    <text x="400" y="15" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">GPU Power State Timeline</text>
     <!-- Timeline -->
     <line x1="40" y1="60" x2="760" y2="60" stroke="#294752" stroke-width="1.5"/>
     <!-- Active blocks -->
     <rect x="60" y="35" width="120" height="25" rx="4" fill="#e4c17d" opacity="0.6"/>
-    <text x="120" y="52" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">ACTIVE</text>
+    <text x="120" y="52" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9" font-weight="600">ACTIVE</text>
     <rect x="210" y="35" width="60" height="25" rx="4" fill="#294752" opacity="0.6"/>
-    <text x="240" y="52" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">IDLE</text>
+    <text x="240" y="52" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">IDLE</text>
     <rect x="300" y="35" width="180" height="25" rx="4" fill="#e4c17d" opacity="0.6"/>
-    <text x="390" y="52" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">BATCHED ACTIVE</text>
+    <text x="390" y="52" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9" font-weight="600">BATCHED ACTIVE</text>
     <rect x="510" y="35" width="100" height="25" rx="4" fill="#294752" opacity="0.6"/>
-    <text x="560" y="52" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="9">GATED</text>
+    <text x="560" y="52" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="9">GATED</text>
     <rect x="640" y="35" width="100" height="25" rx="4" fill="#e4c17d" opacity="0.6"/>
-    <text x="690" y="52" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9" font-weight="600">ACTIVE</text>
+    <text x="690" y="52" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9" font-weight="600">ACTIVE</text>
     <!-- Power line -->
     <polyline points="60,85 60,75 180,75 180,85 210,85 210,82 270,82 270,85 300,85 300,75 480,75 480,85 510,85 510,90 610,90 610,85 640,85 640,75 740,75 740,85" fill="none" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="30" y="82" fill="#94cdb4" font-family="JetBrains Mono" font-size="9">W</text>
+    <text x="30" y="82" fill="#94cdb4" font-family="Source Code Pro" font-size="9">W</text>
   </svg>
   <div class="slide-footer">Power &amp; Thermal Management &mdash; 12</div>
 </section>
@@ -495,22 +495,22 @@ nvidia-smi -lgc 1200,1800</code></pre>
   <div class="cols cols-2">
     <div>
       <svg class="diagram" viewBox="0 0 360 260" width="340">
-        <text x="180" y="18" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Power Budget: 8x 150W GPU System</text>
+        <text x="180" y="18" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Power Budget: 8x 150W GPU System</text>
         <!-- Stacked bar -->
         <rect x="80" y="35" width="200" height="35" rx="0" fill="#e4c17d" opacity="0.8"/>
-        <text x="180" y="58" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="11" font-weight="600">GPUs: 1200 W</text>
+        <text x="180" y="58" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="11" font-weight="600">GPUs: 1200 W</text>
         <rect x="80" y="70" width="100" height="30" rx="0" fill="#8fbadc" opacity="0.7"/>
-        <text x="130" y="90" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="10">CPU: ~200 W</text>
+        <text x="130" y="90" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="10">CPU: ~200 W</text>
         <rect x="80" y="100" width="60" height="28" rx="0" fill="#b7a5d9" opacity="0.7"/>
-        <text x="110" y="118" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">RAM/SSD</text>
+        <text x="110" y="118" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">RAM/SSD</text>
         <rect x="80" y="128" width="70" height="28" rx="0" fill="#94cdb4" opacity="0.7"/>
-        <text x="115" y="146" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">Fans/NIC</text>
+        <text x="115" y="146" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">Fans/NIC</text>
         <rect x="80" y="156" width="50" height="28" rx="0" fill="#ee876a" opacity="0.7"/>
-        <text x="105" y="174" text-anchor="middle" fill="#0f2027" font-family="JetBrains Mono" font-size="9">PSU loss</text>
+        <text x="105" y="174" text-anchor="middle" fill="#0f2027" font-family="Source Code Pro" font-size="9">PSU loss</text>
         <!-- Total -->
         <line x1="60" y1="195" x2="300" y2="195" stroke="#e4c17d" stroke-width="1" stroke-dasharray="3"/>
-        <text x="180" y="215" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="600">Total: 1.8&ndash;2.2 kW</text>
-        <text x="180" y="240" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">PSU rated: &ge;2.4 kW</text>
+        <text x="180" y="215" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13" font-weight="600">Total: 1.8&ndash;2.2 kW</text>
+        <text x="180" y="240" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">PSU rated: &ge;2.4 kW</text>
       </svg>
     </div>
     <div>
@@ -542,26 +542,26 @@ nvidia-smi -lgc 1200,1800</code></pre>
   <svg class="diagram" viewBox="0 0 850 180" width="820">
     <!-- Pipeline -->
     <rect x="20" y="50" width="150" height="70" rx="8" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="95" y="80" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display" font-size="13" font-weight="700">nvidia-smi</text>
-    <text x="95" y="100" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">DCGM Exporter</text>
+    <text x="95" y="80" text-anchor="middle" fill="#e4c17d" font-family="Sora" font-size="13" font-weight="700">nvidia-smi</text>
+    <text x="95" y="100" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">DCGM Exporter</text>
     <line x1="175" y1="85" x2="225" y2="85" stroke="#294752" stroke-width="1.5" marker-end="url(#arwG)"/>
     <defs><marker id="arwG" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L6,2.5 L0,5Z" fill="#94cdb4"/></marker></defs>
 
     <rect x="230" y="50" width="140" height="70" rx="8" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="300" y="80" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display" font-size="13" font-weight="700">Prometheus</text>
-    <text x="300" y="100" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Time-series DB</text>
+    <text x="300" y="80" text-anchor="middle" fill="#94cdb4" font-family="Sora" font-size="13" font-weight="700">Prometheus</text>
+    <text x="300" y="100" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">Time-series DB</text>
     <line x1="375" y1="85" x2="425" y2="85" stroke="#294752" stroke-width="1.5" marker-end="url(#arwG)"/>
 
     <rect x="430" y="50" width="140" height="70" rx="8" fill="#172d36" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="500" y="80" text-anchor="middle" fill="#b7a5d9" font-family="Playfair Display" font-size="13" font-weight="700">Grafana</text>
-    <text x="500" y="100" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Dashboards</text>
+    <text x="500" y="80" text-anchor="middle" fill="#b7a5d9" font-family="Sora" font-size="13" font-weight="700">Grafana</text>
+    <text x="500" y="100" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">Dashboards</text>
     <line x1="575" y1="85" x2="625" y2="85" stroke="#294752" stroke-width="1.5" marker-end="url(#arwG)"/>
 
     <rect x="630" y="50" width="180" height="70" rx="8" fill="#172d36" stroke="#ee876a" stroke-width="1.5"/>
-    <text x="720" y="80" text-anchor="middle" fill="#ee876a" font-family="Playfair Display" font-size="13" font-weight="700">Alerts</text>
-    <text x="720" y="100" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="10">Throttle / Power limits</text>
+    <text x="720" y="80" text-anchor="middle" fill="#ee876a" font-family="Sora" font-size="13" font-weight="700">Alerts</text>
+    <text x="720" y="100" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="10">Throttle / Power limits</text>
 
-    <text x="425" y="160" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">Correlate GPU telemetry (power, temp, clocks) with inference metrics (latency, throughput)</text>
+    <text x="425" y="160" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">Correlate GPU telemetry (power, temp, clocks) with inference metrics (latency, throughput)</text>
   </svg>
   <div class="cols cols-2" style="margin-top:.4em">
     <div class="card blue">

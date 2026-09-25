@@ -6,22 +6,22 @@
 <title>Retrieval-Augmented Generation | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -35,15 +35,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -105,43 +105,43 @@
   <svg class="diagram" viewBox="0 0 1100 320" width="1050" height="305">
     <!-- Query -->
     <rect x="10" y="120" width="140" height="60" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="80" y="155" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="16" font-weight="600">User Query</text>
+    <text x="80" y="155" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="16" font-weight="600">User Query</text>
     <!-- Arrow -->
     <line x1="150" y1="150" x2="210" y2="150" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <!-- Encoder -->
     <rect x="210" y="110" width="130" height="80" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="275" y="145" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="14" font-weight="600">Query</text>
-    <text x="275" y="168" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="14" font-weight="600">Encoder</text>
+    <text x="275" y="145" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="14" font-weight="600">Query</text>
+    <text x="275" y="168" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="14" font-weight="600">Encoder</text>
     <!-- Arrow -->
     <line x1="340" y1="150" x2="400" y2="150" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <!-- Vector DB -->
     <rect x="400" y="100" width="150" height="100" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-    <text x="475" y="140" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="14" font-weight="600">Vector DB</text>
-    <text x="475" y="165" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">ANN Search</text>
-    <text x="475" y="185" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">+ Reranking</text>
+    <text x="475" y="140" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="14" font-weight="600">Vector DB</text>
+    <text x="475" y="165" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">ANN Search</text>
+    <text x="475" y="185" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">+ Reranking</text>
     <!-- Arrow -->
     <line x1="550" y1="150" x2="610" y2="150" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <!-- Context Assembly -->
     <rect x="610" y="110" width="140" height="80" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="680" y="145" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="14" font-weight="600">Context</text>
-    <text x="680" y="168" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="14" font-weight="600">Assembly</text>
+    <text x="680" y="145" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="14" font-weight="600">Context</text>
+    <text x="680" y="168" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="14" font-weight="600">Assembly</text>
     <!-- Arrow -->
     <line x1="750" y1="150" x2="810" y2="150" stroke="#829ca1" stroke-width="2" marker-end="url(#arrow)"/>
     <!-- LLM -->
     <rect x="810" y="100" width="140" height="100" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="880" y="140" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="16" font-weight="700">LLM</text>
-    <text x="880" y="168" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">Query + Context</text>
-    <text x="880" y="186" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">&rarr; Answer</text>
+    <text x="880" y="140" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="16" font-weight="700">LLM</text>
+    <text x="880" y="168" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">Query + Context</text>
+    <text x="880" y="186" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">&rarr; Answer</text>
     <!-- Arrow head marker -->
     <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#829ca1"/></marker></defs>
     <!-- Corpus path -->
     <rect x="400" y="240" width="150" height="50" rx="8" fill="#13272f" stroke="#829ca1" stroke-width="1.5"/>
-    <text x="475" y="270" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="13">Document Corpus</text>
+    <text x="475" y="270" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="13">Document Corpus</text>
     <line x1="475" y1="240" x2="475" y2="200" stroke="#829ca1" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
     <!-- Phase labels -->
-    <text x="340" y="40" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono" font-size="13" font-weight="500">RETRIEVAL PHASE</text>
+    <text x="340" y="40" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro" font-size="13" font-weight="500">RETRIEVAL PHASE</text>
     <line x1="190" y1="52" x2="560" y2="52" stroke="#b7a5d9" stroke-width="1" opacity="0.4"/>
-    <text x="800" y="40" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono" font-size="13" font-weight="500">GENERATION PHASE</text>
+    <text x="800" y="40" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro" font-size="13" font-weight="500">GENERATION PHASE</text>
     <line x1="620" y1="52" x2="960" y2="52" stroke="#e4c17d" stroke-width="1" opacity="0.4"/>
   </svg>
   <div class="slide-footer">rag / 03</div>
@@ -257,23 +257,23 @@
   <div class="slide-hdr"><span class="tag">07</span><h2>Two-Stage Retrieve &amp; Rerank</h2></div>
   <svg class="diagram" viewBox="0 0 1050 220" width="1000" height="210">
     <rect x="10" y="70" width="140" height="70" rx="8" fill="#13272f" stroke="#8fbadc" stroke-width="2"/>
-    <text x="80" y="100" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="14" font-weight="600">Bi-Encoder</text>
-    <text x="80" y="122" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">top-100 @ 5ms</text>
+    <text x="80" y="100" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="14" font-weight="600">Bi-Encoder</text>
+    <text x="80" y="122" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">top-100 @ 5ms</text>
     <line x1="150" y1="105" x2="280" y2="105" stroke="#829ca1" stroke-width="2" marker-end="url(#arr2)"/>
     <rect x="280" y="70" width="160" height="70" rx="8" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="360" y="100" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="14" font-weight="600">Cross-Encoder</text>
-    <text x="360" y="122" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">rerank @ 50ms</text>
+    <text x="360" y="100" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="14" font-weight="600">Cross-Encoder</text>
+    <text x="360" y="122" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">rerank @ 50ms</text>
     <line x1="440" y1="105" x2="560" y2="105" stroke="#829ca1" stroke-width="2" marker-end="url(#arr2)"/>
     <rect x="560" y="70" width="140" height="70" rx="8" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="630" y="100" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="14" font-weight="600">Top-K Passages</text>
-    <text x="630" y="122" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">k = 3&ndash;5</text>
+    <text x="630" y="100" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="14" font-weight="600">Top-K Passages</text>
+    <text x="630" y="122" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">k = 3&ndash;5</text>
     <line x1="700" y1="105" x2="820" y2="105" stroke="#829ca1" stroke-width="2" marker-end="url(#arr2)"/>
     <rect x="820" y="70" width="140" height="70" rx="8" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="890" y="100" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="15" font-weight="700">LLM</text>
-    <text x="890" y="122" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono" font-size="11">generate</text>
+    <text x="890" y="100" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="15" font-weight="700">LLM</text>
+    <text x="890" y="122" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro" font-size="11">generate</text>
     <defs><marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#829ca1"/></marker></defs>
-    <text x="220" y="180" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">High recall, fast</text>
-    <text x="450" y="180" text-anchor="middle" fill="#829ca1" font-family="DM Sans" font-size="12">High precision, slower</text>
+    <text x="220" y="180" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">High recall, fast</text>
+    <text x="450" y="180" text-anchor="middle" fill="#829ca1" font-family="Manrope" font-size="12">High precision, slower</text>
   </svg>
   <p><span class="b">ColBERT-style late interaction</span> offers a middle ground: token-level similarity with pre-computed passage representations, achieving cross-encoder quality at near bi-encoder speed.</p>
   <div class="slide-footer">rag / 08</div>
@@ -299,21 +299,21 @@
     <div>
       <svg class="diagram" viewBox="0 0 320 380" width="300" height="370">
         <rect x="80" y="10" width="160" height="45" rx="6" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="160" y="38" text-anchor="middle" fill="#e4c17d" font-family="DM Sans" font-size="13" font-weight="600">Complex Query</text>
+        <text x="160" y="38" text-anchor="middle" fill="#e4c17d" font-family="Manrope" font-size="13" font-weight="600">Complex Query</text>
         <line x1="160" y1="55" x2="160" y2="80" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arr3)"/>
         <rect x="60" y="80" width="200" height="45" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-        <text x="160" y="108" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="12" font-weight="600">Decompose &rarr; Sub-Q1</text>
+        <text x="160" y="108" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="12" font-weight="600">Decompose &rarr; Sub-Q1</text>
         <line x1="160" y1="125" x2="160" y2="150" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arr3)"/>
         <rect x="60" y="150" width="200" height="45" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="160" y="178" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="12" font-weight="600">Retrieve + Reason</text>
+        <text x="160" y="178" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="12" font-weight="600">Retrieve + Reason</text>
         <line x1="160" y1="195" x2="160" y2="220" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arr3)"/>
         <rect x="60" y="220" width="200" height="45" rx="6" fill="#13272f" stroke="#b7a5d9" stroke-width="1.5"/>
-        <text x="160" y="248" text-anchor="middle" fill="#b7a5d9" font-family="DM Sans" font-size="12" font-weight="600">Refine &rarr; Sub-Q2</text>
+        <text x="160" y="248" text-anchor="middle" fill="#b7a5d9" font-family="Manrope" font-size="12" font-weight="600">Refine &rarr; Sub-Q2</text>
         <line x1="160" y1="265" x2="160" y2="290" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arr3)"/>
         <rect x="60" y="290" width="200" height="45" rx="6" fill="#13272f" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="160" y="318" text-anchor="middle" fill="#8fbadc" font-family="DM Sans" font-size="12" font-weight="600">Retrieve + Synthesize</text>
+        <text x="160" y="318" text-anchor="middle" fill="#8fbadc" font-family="Manrope" font-size="12" font-weight="600">Retrieve + Synthesize</text>
         <line x1="160" y1="335" x2="160" y2="355" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arr3)"/>
-        <text x="160" y="375" text-anchor="middle" fill="#94cdb4" font-family="DM Sans" font-size="13" font-weight="600">Final Answer</text>
+        <text x="160" y="375" text-anchor="middle" fill="#94cdb4" font-family="Manrope" font-size="13" font-weight="600">Final Answer</text>
         <defs><marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#829ca1"/></marker></defs>
       </svg>
     </div>

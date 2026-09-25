@@ -6,23 +6,23 @@
 <title>MCP Server Deployment | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
 
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -36,15 +36,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{text-align:right;margin-top:auto;padding-top:.6em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -440,61 +440,61 @@ secrets:
   <svg class="diagram" viewBox="0 0 1100 560" width="1050" height="530">
     <!-- Dev Laptop -->
     <rect x="20" y="30" width="280" height="200" rx="12" fill="#13272f" stroke="#e4c17d" stroke-width="2"/>
-    <text x="160" y="58" text-anchor="middle" fill="#e4c17d" font-family="Playfair Display,serif" font-size="16" font-weight="700">Dev Laptop</text>
+    <text x="160" y="58" text-anchor="middle" fill="#e4c17d" font-family="Sora,serif" font-size="16" font-weight="700">Dev Laptop</text>
     <rect x="40" y="75" width="110" height="36" rx="6" fill="#172d36" stroke="#294752"/>
-    <text x="95" y="98" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="11">Claude Desktop</text>
+    <text x="95" y="98" text-anchor="middle" fill="#eae5db" font-family="Manrope,sans-serif" font-size="11">Claude Desktop</text>
     <rect x="165" y="75" width="115" height="36" rx="6" fill="#172d36" stroke="#294752"/>
-    <text x="222" y="98" text-anchor="middle" fill="#eae5db" font-family="DM Sans,sans-serif" font-size="11">Cursor / VS Code</text>
+    <text x="222" y="98" text-anchor="middle" fill="#eae5db" font-family="Manrope,sans-serif" font-size="11">Cursor / VS Code</text>
     <rect x="40" y="130" width="240" height="36" rx="6" fill="#172d36" stroke="#94cdb4"/>
-    <text x="160" y="153" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="11">stdio MCP servers (npx/uvx)</text>
+    <text x="160" y="153" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="11">stdio MCP servers (npx/uvx)</text>
     <rect x="40" y="178" width="240" height="36" rx="6" fill="#172d36" stroke="#b7a5d9"/>
-    <text x="160" y="201" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="11">mcp-proxy / supergateway</text>
+    <text x="160" y="201" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro,monospace" font-size="11">mcp-proxy / supergateway</text>
     <!-- Arrow: Dev to Staging -->
     <line x1="300" y1="150" x2="390" y2="270" stroke="#e4c17d" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="325" y="195" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10" transform="rotate(30 325 195)">HTTP/SSE</text>
+    <text x="325" y="195" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="10" transform="rotate(30 325 195)">HTTP/SSE</text>
     <!-- Staging -->
     <rect x="390" y="200" width="300" height="210" rx="12" fill="#13272f" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="540" y="228" text-anchor="middle" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="16" font-weight="700">Staging (Docker Compose)</text>
+    <text x="540" y="228" text-anchor="middle" fill="#b7a5d9" font-family="Sora,serif" font-size="16" font-weight="700">Staging (Docker Compose)</text>
     <rect x="410" y="245" width="130" height="32" rx="6" fill="#172d36" stroke="#8fbadc"/>
-    <text x="475" y="266" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">github-mcp :8081</text>
+    <text x="475" y="266" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10">github-mcp :8081</text>
     <rect x="550" y="245" width="125" height="32" rx="6" fill="#172d36" stroke="#8fbadc"/>
-    <text x="612" y="266" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">db-mcp :8082</text>
+    <text x="612" y="266" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10">db-mcp :8082</text>
     <rect x="410" y="290" width="130" height="32" rx="6" fill="#172d36" stroke="#8fbadc"/>
-    <text x="475" y="311" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">slack-mcp :8083</text>
+    <text x="475" y="311" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10">slack-mcp :8083</text>
     <rect x="550" y="290" width="125" height="32" rx="6" fill="#172d36" stroke="#8fbadc"/>
-    <text x="612" y="311" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">search-mcp :8084</text>
+    <text x="612" y="311" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10">search-mcp :8084</text>
     <rect x="410" y="340" width="265" height="32" rx="6" fill="#172d36" stroke="#e4c17d"/>
-    <text x="542" y="361" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="10">Nginx reverse proxy + TLS</text>
+    <text x="542" y="361" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro,monospace" font-size="10">Nginx reverse proxy + TLS</text>
     <rect x="410" y="380" width="265" height="18" rx="4" fill="#172d36" stroke="#94cdb4"/>
-    <text x="542" y="393" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="9">Docker network (isolated)</text>
+    <text x="542" y="393" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="9">Docker network (isolated)</text>
     <!-- Arrow: Staging to Prod -->
     <line x1="690" y1="305" x2="770" y2="305" stroke="#b7a5d9" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="730" y="295" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10">promote</text>
+    <text x="730" y="295" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="10">promote</text>
     <!-- Production K8s -->
     <rect x="770" y="100" width="310" height="400" rx="12" fill="#13272f" stroke="#94cdb4" stroke-width="2"/>
-    <text x="925" y="128" text-anchor="middle" fill="#94cdb4" font-family="Playfair Display,serif" font-size="16" font-weight="700">Production (Kubernetes)</text>
+    <text x="925" y="128" text-anchor="middle" fill="#94cdb4" font-family="Sora,serif" font-size="16" font-weight="700">Production (Kubernetes)</text>
     <rect x="790" y="145" width="270" height="30" rx="6" fill="#172d36" stroke="#e4c17d"/>
-    <text x="925" y="165" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="10">Ingress Controller + OAuth Gateway</text>
+    <text x="925" y="165" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro,monospace" font-size="10">Ingress Controller + OAuth Gateway</text>
     <rect x="790" y="190" width="130" height="55" rx="6" fill="#172d36" stroke="#8fbadc"/>
-    <text x="855" y="210" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">github-mcp</text>
-    <text x="855" y="232" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9">3 replicas</text>
+    <text x="855" y="210" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10">github-mcp</text>
+    <text x="855" y="232" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9">3 replicas</text>
     <rect x="930" y="190" width="130" height="55" rx="6" fill="#172d36" stroke="#8fbadc"/>
-    <text x="995" y="210" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">db-mcp</text>
-    <text x="995" y="232" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9">2 replicas</text>
+    <text x="995" y="210" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10">db-mcp</text>
+    <text x="995" y="232" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9">2 replicas</text>
     <rect x="790" y="258" width="130" height="55" rx="6" fill="#172d36" stroke="#8fbadc"/>
-    <text x="855" y="278" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">slack-mcp</text>
-    <text x="855" y="300" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9">2 replicas</text>
+    <text x="855" y="278" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10">slack-mcp</text>
+    <text x="855" y="300" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9">2 replicas</text>
     <rect x="930" y="258" width="130" height="55" rx="6" fill="#172d36" stroke="#8fbadc"/>
-    <text x="995" y="278" text-anchor="middle" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10">search-mcp</text>
-    <text x="995" y="300" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9">4 replicas</text>
+    <text x="995" y="278" text-anchor="middle" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10">search-mcp</text>
+    <text x="995" y="300" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9">4 replicas</text>
     <rect x="790" y="328" width="270" height="28" rx="6" fill="#172d36" stroke="#b7a5d9"/>
-    <text x="925" y="347" text-anchor="middle" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="10">HPA + Pod Disruption Budgets</text>
+    <text x="925" y="347" text-anchor="middle" fill="#b7a5d9" font-family="Source Code Pro,monospace" font-size="10">HPA + Pod Disruption Budgets</text>
     <rect x="790" y="368" width="270" height="28" rx="6" fill="#172d36" stroke="#ee876a"/>
-    <text x="925" y="387" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono,monospace" font-size="10">Vault secrets + Network Policies</text>
+    <text x="925" y="387" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro,monospace" font-size="10">Vault secrets + Network Policies</text>
     <rect x="790" y="408" width="270" height="28" rx="6" fill="#172d36" stroke="#94cdb4"/>
-    <text x="925" y="427" text-anchor="middle" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10">OpenTelemetry Collector</text>
+    <text x="925" y="427" text-anchor="middle" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="10">OpenTelemetry Collector</text>
     <rect x="790" y="448" width="270" height="28" rx="6" fill="#172d36" stroke="#e4c17d"/>
-    <text x="925" y="467" text-anchor="middle" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="10">Service Mesh (mTLS)</text>
+    <text x="925" y="467" text-anchor="middle" fill="#e4c17d" font-family="Source Code Pro,monospace" font-size="10">Service Mesh (mTLS)</text>
     <!-- Arrow marker -->
     <defs>
       <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -504,8 +504,8 @@ secrets:
     <!-- Dev to remote SaaS -->
     <line x1="160" y1="230" x2="160" y2="490" stroke="#ee876a" stroke-width="1.5" stroke-dasharray="6 3"/>
     <rect x="40" y="490" width="240" height="40" rx="8" fill="#13272f" stroke="#ee876a" stroke-width="1.5"/>
-    <text x="160" y="515" text-anchor="middle" fill="#ee876a" font-family="JetBrains Mono,monospace" font-size="11">Remote SaaS MCP (3rd party)</text>
-    <text x="160" y="480" text-anchor="middle" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9">OAuth 2.1 + Streamable HTTP</text>
+    <text x="160" y="515" text-anchor="middle" fill="#ee876a" font-family="Source Code Pro,monospace" font-size="11">Remote SaaS MCP (3rd party)</text>
+    <text x="160" y="480" text-anchor="middle" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9">OAuth 2.1 + Streamable HTTP</text>
   </svg>
   <div class="slide-footer">mcp-server-deployment / 09</div>
 </section>

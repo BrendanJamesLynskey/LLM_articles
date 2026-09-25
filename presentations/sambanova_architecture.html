@@ -6,22 +6,22 @@
 <title>SambaNova's SN40L Architecture | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root { --amber:#e4c17d;--green:#94cdb4;--purple:#b7a5d9;--blue:#8fbadc;--red:#ee876a;--bg:#0f2027;--bg2:#13272f;--bg3:#172d36;--border:#294752;--text:#eae5db;--muted:#829ca1; }
   .reveal-viewport{background:var(--bg)}.reveal .slides section{background:transparent;overflow-y:auto !important;padding-top:.5em;align-items:flex-start !important;justify-content:flex-start !important}
-  .reveal{font-family:'DM Sans',sans-serif;color:var(--text)}
-  .reveal h1,.reveal h2,.reveal h3{font-family:'Playfair Display',serif;font-weight:700}
+  .reveal{font-family:'Manrope',sans-serif;color:var(--text)}
+  .reveal h1,.reveal h2,.reveal h3{font-family:'Sora',serif;font-weight:700}
   .reveal h1{font-size:1.8em;color:var(--amber);line-height:1.15}.reveal h2{font-size:1.25em;color:var(--amber);margin-bottom:.4em}
   .reveal h3{font-size:.85em;color:var(--green);margin-bottom:.3em}.reveal p{font-size:.62em;line-height:1.65}
   .reveal li{font-size:.60em;line-height:1.65;margin-bottom:.2em}
-  .reveal code{font-family:'JetBrains Mono',monospace;font-size:.60em}
+  .reveal code{font-family:'Source Code Pro',monospace;font-size:.60em}
   .reveal pre{box-shadow:none;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6em .9em;margin:.5em 0}
   .reveal pre code{font-size:.44em;line-height:1.5;background:transparent;color:#d7dbd4}
   .slide-hdr{display:flex;align-items:center;gap:.6em;border-bottom:1px solid var(--border);padding-bottom:.35em;margin-bottom:.6em}
-  .slide-hdr .tag{font-family:'JetBrains Mono',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
+  .slide-hdr .tag{font-family:'Source Code Pro',monospace;font-size:.44em;font-weight:500;color:var(--bg);background:var(--amber);padding:.15em .5em;border-radius:3px}
   .slide-hdr h2{margin:0;font-size:1.0em}
   .cols{display:grid;gap:1.2em}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:1fr 1fr 1fr}
   .cols-6040{grid-template-columns:6fr 4fr}.cols-4060{grid-template-columns:4fr 6fr}
@@ -35,15 +35,15 @@
   .reveal table td{padding:.4em .7em;border:1px solid var(--border);color:#cbd4cf}
   .reveal table tr:nth-child(even) td{background:#12252d}
   .a{color:var(--amber);font-weight:600}.g{color:var(--green);font-weight:600}.p{color:var(--purple);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
-  .mono{font-family:'JetBrains Mono',monospace}
+  .mono{font-family:'Source Code Pro',monospace}
   svg.diagram{display:block;margin:0 auto;overflow:visible}
-  .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
+  .pill{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.48em;padding:.1em .5em;border-radius:99px;border:1px solid;margin:0 .1em}
   .pill.amber{color:var(--amber);border-color:var(--amber)}.pill.green{color:var(--green);border-color:var(--green)}
   .pill.purple{color:var(--purple);border-color:var(--purple)}.pill.blue{color:var(--blue);border-color:var(--blue)}
-  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'JetBrains Mono',monospace;font-size:.36em;color:var(--muted)}
+  .reveal .slide-footer{position:absolute;bottom:.6em;right:1.2em;font-family:'Source Code Pro',monospace;font-size:.36em;color:var(--muted)}
   .title-slide h1{font-size:2.0em}
-  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'DM Sans',sans-serif;font-weight:300;margin:.5em 0 1.2em}
-  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .title-slide .subtitle{font-size:.44em;color:var(--green);font-family:'Manrope',sans-serif;font-weight:300;margin:.5em 0 1.2em}
+  .title-slide .meta{font-size:.52em;color:var(--muted);font-family:'Source Code Pro',monospace}
   .reveal ul,.reveal ol{margin:.25em 0 .25em 1.2em}
 
   .reveal .slides{overflow:visible !important}
@@ -95,42 +95,42 @@
   <div class="slide-hdr"><span class="tag">ARCHITECTURE</span><h2>Dataflow vs. Von Neumann Paradigm</h2></div>
   <svg class="diagram" viewBox="0 0 900 280" width="860" height="270">
     <!-- Von Neumann side -->
-    <text x="200" y="25" fill="#e4c17d" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">GPU (Von Neumann)</text>
+    <text x="200" y="25" fill="#e4c17d" font-family="Sora,serif" font-size="16" font-weight="700" text-anchor="middle">GPU (Von Neumann)</text>
     <rect x="50" y="40" width="300" height="50" rx="6" fill="#172d36" stroke="#ee876a" stroke-width="1.5"/>
-    <text x="200" y="70" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="13" text-anchor="middle">Global Memory (HBM)</text>
+    <text x="200" y="70" fill="#ee876a" font-family="Manrope,sans-serif" font-size="13" text-anchor="middle">Global Memory (HBM)</text>
     <line x1="200" y1="90" x2="200" y2="120" stroke="#829ca1" stroke-width="1.5" stroke-dasharray="4"/>
-    <text x="220" y="110" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10">fetch</text>
+    <text x="220" y="110" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="10">fetch</text>
     <rect x="100" y="120" width="80" height="40" rx="6" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="140" y="145" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">SM 0</text>
+    <text x="140" y="145" fill="#8fbadc" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">SM 0</text>
     <rect x="210" y="120" width="80" height="40" rx="6" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="250" y="145" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">SM 1</text>
+    <text x="250" y="145" fill="#8fbadc" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">SM 1</text>
     <line x1="140" y1="160" x2="140" y2="190" stroke="#829ca1" stroke-width="1.5" stroke-dasharray="4"/>
     <line x1="250" y1="160" x2="250" y2="190" stroke="#829ca1" stroke-width="1.5" stroke-dasharray="4"/>
-    <text x="270" y="180" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10">write back</text>
+    <text x="270" y="180" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="10">write back</text>
     <rect x="50" y="190" width="300" height="50" rx="6" fill="#172d36" stroke="#ee876a" stroke-width="1.5"/>
-    <text x="200" y="220" fill="#ee876a" font-family="DM Sans,sans-serif" font-size="13" text-anchor="middle">Global Memory (HBM)</text>
+    <text x="200" y="220" fill="#ee876a" font-family="Manrope,sans-serif" font-size="13" text-anchor="middle">Global Memory (HBM)</text>
     <!-- Arrow separator -->
-    <text x="450" y="140" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="28" text-anchor="middle">vs.</text>
+    <text x="450" y="140" fill="#829ca1" font-family="Manrope,sans-serif" font-size="28" text-anchor="middle">vs.</text>
     <!-- Dataflow side -->
-    <text x="700" y="25" fill="#e4c17d" font-family="Playfair Display,serif" font-size="16" font-weight="700" text-anchor="middle">RDU (Dataflow)</text>
+    <text x="700" y="25" fill="#e4c17d" font-family="Sora,serif" font-size="16" font-weight="700" text-anchor="middle">RDU (Dataflow)</text>
     <rect x="540" y="100" width="70" height="40" rx="6" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="575" y="125" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">PCU 0</text>
+    <text x="575" y="125" fill="#94cdb4" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">PCU 0</text>
     <line x1="610" y1="120" x2="645" y2="120" stroke="#94cdb4" stroke-width="2" marker-end="url(#arrowG)"/>
     <rect x="645" y="100" width="70" height="40" rx="6" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="680" y="125" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">PCU 1</text>
+    <text x="680" y="125" fill="#94cdb4" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">PCU 1</text>
     <line x1="715" y1="120" x2="750" y2="120" stroke="#94cdb4" stroke-width="2" marker-end="url(#arrowG)"/>
     <rect x="750" y="100" width="70" height="40" rx="6" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="785" y="125" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">PCU 2</text>
+    <text x="785" y="125" fill="#94cdb4" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">PCU 2</text>
     <rect x="555" y="170" width="55" height="30" rx="4" fill="#172d36" stroke="#b7a5d9" stroke-width="1"/>
-    <text x="582" y="189" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="9" text-anchor="middle">PMU</text>
+    <text x="582" y="189" fill="#b7a5d9" font-family="Manrope,sans-serif" font-size="9" text-anchor="middle">PMU</text>
     <rect x="660" y="170" width="55" height="30" rx="4" fill="#172d36" stroke="#b7a5d9" stroke-width="1"/>
-    <text x="687" y="189" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="9" text-anchor="middle">PMU</text>
+    <text x="687" y="189" fill="#b7a5d9" font-family="Manrope,sans-serif" font-size="9" text-anchor="middle">PMU</text>
     <rect x="765" y="170" width="55" height="30" rx="4" fill="#172d36" stroke="#b7a5d9" stroke-width="1"/>
-    <text x="792" y="189" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="9" text-anchor="middle">PMU</text>
+    <text x="792" y="189" fill="#b7a5d9" font-family="Manrope,sans-serif" font-size="9" text-anchor="middle">PMU</text>
     <line x1="582" y1="140" x2="582" y2="170" stroke="#b7a5d9" stroke-width="1" stroke-dasharray="3"/>
     <line x1="687" y1="140" x2="687" y2="170" stroke="#b7a5d9" stroke-width="1" stroke-dasharray="3"/>
     <line x1="792" y1="140" x2="792" y2="170" stroke="#b7a5d9" stroke-width="1" stroke-dasharray="3"/>
-    <text x="700" y="230" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle">data flows through compute &rarr;</text>
+    <text x="700" y="230" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="11" text-anchor="middle">data flows through compute &rarr;</text>
     <defs><marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#94cdb4"/></marker></defs>
   </svg>
   <p style="text-align:center;font-size:.44em;color:var(--muted);">Left: data fetched to/from global memory. Right: data streams through spatially arranged compute units with local SRAM.</p>
@@ -164,27 +164,27 @@
   <svg class="diagram" viewBox="0 0 800 240" width="780" height="230">
     <!-- Tier 1: On-chip SRAM -->
     <rect x="30" y="10" width="220" height="80" rx="8" fill="#172d36" stroke="#94cdb4" stroke-width="2"/>
-    <text x="140" y="38" fill="#94cdb4" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 1: On-Chip SRAM</text>
-    <text x="140" y="58" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Highest BW, lowest latency</text>
-    <text x="140" y="76" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Active weights + KV cache</text>
+    <text x="140" y="38" fill="#94cdb4" font-family="Sora,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 1: On-Chip SRAM</text>
+    <text x="140" y="58" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">Highest BW, lowest latency</text>
+    <text x="140" y="76" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">Active weights + KV cache</text>
     <!-- Arrow 1->2 -->
     <line x1="250" y1="50" x2="290" y2="50" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrowM)"/>
     <!-- Tier 2: HBM -->
     <rect x="290" y="10" width="220" height="80" rx="8" fill="#172d36" stroke="#e4c17d" stroke-width="2"/>
-    <text x="400" y="38" fill="#e4c17d" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 2: On-Package HBM</text>
-    <text x="400" y="58" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Tens of GB capacity</text>
-    <text x="400" y="76" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Model partitions</text>
+    <text x="400" y="38" fill="#e4c17d" font-family="Sora,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 2: On-Package HBM</text>
+    <text x="400" y="58" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">Tens of GB capacity</text>
+    <text x="400" y="76" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">Model partitions</text>
     <!-- Arrow 2->3 -->
     <line x1="510" y1="50" x2="550" y2="50" stroke="#829ca1" stroke-width="1.5" marker-end="url(#arrowM)"/>
     <!-- Tier 3: DDR -->
     <rect x="550" y="10" width="220" height="80" rx="8" fill="#172d36" stroke="#b7a5d9" stroke-width="2"/>
-    <text x="660" y="38" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 3: Off-Chip DDR</text>
-    <text x="660" y="58" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Hundreds of GB capacity</text>
-    <text x="660" y="76" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">Full model storage</text>
+    <text x="660" y="38" fill="#b7a5d9" font-family="Sora,serif" font-size="14" font-weight="700" text-anchor="middle">Tier 3: Off-Chip DDR</text>
+    <text x="660" y="58" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">Hundreds of GB capacity</text>
+    <text x="660" y="76" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">Full model storage</text>
     <!-- Bottom note -->
     <rect x="130" y="120" width="540" height="55" rx="8" fill="#13272f" stroke="#294752" stroke-width="1"/>
-    <text x="400" y="145" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">SambaFlow compiler orchestrates data placement &amp; prefetching</text>
-    <text x="400" y="163" fill="#829ca1" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Automatic tiering keeps the dataflow pipeline fed without stalls</text>
+    <text x="400" y="145" fill="#e4c17d" font-family="Manrope,sans-serif" font-size="12" font-weight="600" text-anchor="middle">SambaFlow compiler orchestrates data placement &amp; prefetching</text>
+    <text x="400" y="163" fill="#829ca1" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">Automatic tiering keeps the dataflow pipeline fed without stalls</text>
     <defs><marker id="arrowM" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#829ca1"/></marker></defs>
   </svg>
   <p>DDR capacity allows <span class="p">very large models on fewer chips</span> than HBM-only designs. The compiler prefetches next-layer weights from DDR into SRAM while the current layer executes, hiding memory latency behind computation.</p>
@@ -220,31 +220,31 @@
   <svg class="diagram" viewBox="0 0 800 200" width="780" height="190">
     <!-- Attention config -->
     <rect x="20" y="30" width="230" height="130" rx="8" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
-    <text x="135" y="55" fill="#8fbadc" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">Attention Layer Config</text>
-    <text x="135" y="80" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Memory-bound topology</text>
-    <text x="135" y="100" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Wide data paths to PMUs</text>
-    <text x="135" y="120" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">KV cache streaming optimized</text>
-    <text x="135" y="145" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">config_attn.rdu</text>
+    <text x="135" y="55" fill="#8fbadc" font-family="Sora,serif" font-size="13" font-weight="700" text-anchor="middle">Attention Layer Config</text>
+    <text x="135" y="80" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Memory-bound topology</text>
+    <text x="135" y="100" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Wide data paths to PMUs</text>
+    <text x="135" y="120" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">KV cache streaming optimized</text>
+    <text x="135" y="145" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">config_attn.rdu</text>
     <!-- Arrow -->
-    <text x="310" y="95" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="24" text-anchor="middle">&rarr;</text>
-    <text x="310" y="115" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">reconfig</text>
+    <text x="310" y="95" fill="#e4c17d" font-family="Manrope,sans-serif" font-size="24" text-anchor="middle">&rarr;</text>
+    <text x="310" y="115" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">reconfig</text>
     <!-- FFN config -->
     <rect x="360" y="30" width="230" height="130" rx="8" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-    <text x="475" y="55" fill="#94cdb4" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">FFN Layer Config</text>
-    <text x="475" y="80" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Compute-bound topology</text>
-    <text x="475" y="100" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Deep PCU pipelines</text>
-    <text x="475" y="120" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">MatMul throughput maximized</text>
-    <text x="475" y="145" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">config_ffn.rdu</text>
+    <text x="475" y="55" fill="#94cdb4" font-family="Sora,serif" font-size="13" font-weight="700" text-anchor="middle">FFN Layer Config</text>
+    <text x="475" y="80" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Compute-bound topology</text>
+    <text x="475" y="100" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Deep PCU pipelines</text>
+    <text x="475" y="120" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">MatMul throughput maximized</text>
+    <text x="475" y="145" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">config_ffn.rdu</text>
     <!-- Arrow -->
-    <text x="650" y="95" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="24" text-anchor="middle">&rarr;</text>
-    <text x="650" y="115" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">reconfig</text>
+    <text x="650" y="95" fill="#e4c17d" font-family="Manrope,sans-serif" font-size="24" text-anchor="middle">&rarr;</text>
+    <text x="650" y="115" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">reconfig</text>
     <!-- MoE config -->
     <rect x="700" y="30" width="230" height="130" rx="8" fill="#172d36" stroke="#b7a5d9" stroke-width="1.5"/>
-    <text x="815" y="55" fill="#b7a5d9" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">MoE Expert Config</text>
-    <text x="815" y="80" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Sparse activation paths</text>
-    <text x="815" y="100" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Dynamic expert routing</text>
-    <text x="815" y="120" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Inactive experts in DDR tier</text>
-    <text x="815" y="145" fill="#b7a5d9" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">config_moe.rdu</text>
+    <text x="815" y="55" fill="#b7a5d9" font-family="Sora,serif" font-size="13" font-weight="700" text-anchor="middle">MoE Expert Config</text>
+    <text x="815" y="80" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Sparse activation paths</text>
+    <text x="815" y="100" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Dynamic expert routing</text>
+    <text x="815" y="120" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Inactive experts in DDR tier</text>
+    <text x="815" y="145" fill="#b7a5d9" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">config_moe.rdu</text>
   </svg>
   <p style="text-align:center;">The <span class="a">same physical silicon</span> adopts different topologies for each layer type, optimizing both compute-bound and memory-bound phases of the transformer forward pass.</p>
   <div class="slide-footer">sambanova / 07</div>
@@ -273,24 +273,24 @@
     <div>
       <svg class="diagram" viewBox="0 0 280 320" width="270" height="310">
         <rect x="70" y="5" width="140" height="40" rx="6" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="140" y="30" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">Query Router</text>
+        <text x="140" y="30" fill="#e4c17d" font-family="Manrope,sans-serif" font-size="12" font-weight="600" text-anchor="middle">Query Router</text>
         <line x1="100" y1="45" x2="60" y2="80" stroke="#829ca1" stroke-width="1"/>
         <line x1="140" y1="45" x2="140" y2="80" stroke="#829ca1" stroke-width="1"/>
         <line x1="180" y1="45" x2="220" y2="80" stroke="#829ca1" stroke-width="1"/>
         <rect x="15" y="80" width="90" height="35" rx="5" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="60" y="102" fill="#94cdb4" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Code Expert</text>
+        <text x="60" y="102" fill="#94cdb4" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Code Expert</text>
         <rect x="120" y="80" width="90" height="35" rx="5" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="165" y="102" fill="#8fbadc" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Legal Expert</text>
+        <text x="165" y="102" fill="#8fbadc" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Legal Expert</text>
         <rect x="175" y="80" width="90" height="35" rx="5" fill="#172d36" stroke="#b7a5d9" stroke-width="1.5"/>
-        <text x="220" y="102" fill="#b7a5d9" font-family="DM Sans,sans-serif" font-size="10" text-anchor="middle">Medical Expert</text>
-        <text x="140" y="145" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">&darr; ms-latency switch &darr;</text>
+        <text x="220" y="102" fill="#b7a5d9" font-family="Manrope,sans-serif" font-size="10" text-anchor="middle">Medical Expert</text>
+        <text x="140" y="145" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">&darr; ms-latency switch &darr;</text>
         <rect x="30" y="160" width="220" height="50" rx="6" fill="#172d36" stroke="#e4c17d" stroke-width="1.5"/>
-        <text x="140" y="183" fill="#e4c17d" font-family="DM Sans,sans-serif" font-size="12" font-weight="600" text-anchor="middle">Shared RDU Fabric</text>
-        <text x="140" y="200" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">reconfigures per expert</text>
+        <text x="140" y="183" fill="#e4c17d" font-family="Manrope,sans-serif" font-size="12" font-weight="600" text-anchor="middle">Shared RDU Fabric</text>
+        <text x="140" y="200" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">reconfigures per expert</text>
         <rect x="30" y="230" width="220" height="70" rx="6" fill="#172d36" stroke="#294752" stroke-width="1"/>
-        <text x="140" y="255" fill="#b9c9c7" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle">Three-Tier Memory</text>
-        <text x="140" y="275" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">All expert weights resident</text>
-        <text x="140" y="290" fill="#829ca1" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">across SRAM / HBM / DDR</text>
+        <text x="140" y="255" fill="#b9c9c7" font-family="Manrope,sans-serif" font-size="11" text-anchor="middle">Three-Tier Memory</text>
+        <text x="140" y="275" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">All expert weights resident</text>
+        <text x="140" y="290" fill="#829ca1" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">across SRAM / HBM / DDR</text>
       </svg>
     </div>
   </div>
@@ -404,24 +404,24 @@
     </div>
     <div>
       <svg class="diagram" viewBox="0 0 280 300" width="260" height="290">
-        <text x="140" y="20" fill="#e4c17d" font-family="Playfair Display,serif" font-size="13" font-weight="700" text-anchor="middle">DataScale Rack</text>
+        <text x="140" y="20" fill="#e4c17d" font-family="Sora,serif" font-size="13" font-weight="700" text-anchor="middle">DataScale Rack</text>
         <rect x="20" y="30" width="240" height="255" rx="8" fill="none" stroke="#294752" stroke-width="1.5" stroke-dasharray="5"/>
         <rect x="40" y="45" width="90" height="35" rx="4" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="85" y="67" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 0</text>
+        <text x="85" y="67" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">RDU Node 0</text>
         <rect x="150" y="45" width="90" height="35" rx="4" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="195" y="67" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 1</text>
+        <text x="195" y="67" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">RDU Node 1</text>
         <rect x="40" y="95" width="90" height="35" rx="4" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="85" y="117" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 2</text>
+        <text x="85" y="117" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">RDU Node 2</text>
         <rect x="150" y="95" width="90" height="35" rx="4" fill="#172d36" stroke="#94cdb4" stroke-width="1.5"/>
-        <text x="195" y="117" fill="#94cdb4" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 3</text>
+        <text x="195" y="117" fill="#94cdb4" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">RDU Node 3</text>
         <rect x="40" y="145" width="90" height="35" rx="4" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="85" y="167" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 4</text>
+        <text x="85" y="167" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">RDU Node 4</text>
         <rect x="150" y="145" width="90" height="35" rx="4" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="195" y="167" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 5</text>
+        <text x="195" y="167" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">RDU Node 5</text>
         <rect x="40" y="195" width="90" height="35" rx="4" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="85" y="217" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 6</text>
+        <text x="85" y="217" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">RDU Node 6</text>
         <rect x="150" y="195" width="90" height="35" rx="4" fill="#172d36" stroke="#8fbadc" stroke-width="1.5"/>
-        <text x="195" y="217" fill="#8fbadc" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">RDU Node 7</text>
+        <text x="195" y="217" fill="#8fbadc" font-family="Source Code Pro,monospace" font-size="10" text-anchor="middle">RDU Node 7</text>
         <!-- Interconnect lines -->
         <line x1="130" y1="62" x2="150" y2="62" stroke="#e4c17d" stroke-width="1.5"/>
         <line x1="130" y1="112" x2="150" y2="112" stroke="#e4c17d" stroke-width="1.5"/>
@@ -434,7 +434,7 @@
         <line x1="85" y1="180" x2="85" y2="195" stroke="#e4c17d" stroke-width="1.5"/>
         <line x1="195" y1="180" x2="195" y2="195" stroke="#e4c17d" stroke-width="1.5"/>
         <rect x="55" y="245" width="170" height="25" rx="4" fill="#172d36" stroke="#e4c17d" stroke-width="1"/>
-        <text x="140" y="262" fill="#e4c17d" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">High-BW Chip-to-Chip Fabric</text>
+        <text x="140" y="262" fill="#e4c17d" font-family="Source Code Pro,monospace" font-size="9" text-anchor="middle">High-BW Chip-to-Chip Fabric</text>
       </svg>
     </div>
   </div>

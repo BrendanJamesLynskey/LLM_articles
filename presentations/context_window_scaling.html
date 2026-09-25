@@ -6,7 +6,7 @@
 <title>Context Window Scaling | Technical Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
@@ -25,14 +25,14 @@
   }
   .reveal-viewport { background: var(--bg); }
   .reveal .slides section { background: transparent; overflow-y: auto !important; padding-top: .5em; align-items: flex-start !important; justify-content: flex-start !important; }
-  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
-  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal { font-family: 'Manrope', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Sora', serif; font-weight: 700; }
   .reveal h1 { font-size: 1.8em; color: var(--amber); line-height: 1.15; }
   .reveal h2 { font-size: 1.25em; color: var(--amber); margin-bottom: .4em; }
   .reveal h3 { font-size: .85em; color: var(--green); margin-bottom: .3em; }
   .reveal p  { font-size: .62em; line-height: 1.65; color: var(--text); }
   .reveal li { font-size: .60em; line-height: 1.65; margin-bottom: .2em; }
-  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .60em; }
+  .reveal code { font-family: 'Source Code Pro', monospace; font-size: .60em; }
   .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
                  border-radius: 6px; padding: .6em .9em; margin: .5em 0; }
   .reveal pre code { font-size: .44em; line-height: 1.5; background: transparent; color: #d7dbd4; }
@@ -42,7 +42,7 @@
     padding-bottom: .35em; margin-bottom: .6em;
   }
   .slide-hdr .tag {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Source Code Pro', monospace;
     font-size: .44em; font-weight: 500;
     color: var(--bg); background: var(--amber);
     padding: .15em .5em; border-radius: 3px;
@@ -77,10 +77,10 @@
   .p  { color: var(--purple); font-weight: 600; }
   .b  { color: var(--blue); font-weight: 600; }
   .r  { color: var(--red); font-weight: 600; }
-  .mono { font-family: 'JetBrains Mono', monospace; }
+  .mono { font-family: 'Source Code Pro', monospace; }
   svg.diagram { display: block; margin: 0 auto; overflow: visible; }
   .pill {
-    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    display: inline-block; font-family: 'Source Code Pro', monospace;
     font-size: .48em; padding: .1em .5em; border-radius: 99px;
     border: 1px solid; margin: 0 .1em;
   }
@@ -90,15 +90,15 @@
   .pill.blue  { color: var(--blue); border-color: var(--blue); }
   .reveal .slide-footer {
     position: absolute; bottom: .6em; right: 1.2em;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Source Code Pro', monospace;
     font-size: .36em; color: var(--muted); letter-spacing: .05em;
   }
   .title-slide h1 { font-size: 2.0em; }
   .title-slide .subtitle {
-    font-size: .44em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-size: .44em; color: var(--green); font-family: 'Manrope', sans-serif;
     font-weight: 300; letter-spacing: .04em; margin: .5em 0 1.2em;
   }
-  .title-slide .meta { font-size: .52em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .title-slide .meta { font-size: .52em; color: var(--muted); font-family: 'Source Code Pro', monospace; }
   .reveal ul, .reveal ol { margin: .25em 0 .25em 1.2em; }
 
   .reveal .slides{overflow:visible !important}
@@ -188,10 +188,10 @@
         <!-- Linear line -->
         <line x1="60" y1="190" x2="280" y2="120" stroke="#94cdb4" stroke-width="2.5"/>
         <!-- Labels -->
-        <text x="275" y="15" fill="#ee876a" font-size="11" font-family="JetBrains Mono">O(n&sup2;)</text>
-        <text x="275" y="115" fill="#94cdb4" font-size="11" font-family="JetBrains Mono">O(n)</text>
-        <text x="150" y="220" fill="#829ca1" font-size="10" font-family="JetBrains Mono">Context Length</text>
-        <text x="12" y="110" fill="#829ca1" font-size="10" font-family="JetBrains Mono" transform="rotate(-90,12,110)">Cost</text>
+        <text x="275" y="15" fill="#ee876a" font-size="11" font-family="Source Code Pro">O(n&sup2;)</text>
+        <text x="275" y="115" fill="#94cdb4" font-size="11" font-family="Source Code Pro">O(n)</text>
+        <text x="150" y="220" fill="#829ca1" font-size="10" font-family="Source Code Pro">Context Length</text>
+        <text x="12" y="110" fill="#829ca1" font-size="10" font-family="Source Code Pro" transform="rotate(-90,12,110)">Cost</text>
       </svg>
     </div>
   </div>
@@ -226,20 +226,20 @@
   <svg class="diagram" viewBox="0 0 700 100" width="700" height="100" style="margin-top:.8em;">
     <!-- Rotation visualization -->
     <rect x="10" y="20" width="120" height="55" rx="6" fill="#13272f" stroke="#294752"/>
-    <text x="70" y="42" fill="#eae5db" font-size="11" text-anchor="middle" font-family="DM Sans">Query Vector</text>
-    <text x="70" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">q</text>
-    <text x="165" y="52" fill="#e4c17d" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
+    <text x="70" y="42" fill="#eae5db" font-size="11" text-anchor="middle" font-family="Manrope">Query Vector</text>
+    <text x="70" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="Source Code Pro">q</text>
+    <text x="165" y="52" fill="#e4c17d" font-size="18" text-anchor="middle" font-family="Manrope">&rarr;</text>
     <rect x="200" y="20" width="140" height="55" rx="6" fill="#13272f" stroke="#e4c17d"/>
-    <text x="270" y="42" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">Rotate by &theta;&middot;pos</text>
-    <text x="270" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">R(&theta;,m) &middot; q</text>
-    <text x="375" y="52" fill="#e4c17d" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
+    <text x="270" y="42" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="Manrope">Rotate by &theta;&middot;pos</text>
+    <text x="270" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="Source Code Pro">R(&theta;,m) &middot; q</text>
+    <text x="375" y="52" fill="#e4c17d" font-size="18" text-anchor="middle" font-family="Manrope">&rarr;</text>
     <rect x="410" y="20" width="120" height="55" rx="6" fill="#13272f" stroke="#94cdb4"/>
-    <text x="470" y="42" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">Dot Product</text>
-    <text x="470" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">f(m - n)</text>
-    <text x="565" y="52" fill="#94cdb4" font-size="18" text-anchor="middle" font-family="DM Sans">&rarr;</text>
+    <text x="470" y="42" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="Manrope">Dot Product</text>
+    <text x="470" y="60" fill="#829ca1" font-size="10" text-anchor="middle" font-family="Source Code Pro">f(m - n)</text>
+    <text x="565" y="52" fill="#94cdb4" font-size="18" text-anchor="middle" font-family="Manrope">&rarr;</text>
     <rect x="600" y="20" width="90" height="55" rx="6" fill="#13272f" stroke="#b7a5d9"/>
-    <text x="645" y="42" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="DM Sans">Relative</text>
-    <text x="645" y="60" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="DM Sans">Position</text>
+    <text x="645" y="42" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="Manrope">Relative</text>
+    <text x="645" y="60" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="Manrope">Position</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -296,20 +296,20 @@
     </div>
   </div>
   <svg class="diagram" viewBox="0 0 600 90" width="600" height="90" style="margin-top:.8em;">
-    <text x="20" y="50" fill="#829ca1" font-size="11" font-family="JetBrains Mono">Attention Bias:</text>
+    <text x="20" y="50" fill="#829ca1" font-size="11" font-family="Source Code Pro">Attention Bias:</text>
     <rect x="165" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#b7a5d9"/>
-    <text x="190" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="JetBrains Mono">0</text>
+    <text x="190" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="Source Code Pro">0</text>
     <rect x="225" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#b7a5d9"/>
-    <text x="250" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-1</text>
+    <text x="250" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="Source Code Pro">-1</text>
     <rect x="285" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#b7a5d9"/>
-    <text x="310" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-2</text>
+    <text x="310" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="Source Code Pro">-2</text>
     <rect x="345" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#b7a5d9"/>
-    <text x="370" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-3</text>
+    <text x="370" y="50" fill="#b7a5d9" font-size="12" text-anchor="middle" font-family="Source Code Pro">-3</text>
     <rect x="405" y="25" width="50" height="40" rx="4" fill="#13272f" stroke="#ee876a"/>
-    <text x="430" y="50" fill="#ee876a" font-size="12" text-anchor="middle" font-family="JetBrains Mono">-n</text>
-    <text x="470" y="50" fill="#829ca1" font-size="11" font-family="JetBrains Mono">&times; slope m</text>
-    <text x="165" y="82" fill="#829ca1" font-size="9" font-family="JetBrains Mono">nearby tokens</text>
-    <text x="390" y="82" fill="#829ca1" font-size="9" font-family="JetBrains Mono">distant tokens</text>
+    <text x="430" y="50" fill="#ee876a" font-size="12" text-anchor="middle" font-family="Source Code Pro">-n</text>
+    <text x="470" y="50" fill="#829ca1" font-size="11" font-family="Source Code Pro">&times; slope m</text>
+    <text x="165" y="82" fill="#829ca1" font-size="9" font-family="Source Code Pro">nearby tokens</text>
+    <text x="390" y="82" fill="#829ca1" font-size="9" font-family="Source Code Pro">distant tokens</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -334,15 +334,15 @@
       <svg class="diagram" viewBox="0 0 280 220" width="280" height="220">
         <!-- GPU diagram -->
         <rect x="20" y="10" width="240" height="200" rx="8" fill="none" stroke="#294752" stroke-width="1.5"/>
-        <text x="140" y="30" fill="#829ca1" font-size="10" text-anchor="middle" font-family="JetBrains Mono">GPU</text>
+        <text x="140" y="30" fill="#829ca1" font-size="10" text-anchor="middle" font-family="Source Code Pro">GPU</text>
         <!-- SRAM -->
         <rect x="40" y="45" width="200" height="55" rx="6" fill="#13272f" stroke="#94cdb4"/>
-        <text x="140" y="68" fill="#94cdb4" font-size="12" text-anchor="middle" font-family="JetBrains Mono">SRAM (on-chip)</text>
-        <text x="140" y="85" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Tiled attention computed here</text>
+        <text x="140" y="68" fill="#94cdb4" font-size="12" text-anchor="middle" font-family="Source Code Pro">SRAM (on-chip)</text>
+        <text x="140" y="85" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Source Code Pro">Tiled attention computed here</text>
         <!-- HBM -->
         <rect x="40" y="120" width="200" height="55" rx="6" fill="#13272f" stroke="#ee876a"/>
-        <text x="140" y="143" fill="#ee876a" font-size="12" text-anchor="middle" font-family="JetBrains Mono">HBM (main memory)</text>
-        <text x="140" y="160" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">No full N&times;N matrix stored</text>
+        <text x="140" y="143" fill="#ee876a" font-size="12" text-anchor="middle" font-family="Source Code Pro">HBM (main memory)</text>
+        <text x="140" y="160" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Source Code Pro">No full N&times;N matrix stored</text>
         <!-- Arrow -->
         <line x1="140" y1="100" x2="140" y2="118" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
         <defs><marker id="arrowAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#e4c17d"/></marker></defs>
@@ -380,25 +380,25 @@
   </div>
   <svg class="diagram" viewBox="0 0 700 120" width="700" height="120" style="margin-top:.6em;">
     <!-- Full attention -->
-    <text x="80" y="15" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Full Attention</text>
+    <text x="80" y="15" fill="#ee876a" font-size="10" text-anchor="middle" font-family="Source Code Pro">Full Attention</text>
     <rect x="20" y="22" width="120" height="80" rx="4" fill="#ee876a" fill-opacity="0.15" stroke="#ee876a"/>
-    <text x="80" y="68" fill="#ee876a" font-size="22" text-anchor="middle" font-family="JetBrains Mono">N&times;N</text>
+    <text x="80" y="68" fill="#ee876a" font-size="22" text-anchor="middle" font-family="Source Code Pro">N&times;N</text>
     <!-- Arrow -->
     <text x="180" y="68" fill="#e4c17d" font-size="22" text-anchor="middle">&rarr;</text>
     <!-- Sliding window -->
-    <text x="300" y="15" fill="#8fbadc" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Sliding Window</text>
+    <text x="300" y="15" fill="#8fbadc" font-size="10" text-anchor="middle" font-family="Source Code Pro">Sliding Window</text>
     <rect x="220" y="22" width="160" height="80" rx="4" fill="none" stroke="#294752"/>
     <line x1="220" y1="22" x2="380" y2="102" stroke="#8fbadc" stroke-width="20" stroke-opacity="0.3"/>
-    <text x="300" y="68" fill="#8fbadc" font-size="12" text-anchor="middle" font-family="JetBrains Mono">N&times;w band</text>
+    <text x="300" y="68" fill="#8fbadc" font-size="12" text-anchor="middle" font-family="Source Code Pro">N&times;w band</text>
     <!-- Arrow -->
     <text x="420" y="68" fill="#e4c17d" font-size="22" text-anchor="middle">&rarr;</text>
     <!-- Sparse -->
-    <text x="560" y="15" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Sparse + Global</text>
+    <text x="560" y="15" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="Source Code Pro">Sparse + Global</text>
     <rect x="470" y="22" width="160" height="80" rx="4" fill="none" stroke="#294752"/>
     <line x1="470" y1="22" x2="630" y2="102" stroke="#b7a5d9" stroke-width="14" stroke-opacity="0.3"/>
     <line x1="470" y1="22" x2="470" y2="102" stroke="#94cdb4" stroke-width="6" stroke-opacity="0.4"/>
     <line x1="470" y1="22" x2="630" y2="22" stroke="#94cdb4" stroke-width="6" stroke-opacity="0.4"/>
-    <text x="560" y="68" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="JetBrains Mono">local + global</text>
+    <text x="560" y="68" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="Source Code Pro">local + global</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -415,16 +415,16 @@
     <circle cx="350" cy="120" r="90" fill="none" stroke="#294752" stroke-width="1" stroke-dasharray="4,4"/>
     <!-- Device 0 -->
     <rect x="310" y="10" width="80" height="40" rx="6" fill="#13272f" stroke="#e4c17d"/>
-    <text x="350" y="35" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 0</text>
+    <text x="350" y="35" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="Source Code Pro">GPU 0</text>
     <!-- Device 1 -->
     <rect x="430" y="80" width="80" height="40" rx="6" fill="#13272f" stroke="#94cdb4"/>
-    <text x="470" y="105" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 1</text>
+    <text x="470" y="105" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="Source Code Pro">GPU 1</text>
     <!-- Device 2 -->
     <rect x="310" y="180" width="80" height="40" rx="6" fill="#13272f" stroke="#b7a5d9"/>
-    <text x="350" y="205" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 2</text>
+    <text x="350" y="205" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="Source Code Pro">GPU 2</text>
     <!-- Device 3 -->
     <rect x="190" y="80" width="80" height="40" rx="6" fill="#13272f" stroke="#8fbadc"/>
-    <text x="230" y="105" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="JetBrains Mono">GPU 3</text>
+    <text x="230" y="105" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="Source Code Pro">GPU 3</text>
     <!-- Arrows -->
     <path d="M390,35 Q440,40 435,80" fill="none" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
     <path d="M470,120 Q475,170 390,195" fill="none" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrG)"/>
@@ -436,10 +436,10 @@
       <marker id="arrB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#8fbadc"/></marker>
     </defs>
     <!-- Labels -->
-    <text x="555" y="55" fill="#829ca1" font-size="10" font-family="DM Sans">Each device holds a KV segment</text>
-    <text x="555" y="72" fill="#829ca1" font-size="10" font-family="DM Sans">KV blocks passed around ring</text>
-    <text x="555" y="89" fill="#829ca1" font-size="10" font-family="DM Sans">Computation overlaps communication</text>
-    <text x="555" y="106" fill="#94cdb4" font-size="10" font-family="JetBrains Mono">Essential for 100K+ tokens</text>
+    <text x="555" y="55" fill="#829ca1" font-size="10" font-family="Manrope">Each device holds a KV segment</text>
+    <text x="555" y="72" fill="#829ca1" font-size="10" font-family="Manrope">KV blocks passed around ring</text>
+    <text x="555" y="89" fill="#829ca1" font-size="10" font-family="Manrope">Computation overlaps communication</text>
+    <text x="555" y="106" fill="#94cdb4" font-size="10" font-family="Source Code Pro">Essential for 100K+ tokens</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -458,19 +458,19 @@
     <div>
       <svg class="diagram" viewBox="0 0 400 180" width="400" height="180">
         <rect x="10" y="10" width="110" height="50" rx="6" fill="#13272f" stroke="#e4c17d"/>
-        <text x="65" y="40" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">Query</text>
+        <text x="65" y="40" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="Manrope">Query</text>
         <path d="M120,35 L160,35" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
         <rect x="165" y="10" width="110" height="50" rx="6" fill="#13272f" stroke="#b7a5d9"/>
-        <text x="220" y="32" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="DM Sans">Vector</text>
-        <text x="220" y="48" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="DM Sans">Database</text>
+        <text x="220" y="32" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="Manrope">Vector</text>
+        <text x="220" y="48" fill="#b7a5d9" font-size="11" text-anchor="middle" font-family="Manrope">Database</text>
         <path d="M275,35 L310,35" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#arrP)"/>
         <rect x="315" y="10" width="80" height="50" rx="6" fill="#13272f" stroke="#94cdb4"/>
-        <text x="355" y="32" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">Top-K</text>
-        <text x="355" y="48" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">Results</text>
+        <text x="355" y="32" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="Manrope">Top-K</text>
+        <text x="355" y="48" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="Manrope">Results</text>
         <path d="M355,60 L355,90" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrG)"/>
         <rect x="130" y="95" width="260" height="50" rx="6" fill="#13272f" stroke="#8fbadc"/>
-        <text x="260" y="118" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="DM Sans">LLM Context = Query + Retrieved Passages</text>
-        <text x="260" y="135" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">O(n) + retrieval cost &mdash; arbitrary external memory</text>
+        <text x="260" y="118" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="Manrope">LLM Context = Query + Retrieved Passages</text>
+        <text x="260" y="135" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Source Code Pro">O(n) + retrieval cost &mdash; arbitrary external memory</text>
       </svg>
     </div>
   </div>
@@ -536,13 +536,13 @@
         <rect x="20" y="30" width="60" height="35" rx="4" fill="#94cdb4" fill-opacity="0.3"/>
         <rect x="100" y="30" width="80" height="35" rx="4" fill="#ee876a" fill-opacity="0.3"/>
         <rect x="200" y="30" width="60" height="35" rx="4" fill="#94cdb4" fill-opacity="0.3"/>
-        <text x="50" y="52" fill="#94cdb4" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Begin</text>
-        <text x="140" y="52" fill="#ee876a" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Middle</text>
-        <text x="230" y="52" fill="#94cdb4" font-size="9" text-anchor="middle" font-family="JetBrains Mono">End</text>
+        <text x="50" y="52" fill="#94cdb4" font-size="9" text-anchor="middle" font-family="Source Code Pro">Begin</text>
+        <text x="140" y="52" fill="#ee876a" font-size="9" text-anchor="middle" font-family="Source Code Pro">Middle</text>
+        <text x="230" y="52" fill="#94cdb4" font-size="9" text-anchor="middle" font-family="Source Code Pro">End</text>
         <!-- Accuracy curve -->
-        <text x="140" y="85" fill="#829ca1" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Retrieval Accuracy</text>
+        <text x="140" y="85" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Source Code Pro">Retrieval Accuracy</text>
         <polyline points="30,100 60,105 90,115 120,135 140,140 160,135 190,120 220,105 250,100" fill="none" stroke="#e4c17d" stroke-width="2"/>
-        <text x="140" y="165" fill="#ee876a" font-size="9" text-anchor="middle" font-family="JetBrains Mono">&uarr; "Lost in the Middle"</text>
+        <text x="140" y="165" fill="#ee876a" font-size="9" text-anchor="middle" font-family="Source Code Pro">&uarr; "Lost in the Middle"</text>
       </svg>
     </div>
   </div>
@@ -660,42 +660,42 @@
   <svg class="diagram" viewBox="0 0 800 310" width="800" height="310">
     <!-- Start -->
     <rect x="310" y="5" width="180" height="40" rx="20" fill="#13272f" stroke="#e4c17d" stroke-width="1.5"/>
-    <text x="400" y="30" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">Need long context?</text>
+    <text x="400" y="30" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="Manrope">Need long context?</text>
     <!-- Branch left: fits in memory -->
     <line x1="350" y1="45" x2="180" y2="85" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrG)"/>
-    <text x="240" y="60" fill="#94cdb4" font-size="9" font-family="JetBrains Mono">fits in GPU mem</text>
+    <text x="240" y="60" fill="#94cdb4" font-size="9" font-family="Source Code Pro">fits in GPU mem</text>
     <rect x="80" y="85" width="200" height="40" rx="6" fill="#13272f" stroke="#94cdb4"/>
-    <text x="180" y="110" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="DM Sans">FlashAttention + RoPE/YaRN</text>
+    <text x="180" y="110" fill="#94cdb4" font-size="11" text-anchor="middle" font-family="Manrope">FlashAttention + RoPE/YaRN</text>
     <!-- Branch right: exceeds memory -->
     <line x1="450" y1="45" x2="620" y2="85" stroke="#ee876a" stroke-width="1.5" marker-end="url(#arrR)"/>
-    <text x="555" y="60" fill="#ee876a" font-size="9" font-family="JetBrains Mono">exceeds GPU mem</text>
+    <text x="555" y="60" fill="#ee876a" font-size="9" font-family="Source Code Pro">exceeds GPU mem</text>
     <defs><marker id="arrR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#ee876a"/></marker></defs>
     <rect x="530" y="85" width="180" height="40" rx="6" fill="#13272f" stroke="#ee876a"/>
-    <text x="620" y="105" fill="#eae5db" font-size="11" text-anchor="middle" font-family="DM Sans">Multi-device?</text>
+    <text x="620" y="105" fill="#eae5db" font-size="11" text-anchor="middle" font-family="Manrope">Multi-device?</text>
     <!-- Multi-device yes -->
     <line x1="570" y1="125" x2="470" y2="165" stroke="#8fbadc" stroke-width="1.5" marker-end="url(#arrB)"/>
-    <text x="500" y="142" fill="#8fbadc" font-size="9" font-family="JetBrains Mono">yes</text>
+    <text x="500" y="142" fill="#8fbadc" font-size="9" font-family="Source Code Pro">yes</text>
     <rect x="370" y="165" width="200" height="40" rx="6" fill="#13272f" stroke="#8fbadc"/>
-    <text x="470" y="190" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="DM Sans">Ring Attention</text>
+    <text x="470" y="190" fill="#8fbadc" font-size="11" text-anchor="middle" font-family="Manrope">Ring Attention</text>
     <!-- Multi-device no -->
     <line x1="670" y1="125" x2="700" y2="165" stroke="#b7a5d9" stroke-width="1.5" marker-end="url(#arrP)"/>
-    <text x="700" y="142" fill="#b7a5d9" font-size="9" font-family="JetBrains Mono">no</text>
+    <text x="700" y="142" fill="#b7a5d9" font-size="9" font-family="Source Code Pro">no</text>
     <rect x="620" y="165" width="180" height="40" rx="6" fill="#13272f" stroke="#b7a5d9"/>
-    <text x="710" y="185" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="DM Sans">Precision needed?</text>
+    <text x="710" y="185" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="Manrope">Precision needed?</text>
     <!-- Precision yes/no -->
     <line x1="660" y1="205" x2="580" y2="245" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
-    <text x="600" y="222" fill="#e4c17d" font-size="9" font-family="JetBrains Mono">yes</text>
+    <text x="600" y="222" fill="#e4c17d" font-size="9" font-family="Source Code Pro">yes</text>
     <rect x="460" y="245" width="240" height="40" rx="6" fill="#13272f" stroke="#e4c17d"/>
-    <text x="580" y="270" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="DM Sans">Sparse Attention / SSM Hybrid</text>
+    <text x="580" y="270" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="Manrope">Sparse Attention / SSM Hybrid</text>
     <line x1="760" y1="205" x2="780" y2="245" stroke="#94cdb4" stroke-width="1.5" marker-end="url(#arrG)"/>
-    <text x="785" y="222" fill="#94cdb4" font-size="9" font-family="JetBrains Mono">no</text>
+    <text x="785" y="222" fill="#94cdb4" font-size="9" font-family="Source Code Pro">no</text>
     <rect x="720" y="245" width="70" height="40" rx="6" fill="#13272f" stroke="#94cdb4"/>
-    <text x="755" y="270" fill="#94cdb4" font-size="10" text-anchor="middle" font-family="DM Sans">RAG</text>
+    <text x="755" y="270" fill="#94cdb4" font-size="10" text-anchor="middle" font-family="Manrope">RAG</text>
     <!-- Low-latency branch from left -->
     <line x1="180" y1="125" x2="180" y2="165" stroke="#e4c17d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
-    <text x="195" y="150" fill="#829ca1" font-size="9" font-family="JetBrains Mono">need low latency?</text>
+    <text x="195" y="150" fill="#829ca1" font-size="9" font-family="Source Code Pro">need low latency?</text>
     <rect x="80" y="165" width="200" height="40" rx="6" fill="#13272f" stroke="#e4c17d"/>
-    <text x="180" y="190" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="DM Sans">Sliding Window Attention</text>
+    <text x="180" y="190" fill="#e4c17d" font-size="11" text-anchor="middle" font-family="Manrope">Sliding Window Attention</text>
   </svg>
   <div class="slide-footer">Context Window Scaling</div>
 </section>
@@ -711,34 +711,34 @@
     <line x1="40" y1="100" x2="760" y2="100" stroke="#294752" stroke-width="2"/>
     <!-- Nodes -->
     <circle cx="80" cy="100" r="6" fill="#ee876a"/>
-    <text x="80" y="80" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">512</text>
-    <text x="80" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">BERT</text>
-    <text x="80" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2018</text>
+    <text x="80" y="80" fill="#ee876a" font-size="10" text-anchor="middle" font-family="Source Code Pro">512</text>
+    <text x="80" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Manrope">BERT</text>
+    <text x="80" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="Source Code Pro">2018</text>
 
     <circle cx="200" cy="100" r="6" fill="#ee876a"/>
-    <text x="200" y="80" fill="#ee876a" font-size="10" text-anchor="middle" font-family="JetBrains Mono">2K</text>
-    <text x="200" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-2</text>
-    <text x="200" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2019</text>
+    <text x="200" y="80" fill="#ee876a" font-size="10" text-anchor="middle" font-family="Source Code Pro">2K</text>
+    <text x="200" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Manrope">GPT-2</text>
+    <text x="200" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="Source Code Pro">2019</text>
 
     <circle cx="320" cy="100" r="6" fill="#e4c17d"/>
-    <text x="320" y="80" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="JetBrains Mono">4K-8K</text>
-    <text x="320" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-3.5/LLaMA</text>
-    <text x="320" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2022-23</text>
+    <text x="320" y="80" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="Source Code Pro">4K-8K</text>
+    <text x="320" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Manrope">GPT-3.5/LLaMA</text>
+    <text x="320" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="Source Code Pro">2022-23</text>
 
     <circle cx="460" cy="100" r="7" fill="#e4c17d"/>
-    <text x="460" y="80" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="JetBrains Mono">32K-128K</text>
-    <text x="460" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">GPT-4/Claude</text>
-    <text x="460" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2023-24</text>
+    <text x="460" y="80" fill="#e4c17d" font-size="10" text-anchor="middle" font-family="Source Code Pro">32K-128K</text>
+    <text x="460" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Manrope">GPT-4/Claude</text>
+    <text x="460" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="Source Code Pro">2023-24</text>
 
     <circle cx="600" cy="100" r="7" fill="#94cdb4"/>
-    <text x="600" y="80" fill="#94cdb4" font-size="10" text-anchor="middle" font-family="JetBrains Mono">200K+</text>
-    <text x="600" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Claude 3/Gemini</text>
-    <text x="600" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2024-25</text>
+    <text x="600" y="80" fill="#94cdb4" font-size="10" text-anchor="middle" font-family="Source Code Pro">200K+</text>
+    <text x="600" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Manrope">Claude 3/Gemini</text>
+    <text x="600" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="Source Code Pro">2024-25</text>
 
     <circle cx="720" cy="100" r="8" fill="#b7a5d9"/>
-    <text x="720" y="80" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="JetBrains Mono">1M+</text>
-    <text x="720" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="DM Sans">Experimental</text>
-    <text x="720" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="JetBrains Mono">2025-26</text>
+    <text x="720" y="80" fill="#b7a5d9" font-size="10" text-anchor="middle" font-family="Source Code Pro">1M+</text>
+    <text x="720" y="130" fill="#829ca1" font-size="9" text-anchor="middle" font-family="Manrope">Experimental</text>
+    <text x="720" y="145" fill="#829ca1" font-size="8" text-anchor="middle" font-family="Source Code Pro">2025-26</text>
   </svg>
   <div class="card amber" style="margin-top:.4em;">
     <h3>3 Orders of Magnitude in ~7 Years</h3>
